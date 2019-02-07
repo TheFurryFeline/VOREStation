@@ -177,3 +177,117 @@
 	name = "bone repair injector"
 	desc = "A refined version of the standard autoinjector, allowing greater capacity. This one excels at treating damage to bones."
 	filled_reagents = list("inaprovaline" = 5, "osteodaxon" = 10)
+<<<<<<< HEAD
+=======
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/glucose
+	name = "glucose hypo"
+	desc = "A hypoinjector filled with glucose, used for critically malnourished patients and voidsuited workers."
+	filled_reagents = list("glucose" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/stimm
+	name = "stimm injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one is filled with a home-made stimulant, with some serious side-effects."
+	filled_reagents = list("stimm" = 10) // More than 10u will OD.
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/expired
+	name = "expired injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one has had its contents expire a long time ago, using it now will probably make someone sick, or worse."
+	filled_reagents = list("expired_medicine" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/soporific
+	name = "soporific injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one is sometimes used by orderlies, as it has soporifics, which make someone tired and fall asleep."
+	filled_reagents = list("stoxin" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/cyanide
+	name = "cyanide injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one contains cyanide, a lethal poison. It being inside a medical autoinjector has certain unsettling implications."
+	filled_reagents = list("cyanide" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/serotrotium
+	name = "serotrotium injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one is filled with serotrotium, which causes concentrated production of the serotonin neurotransmitter in humans."
+	filled_reagents = list("serotrotium" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/space_drugs
+	name = "illicit injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one contains various illicit drugs, held inside a hypospray to make smuggling easier."
+	filled_reagents = list("space_drugs" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/cryptobiolin
+	name = "cryptobiolin injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one contains cryptobiolin, which causes confusion."
+	filled_reagents = list("cryptobiolin" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/impedrezene
+	name = "impedrezene injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one has impedrezene inside, a narcotic that impairs higher brain functioning. \
+	This autoinjector is almost certainly created illegitimately."
+	filled_reagents = list("impedrezene" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/mindbreaker
+	name = "mindbreaker injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This one stores the dangerous hallucinogen called 'Mindbreaker', likely put in place \
+	by illicit groups hoping to hide their product."
+	filled_reagents = list("mindbreaker" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/psilocybin
+	name = "psilocybin injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This has psilocybin inside, which is a strong psychotropic derived from certain species of mushroom. \
+	This autoinjector likely was made by criminal elements to avoid detection from casual inspection."
+	filled_reagents = list("psilocybin" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/mutagen
+	name = "unstable mutagen injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This contains unstable mutagen, which makes using this a very bad idea. It will either \
+	ruin your genetic health, turn you into a Five Points violation, or both!"
+	filled_reagents = list("mutagen" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/lexorin
+	name = "lexorin injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	This contains lexorin, a dangerous toxin that stops respiration, and has been \
+	implicated in several high-profile assassinations in the past."
+	filled_reagents = list("lexorin" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/healing_nanites
+	name = "medical nanite injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	The injector stores a slurry of highly advanced and specialized nanomachines designed \
+	to restore bodily health from within. The nanomachines are short-lived but degrade \
+	harmlessly, and cannot self-replicate in order to remain Five Points compliant."
+	filled_reagents = list("healing_nanites" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/defective_nanites
+	name = "defective nanite injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	The injector stores a slurry of highly advanced and specialized nanomachines that \
+	are unfortunately malfunctioning, making them unsafe to use inside of a living body. \
+	Because of the Five Points, these nanites cannot self-replicate."
+	filled_reagents = list("defective_nanites" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/contaminated
+	name = "contaminated injector"
+	desc = "A refined version of the standard autoinjector, allowing greater capacity. \
+	The hypospray contains a viral agent inside, as well as a liquid substance that encourages \
+	the growth of the virus inside."
+	filled_reagents = list("virusfood" = 15)
+
+/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector/contaminated/do_injection(mob/living/carbon/human/H, mob/living/user)
+	. = ..()
+	if(.) // Will occur if successfully injected.
+		infect_mob_random_lesser(H)
+		add_attack_logs(user, H, "Infected \the [H] with \the [src], by \the [user].")
+>>>>>>> 3e9624c... Adds the Zaddat Race + Modifies pressure damage calculations (#5869)

@@ -51,6 +51,11 @@
 #define LANGUAGE_EVENT1 "Occursus"
 #define LANGUAGE_AKHANI "Akhani"
 #define LANGUAGE_ALAI "Alai"
+<<<<<<< HEAD
+=======
+#define LANGUAGE_ZADDAT "Vedahq"
+#define LANGUAGE_GIBBERISH "Babel"
+>>>>>>> 3e9624c... Adds the Zaddat Race + Modifies pressure damage calculations (#5869)
 
 // Language flags.
 #define WHITELISTED  1   // Language is available if the speaker is whitelisted.
