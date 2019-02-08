@@ -16,7 +16,13 @@
 		SPECIES_UNATHI = 'icons/mob/species/unathi/helmet.dmi',
 		SPECIES_VOX = 'icons/mob/species/vox/head.dmi'
 		)
+<<<<<<< HEAD
 	species_restricted = null
+=======
+	species_restricted = list(SPECIES_HUMAN, SPECIES_SKRELL, SPECIES_TAJ, SPECIES_UNATHI, SPECIES_PROMETHEAN, SPECIES_TESHARI) //vox, diona, and zaddat can't use hardsuits not designed for them
+	max_pressure_protection = null
+	min_pressure_protection = null
+>>>>>>> 56c02a8... Merge pull request #5936 from Atermonera/rigsuit_pressurization
 
 /obj/item/clothing/gloves/gauntlets/rig
 	name = "gauntlets"
@@ -56,6 +62,8 @@
 		)
 	supporting_limbs = list()
 	var/obj/item/weapon/material/knife/tacknife
+	max_pressure_protection = null
+	min_pressure_protection = null
 
 /obj/item/clothing/suit/space/rig/attack_hand(var/mob/living/M)
 	if(tacknife)
