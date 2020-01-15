@@ -119,6 +119,11 @@
 	faction = "neutral"
 	tamed = 1
 
+//TFF 9/12/19 - Ports CHOMPStation mob Tofu. Can be used as CE pet if desired.
+/mob/living/simple_mob/otie/cotie/tofu
+	name = "Tofu"
+	desc = "Some kind of longdog. This one's wearing a collar with a bone-shaped tag that reads 'Tofu' on it."
+
 /mob/living/simple_mob/otie/cotie/phoron //friendly phoron pup with collar
 	name = "mutated otie"
 	desc = "Looks like someone did manage to domesticate one of those wild phoron mutants. What a badass."

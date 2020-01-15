@@ -1,10 +1,11 @@
 /mob/living/simple_mob/vore/aggressive/tarrasque
 	name = "T'rasq"
 	desc = "The most dreaded monster. Its purpose is to devour the worlds 1 waking cycle at a time, all it knows is, eat, sleep, repeat."
+	tt_desc = "Embodiment of Destruction" //Let's avoid Actually labeling these as "Tarrasque" by species, going for a more mythological kinda thing, does this even exyst?
 
-	icon_dead = "terrasque-dead"
-	icon_living = "terrasque"
-	icon_state = "terrasque"
+	icon_dead = "tarrasque-dead"
+	icon_living = "tarrasque"
+	icon_state = "tarrasque"
 	icon = 'icons/mob/vore32x32.dmi'
 
 	response_help   = "sacrifices self to"
@@ -15,14 +16,15 @@
 //	speed = 5
 	maxHealth = 1000
 	health = 1000
+	size_multiplier = 2
 
-	harm_intent_damage = 1
+	harm_intent_damage = 0
 	melee_damage_lower = 10 //huh not so bad
 	melee_damage_upper = 45 //oh, oh no
 	attacktext = list("bites","claws","slashes")
 
 	//say_list_type = null	//TFF 8/1/20 - Apparently there's nothing from the old code.
-	ai_holder_type = /datum/ai_holder/simple_mob/destructive
+	ai_holder_type = /datum/ai_holder/simple_mob/destructive/tarrasque
 
 	min_oxy = 0
 	max_tox = 0
@@ -38,6 +40,15 @@
 	resistance = 99
 	attack_armor_pen = 20
 	melee_miss_chance = 0
+
+/datum/ai_holder/simple_mob/destructive/tarrasque
+	violent_breakthrough = TRUE
+	destructive = TRUE
+	can_breakthrough = TRUE
+	returns_home = TRUE
+	vision_range = 200	//HE knows when you're awake, and also when you sleep
+	cooperative = FALSE
+	follow_distance = 999
 
 /mob/living/simple_mob/vore/aggressive/tarrasque/death()
 	..()
@@ -61,7 +72,7 @@
 	melee_damage_lower = 0
 	melee_damage_upper = 50
 	attacktext = list("whacked","slashed","smashed")
-	var/alang = LANGUAGE_GALCOM
+	has_langs = list(LANGUAGE_GALCOM)
 	var/active_sound = 'sound/effects/vore_mob_sounds/kefka.ogg'
 	armor = list(
 				"melee" = 99,
@@ -71,6 +82,7 @@
 				"bomb" = 99,
 				"bio" = 100,
 				"rad" = 100)
+	ai_holder_type = /datum/ai_holder/simple_mob/destructive/tarrasque/mrx
 
 //Vore stuff
 	vore_active = 1
@@ -80,6 +92,9 @@
 	vore_default_mode = DM_DIGEST
 	vore_standing_too = 1
 	vore_icons = SA_ICON_LIVING
+
+/datum/ai_holder/simple_mob/destructive/tarrasque/mrx
+	vision_range = 420
 
 /mob/living/simple_mob/vore/aggressive/tarrasque/mrx/init_vore()
 	..()
@@ -123,16 +138,16 @@
 /mob/living/simple_mob/vore/aggressive/tarrasque/mrx/proc/DoPunch(var/atom/A)
 	. = ..()
 	if(.) // If we succeeded in hitting.
-		if(alang==LANGUAGE_GALCOM)
-			alang="Xenomorph"
-		else if(alang=="Xenomorph")
-			alang=LANGUAGE_GALCOM
+		if(has_langs==LANGUAGE_GALCOM)
+			has_langs="Xenomorph"
+		else if(has_langs=="Xenomorph")
+			has_langs=LANGUAGE_GALCOM
 		flicker()
 		if(istype(A,/turf/simulated/wall))
 			var/turf/simulated/wall/wall = A
 			wall.dismantle_wall(null,null,1)
 		if(isliving(A) && !anchored)
-			src.say("Run tasty treat, run~", alang,"chitters") //may hiss may not, balanced
+			src.say("Run tasty treat, run~", has_langs,"chitters") //may hiss may not, balanced
 			var/mob/living/L = A
 			L.Weaken(5)
 			//stop_automated_movement = 1
@@ -153,8 +168,12 @@
 /////////////////////////////////////////
 /mob/living/simple_mob/vore/aggressive/tarrasque/mrx/proc/opensesame()
 	for(var/obj/machinery/door/airlock/door in range(5, src))
-		door.open(1)
-		door.lock(1)
+		if(istype(door,/obj/machinery/door/airlock/lift))
+			return FALSE
+		else
+			door.open(1)
+			door.lock(1)
+			return
 /mob/living/simple_mob/vore/aggressive/tarrasque/mrx/proc/flicker()
 	for(var/obj/machinery/light/light in range(5, src))
 		light.flicker(2)

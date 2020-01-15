@@ -81,10 +81,9 @@
 	special_attack_min_range = 1
 	special_attack_max_range = 6
 	base_attack_cooldown = 90
-	ai_holder_type = /datum/ai_holder/simple_mob/ranged/kiting/spitterplant
+	ai_holder_type = /datum/ai_holder/simple_mob/ranged/spitterplant
 
-/datum/ai_holder/simple_mob/ranged/kiting/spitterplant
-	cooperative = TRUE
+/datum/ai_holder/simple_mob/ranged/spitterplant
 	call_distance = 2
 	can_breakthrough = FALSE
 	wander = FALSE
@@ -93,8 +92,8 @@
 	wander_when_pulled = 0
 	firing_lanes = FALSE
 	vision_range = 5
-	run_if_this_close = 0
-	pointblank = FALSE
+	var/run_if_this_close = 0
+	returns_home = TRUE
 
 /datum/ai_holder/simple_mob/ranged/spitterplant/max_range(atom/movable/AM)
 	if(isliving(AM))
