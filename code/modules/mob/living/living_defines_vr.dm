@@ -4,6 +4,8 @@
 /mob/living
 	var/ooc_notes = null
 	var/obj/structure/mob_spawner/source_spawner = null
+	//TFF 9/1/20 pitcher plant CHOMPStation port
+	var/entangle_immunity = 0
 
 //custom say verbs
 	var/custom_say = null
