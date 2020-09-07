@@ -31,7 +31,7 @@
 	if(!ui)
 		ui = new(user, src, "PlantAnalyzer", name)
 		ui.open()
-	
+
 /obj/item/device/analyzer/plant_analyzer/tgui_state(mob/user)
 	return GLOB.tgui_inventory_state
 
@@ -51,7 +51,7 @@
 /obj/item/device/analyzer/plant_analyzer/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
 	if(..())
 		return TRUE
-	
+
 	switch(action)
 		if("print")
 			print_report(usr)
