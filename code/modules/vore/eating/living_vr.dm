@@ -32,7 +32,8 @@
 	var/adminbus_trash = FALSE			// For abusing trash eater for event shenanigans.
 	var/adminbus_eat_minerals = FALSE	// This creature subsists on a diet of pure adminium.
 	var/vis_height = 32					// Sprite height used for resize features.
-	var/show_vore_fx = TRUE			// Show belly fullscreens
+	var/show_vore_fx = TRUE				// Show belly fullscreens
+	var/no_sit_on_head = FALSE			// Default to not sit on one's head.
 
 //
 // Hook for generic creation of stuff on new creatures
@@ -239,6 +240,7 @@
 	P.show_vore_fx = src.show_vore_fx
 	P.can_be_drop_prey = src.can_be_drop_prey
 	P.can_be_drop_pred = src.can_be_drop_pred
+	P.no_sit_on_head = src.no_sit_on_head	// TFF 28/11/20 - Prevent sitting on head with the grab mechanic.
 
 	var/list/serialized = list()
 	for(var/belly in src.vore_organs)
@@ -271,6 +273,7 @@
 	show_vore_fx = P.show_vore_fx
 	can_be_drop_prey = P.can_be_drop_prey
 	can_be_drop_pred = P.can_be_drop_pred
+	no_sit_on_head = P.no_sit_on_head	// TFF 28/11/20 - choose whether to allow a grabber to sit on head of the grabbed when head is targeted.
 
 	if(bellies)
 		release_vore_contents(silent = TRUE)
@@ -847,6 +850,7 @@
 	dispvoreprefs += "<b>Healbelly permission:</b> [permit_healbelly ? "Allowed" : "Disallowed"]<br>"
 	dispvoreprefs += "<b>Spontaneous vore prey:</b> [can_be_drop_prey ? "Enabled" : "Disabled"]<br>"
 	dispvoreprefs += "<b>Spontaneous vore pred:</b> [can_be_drop_pred ? "Enabled" : "Disabled"]<br>"
+	dispvoreprefs += "<b>Head-sit Permission:</b> [no_sit_on_head ? "Enabled" : "Disabled"]<br>"
 	user << browse("<html><head><title>Vore prefs: [src]</title></head><body><center>[dispvoreprefs]</center></body></html>", "window=[name]mvp;size=200x300;can_resize=0;can_minimize=0")
 	onclose(user, "[name]")
 	return

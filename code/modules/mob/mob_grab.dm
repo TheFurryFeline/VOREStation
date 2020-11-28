@@ -174,11 +174,13 @@
 				assailant.visible_message("<span class='warning'>[assailant] covers [affecting]'s eyes!</span>")
 			if(affecting.eye_blind < 3)
 				affecting.Blind(3)
-		//VOREStation Edit
+		//VOREStation Edit	// TFF 28/11/20 update to this for preferences allowance.
 		if(BP_HEAD)
 			if(force_down)
-				if(announce)
+				if(announce && assailant.no_sit_on_head == TRUE && target.no_sit_on_head == TRUE)
 					assailant.visible_message("<span class='warning'>[assailant] sits on [target]'s face!</span>")
+				else
+					return
 		//VOREStation Edit End
 
 /obj/item/weapon/grab/attack_self()

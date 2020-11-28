@@ -56,6 +56,7 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 	var/show_vore_fx = TRUE
 	var/can_be_drop_prey = FALSE
 	var/can_be_drop_pred = FALSE
+	var/no_sit_on_head = FALSE	// TFF 28/11/20 - choose whether to allow sitting on head.
 
 	//Mechanically required
 	var/path
@@ -130,7 +131,9 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 	show_vore_fx = json_from_file["show_vore_fx"]
 	can_be_drop_prey = json_from_file["can_be_drop_prey"]
 	can_be_drop_pred = json_from_file["can_be_drop_pred"]
+	no_sit_on_head = json_from_file["no_sit_on_head"]	// TFF 28/11/20 - choose whether to allow sitting on head.
 	belly_prefs = json_from_file["belly_prefs"]
+
 
 	//Quick sanitize
 	if(isnull(digestable))
@@ -153,6 +156,8 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 		can_be_drop_prey = FALSE
 	if(isnull(can_be_drop_pred))
 		can_be_drop_pred = FALSE
+	if(isnull(no_sit_on_head))
+		no_sit_on_head = FALSE
 	if(isnull(belly_prefs))
 		belly_prefs = list()
 
@@ -174,9 +179,10 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 			"vore_taste"			= vore_taste,
 			"vore_smell"			= vore_smell,
 			"permit_healbelly"		= permit_healbelly,
-			"show_vore_fx"		= show_vore_fx,
+			"show_vore_fx"			= show_vore_fx,
 			"can_be_drop_prey"		= can_be_drop_prey,
 			"can_be_drop_pred"		= can_be_drop_pred,
+			"no_sit_on_head"		= no_sit_on_head,
 			"belly_prefs"			= belly_prefs,
 		)
 
