@@ -150,6 +150,7 @@
 			"release_sound" = selected.release_sound,
 			// "messages" // TODO
 			"can_taste" = selected.can_taste,
+			"egg_type" = selected.egg_type,
 			"nutrition_percent" = selected.nutrition_percent,
 			"digest_brute" = selected.digest_brute,
 			"digest_burn" = selected.digest_burn,
@@ -164,6 +165,7 @@
 			if(selected.mode_flags & selected.mode_flag_list[flag_name])
 				data["selected"]["addons"].Add(flag_name)
 
+		data["selected"]["egg_type"] = selected.egg_type
 		data["selected"]["contaminates"] = selected.contaminates
 		data["selected"]["contaminate_flavor"] = null
 		data["selected"]["contaminate_color"] = null
@@ -524,8 +526,10 @@
 	var/atom/movable/target = locate(params["pick"])
 	if(!(target in host.vore_selected))
 		return TRUE // Not in our X anymore, update UI
-	intent = "Examine"
-	intent = alert("Examine, Eject, Move? Examine if you want to leave this box.","Query","Examine","Eject","Move")
+	var/list/available_options = list("Examine", "Eject", "Move")
+	if(ishuman(target))
+		available_options += "Transform"
+	intent = input(user, "What would you like to do with [target]?", "Vore Pick", "Examine") as null|anything in available_options
 	switch(intent)
 		if("Examine")
 			var/list/results = target.examine(host)
@@ -540,6 +544,7 @@
 				return TRUE
 
 			host.vore_selected.release_specific_contents(target)
+			return TRUE
 
 		if("Move")
 			if(host.stat)
@@ -552,6 +557,20 @@
 
 			to_chat(target,"<span class='warning'>You're squished from [host]'s [lowertext(host.vore_selected.name)] to their [lowertext(choice.name)]!</span>")
 			host.vore_selected.transfer_contents(target, choice)
+			return TRUE
+
+		if("Transform")
+			if(host.stat)
+				to_chat(user,"<span class='warning'>You can't do that in your state!</span>")
+				return TRUE
+
+			var/mob/living/carbon/human/H = target
+			if(!istype(H))
+				return
+
+			var/datum/tgui_module/appearance_changer/vore/V = new(host, H)
+			V.tgui_interact(user)
+			return TRUE
 
 /datum/vore_look/proc/set_attr(mob/user, params)
 	if(!host.vore_selected)
@@ -588,20 +607,9 @@
 			. = TRUE
 		if("b_mode")
 			var/list/menu_list = host.vore_selected.digest_modes.Copy()
-			if(istype(usr,/mob/living/carbon/human))
-				menu_list += DM_TRANSFORM
-
 			var/new_mode = input("Choose Mode (currently [host.vore_selected.digest_mode])") as null|anything in menu_list
 			if(!new_mode)
 				return FALSE
-
-			if(new_mode == DM_TRANSFORM) //Snowflek submenu
-				var/list/tf_list = host.vore_selected.transform_modes
-				var/new_tf_mode = input("Choose TF Mode (currently [host.vore_selected.digest_mode])") as null|anything in tf_list
-				if(!new_tf_mode)
-					return FALSE
-				host.vore_selected.digest_mode = new_tf_mode
-				return
 
 			host.vore_selected.digest_mode = new_mode
 			. = TRUE
@@ -640,6 +648,13 @@
 				return FALSE
 			host.vore_selected.contamination_color = new_color
 			host.vore_selected.items_preserved.Cut() //To re-contaminate for new color
+			. = TRUE
+		if("b_egg_type")
+			var/list/menu_list = global_vore_egg_types.Copy()
+			var/new_egg_type = input("Choose Egg Type (currently [host.vore_selected.egg_type])") as null|anything in menu_list
+			if(!new_egg_type)
+				return FALSE
+			host.vore_selected.egg_type = new_egg_type
 			. = TRUE
 		if("b_desc")
 			var/new_desc = html_encode(input(usr,"Belly Description ([BELLIES_DESC_MAX] char limit):","New Description",host.vore_selected.desc) as message|null)
