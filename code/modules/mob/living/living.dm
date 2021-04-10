@@ -632,6 +632,12 @@
 			process_resist()
 
 /mob/living/proc/process_resist()
+
+	if(istype(src.loc, /mob/living/silicon/robot/platform))
+		var/mob/living/silicon/robot/platform/R = src.loc
+		R.drop_stored_atom(src, src)
+		return TRUE
+
 	//unbuckling yourself
 	if(buckled)
 		resist_buckle()
@@ -699,6 +705,14 @@
 
 /mob/living/proc/has_eyes()
 	return 1
+
+/mob/living/proc/get_restraining_bolt()
+	var/obj/item/weapon/implant/restrainingbolt/RB = locate() in src
+	if(RB)
+		if(!RB.malfunction)
+			return TRUE
+
+	return FALSE
 
 /mob/living/proc/slip(var/slipped_on,stun_duration=8)
 	return 0
@@ -834,8 +848,12 @@
 
 	if(lying)
 		density = 0
-		if(l_hand) unEquip(l_hand)
-		if(r_hand) unEquip(r_hand)
+		if(l_hand) 
+			unEquip(l_hand)
+		if(r_hand) 
+			unEquip(r_hand)
+		for(var/obj/item/weapon/holder/holder in get_mob_riding_slots())
+			unEquip(holder)
 		update_water() // Submerges the mob.
 	else
 		density = initial(density)
@@ -862,6 +880,10 @@
 		//VOREStation Add End
 
 	return canmove
+
+// Mob holders in these slots will be spilled if the mob goes prone.
+/mob/living/proc/get_mob_riding_slots()
+	return list(back)
 
 // Adds overlays for specific modifiers.
 // You'll have to add your own implementation for non-humans currently, just override this proc.

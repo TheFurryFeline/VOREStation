@@ -51,7 +51,7 @@
 	has_limbs = list(
 		BP_TORSO =  list("path" = /obj/item/organ/external/chest),
 		BP_GROIN =  list("path" = /obj/item/organ/external/groin),
-		BP_HEAD =   list("path" = /obj/item/organ/external/head/vr/sergal),
+		BP_HEAD =   list("path" = /obj/item/organ/external/head/sergal),
 		BP_L_ARM =  list("path" = /obj/item/organ/external/arm),
 		BP_R_ARM =  list("path" = /obj/item/organ/external/arm/right),
 		BP_L_LEG =  list("path" = /obj/item/organ/external/leg),
@@ -226,7 +226,7 @@
 	dual-star Vazzend system. Their politically de-centralized society and independent natures have led them to become a species and \
 	culture both feared and respected for their scientific breakthroughs. Discovery, loyalty, and utilitarianism dominates their lifestyles \
 	to the degree it can cause conflict with more rigorous and strict authorities. They speak a guttural language known as 'Canilunzt' \
-    which has a heavy emphasis on utilizing tail positioning and ear twitches to communicate intent."
+	which has a heavy emphasis on utilizing tail positioning and ear twitches to communicate intent."
 
 	wikilink="https://wiki.vore-station.net/Backstory#Vulpkanin"
 
@@ -265,6 +265,7 @@
 	tail_animation = 'icons/mob/species/tajaran/tail_vr.dmi'
 	color_mult = 1
 	min_age = 18
+	allergens = null
 	gluttonous = 0 //Moving this here so I don't have to fix this conflict every time polaris glances at station.dm
 	inherent_verbs = list(/mob/living/carbon/human/proc/lick_wounds)
 	heat_discomfort_level = 295 //Prevents heat discomfort spam at 20c
@@ -279,6 +280,7 @@
 	color_mult = 1
 	min_age = 18
 	reagent_tag = null
+	allergens = null
 	assisted_langs = list(LANGUAGE_EAL, LANGUAGE_ROOTLOCAL, LANGUAGE_ROOTGLOBAL, LANGUAGE_VOX)
 	genders = list(MALE, FEMALE, PLURAL, NEUTER)
 	wikilink="https://wiki.vore-station.net/Skrell"
@@ -304,28 +306,6 @@
 	min_age = 18
 	genders = list(MALE, FEMALE, PLURAL, NEUTER)
 	wikilink="https://wiki.vore-station.net/Diona"
-
-/datum/species/teshari
-	mob_size = MOB_MEDIUM //To allow normal mob swapping
-	spawn_flags = SPECIES_CAN_JOIN
-	icobase = 'icons/mob/human_races/r_seromi_vr.dmi'
-	deform = 'icons/mob/human_races/r_seromi_vr.dmi'
-	icobase_tail = 1
-	color_mult = 1
-	min_age = 18
-	push_flags = ~HEAVY //Allows them to use micro step code.
-	swap_flags = ~HEAVY
-	gluttonous = 0
-	genders = list(MALE, FEMALE, PLURAL, NEUTER)
-	descriptors = list()
-	wikilink="https://wiki.vore-station.net/Teshari"
-	agility = 90
-
-	inherent_verbs = list(
-		/mob/living/carbon/human/proc/sonar_ping,
-		/mob/living/proc/hide,
-		/mob/living/proc/toggle_pass_table
-		)
 
 /datum/species/human
 	color_mult = 1
@@ -449,7 +429,7 @@ datum/species/harpy
 	base_color = "#f0f0f0"
 	color_mult = 1
 
-	has_glowing_eyes = TRUE
+	//has_glowing_eyes = TRUE			// Applicable through traits.
 
 	male_cough_sounds = null
 	female_cough_sounds = null
@@ -481,7 +461,7 @@ datum/species/harpy
 	has_limbs = list(
 		BP_TORSO =  list("path" = /obj/item/organ/external/chest/crewkin),
 		BP_GROIN =  list("path" = /obj/item/organ/external/groin/crewkin),
-		BP_HEAD =   list("path" = /obj/item/organ/external/head/vr/crewkin),
+		BP_HEAD =   list("path" = /obj/item/organ/external/head/crewkin),
 		BP_L_ARM =  list("path" = /obj/item/organ/external/arm/crewkin),
 		BP_R_ARM =  list("path" = /obj/item/organ/external/arm/right/crewkin),
 		BP_L_LEG =  list("path" = /obj/item/organ/external/leg/crewkin),
