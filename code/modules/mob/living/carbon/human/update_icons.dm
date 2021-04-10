@@ -141,6 +141,9 @@ var/global/list/damage_icon_parts = list() //see UpdateDamageIcon()
 	var/desired_scale_y = size_multiplier * icon_scale_y
 	desired_scale_x *= species.icon_scale_x
 	desired_scale_y *= species.icon_scale_y
+	appearance_flags |= PIXEL_SCALE
+	if(fuzzy)
+		appearance_flags &= ~PIXEL_SCALE
 	//VOREStation Edit End
 
 	// Regular stuff again.
@@ -248,7 +251,8 @@ var/global/list/damage_icon_parts = list() //see UpdateDamageIcon()
 		icon_key += "[r_eyes], [g_eyes], [b_eyes]"
 	var/obj/item/organ/external/head/head = organs_by_name[BP_HEAD]
 	if(head)
-		icon_key += "[head.eye_icon]"
+		if(!istype(head, /obj/item/organ/external/stump))
+			icon_key += "[head.eye_icon]"
 	for(var/organ_tag in species.has_limbs)
 		var/obj/item/organ/external/part = organs_by_name[organ_tag]
 		if(isnull(part) || part.is_stump() || part.is_hidden_by_tail()) //VOREStation Edit allowing tails to prevent bodyparts rendering, granting more spriter freedom for taur/digitigrade stuff.
