@@ -3,7 +3,7 @@
 		container.icon_state = "mmi_dead"
 		return ..(gibbed,"beeps shrilly as the MMI flatlines!")
 	else
-		return ..(gibbed, DEATHGASP_NO_MESSAGE)
+		return ..(gibbed,"no message")
 
 /mob/living/carbon/brain/gib()
 	if(istype(container, /obj/item/device/mmi))

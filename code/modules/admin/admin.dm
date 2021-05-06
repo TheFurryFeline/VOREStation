@@ -229,17 +229,8 @@ proc/admin_notice(var/message, var/rights)
 		return
 	PlayerNotesPage(1)
 
-/datum/admins/proc/PlayerNotesFilter()
-	if (!istype(src,/datum/admins))
-		src = usr.client.holder
-	if (!istype(src,/datum/admins))
-		to_chat(usr, "Error: you are not an admin!")
-		return
-	var/filter = input(usr, "Filter string (case-insensitive regex)", "Player notes filter") as text|null
-	PlayerNotesPage(1, filter)
-
-/datum/admins/proc/PlayerNotesPage(page, filter)
-	var/dat = "<B>Player notes</B> - <a href='?src=\ref[src];notes=filter'>Apply Filter</a><HR>"
+/datum/admins/proc/PlayerNotesPage(page)
+	var/dat = "<B>Player notes</B><HR>"
 	var/savefile/S=new("data/player_notes.sav")
 	var/list/note_keys
 	S >> note_keys
@@ -249,38 +240,29 @@ proc/admin_notice(var/message, var/rights)
 		dat += "<table>"
 		note_keys = sortList(note_keys)
 
-		if(filter)
-			var/list/results = list()
-			var/regex/needle = regex(filter, "i")
-			for(var/haystack in note_keys)
-				if(needle.Find(haystack))
-					results += haystack
-			note_keys = results
-
 		// Display the notes on the current page
 		var/number_pages = note_keys.len / PLAYER_NOTES_ENTRIES_PER_PAGE
 		// Emulate CEILING(why does BYOND not have ceil, 1)
 		if(number_pages != round(number_pages))
 			number_pages = round(number_pages) + 1
 		var/page_index = page - 1
-
 		if(page_index < 0 || page_index >= number_pages)
-			dat += "<tr><td>No keys found.</td></tr>"
-		else
-			var/lower_bound = page_index * PLAYER_NOTES_ENTRIES_PER_PAGE + 1
-			var/upper_bound = (page_index + 1) * PLAYER_NOTES_ENTRIES_PER_PAGE
-			upper_bound = min(upper_bound, note_keys.len)
-			for(var/index = lower_bound, index <= upper_bound, index++)
-				var/t = note_keys[index]
-				dat += "<tr><td><a href='?src=\ref[src];notes=show;ckey=[t]'>[t]</a></td></tr>"
+			return
 
-		dat += "</table><hr>"
+		var/lower_bound = page_index * PLAYER_NOTES_ENTRIES_PER_PAGE + 1
+		var/upper_bound = (page_index + 1) * PLAYER_NOTES_ENTRIES_PER_PAGE
+		upper_bound = min(upper_bound, note_keys.len)
+		for(var/index = lower_bound, index <= upper_bound, index++)
+			var/t = note_keys[index]
+			dat += "<tr><td><a href='?src=\ref[src];notes=show;ckey=[t]'>[t]</a></td></tr>"
+
+		dat += "</table><br>"
 
 		// Display a footer to select different pages
 		for(var/index = 1, index <= number_pages, index++)
 			if(index == page)
 				dat += "<b>"
-			dat += "<a href='?src=\ref[src];notes=list;index=[index];filter=[filter ? url_encode(filter) : 0]'>[index]</a> "
+			dat += "<a href='?src=\ref[src];notes=list;index=[index]'>[index]</a> "
 			if(index == page)
 				dat += "</b>"
 

@@ -477,26 +477,19 @@
 /mob/proc/update_gravity()
 	return
 
-#define DO_MOVE(this_dir) var/final_dir = turn(this_dir, -dir2angle(dir)); Move(get_step(mob, final_dir), final_dir);
-
 /client/verb/moveup()
 	set name = ".moveup"
 	set instant = 1
-	DO_MOVE(NORTH)
-
+	Move(get_step(mob, NORTH), NORTH)
 /client/verb/movedown()
 	set name = ".movedown"
 	set instant = 1
-	DO_MOVE(SOUTH)
-
+	Move(get_step(mob, SOUTH), SOUTH)
 /client/verb/moveright()
 	set name = ".moveright"
 	set instant = 1
-	DO_MOVE(EAST)
-
+	Move(get_step(mob, EAST), EAST)
 /client/verb/moveleft()
 	set name = ".moveleft"
 	set instant = 1
-	DO_MOVE(WEST)
-
-#undef DO_MOVE
+	Move(get_step(mob, WEST), WEST)

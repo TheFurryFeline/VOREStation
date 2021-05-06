@@ -42,7 +42,6 @@
 	lastarea = get_area(src)
 	hook_vr("mob_new",list(src)) //VOREStation Code
 	update_transform() // Some mobs may start bigger or smaller than normal.
-	update_emotes()
 	return ..()
 
 /mob/proc/show_message(msg, type, alt, alt_type)//Message, type of message (1 or 2), alternative message, alt message type (1 or 2)
@@ -50,19 +49,19 @@
 	if(!client && !teleop)	return
 
 	if (type)
-		if((type & VISIBLE_MESSAGE) && (is_blind() || paralysis) )//Vision related
+		if((type & 1) && (is_blind() || paralysis) )//Vision related
 			if (!( alt ))
 				return
 			else
 				msg = alt
 				type = alt_type
-		if ((type & AUDIBLE_MESSAGE) && is_deaf())//Hearing related
+		if ((type & 2) && is_deaf())//Hearing related
 			if (!( alt ))
 				return
 			else
 				msg = alt
 				type = alt_type
-				if ((type & VISIBLE_MESSAGE) && (sdisabilities & BLIND))
+				if ((type & 1) && (sdisabilities & BLIND))
 					return
 	// Added voice muffling for Issue 41.
 	if(stat == UNCONSCIOUS || sleeping > 0)
@@ -78,17 +77,14 @@
 // message is the message output to anyone who can see e.g. "[src] does something!"
 // self_message (optional) is what the src mob sees  e.g. "You do something!"
 // blind_message (optional) is what blind people will hear e.g. "You hear something!"
-/mob/visible_message(var/message, var/self_message, var/blind_message, var/list/exclude_mobs = null, var/range = world.view)
+/mob/visible_message(var/message, var/self_message, var/blind_message, var/list/exclude_mobs = null)
 	if(self_message)
 		if(LAZYLEN(exclude_mobs))
 			exclude_mobs |= src
 		else
 			exclude_mobs = list(src)
 		src.show_message(self_message, 1, blind_message, 2)
-	// Transfer messages about what we are doing to upstairs
-	if(shadow)
-		shadow.visible_message(message, self_message, blind_message, exclude_mobs, range)
-	. = ..(message, blind_message, exclude_mobs, range) // Really not ideal that atom/visible_message has different arg numbering :(
+	. = ..(message, blind_message, exclude_mobs)
 
 // Returns an amount of power drawn from the object (-1 if it's not viable).
 // If drain_check is set it will not actually drain power, just return a value.
@@ -103,7 +99,7 @@
 // self_message (optional) is what the src mob hears.
 // deaf_message (optional) is what deaf people will see.
 // hearing_distance (optional) is the range, how many tiles away the message can be heard.
-/mob/audible_message(var/message, var/deaf_message, var/hearing_distance, var/self_message, var/radio_message)
+/mob/audible_message(var/message, var/deaf_message, var/hearing_distance, var/self_message)
 
 	var/range = hearing_distance || world.view
 	var/list/hear = get_mobs_and_objs_in_view_fast(get_turf(src),range,remote_ghosts = FALSE)
@@ -111,21 +107,16 @@
 	var/list/hearing_mobs = hear["mobs"]
 	var/list/hearing_objs = hear["objs"]
 
-	if(radio_message)
-		for(var/obj in hearing_objs)
-			var/obj/O = obj
-			O.hear_talk(src, list(new /datum/multilingual_say_piece(GLOB.all_languages["Noise"], radio_message)), null)
-	else
-		for(var/obj in hearing_objs)
-			var/obj/O = obj
-			O.show_message(message, AUDIBLE_MESSAGE, deaf_message, VISIBLE_MESSAGE)
+	for(var/obj in hearing_objs)
+		var/obj/O = obj
+		O.show_message(message, 2, deaf_message, 1)
 
 	for(var/mob in hearing_mobs)
 		var/mob/M = mob
 		var/msg = message
 		if(self_message && M==src)
 			msg = self_message
-		M.show_message(msg, AUDIBLE_MESSAGE, deaf_message, VISIBLE_MESSAGE)
+		M.show_message(msg, 2, deaf_message, 1)
 
 /mob/proc/findname(msg)
 	for(var/mob/M in mob_list)
@@ -583,6 +574,9 @@
 	return client && !!mind
 
 /mob/proc/get_gender()
+	return gender
+
+/mob/proc/get_visible_gender()
 	return gender
 
 /mob/proc/see(message)

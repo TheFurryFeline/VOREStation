@@ -20,7 +20,9 @@
 	drop_sound = 'sound/items/drop/crowbar.ogg'
 	pickup_sound = 'sound/items/pickup/crowbar.ogg'
 	toolspeed = 1
-	tool_qualities = list(TOOL_CROWBAR)
+
+/obj/item/weapon/tool/crowbar/is_crowbar()
+	return TRUE
 
 /obj/item/weapon/tool/crowbar/red
 	icon = 'icons/obj/tools.dmi'

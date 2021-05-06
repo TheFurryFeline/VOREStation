@@ -200,6 +200,7 @@
 					modify.access -= access_type
 					if(!access_allowed)
 						modify.access += access_type
+				modify.lost_access = list()	//VOREStation addition: reset the lost access upon any modifications
 			. = TRUE
 
 		if("assign")
@@ -224,6 +225,7 @@
 					modify.access = access
 					modify.assignment = t1
 					modify.rank = t1
+					modify.lost_access = list()	//VOREStation addition: reset the lost access upon any modifications
 
 				callHook("reassign_employee", list(modify))
 			. = TRUE
@@ -281,6 +283,7 @@
 			if(is_authenticated())
 				modify.assignment = "Dismissed"	//VOREStation Edit: setting adjustment
 				modify.access = list()
+				modify.lost_access = list()	//VOREStation addition: reset the lost access upon any modifications
 
 				callHook("terminate_employee", list(modify))
 

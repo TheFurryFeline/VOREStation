@@ -17,7 +17,9 @@
 	toolspeed = 1
 	drop_sound = 'sound/items/drop/wrench.ogg'
 	pickup_sound = 'sound/items/pickup/wrench.ogg'
-	tool_qualities = list(TOOL_WRENCH)
+
+/obj/item/weapon/tool/wrench/is_wrench()
+	return TRUE
 
 /obj/item/weapon/tool/wrench/cyborg
 	name = "automatic wrench"

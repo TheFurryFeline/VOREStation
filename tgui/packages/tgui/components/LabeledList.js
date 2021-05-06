@@ -24,7 +24,6 @@ export const LabeledListItem = props => {
     buttons,
     content,
     children,
-    ...rest
   } = props;
   return (
     <tr
@@ -51,8 +50,7 @@ export const LabeledListItem = props => {
           'LabeledList__cell',
           'LabeledList__content',
         ])}
-        colSpan={buttons ? undefined : 2}
-        {...rest}>
+        colSpan={buttons ? undefined : 2}>
         {content}
         {children}
       </Box>

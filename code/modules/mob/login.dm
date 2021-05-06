@@ -44,7 +44,6 @@
 	disconnect_time = null				//VOREStation Addition: clear the disconnect time
 	sight |= SEE_SELF
 	..()
-	SEND_SIGNAL(src, COMSIG_MOB_LOGIN)
 
 	if(loc && !isturf(loc))
 		client.eye = loc
@@ -83,4 +82,3 @@
 
 	if(cloaked && cloaked_selfimage)
 		client.images += cloaked_selfimage
-	SEND_SIGNAL(src, COMSIG_MOB_CLIENT_LOGIN, client)

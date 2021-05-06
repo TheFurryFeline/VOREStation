@@ -1,21 +1,5 @@
-var/list/_slime_default_emotes = list(
-	/decl/emote/audible/moan,
-	/decl/emote/visible/twitch,
-	/decl/emote/visible/sway,
-	/decl/emote/visible/shiver,
-	/decl/emote/visible/bounce,
-	/decl/emote/visible/jiggle,
-	/decl/emote/visible/lightup,
-	/decl/emote/visible/vibrate,
-	/decl/emote/slime,
-	/decl/emote/slime/pout,
-	/decl/emote/slime/sad,
-	/decl/emote/slime/angry,
-	/decl/emote/slime/frown,
-	/decl/emote/slime/smile
-)
-
 // The top-level slime defines. Xenobio slimes and feral slimes will inherit from this.
+
 /mob/living/simple_mob/slime
 	name = "slime"
 	desc = "It's a slime."
@@ -79,9 +63,6 @@ var/list/_slime_default_emotes = list(
 	var/mood = ":3" // Icon to use to display 'mood', as an overlay.
 
 	can_enter_vent_with = list(/obj/item/clothing/head)
-
-/mob/living/simple_mob/slime/get_default_emotes()
-	return global._slime_default_emotes
 
 /datum/say_list/slime
 	speak = list("Blorp...", "Blop...")

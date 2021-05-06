@@ -242,7 +242,6 @@ GLOBAL_LIST_EMPTY(mannequins)
 		var/datum/digest_mode/DM = new T
 		GLOB.digest_modes[DM.id] = DM
 	// VOREStation Add End
-	init_crafting_recipes(GLOB.crafting_recipes)
 
 /*
 	// Custom species traits
@@ -279,13 +278,8 @@ GLOBAL_LIST_EMPTY(mannequins)
 	return 1 // Hooks must return 1
 
 
-/// Inits the crafting recipe list, sorting crafting recipe requirements in the process.
-/proc/init_crafting_recipes(list/crafting_recipes)
-	for(var/path in subtypesof(/datum/crafting_recipe))
-		var/datum/crafting_recipe/recipe = new path()
-		recipe.reqs = sortList(recipe.reqs, /proc/cmp_crafting_req_priority)
-		crafting_recipes += recipe
-	return crafting_recipes
+	return 1
+
 /* // Uncomment to debug chemical reaction list.
 /client/verb/debug_chemical_list()
 

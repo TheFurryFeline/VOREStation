@@ -1,3 +1,6 @@
+/area
+	var/limit_mob_size = TRUE //If mob size is limited in the area.
+
 /area/shuttle/belter
 	name = "Belter Shuttle"
 	icon_state = "shuttle2"

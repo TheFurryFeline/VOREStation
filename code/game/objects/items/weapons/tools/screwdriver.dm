@@ -21,7 +21,6 @@
 	attack_verb = list("stabbed")
 	sharp  = 1
 	toolspeed = 1
-	tool_qualities = list(TOOL_SCREWDRIVER)
 	var/random_color = TRUE
 
 /obj/item/weapon/tool/screwdriver/suicide_act(mob/user)
@@ -67,6 +66,10 @@
 	if((CLUMSY in user.mutations) && prob(50))
 		M = user
 	return eyestab(M,user)
+
+/obj/item/weapon/tool/screwdriver/is_screwdriver()
+	return TRUE
+
 
 /datum/category_item/catalogue/anomalous/precursor_a/alien_screwdriver
 	name = "Precursor Alpha Object - Hard Light Torgue Tool"
