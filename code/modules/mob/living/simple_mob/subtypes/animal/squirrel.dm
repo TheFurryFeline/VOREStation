@@ -19,12 +19,12 @@
 	icon = 'icons/mob/alienanimals_x32.dmi'
 	color = "#76462c"
 
-	faction = "animal"
+	faction = FACTION_ANIMAL
 	maxHealth = 40
 	health = 40
 	movement_cooldown = -1
 	meat_amount = 1
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
+	meat_type = /obj/item/reagent_containers/food/snacks/meat
 
 	response_help = "pets"
 	response_disarm = "slaps"
@@ -50,7 +50,9 @@
 
 	var/static/list/overlays_cache = list()
 	var/do_seasons = TRUE
-	var/picked_color = FALSE
+	picked_color = FALSE
+
+	allow_mind_transfer = TRUE
 
 /////////////////////////////////////// Vore stuff///////////////////////////////////////////
 
@@ -67,13 +69,12 @@
 	vore_default_contamination_color = "grey"
 	vore_default_item_mode = IM_DIGEST
 
-/mob/living/simple_mob/vore/squirrel/init_vore()
-	..()
+/mob/living/simple_mob/vore/squirrel/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stomach"
 	B.digest_mode = DM_SELECT
 	B.mode_flags = DM_FLAG_THICKBELLY
-	B.belly_fullscreen = "yet_another_tumby"
 	B.digest_brute = 1
 	B.digest_burn = 1
 	B.escapechance = 35
@@ -148,14 +149,15 @@
 	say_maybe_target = list("Sqk?")
 	say_got_target = list("SQUEAK!!!")
 
-/mob/living/simple_mob/vore/squirrel/Initialize()
+/mob/living/simple_mob/vore/squirrel/Initialize(mapload)
 	. = ..()
 	if(do_seasons)
-		switch(world_time_season)
+		switch(GLOB.world_time_season)
 			if("spring")
 				if(prob(1))
 					winterize()
 			if("summer")
+				pass()
 			if("autumn")
 				vore_bump_chance = 20
 				if(prob(50))
@@ -206,12 +208,12 @@
 
 /mob/living/simple_mob/vore/squirrel/verb/squirrel_color()
 	set name = "Pick Color"
-	set category = "Abilities"
+	set category = "Abilities.Settings"
 	set desc = "You can set your color!"
 	if(picked_color)
-		to_chat(src, "<span class='notice'>You have already picked a color! If you picked the wrong color, ask an admin to change your picked_color variable to 0.</span>")
+		to_chat(src, span_notice("You have already picked a color! If you picked the wrong color, ask an admin to change your picked_color variable to 0."))
 		return
-	var/newcolor = input(usr, "Choose a color.", "", color) as color|null
+	var/newcolor = tgui_color_picker(src, "Choose a color.", "", color)
 	if(newcolor)
 		color = newcolor
 	picked_color = TRUE
@@ -223,6 +225,6 @@
 /mob/living/simple_mob/vore/squirrel/big
 	do_seasons = FALSE
 
-/mob/living/simple_mob/vore/squirrel/big/Initialize()
+/mob/living/simple_mob/vore/squirrel/big/Initialize(mapload)
 	. = ..()
 	winterize()

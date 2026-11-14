@@ -31,14 +31,14 @@ a creative player the means to solve many problems.  Circuits are held inside an
 /obj/item/integrated_circuit/proc/any_examine(mob/user)
 	return
 
-/obj/item/integrated_circuit/New()
+/obj/item/integrated_circuit/Initialize(mapload)
+	. = ..()
 	displayed_name = name
 	if(!size) size = w_class
 	if(size == -1) size = 0
 	setup_io(inputs, /datum/integrated_io, inputs_default)
 	setup_io(outputs, /datum/integrated_io, outputs_default)
 	setup_io(activators, /datum/integrated_io/activate)
-	..()
 
 /obj/item/integrated_circuit/proc/on_data_written() //Override this for special behaviour when new data gets pushed to the circuit.
 	return
@@ -52,7 +52,10 @@ a creative player the means to solve many problems.  Circuits are held inside an
 		qdel(A)
 	. = ..()
 
-/obj/item/integrated_circuit/emp_act(severity)
+/obj/item/integrated_circuit/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
 	for(var/datum/integrated_io/io in inputs + outputs + activators)
 		io.scramble()
 
@@ -68,16 +71,16 @@ a creative player the means to solve many problems.  Circuits are held inside an
 	if(!check_interactivity(M))
 		return
 
-	var/input = sanitizeSafe(tgui_input_text(usr, "What do you want to name the circuit?", "Rename", src.name, MAX_NAME_LEN), MAX_NAME_LEN)
+	var/input = sanitizeSafe(tgui_input_text(M, "What do you want to name the circuit?", "Rename", src.name, MAX_NAME_LEN, encode = FALSE), MAX_NAME_LEN)
 	if(src && input && assembly.check_interactivity(M))
-		to_chat(M, "<span class='notice'>The circuit '[src.name]' is now labeled '[input]'.</span>")
+		to_chat(M, span_notice("The circuit '[src.name]' is now labeled '[input]'."))
 		displayed_name = input
 
 /obj/item/integrated_circuit/tgui_state(mob/user)
 	return GLOB.tgui_physical_state
 
 /obj/item/integrated_circuit/tgui_host(mob/user)
-	if(istype(loc, /obj/item/device/electronic_assembly))
+	if(istype(loc, /obj/item/electronic_assembly))
 		return loc.tgui_host()
 	return ..()
 
@@ -92,6 +95,7 @@ a creative player the means to solve many problems.  Circuits are held inside an
 
 	data["name"] = name
 	data["desc"] = desc
+	data["ref"] = REF(src)
 	data["displayed_name"] = displayed_name
 	data["removable"] = removable
 
@@ -104,27 +108,13 @@ a creative player the means to solve many problems.  Circuits are held inside an
 	var/list/outputs_list = list()
 	var/list/activators_list = list()
 	for(var/datum/integrated_io/io in inputs)
-		inputs_list.Add(list(tgui_pin_data(io)))
+		UNTYPED_LIST_ADD(inputs_list, tgui_pin_data(io))
 
 	for(var/datum/integrated_io/io in outputs)
-		outputs_list.Add(list(tgui_pin_data(io)))
+		UNTYPED_LIST_ADD(outputs_list, tgui_pin_data(io))
 
 	for(var/datum/integrated_io/io in activators)
-		var/list/list/activator = list(
-			"ref" = REF(io),
-			"name" = io.name,
-			"pulse_out" = io.data,
-			"linked" = list()
-		)
-		for(var/datum/integrated_io/linked in io.linked)
-			activator["linked"].Add(list(list(
-				"ref" = REF(linked),
-				"name" = linked.name,
-				"holder_ref" = REF(linked.holder),
-				"holder_name" = linked.holder.displayed_name,
-			)))
-
-		activators_list.Add(list(activator))
+		UNTYPED_LIST_ADD(activators_list, tgui_pin_data(io))
 
 	data["inputs"] = inputs_list
 	data["outputs"] = outputs_list
@@ -139,15 +129,16 @@ a creative player the means to solve many problems.  Circuits are held inside an
 	pindata["type"] = io.display_pin_type()
 	pindata["name"] = io.name
 	pindata["data"] = io.display_data(io.data)
+	pindata["rawdata"] = io.data
 	pindata["ref"] = REF(io)
 	var/list/linked_list = list()
 	for(var/datum/integrated_io/linked in io.linked)
-		linked_list.Add(list(list(
+		UNTYPED_LIST_ADD(linked_list, list(
 			"ref" = REF(linked),
 			"name" = linked.name,
 			"holder_ref" = REF(linked.holder),
 			"holder_name" = linked.holder.displayed_name,
-		)))
+		))
 	pindata["linked"] = linked_list
 	return pindata
 
@@ -161,50 +152,50 @@ a creative player the means to solve many problems.  Circuits are held inside an
 	if(params["link"])
 		linked = locate(params["link"]) in pin.linked
 
-	var/obj/held_item = usr.get_active_hand()
+	var/obj/held_item = ui.user.get_active_hand()
 
 	. = TRUE
 	switch(action)
 		if("rename")
-			rename_component(usr)
+			rename_component(ui.user)
 			return
 
 		if("wire", "pin_name", "pin_data", "pin_unwire")
-			if(istype(held_item, /obj/item/device/multitool) && allow_multitool)
-				var/obj/item/device/multitool/M = held_item
+			if(istype(held_item, /obj/item/multitool) && allow_multitool)
+				var/obj/item/multitool/M = held_item
 				switch(action)
 					if("pin_name")
-						M.wire(pin, usr)
+						M.wire(pin, ui.user)
 					if("pin_data")
 						var/datum/integrated_io/io = pin
-						io.ask_for_pin_data(usr, held_item) // The pins themselves will determine how to ask for data, and will validate the data.
+						io.ask_for_pin_data(ui.user, held_item) // The pins themselves will determine how to ask for data, and will validate the data.
 					if("pin_unwire")
-						M.unwire(pin, linked, usr)
+						M.unwire(pin, linked, ui.user)
 
-			else if(istype(held_item, /obj/item/device/integrated_electronics/wirer))
-				var/obj/item/device/integrated_electronics/wirer/wirer = held_item
+			else if(istype(held_item, /obj/item/integrated_electronics/wirer))
+				var/obj/item/integrated_electronics/wirer/wirer = held_item
 				if(linked)
-					wirer.wire(linked, usr)
+					wirer.wire(linked, ui.user)
 				else if(pin)
-					wirer.wire(pin, usr)
+					wirer.wire(pin, ui.user)
 
-			else if(istype(held_item, /obj/item/device/integrated_electronics/debugger))
-				var/obj/item/device/integrated_electronics/debugger/debugger = held_item
+			else if(istype(held_item, /obj/item/integrated_electronics/debugger))
+				var/obj/item/integrated_electronics/debugger/debugger = held_item
 				if(pin)
-					debugger.write_data(pin, usr)
+					debugger.write_data(pin, ui.user)
 			else
-				to_chat(usr, "<span class='warning'>You can't do a whole lot without the proper tools.</span>")
+				to_chat(ui.user, span_warning("You can't do a whole lot without the proper tools."))
 			return
 
 		if("scan")
-			if(istype(held_item, /obj/item/device/integrated_electronics/debugger))
-				var/obj/item/device/integrated_electronics/debugger/D = held_item
+			if(istype(held_item, /obj/item/integrated_electronics/debugger))
+				var/obj/item/integrated_electronics/debugger/D = held_item
 				if(D.accepting_refs)
-					D.afterattack(src, usr, TRUE)
+					D.afterattack(src, ui.user, TRUE)
 				else
-					to_chat(usr, "<span class='warning'>The Debugger's 'ref scanner' needs to be on.</span>")
+					to_chat(ui.user, span_warning("The Debugger's 'ref scanner' needs to be on."))
 			else
-				to_chat(usr, "<span class='warning'>You need a multitool/debugger set to 'ref' mode to do that.</span>")
+				to_chat(ui.user, span_warning("You need a multitool/debugger set to 'ref' mode to do that."))
 			return
 
 
@@ -212,24 +203,24 @@ a creative player the means to solve many problems.  Circuits are held inside an
 			var/obj/item/integrated_circuit/examined = locate(params["ref"])
 			if(istype(examined) && (examined.loc == loc))
 				if(ui.parent_ui)
-					examined.tgui_interact(usr, null, ui.parent_ui)
+					examined.tgui_interact(ui.user, null, ui.parent_ui)
 				else
-					examined.tgui_interact(usr)
+					examined.tgui_interact(ui.user)
 
 		if("remove")
-			remove(usr)
+			remove(ui.user)
 			return
 	return FALSE
 
 /obj/item/integrated_circuit/proc/remove(mob/user)
-	var/obj/item/device/electronic_assembly/A = assembly
+	var/obj/item/electronic_assembly/A = assembly
 	if(!A)
-		to_chat(user, "<span class='warning'>This circuit is not in an assembly!</span>")
+		to_chat(user, span_warning("This circuit is not in an assembly!"))
 		return
 	if(!removable)
-		to_chat(user, "<span class='warning'>\The [src] seems to be permanently attached to the case.</span>")
+		to_chat(user, span_warning("\The [src] seems to be permanently attached to the case."))
 		return
-	var/obj/item/device/electronic_assembly/ea = loc
+	var/obj/item/electronic_assembly/ea = loc
 
 	power_fail()
 	disconnect_all()
@@ -237,7 +228,7 @@ a creative player the means to solve many problems.  Circuits are held inside an
 	forceMove(T)
 	assembly = null
 	playsound(T, 'sound/items/Crowbar.ogg', 50, 1)
-	to_chat(user, "<span class='notice'>You pop \the [src] out of the case, and slide it out.</span>")
+	to_chat(user, span_notice("You pop \the [src] out of the case, and slide it out."))
 
 	if(istype(ea))
 		ea.tgui_interact(user)
@@ -266,7 +257,7 @@ a creative player the means to solve many problems.  Circuits are held inside an
 		return TRUE // Battery has enough.
 	return FALSE // Not enough power.
 
-/obj/item/integrated_circuit/proc/check_then_do_work(var/ignore_power = FALSE)
+/obj/item/integrated_circuit/proc/check_then_do_work(ignore_power = FALSE)
 	if(world.time < next_use) 	// All intergrated circuits have an internal cooldown, to protect from spam.
 		return
 	if(power_draw_per_use && !ignore_power)

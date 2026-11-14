@@ -16,13 +16,13 @@ somewhere on that shuttle. Subtypes of these can be then used to perform ship ov
 		linked = sector
 		return 1
 
-/obj/machinery/computer/ship/proc/sync_linked(var/user = null)
+/obj/machinery/computer/ship/proc/sync_linked(user = null)
 	var/obj/effect/overmap/visitable/ship/sector = get_overmap_sector(z)
 	if(!sector)
 		return
 	. = attempt_hook_up_recursive(sector)
 	if(. && linked && user)
-		to_chat(user, "<span class='notice'>[src] reconnected to [linked]</span>")
+		to_chat(user, span_notice("[src] reconnected to [linked]"))
 		user << browse(null, "window=[src]") // close reconnect dialog
 
 /obj/machinery/computer/ship/proc/attempt_hook_up_recursive(obj/effect/overmap/visitable/ship/sector)
@@ -32,9 +32,11 @@ somewhere on that shuttle. Subtypes of these can be then used to perform ship ov
 		if((. = .(candidate)))
 			return
 
-/obj/machinery/computer/ship/proc/display_reconnect_dialog(var/mob/user, var/flavor)
+/obj/machinery/computer/ship/proc/display_reconnect_dialog(mob/user, flavor)
 	var/datum/browser/popup = new (user, "[src]", "[src]")
-	popup.set_content("<center><strong><font color = 'red'>Error</strong></font><br>Unable to connect to [flavor].<br><a href='?src=\ref[src];sync=1'>Reconnect</a></center>")
+	if(viewing_overmap(user))
+		user.reset_perspective()
+	popup.set_content("<center>" + span_bold(span_red("Error")) + "<br>Unable to connect to [flavor].<br><a href='byond://?src=\ref[src];sync=1'>Reconnect</a></center>")
 	popup.open()
 
 /obj/machinery/computer/ship/Topic(href, href_list)
@@ -55,73 +57,32 @@ somewhere on that shuttle. Subtypes of these can be then used to perform ship ov
 		return TRUE
 	switch(action)
 		if("sync")
-			sync_linked(usr)
+			sync_linked(ui.user)
 			return TRUE
 		if("close")
-			unlook(usr)
-			usr.unset_machine()
+			ui.user.reset_perspective()
 			return TRUE
 	return FALSE
 
 // Management of mob view displacement. look to shift view to the ship on the overmap; unlook to shift back.
 
-/obj/machinery/computer/ship/proc/look(var/mob/user)
-	if(linked)
-		apply_visual(user)
-		user.reset_view(linked)
-		if(linked.real_appearance)
-			user.client?.images += linked.real_appearance
-	user.set_machine(src)
-	if(isliving(user))
-		var/mob/living/L = user
-		L.looking_elsewhere = 1
-		L.handle_vision()
+/obj/machinery/computer/ship/look(mob/user)
+	if(linked.real_appearance)
+		user.client?.images += linked.real_appearance
 	user.set_viewsize(world.view + extra_view)
-	GLOB.moved_event.register(user, src, /obj/machinery/computer/ship/proc/unlook)
-	// TODO GLOB.stat_set_event.register(user, src, /obj/machinery/computer/ship/proc/unlook)
-	LAZYDISTINCTADD(viewers, WEAKREF(user))
 
-/obj/machinery/computer/ship/proc/unlook(var/mob/user)
-	user.reset_view()
-	if(linked?.real_appearance)
-		user.client?.images -= linked.real_appearance
-	if(isliving(user))
-		var/mob/living/L = user
-		L.looking_elsewhere = 0
-		L.handle_vision()
+/obj/machinery/computer/ship/unlook(mob/user)
+	if(linked && linked.real_appearance && user.client)
+		user.client.images -= linked.real_appearance
 	user.set_viewsize() // reset to default
-	GLOB.moved_event.unregister(user, src, /obj/machinery/computer/ship/proc/unlook)
-	// TODO GLOB.stat_set_event.unregister(user, src, /obj/machinery/computer/ship/proc/unlook)
-	LAZYREMOVE(viewers, WEAKREF(user))
 
 /obj/machinery/computer/ship/proc/viewing_overmap(mob/user)
 	return (WEAKREF(user) in viewers)
 
-/obj/machinery/computer/ship/tgui_status(mob/user)
-	. = ..()
-	if(. > STATUS_DISABLED)
-		if(viewing_overmap(user))
-			look(user)
-		return
-	unlook(user)
-
 /obj/machinery/computer/ship/tgui_close(mob/user)
 	. = ..()
-	user.unset_machine()
-	unlook(user)
-
-/obj/machinery/computer/ship/check_eye(var/mob/user)
-	if(!get_dist(user, src) > 1 || user.blinded || !linked)
-		unlook(user)
-		return -1
-	else
-		return 0
+	user.reset_perspective()
 
 /obj/machinery/computer/ship/sensors/Destroy()
 	sensors = null
-	if(LAZYLEN(viewers))
-		for(var/datum/weakref/W in viewers)
-			var/M = W.resolve()
-			if(M)
-				unlook(M)
 	. = ..()

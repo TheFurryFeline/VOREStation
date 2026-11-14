@@ -8,14 +8,14 @@
 
 /datum/event2/meta/gas_leak/get_weight()
 	// Synthetics are counted in higher value because they can wirelessly connect to alarms.
-	var/engineering_factor = metric.count_people_in_department(DEPARTMENT_ENGINEERING) * 10
-	var/synthetic_factor =  metric.count_people_in_department(DEPARTMENT_SYNTHETIC) * 30
+	var/engineering_factor = GLOB.metric.count_people_in_department(DEPARTMENT_ENGINEERING) * 10
+	var/synthetic_factor =  GLOB.metric.count_people_in_department(DEPARTMENT_SYNTHETIC) * 30
 	return (15 + engineering_factor + synthetic_factor) / (times_ran + 1)
 
 
 
 /datum/event2/event/gas_leak
-	var/potential_gas_choices = list("carbon_dioxide", "nitrous_oxide", "phoron", "volatile_fuel")
+	var/potential_gas_choices = list(GAS_CO2, GAS_N2O, GAS_PHORON, GAS_VOLATILE_FUEL, GAS_CH4)
 	var/chosen_gas = null
 	var/turf/chosen_turf = null
 
@@ -24,14 +24,14 @@
 
 	var/list/turfs = find_random_turfs()
 	if(!turfs.len)
-		log_debug("Gas Leak event failed to find any available turfs to leak into. Aborting.")
+		log_game("Gas Leak event failed to find any available turfs to leak into. Aborting.")
 		abort()
 		return
 	chosen_turf = pick(turfs)
 
 /datum/event2/event/gas_leak/announce()
 	if(chosen_turf)
-		command_announcement.Announce("Warning, hazardous [lowertext(gas_data.name[chosen_gas])] gas leak detected in \the [chosen_turf.loc], evacuate the area.", "Hazard Alert")
+		GLOB.command_announcement.Announce("Warning, hazardous [lowertext(GLOB.gas_data.name[chosen_gas])] gas leak detected in \the [chosen_turf.loc], evacuate the area.", "Hazard Alert", ANNOUNCER_MSG_GASLEAK)
 
 /datum/event2/event/gas_leak/start()
 	// Okay, time to actually put the gas in the room!

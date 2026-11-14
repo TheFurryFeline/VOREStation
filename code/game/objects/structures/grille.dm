@@ -9,7 +9,13 @@
 	layer = TABLE_LAYER
 	explosion_resistance = 1
 	var/health = 10
-	var/destroyed = 0
+	var/destroyed = FALSE
+
+
+/obj/structure/grille/examine(mob/user)
+	. = ..()
+	if(destroyed)
+		. += span_notice("This one's busted open..")
 
 
 /obj/structure/grille/ex_act(severity)
@@ -32,9 +38,9 @@
 
 	var/damage_dealt = 1
 	var/attack_message = "kicks"
-	if(istype(user,/mob/living/carbon/human))
+	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
-		if(H.species.can_shred(H))
+		if(H.species.can_shred(H, FALSE, 10))
 			attack_message = "mangles"
 			damage_dealt = 5
 
@@ -55,12 +61,12 @@
 		return prob(30)
 	return !density
 
-/obj/structure/grille/bullet_act(var/obj/item/projectile/Proj)
+/obj/structure/grille/bullet_act(obj/item/projectile/Proj)
 	if(!Proj)	return
 
 	//Flimsy grilles aren't so great at stopping projectiles. However they can absorb some of the impact
 	var/damage = Proj.get_structure_damage()
-	var/passthrough = 0
+	var/passthrough = FALSE
 
 	if(!damage) return
 
@@ -72,15 +78,15 @@
 			if(Proj.original == src || prob(20))
 				Proj.damage *= between(0, Proj.damage/60, 0.5)
 				if(prob(max((damage-10)/25, 0))*100)
-					passthrough = 1
+					passthrough = TRUE
 			else
 				Proj.damage *= between(0, Proj.damage/60, 1)
-				passthrough = 1
+				passthrough = TRUE
 		if(BURN)
 			//beams and other projectiles are either blocked completely by grilles or stop half the damage.
 			if(!(Proj.original == src || prob(20)))
 				Proj.damage *= 0.5
-				passthrough = 1
+				passthrough = TRUE
 
 	if(passthrough)
 		. = PROJECTILE_CONTINUE
@@ -92,7 +98,7 @@
 /obj/structure/grille/attackby(obj/item/W as obj, mob/user as mob)
 	if(!istype(W))
 		return
-	if(istype(W, /obj/item/weapon/rcd)) // To stop us from hitting the grille when building windows, because grilles don't let parent handle it properly.
+	if(istype(W, /obj/item/rcd)) // To stop us from hitting the grille when building windows, because grilles don't let parent handle it properly.
 		return FALSE
 	else if(W.has_tool_quality(TOOL_WIRECUTTER))
 		if(!shock(user, 100))
@@ -103,8 +109,8 @@
 		if(!shock(user, 90))
 			playsound(src, W.usesound, 100, 1)
 			anchored = !anchored
-			user.visible_message("<span class='notice'>[user] [anchored ? "fastens" : "unfastens"] the grille.</span>", \
-								 "<span class='notice'>You have [anchored ? "fastened the grille to" : "unfastened the grille from"] the floor.</span>")
+			user.visible_message(span_notice("[user] [anchored ? "fastens" : "unfastens"] the grille."), \
+									span_notice("You have [anchored ? "fastened the grille to" : "unfastened the grille from"] the floor."))
 			return
 
 	//window placing begin //TODO CONVERT PROPERLY TO MATERIAL DATUM
@@ -117,7 +123,7 @@
 		if(loc == user.loc)
 			dir_to_set = user.dir
 		else
-			if( ( x == user.x ) || (y == user.y) ) //Only supposed to work for cardinal directions.
+			if( ( x == user.x ) || (y == user.y) ) //Only supposed to work for GLOB.cardinal directions.
 				if( x == user.x )
 					if( y > user.y )
 						dir_to_set = 2
@@ -129,23 +135,23 @@
 					else
 						dir_to_set = 4
 			else
-				to_chat(user, "<span class='notice'>You can't reach.</span>")
-				return //Only works for cardinal direcitons, diagonals aren't supposed to work like this.
+				to_chat(user, span_notice("You can't reach."))
+				return //Only works for GLOB.cardinal direcitons, diagonals aren't supposed to work like this.
 		for(var/obj/structure/window/WINDOW in loc)
 			if(WINDOW.dir == dir_to_set)
-				to_chat(user, "<span class='notice'>There is already a window facing this way there.</span>")
+				to_chat(user, span_notice("There is already a window facing this way there."))
 				return
-		to_chat(user, "<span class='notice'>You start placing the window.</span>")
-		if(do_after(user,20))
+		to_chat(user, span_notice("You start placing the window."))
+		if(do_after(user, 2 SECONDS, target = src))
 			for(var/obj/structure/window/WINDOW in loc)
 				if(WINDOW.dir == dir_to_set)//checking this for a 2nd time to check if a window was made while we were waiting.
-					to_chat(user, "<span class='notice'>There is already a window facing this way there.</span>")
+					to_chat(user, span_notice("There is already a window facing this way there."))
 					return
 
 			var/wtype = ST.material.created_window
 			if (ST.use(1))
 				var/obj/structure/window/WD = new wtype(loc, dir_to_set, 1)
-				to_chat(user, "<span class='notice'>You place the [WD] on [src].</span>")
+				to_chat(user, span_notice("You place the [WD] on [src]."))
 				WD.update_icon()
 		return
 //window placing end
@@ -155,9 +161,9 @@
 		user.do_attack_animation(src)
 		playsound(src, 'sound/effects/grillehit.ogg', 80, 1)
 		switch(W.damtype)
-			if("fire")
+			if(BURN)
 				health -= W.force
-			if("brute")
+			if(BRUTE)
 				health -= W.force * 0.1
 	healthcheck()
 	..()
@@ -212,8 +218,8 @@
 			healthcheck()
 	..()
 
-/obj/structure/grille/attack_generic(var/mob/user, var/damage, var/attack_verb)
-	visible_message("<span class='danger'>[user] [attack_verb] the [src]!</span>")
+/obj/structure/grille/attack_generic(mob/user, damage, attack_verb)
+	visible_message(span_danger("[user] [attack_verb] the [src]!"))
 	user.do_attack_animation(src)
 	health -= damage
 	spawn(1) healthcheck()
@@ -221,12 +227,12 @@
 
 // Used in mapping to avoid
 /obj/structure/grille/broken
-	destroyed = 1
+	destroyed = TRUE
 	icon_state = "grille-b"
 	density = FALSE
 
-/obj/structure/grille/broken/New()
-	..()
+/obj/structure/grille/broken/Initialize(mapload)
+	. = ..()
 	health = rand(-5, -1) //In the destroyed but not utterly threshold.
 	healthcheck() //Send this to healthcheck just in case we want to do something else with it.
 
@@ -249,7 +255,7 @@
 	icon_state = "grillerustic-b"
 
 
-/obj/structure/grille/rcd_values(mob/living/user, obj/item/weapon/rcd/the_rcd, passed_mode)
+/obj/structure/grille/rcd_values(mob/living/user, obj/item/rcd/the_rcd, passed_mode)
 	switch(passed_mode)
 		if(RCD_WINDOWGRILLE)
 			// A full tile window costs 4 glass sheets.
@@ -267,23 +273,27 @@
 			)
 	return FALSE
 
-/obj/structure/grille/rcd_act(mob/living/user, obj/item/weapon/rcd/the_rcd, passed_mode)
+/obj/structure/grille/rcd_act(mob/living/user, obj/item/rcd/the_rcd, passed_mode)
 	switch(passed_mode)
 		if(RCD_DECONSTRUCT)
-			to_chat(user, span("notice", "You deconstruct \the [src]."))
+			to_chat(user, span_notice("You deconstruct \the [src]."))
 			qdel(src)
 			return TRUE
 		if(RCD_WINDOWGRILLE)
 			if(locate(/obj/structure/window) in loc)
 				return FALSE
-			to_chat(user, span("notice", "You construct a window."))
+			to_chat(user, span_notice("You construct a window."))
 			var/obj/structure/window/WD = new the_rcd.window_type(loc)
 			WD.anchored = TRUE
 			return TRUE
 	return FALSE
 
-/obj/structure/grille/take_damage(var/damage)
+/obj/structure/grille/occult_act(mob/living/user)
+	new /obj/structure/grille/cult(get_turf(src))
+	qdel(src)
+	return TRUE
+
+/obj/structure/grille/take_damage(damage)
 	health -= damage
 	spawn(1) healthcheck()
 	return 1
-

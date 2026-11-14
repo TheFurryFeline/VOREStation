@@ -2,8 +2,6 @@
 //
 // The datum containing all the chunks.
 
-#define CHUNK_SIZE 16
-
 /datum/visualnet
 	// The chunks of the map, mapping the areas that an object can see.
 	var/list/chunks = list()
@@ -12,10 +10,10 @@
 
 /datum/visualnet/New()
 	..()
-	visual_nets += src
+	GLOB.visual_nets += src
 
 /datum/visualnet/Destroy()
-	visual_nets -= src
+	GLOB.visual_nets -= src
 	return ..()
 
 // Checks if a chunk has been Generated in x, y, z.
@@ -92,9 +90,9 @@
 
 // Updates the chunks that the turf is located in. Use this when obstacles are destroyed or	when doors open.
 
-/datum/visualnet/proc/updateVisibility(atom/A, var/opacity_check = 1)
+/datum/visualnet/proc/updateVisibility(atom/A, opacity_check = 1)
 
-	if(!ticker || (opacity_check && !A.opacity))
+	if(!SSticker || (opacity_check && !A.opacity))
 		return
 	majorChunkChange(A, 2)
 
@@ -111,7 +109,7 @@
 // Setting the choice to 0 will remove the camera from the chunks.
 // If you want to update the chunks around an object, without adding/removing a camera, use choice 2.
 
-/datum/visualnet/proc/majorChunkChange(atom/c, var/choice)
+/datum/visualnet/proc/majorChunkChange(atom/c, choice)
 	// 0xf = 15
 	if(!c)
 		return
@@ -132,7 +130,7 @@
 					onMajorChunkChange(c, choice, chunk)
 					chunk.hasChanged()
 
-/datum/visualnet/proc/onMajorChunkChange(atom/c, var/choice, var/datum/chunk/chunk)
+/datum/visualnet/proc/onMajorChunkChange(atom/c, choice, datum/chunk/chunk)
 
 // Will check if a mob is on a viewable turf. Returns 1 if it is, otherwise returns 0.
 
@@ -141,7 +139,7 @@
 	var/turf/position = get_turf(target)
 	return checkTurfVis(position)
 
-/datum/visualnet/proc/checkTurfVis(var/turf/position)
+/datum/visualnet/proc/checkTurfVis(turf/position)
 	var/datum/chunk/chunk = getChunk(position.x, position.y, position.z)
 	if(chunk)
 		if(chunk.changed)
@@ -155,7 +153,22 @@
 /turf/verb/view_chunk()
 	set src in world
 
-	if(cameranet.chunkGenerated(x, y, z))
-		var/datum/chunk/chunk = cameranet.getCameraChunk(x, y, z)
+	if(GLOB.cameranet.chunkGenerated(x, y, z))
+		var/datum/chunk/chunk = GLOB.cameranet.getCameraChunk(x, y, z)
 		usr.client.debug_variables(chunk)
 */
+
+/datum/visualnet/proc/clear_references(list/moved_eyes, client/C)
+	if(!islist(moved_eyes))
+		moved_eyes = moved_eyes ? list(moved_eyes) : list()
+
+	var/list/chunks_pre_seen = list()
+
+	for(var/mob/observer/eye/eye as anything in moved_eyes)
+		if(C)
+			chunks_pre_seen |= eye.visibleChunks
+
+	if(C)
+		for(var/datum/chunk/c as anything in chunks_pre_seen)
+			for(var/mob/observer/eye/eye as anything in moved_eyes)
+				c.remove(eye)

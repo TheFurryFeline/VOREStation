@@ -1,5 +1,9 @@
 {
-  "private": true,
-  "name": "common",
-  "version": "4.4.1"
+	"name": "common",
+	"version": "4.3.1",
+	"dependencies": {
+		"es-toolkit": "^1.53.2",
+		"zod": "^4.6.7"
+	},
+	"private": true
 }

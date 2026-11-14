@@ -12,20 +12,14 @@
 /turf/simulated/mineral,
 /area/ninja_dojo/dojo)
 "ae" = (
-/turf/unsimulated/floor{
-	dir = 2;
-	icon = 'icons/turf/snow_new.dmi';
-	icon_state = "snow";
-	name = "snow"
+/turf/unsimulated/floor/snow_new{
+	dir = 2
 	},
 /area/ninja_dojo/dojo)
 "af" = (
 /obj/effect/floor_decal/asteroid,
-/turf/unsimulated/floor{
-	dir = 2;
-	icon = 'icons/turf/snow_new.dmi';
-	icon_state = "snow";
-	name = "snow"
+/turf/unsimulated/floor/snow_new{
+	dir = 2
 	},
 /area/ninja_dojo/dojo)
 "ag" = (
@@ -33,10 +27,7 @@
 /area/shuttle/ninja)
 "ah" = (
 /obj/item/target/alien,
-/turf/unsimulated/floor{
-	icon = 'icons/turf/flooring/wood.dmi';
-	icon_state = "wood_broken2"
-	},
+/turf/unsimulated/floor/broken_wood,
 /area/ninja_dojo/dojo)
 "ai" = (
 /turf/unsimulated/floor{
@@ -46,7 +37,7 @@
 /area/ninja_dojo/dojo)
 "aj" = (
 /obj/structure/table/wooden_reinforced,
-/obj/item/weapon/flame/candle,
+/obj/item/flame/candle,
 /turf/unsimulated/floor{
 	dir = 8;
 	icon_state = "wood"
@@ -54,7 +45,7 @@
 /area/ninja_dojo/dojo)
 "ak" = (
 /obj/structure/table/wooden_reinforced,
-/obj/item/weapon/material/sword/katana,
+/obj/item/material/sword/katana,
 /turf/unsimulated/floor{
 	dir = 8;
 	icon_state = "wood"
@@ -233,17 +224,13 @@
 	},
 /area/ninja_dojo/dojo)
 "aI" = (
-/obj/machinery/door/airlock{
-	icon = 'icons/obj/doors/Dooruranium.dmi'
-	},
+/obj/machinery/door/airlock/uranium_appearance,
 /turf/unsimulated/floor{
 	icon_state = "dark"
 	},
 /area/ninja_dojo/dojo)
 "aJ" = (
-/obj/machinery/door/airlock{
-	icon = 'icons/obj/doors/Dooruranium.dmi'
-	},
+/obj/machinery/door/airlock/uranium_appearance,
 /turf/unsimulated/floor{
 	icon_state = "plating";
 	name = "plating"
@@ -308,11 +295,11 @@
 /area/shuttle/ninja)
 "aQ" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/weapon/storage/firstaid/adv{
+/obj/item/storage/firstaid/adv{
 	pixel_x = 5;
 	pixel_y = 5
 	},
-/obj/item/weapon/storage/firstaid/combat,
+/obj/item/storage/firstaid/combat,
 /turf/simulated/shuttle/floor/voidcraft/dark,
 /area/shuttle/ninja)
 "aR" = (
@@ -425,15 +412,12 @@
 /turf/simulated/shuttle/floor/voidcraft/light,
 /area/shuttle/ninja)
 "bb" = (
-/turf/unsimulated/floor{
-	icon = 'icons/turf/flooring/wood.dmi';
-	icon_state = "wood_broken1"
-	},
+/turf/unsimulated/floor/broken_wood/alt,
 /area/ninja_dojo/dojo)
 "bc" = (
 /obj/structure/table/steel_reinforced,
 /obj/random/paicard,
-/obj/item/device/pda/syndicate,
+/obj/item/pda/syndicate,
 /turf/simulated/shuttle/floor/voidcraft/light,
 /area/shuttle/ninja)
 "bd" = (
@@ -442,7 +426,7 @@
 /area/shuttle/ninja)
 "be" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/weapon/storage/toolbox/syndicate{
+/obj/item/storage/toolbox/syndicate{
 	pixel_x = -1;
 	pixel_y = 3
 	},
@@ -481,9 +465,7 @@
 /turf/simulated/shuttle/floor/voidcraft/light,
 /area/shuttle/ninja)
 "bj" = (
-/obj/machinery/door/airlock{
-	icon = 'icons/obj/doors/Dooruranium.dmi'
-	},
+/obj/machinery/door/airlock/uranium_appearance,
 /turf/unsimulated/floor{
 	dir = 8;
 	icon_state = "wood"
@@ -548,20 +530,14 @@
 /area/shuttle/ninja)
 "bn" = (
 /obj/structure/flora/tree/pine,
-/turf/unsimulated/floor{
-	dir = 2;
-	icon = 'icons/turf/snow_new.dmi';
-	icon_state = "snow";
-	name = "snow"
+/turf/unsimulated/floor/snow_new{
+	dir = 2
 	},
 /area/ninja_dojo/dojo)
 "bo" = (
 /obj/structure/flora/ausbushes/palebush,
-/turf/unsimulated/floor{
-	dir = 2;
-	icon = 'icons/turf/snow_new.dmi';
-	icon_state = "snow";
-	name = "snow"
+/turf/unsimulated/floor/snow_new{
+	dir = 2
 	},
 /area/ninja_dojo/dojo)
 "bp" = (
@@ -569,11 +545,8 @@
 	dir = 4;
 	health = 1e+006
 	},
-/turf/unsimulated/floor{
-	dir = 2;
-	icon = 'icons/turf/snow_new.dmi';
-	icon_state = "snow";
-	name = "snow"
+/turf/unsimulated/floor/snow_new{
+	dir = 2
 	},
 /area/ninja_dojo/dojo)
 "bq" = (
@@ -602,11 +575,8 @@
 /obj/structure/window/reinforced{
 	dir = 8
 	},
-/turf/unsimulated/floor{
-	dir = 2;
-	icon = 'icons/turf/snow_new.dmi';
-	icon_state = "snow";
-	name = "snow"
+/turf/unsimulated/floor/snow_new{
+	dir = 2
 	},
 /area/ninja_dojo/dojo)
 "bu" = (
@@ -627,11 +597,7 @@
 	},
 /area/ninja_dojo/dojo)
 "bw" = (
-/turf/unsimulated/wall{
-	icon = 'icons/obj/doors/Dooruranium.dmi';
-	icon_state = "door_closed";
-	name = "Sealed Door"
-	},
+/turf/unsimulated/wall/fake_uranium_door,
 /area/ninja_dojo/dojo)
 "bx" = (
 /obj/structure/table/glass,
@@ -647,7 +613,7 @@
 /area/ninja_dojo/dojo)
 "by" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/reagent_containers/food/snacks/fortunecookie,
+/obj/item/reagent_containers/food/snacks/fortunecookie,
 /turf/unsimulated/floor{
 	dir = 8;
 	icon_state = "wood"
@@ -663,7 +629,7 @@
 /area/ninja_dojo/dojo)
 "bA" = (
 /obj/structure/bed/padded,
-/obj/item/weapon/bedsheet,
+/obj/item/bedsheet,
 /turf/unsimulated/floor{
 	dir = 8;
 	icon_state = "wood"
@@ -718,11 +684,11 @@
 	dir = 1
 	},
 /obj/structure/table/glass,
-/obj/item/weapon/towel{
+/obj/item/towel{
 	color = "#FF6666";
 	name = "light red towel"
 	},
-/obj/item/weapon/towel{
+/obj/item/towel{
 	color = "#FF6666";
 	name = "light red towel"
 	},
@@ -744,7 +710,7 @@
 /area/ninja_dojo/dojo)
 "bJ" = (
 /obj/structure/table/wooden_reinforced,
-/obj/item/device/radio/uplink,
+/obj/item/radio/uplink,
 /turf/unsimulated/floor{
 	dir = 8;
 	icon_state = "wood"
@@ -766,22 +732,20 @@
 	},
 /area/ninja_dojo/dojo)
 "bL" = (
-/obj/item/weapon/rig/light/stealth,
+/obj/item/rig/light/stealth,
 /obj/structure/table/rack,
 /turf/unsimulated/floor{
 	icon_state = "dark"
 	},
 /area/ninja_dojo/dojo)
 "bM" = (
-/obj/item/device/suit_cooling_unit,
+/obj/item/suit_cooling_unit,
 /turf/unsimulated/floor{
 	icon_state = "dark"
 	},
 /area/ninja_dojo/dojo)
 "bN" = (
-/obj/machinery/door/airlock{
-	icon = 'icons/obj/doors/Dooruranium.dmi'
-	},
+/obj/machinery/door/airlock/uranium_appearance,
 /turf/unsimulated/floor{
 	icon_state = "white"
 	},
@@ -836,7 +800,7 @@
 /area/ninja_dojo/dojo)
 "bV" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/weapon/storage/toolbox/syndicate{
+/obj/item/storage/toolbox/syndicate{
 	pixel_x = -1;
 	pixel_y = 3
 	},
@@ -904,21 +868,18 @@
 /area/ninja_dojo/dojo)
 "cd" = (
 /obj/structure/table/standard,
-/obj/item/weapon/storage/firstaid/adv{
+/obj/item/storage/firstaid/adv{
 	pixel_x = 5;
 	pixel_y = 5
 	},
-/obj/item/weapon/storage/firstaid/adv,
+/obj/item/storage/firstaid/adv,
 /turf/unsimulated/floor{
 	icon_state = "white"
 	},
 /area/ninja_dojo/dojo)
 "ce" = (
 /obj/machinery/space_heater,
-/turf/unsimulated/floor{
-	icon = 'icons/turf/flooring/wood.dmi';
-	icon_state = "wood_broken3"
-	},
+/turf/unsimulated/floor/broken_wood/alt2,
 /area/ninja_dojo/dojo)
 
 (1,1,1) = {"

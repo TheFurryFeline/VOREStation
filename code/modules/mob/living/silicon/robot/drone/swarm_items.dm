@@ -1,6 +1,6 @@
 
 //Swarm Assimilator / Breacher
-/obj/item/weapon/matter_decompiler/swarm
+/obj/item/matter_decompiler/swarm
 	name = "matter assimilator"
 	desc = "Used to eat some forms of simple machinery; and large, wall-shaped blocks of metal with energetic fields."
 	icon = 'icons/obj/device.dmi'
@@ -9,7 +9,7 @@
 	var/field_cooldown = 1 MINUTE
 	var/last_field = 0
 
-/obj/item/weapon/matter_decompiler/swarm/afterattack(atom/target as mob|obj|turf|area, mob/living/user as mob|obj, proximity, params)
+/obj/item/matter_decompiler/swarm/afterattack(atom/target as mob|obj|turf|area, mob/living/user as mob|obj, proximity, params)
 
 	if(!proximity) return //Not adjacent.
 
@@ -22,8 +22,8 @@
 	var/grabbed_something = FALSE
 
 	for(var/mob/M in T)
-		if(istype(M,/mob/living/simple_mob/animal/passive/lizard) || istype(M,/mob/living/simple_mob/animal/passive/mouse))
-			src.loc.visible_message("<span class='danger'>[src.loc] sucks [M] into its decompiler. There's a horrible crunching noise.</span>","<span class='danger'>It's a bit of a struggle, but you manage to suck [M] into your decompiler. It makes a series of visceral crunching noises.</span>")
+		if(HAS_TRAIT(M, TRAIT_AMBIENT_PEST_MOB))
+			src.loc.visible_message(span_danger("[src.loc] sucks [M] into its decompiler. There's a horrible crunching noise."),span_danger("It's a bit of a struggle, but you manage to suck [M] into your decompiler. It makes a series of visceral crunching noises."))
 			new/obj/effect/decal/cleanable/blood/splatter(get_turf(src))
 			qdel(M)
 			if(wood)
@@ -39,15 +39,15 @@
 			if(!istype(D))
 				return
 
-			to_chat(D, "<span class='danger'>You begin decompiling [M].</span>")
+			to_chat(D, span_danger("You begin decompiling [M]."))
 
-			if(!do_after(D,50))
-				to_chat(D, "<span class='danger'>You need to remain still while decompiling such a large object.</span>")
+			if(!do_after(D, 5 SECONDS, target = src))
+				to_chat(D, span_danger("You need to remain still while decompiling such a large object."))
 				return
 
 			if(!M || !D) return
 
-			to_chat(D, "<span class='danger'>You carefully and thoroughly decompile [M], storing as much of its resources as you can within yourself.</span>")
+			to_chat(D, span_danger("You carefully and thoroughly decompile [M], storing as much of its resources as you can within yourself."))
 			qdel(M)
 			new/obj/effect/decal/cleanable/blood/oil(get_turf(src))
 
@@ -100,16 +100,16 @@
 	if(istype(T,/turf/simulated/wall) && (last_field < world.time + field_cooldown))
 		if(!(locate(/obj/effect/temporary_effect/pulse/disintegrate)))
 			last_field = world.time
-			to_chat(user, "<span class='alien'>You deploy an energetic field through \the [T], beginning its deconstruction.</span>")
-			to_chat(user, "<span class='warning'>You should stand back.</span>")
+			to_chat(user, span_alien("You deploy an energetic field through \the [T], beginning its deconstruction."))
+			to_chat(user, span_warning("You should stand back."))
 			new /obj/effect/temporary_effect/pulse/disintegrate(T)
 		else
-			to_chat(user, "<span class='notice'>There is already a disintigration field affecting \the [T].</span>")
+			to_chat(user, span_notice("There is already a disintigration field affecting \the [T]."))
 
 	if(grabbed_something)
-		to_chat(user, "<span class='notice'>You deploy your decompiler and clear out the contents of \the [T].</span>")
+		to_chat(user, span_notice("You deploy your decompiler and clear out the contents of \the [T]."))
 	else
-		to_chat(user, "<span class='danger'>Nothing on \the [T] is useful to you.</span>")
+		to_chat(user, span_danger("Nothing on \the [T] is useful to you."))
 	return
 
 /obj/effect/temporary_effect/pulse/disintegrate
@@ -123,8 +123,11 @@
 	pulses_remaining = 5
 	pulse_delay = 2 SECONDS
 
-/obj/effect/temporary_effect/pulse/disintegrate/emp_act()
-	visible_message("<span class='warning'>\The [src] flickers, before dispersing energetically.</span>")
+/obj/effect/temporary_effect/pulse/disintegrate/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
+	visible_message(span_warning("\The [src] flickers, before dispersing energetically."))
 	qdel(src)
 
 /obj/effect/temporary_effect/pulse/disintegrate/on_pulse()
@@ -137,15 +140,14 @@
 /obj/effect/temporary_effect/pulse/disintegrate/Destroy()
 	if(istype(get_turf(src), /turf/simulated/wall))
 		explosion(get_turf(src), -1, 1, 2, 5, adminlog = 1)
-	..()
+	. = ..()
 
-/obj/item/weapon/gun/energy/xray/swarm
+/obj/item/gun/energy/xray/swarm
 	name = "spectral projector"
 	desc = "A high-power laser gun capable of expelling concentrated gamma blasts, which are able to penetrate matter easier than \
 	standard xray beams, resulting in an effective 'anti-everything' energy weapon."
 	icon_state = "xray"
 	item_state = "xray"
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 3, TECH_MAGNET = 2)
 	projectile_type = /obj/item/projectile/beam/shock
 	charge_cost = 175
 
@@ -157,6 +159,6 @@
 		list(mode_name="deter", projectile_type=/obj/item/projectile/beam/shock, charge_cost = 175),
 		)
 
-/obj/item/weapon/gun/energy/xray/swarm/Initialize()
+/obj/item/gun/energy/xray/swarm/Initialize(mapload)
 	. = ..()
 	adjust_scale(-1, 1)

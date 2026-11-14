@@ -5,7 +5,7 @@ CATEGORY: Fiction
 
 /// Beyond the Door - Philip K. Dick
 
-/obj/item/weapon/book/bundle/custom_library/fiction/beyondthedoor
+/obj/item/book/bundle/custom_library/fiction/beyondthedoor
 	name = "Beyond the Door"
 	desc = "A hardbound book titled 'Beyond the Door' by Philip K. Dick."
 	description_info = "This book is titled 'Beyond the Door' by Philip K. Dick. There is a blurb on the back: <BR>\
@@ -39,7 +39,7 @@ CATEGORY: Fiction
 					</head>
 
 					<body>
-					<b>That night at the dinner table</b> he brought it out and set it down beside her plate. Doris stared at it, her hand to her mouth. "My God, what is it?" She looked up at him, bright-eyed.
+					"} + span_bold("That night at the dinner table") + {" he brought it out and set it down beside her plate. Doris stared at it, her hand to her mouth. "My God, what is it?" She looked up at him, bright-eyed.
 					<br><br>
 					"Well, open it."
 					<br><br>
@@ -228,7 +228,7 @@ CATEGORY: Fiction
 
 /// The Man From Snowy River by A.B. "Banjo" Paterson
 
-/obj/item/weapon/book/bundle/custom_library/fiction/manfromsnowyriver
+/obj/item/book/bundle/custom_library/fiction/manfromsnowyriver
 	name = "The Man From Snowy River"
 	desc = "A hardbound book titled 'The Man From Snowy River' by A.B. 'Banjo' Paterson."
 	description_info = "This book is titled 'The Man From Snowy River' by A.B. 'Banjo' Paterson."

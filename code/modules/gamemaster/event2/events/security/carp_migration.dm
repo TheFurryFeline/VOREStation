@@ -7,7 +7,7 @@
 	event_type = /datum/event2/event/mob_spawning/carp_migration
 
 /datum/event2/meta/carp_migration/get_weight()
-	return 10 + (metric.count_people_in_department(DEPARTMENT_SECURITY) * 20) + (metric.count_all_space_mobs() * 40)
+	return 10 + (GLOB.metric.count_people_in_department(DEPARTMENT_SECURITY) * 20) + (GLOB.metric.count_all_space_mobs() * 40)
 
 
 /datum/event2/event/mob_spawning/carp_migration
@@ -24,7 +24,7 @@
 
 /datum/event2/event/mob_spawning/carp_migration/announce()
 	var/announcement = "Unknown biological entities been detected near \the [location_name()], please stand-by."
-	command_announcement.Announce(announcement, "Lifesign Alert")
+	GLOB.command_announcement.Announce(announcement, "Lifesign Alert", new_sound = ANNOUNCER_MSG_UNIDENTIFIED_LIFESIGNS)
 
 /datum/event2/event/mob_spawning/carp_migration/event_tick()
 	if(last_carp_wave_time + carp_wave_cooldown > world.time)

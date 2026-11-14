@@ -1,31 +1,31 @@
-var/list/_cat_default_emotes = list(
-	/decl/emote/visible,
-	/decl/emote/visible/scratch,
-	/decl/emote/visible/drool,
-	/decl/emote/visible/nod,
-	/decl/emote/visible/sway,
-	/decl/emote/visible/sulk,
-	/decl/emote/visible/twitch,
-	/decl/emote/visible/twitch_v,
-	/decl/emote/visible/dance,
-	/decl/emote/visible/roll,
-	/decl/emote/visible/shake,
-	/decl/emote/visible/jump,
-	/decl/emote/visible/shiver,
-	/decl/emote/visible/collapse,
-	/decl/emote/visible/spin,
-	/decl/emote/visible/sidestep,
-	/decl/emote/audible,
-	/decl/emote/audible/hiss,
-	/decl/emote/audible/whimper,
-	/decl/emote/audible/gasp,
-	/decl/emote/audible/scretch,
-	/decl/emote/audible/choke,
-	/decl/emote/audible/moan,
-	/decl/emote/audible/gnarl,
-	/decl/emote/audible/purr,
-	/decl/emote/audible/purrlong
-)
+GLOBAL_LIST_INIT(cat_default_emotes, list(
+	/datum/decl/emote/visible,
+	/datum/decl/emote/visible/scratch,
+	/datum/decl/emote/visible/drool,
+	/datum/decl/emote/visible/nod,
+	/datum/decl/emote/visible/sway,
+	/datum/decl/emote/visible/sulk,
+	/datum/decl/emote/visible/twitch,
+	/datum/decl/emote/visible/twitch_v,
+	/datum/decl/emote/visible/dance,
+	/datum/decl/emote/visible/roll,
+	/datum/decl/emote/visible/shake,
+	/datum/decl/emote/visible/jump,
+	/datum/decl/emote/visible/shiver,
+	/datum/decl/emote/visible/collapse,
+	/datum/decl/emote/visible/spin,
+	/datum/decl/emote/visible/sidestep,
+	/datum/decl/emote/audible,
+	/datum/decl/emote/audible/hiss,
+	/datum/decl/emote/audible/whimper,
+	/datum/decl/emote/audible/gasp,
+	/datum/decl/emote/audible/scretch,
+	/datum/decl/emote/audible/choke,
+	/datum/decl/emote/audible/moan,
+	/datum/decl/emote/audible/gnarl,
+	/datum/decl/emote/audible/purr,
+	/datum/decl/emote/audible/purrlong
+))
 
 /mob/living/simple_mob/animal/passive/cat
 	name = "cat"
@@ -43,7 +43,7 @@ var/list/_cat_default_emotes = list(
 	response_disarm = "gently pushes aside"
 	response_harm   = "kicks"
 
-	holder_type = /obj/item/weapon/holder/cat
+	holder_type = /obj/item/holder/cat
 	mob_size = MOB_SMALL
 
 	has_langs = list(LANGUAGE_ANIMAL)
@@ -52,7 +52,7 @@ var/list/_cat_default_emotes = list(
 	var/named = FALSE //have I been named yet?
 	var/friend_name = null //VOREStation Edit - Lock befriending to this character
 
-/mob/living/simple_mob/animal/passive/cat/Initialize()
+/mob/living/simple_mob/animal/passive/cat/Initialize(mapload)
 	icon_living = "[initial(icon_state)]"
 	icon_dead = "[initial(icon_state)]_dead"
 	icon_rest = "[initial(icon_state)]_rest"
@@ -60,7 +60,7 @@ var/list/_cat_default_emotes = list(
 	return ..()
 
 /mob/living/simple_mob/animal/passive/cat/get_available_emotes()
-	return global._cat_default_emotes.Copy()
+	return GLOB.cat_default_emotes.Copy()
 
 /mob/living/simple_mob/animal/passive/cat/handle_special()
 	if(!stat && prob(2)) // spooky
@@ -76,7 +76,7 @@ var/list/_cat_default_emotes = list(
 				visible_emote("suddenly stops and stares at something unseen[istype(A) ? " near [A]":""].")
 
 // Instakills mice.
-/mob/living/simple_mob/animal/passive/cat/apply_melee_effects(var/atom/A)
+/mob/living/simple_mob/animal/passive/cat/apply_melee_effects(atom/A)
 	if(ismouse(A))
 		var/mob/living/simple_mob/animal/passive/mouse/mouse = A
 		if(mouse.getMaxHealth() < 20) // In case a badmin makes giant mice or something.
@@ -91,13 +91,13 @@ var/list/_cat_default_emotes = list(
 
 	. = ..()
 
-	if(.) // We're pals, but they might be a dirty mouse...
-		if(ismouse(L))
+	if(.) // We're pals, but they might be a dirty mouse (or any other small fun to kill pest)...
+		if(HAS_TRAIT(L, TRAIT_AMBIENT_PEST_MOB))
 			return FALSE // Cats and mice can never get along.
 
 /mob/living/simple_mob/animal/passive/cat/verb/become_friends()
 	set name = "Become Friends"
-	set category = "IC"
+	set category = "IC.Game"
 	set src in view(1)
 
 	var/mob/living/L = usr
@@ -105,25 +105,25 @@ var/list/_cat_default_emotes = list(
 		return // Fuck off ghosts.
 
 	if(friend)
-		if(friend == usr)
-			to_chat(L, span("notice", "\The [src] is already your friend! Meow!"))
+		if(friend == L)
+			to_chat(L, span_notice("\The [src] is already your friend! Meow!"))
 			return
 		else
-			to_chat(L, span("warning", "\The [src] ignores you."))
+			to_chat(L, span_warning("\The [src] ignores you."))
 			return
 
 	//VOREStation Edit Start - Adds friend_name var checks
 	if(!friend_name || L.real_name == friend_name)
 		friend = L
 		face_atom(L)
-		to_chat(L, span("notice", "\The [src] is now your friend! Meow."))
+		to_chat(L, span_notice("\The [src] is now your friend! Meow."))
 		visible_emote(pick("nuzzles [friend].", "brushes against [friend].", "rubs against [friend].", "purrs."))
 
 		if(has_AI())
 			var/datum/ai_holder/AI = ai_holder
 			AI.set_follow(friend)
 	else
-		to_chat(L, span("notice", "[src] ignores you."))
+		to_chat(L, span_notice("[src] ignores you."))
 	//VOREStation Edit End
 
 
@@ -136,7 +136,7 @@ var/list/_cat_default_emotes = list(
 	icon_state = "cat"
 	item_state = "cat"
 	named = TRUE
-	holder_type = /obj/item/weapon/holder/cat/runtime
+	holder_type = /obj/item/holder/cat/runtime
 	makes_dirt = 0 //Vorestation Edit
 
 /mob/living/simple_mob/animal/passive/cat/kitten
@@ -145,9 +145,9 @@ var/list/_cat_default_emotes = list(
 	icon_state = "kitten"
 	item_state = "kitten"
 	gender = NEUTER
-	holder_type = /obj/item/weapon/holder/cat/kitten //VOREStation Edit
+	holder_type = /obj/item/holder/cat/kitten //VOREStation Edit
 
-/mob/living/simple_mob/animal/passive/cat/kitten/Initialize()
+/mob/living/simple_mob/animal/passive/cat/kitten/Initialize(mapload)
 	if(gender == NEUTER)
 		gender = pick(MALE, FEMALE)
 	return ..()
@@ -156,6 +156,9 @@ var/list/_cat_default_emotes = list(
 	icon_state = "cat3"
 	item_state = "cat3"
 
+/mob/living/simple_mob/animal/passive/cat/black/beastmode
+	movement_cooldown = 1
+
 /mob/living/simple_mob/animal/passive/cat/bones
 	name = "Bones"
 	desc = "That's Bones the cat. He's a laid back, black cat. Meow."
@@ -163,7 +166,7 @@ var/list/_cat_default_emotes = list(
 	icon_state = "cat3"
 	item_state = "cat3"
 	named = TRUE
-	holder_type = /obj/item/weapon/holder/cat/fluff/bones
+	holder_type = /obj/item/holder/cat/fluff/bones
 
 // SPARKLY
 /mob/living/simple_mob/animal/passive/cat/bluespace
@@ -175,7 +178,7 @@ var/list/_cat_default_emotes = list(
 	icon_rest = null
 	icon_dead = null
 	makes_dirt = 0
-	holder_type = /obj/item/weapon/holder/cat/bluespace
+	holder_type = /obj/item/holder/cat/bluespace
 
 /mob/living/simple_mob/animal/passive/cat/bluespace/death()
 	animate(src, alpha = 0, color = "#0000FF", time = 0.5 SECOND)
@@ -192,7 +195,7 @@ var/list/_cat_default_emotes = list(
 	icon_dead = "breadcat_dead"
 	//icon_sit = "breadcat_sit"
 	makes_dirt = 0
-	holder_type = /obj/item/weapon/holder/cat/breadcat
+	holder_type = /obj/item/holder/cat/breadcat
 
 /mob/living/simple_mob/animal/passive/cat/original
 	name = "original cat"
@@ -204,7 +207,7 @@ var/list/_cat_default_emotes = list(
 	icon_dead = "original_dead"
 	//icon_sit = "original_sit"
 	makes_dirt = 0
-	holder_type = /obj/item/weapon/holder/cat/original
+	holder_type = /obj/item/holder/cat/original
 
 /mob/living/simple_mob/animal/passive/cat/cak
 	name = "cak"
@@ -216,7 +219,7 @@ var/list/_cat_default_emotes = list(
 	icon_dead = "cak_dead"
 	//icon_sit = "cak_sit"
 	makes_dirt = 0
-	holder_type = /obj/item/weapon/holder/cat/cak
+	holder_type = /obj/item/holder/cat/cak
 
 /mob/living/simple_mob/animal/passive/cat/space
 	name = "space cat"
@@ -227,7 +230,7 @@ var/list/_cat_default_emotes = list(
 	icon_rest = "spacecat_rest"
 	icon_dead = "spacecat_dead"
 	//icon_sit = "spacecat_sit"
-	holder_type = /obj/item/weapon/holder/cat/spacecat
+	holder_type = /obj/item/holder/cat/spacecat
 	makes_dirt = 0
 
 	minbodytemp = 0				// Minimum "okay" temperature in kelvin
@@ -252,34 +255,37 @@ var/list/_cat_default_emotes = list(
 	say_maybe_target = list("Meow?","Mew?","Mao?")
 	say_got_target = list("MEOW!","HSSSS!","REEER!")
 
-/mob/living/simple_mob/animal/passive/cat/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W, /obj/item/weapon/pen) || istype(W, /obj/item/device/flashlight/pen))
+/mob/living/simple_mob/animal/passive/cat/attackby(obj/item/W as obj, mob/user as mob)
+	if(istype(W, /obj/item/pen) || istype(W, /obj/item/flashlight/pen))
 		if(named)
-			to_chat(user, "<span class='notice'>\The [name] already has a name!</span>")
+			to_chat(user, span_notice("\The [name] already has a name!"))
 		else
-			var/tmp_name = sanitizeSafe(tgui_input_text(user, "Give \the [name] a name", "Name", null, MAX_NAME_LEN), MAX_NAME_LEN)
+			var/tmp_name = sanitizeSafe(tgui_input_text(user, "Give \the [name] a name", "Name", null, MAX_NAME_LEN, encode = FALSE), MAX_NAME_LEN)
 			if(length(tmp_name) > 50)
-				to_chat(user, "<span class='notice'>The name can be at most 50 characters long.</span>")
+				to_chat(user, span_notice("The name can be at most 50 characters long."))
 			else
-				to_chat(user, "<span class='notice'>You name \the [name]. Meow!</span>")
+				to_chat(user, span_notice("You name \the [name]. Meow!"))
 				name = tmp_name
 				named = TRUE
 	else
 		..()
 
-/obj/item/weapon/cat_box
+/obj/item/cat_box
 	name = "faintly purring box"
 	desc = "This box is purring faintly. You're pretty sure there's a cat inside it."
 	icon = 'icons/obj/storage.dmi'
 	icon_state = "box"
 	var/cattype = /mob/living/simple_mob/animal/passive/cat
 
-/obj/item/weapon/cat_box/attack_self(var/mob/user)
+/obj/item/cat_box/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	var/turf/catturf = get_turf(src)
-	to_chat(user, "<span class='notice'>You peek into \the [name]-- and a cat jumps out!</span>")
+	to_chat(user, span_notice("You peek into \the [name]-- and a cat jumps out!"))
 	new cattype(catturf)
 	new /obj/item/stack/material/cardboard(catturf) //if i fits i sits
 	qdel(src)
 
-/obj/item/weapon/cat_box/black
+/obj/item/cat_box/black
 	cattype = /mob/living/simple_mob/animal/passive/cat/black

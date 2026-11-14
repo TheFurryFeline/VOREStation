@@ -29,6 +29,7 @@
 /mob/living/silicon/robot/syndicate
 	register_alarms = 0
 	silicon_subsystems = list(/mob/living/silicon/proc/subsystem_law_manager)
+	idcard_type = /obj/item/card/id/syndicate
 
 /mob/living/silicon/proc/init_subsystems()
 	alarm_monitor 	= new(src)
@@ -46,65 +47,94 @@
 		AH.register_alarm(src, /mob/living/silicon/proc/receive_alarm)
 		queued_alarms[AH] = list()	// Makes sure alarms remain listed in consistent order
 
+/mob/living/silicon/proc/clear_subsystems()
+	QDEL_NULL(alarm_monitor)
+	QDEL_NULL(atmos_control)
+	QDEL_NULL(crew_monitor)
+	QDEL_NULL(crew_manifest)
+	QDEL_NULL(law_manager)
+	QDEL_NULL(power_monitor)
+	QDEL_NULL(rcon)
+
 /********************
 *	Alarm Monitor	*
 ********************/
 /mob/living/silicon/proc/subsystem_alarm_monitor()
 	set name = "Alarm Monitor"
-	set category = "Subystems"
+	set category = "Abilities.Silicon"
 
-	alarm_monitor.tgui_interact(usr)
+	alarm_monitor.tgui_interact(src)
 
 /********************
 *	Atmos Control	*
 ********************/
 /mob/living/silicon/proc/subsystem_atmos_control()
-	set category = "Subystems"
+	set category = "Abilities.Silicon"
 	set name = "Atmospherics Control"
 
-	atmos_control.tgui_interact(usr)
+	atmos_control.tgui_interact(src)
 
 /********************
 *	Crew Manifest	*
 ********************/
 /mob/living/silicon/proc/subsystem_crew_manifest()
-	set category = "Subystems"
+	set category = "Abilities.Silicon"
 	set name = "Crew Manifest"
 
-	crew_manifest.tgui_interact(usr)
+	crew_manifest.tgui_interact(src)
 
 /********************
 *	Crew Monitor	*
 ********************/
 /mob/living/silicon/proc/subsystem_crew_monitor()
-	set category = "Subystems"
+	set category = "Abilities.Silicon"
 	set name = "Crew Monitor"
 
-	crew_monitor.tgui_interact(usr)
+	crew_monitor.tgui_interact(src)
 
 /****************
 *	Law Manager	*
 ****************/
 /mob/living/silicon/proc/subsystem_law_manager()
 	set name = "Law Manager"
-	set category = "Subystems"
+	set category = "Abilities.Silicon"
 
-	law_manager.tgui_interact(usr)
+	law_manager.tgui_interact(src)
 
 /********************
 *	Power Monitor	*
 ********************/
 /mob/living/silicon/proc/subsystem_power_monitor()
-	set category = "Subystems"
+	set category = "Abilities.Silicon"
 	set name = "Power Monitor"
 
-	power_monitor.tgui_interact(usr)
+	power_monitor.tgui_interact(src)
 
 /************
 *	RCON	*
 ************/
 /mob/living/silicon/proc/subsystem_rcon()
-	set category = "Subystems"
+	set category = "Abilities.Silicon"
 	set name = "RCON"
 
-	rcon.tgui_interact(usr)
+	rcon.tgui_interact(src)
+
+/mob/living/silicon/robot
+	var/datum/tgui_module/robot_ui_decals/decal_control
+
+/mob/living/silicon/robot/init_subsystems()
+	..()
+	decal_control = new(src)
+
+/mob/living/silicon/robot/clear_subsystems()
+	QDEL_NULL(decal_control)
+	..()
+
+/mob/living/silicon/robot/verb/toggle_robot_decals()
+	set category = "Abilities.Settings"
+	set name = "Control Robot Decals & Animations"
+
+	if(!sprite_datum)
+		return
+
+	decal_control.tgui_interact(src)

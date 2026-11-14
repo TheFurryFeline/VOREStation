@@ -7,8 +7,8 @@
 
 /datum/event2/meta/rogue_drones/get_weight()
 	. = 10 // Start with a base weight, since this event does provide some value even if no sec is around.
-	. += metric.count_people_in_department(DEPARTMENT_SECURITY) * 20
-	. += metric.count_all_space_mobs() * 40
+	. += GLOB.metric.count_people_in_department(DEPARTMENT_SECURITY) * 20
+	. += GLOB.metric.count_all_space_mobs() * 40
 
 
 /datum/event2/event/mob_spawning/rogue_drones
@@ -40,7 +40,7 @@
 			msg = "We're detecting a swarm of small objects approaching your station. \
 			Most likely a bunch of drones. Please exercise caution if you see any."
 
-	command_announcement.Announce(msg, "Rogue drone alert")
+	GLOB.command_announcement.Announce(msg, "Rogue drone alert", new_sound = ANNOUNCER_MSG_DRONEPOD)
 
 /datum/event2/event/mob_spawning/rogue_drones/start()
 	for(var/i = 1 to drones_to_spawn)
@@ -65,6 +65,6 @@
 			number_recovered++
 
 		if(number_recovered > spawned_mobs.len * 0.75)
-			command_announcement.Announce("The drones that were malfunctioning have been recovered safely.", "Rogue drone alert")
+			GLOB.command_announcement.Announce("The drones that were malfunctioning have been recovered safely.", "Rogue drone alert")
 		else
-			command_announcement.Announce("We're disappointed at the loss of the drones, but the survivors have been recovered.", "Rogue drone alert")
+			GLOB.command_announcement.Announce("We're disappointed at the loss of the drones, but the survivors have been recovered.", "Rogue drone alert")

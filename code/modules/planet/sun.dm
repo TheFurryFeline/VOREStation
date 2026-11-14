@@ -5,7 +5,7 @@
 	var/our_color = "#FFFFFF"
 	var/our_brightness = 1.0
 
-/datum/sun_holder/New(var/source)
+/datum/sun_holder/New(source)
 	sun = new(null)
 	our_planet = source
 
@@ -37,13 +37,13 @@
 
 /datum/sun_holder/proc/apply_to_turf(turf/T)
 	if(sun in T.vis_contents)
-		warning("Was asked to add fake sun to [T.x], [T.y], [T.z] despite already having us in it's vis contents")
+		WARNING("Was asked to add fake sun to [T.x], [T.y], [T.z] despite already having us in it's vis contents")
 		return
 	sun.apply_to_turf(T)
 
 /datum/sun_holder/proc/remove_from_turf(turf/T)
 	if(!(sun in T.vis_contents))
-		warning("Was asked to remove fake sun from [T.x], [T.y], [T.z] despite it not having us in it's vis contents")
+		// warning("Was asked to remove fake sun from [T.x], [T.y], [T.z] despite it not having us in it's vis contents") // Disable the warning
 		return
 	sun.remove_from_turf(T)
 
@@ -79,8 +79,8 @@
 	var/turfs_providing_spreads = list()
 	var/spreads = list()
 
-/atom/movable/sun_visuals/New()
-	..()
+/atom/movable/sun_visuals/Initialize(mapload)
+	. = ..()
 	spreads["1"] = new /atom/movable/sun_visuals_overlap(src, NORTH, "white_gradient")
 	spreads["2"] = new /atom/movable/sun_visuals_overlap(src, SOUTH, "white_gradient")
 	spreads["4"] = new /atom/movable/sun_visuals_overlap(src, EAST, "white_gradient")
@@ -108,14 +108,14 @@
 		var/atom/movable/sun_visuals_overlap/SVO = spreads[key]
 		SVO.alpha = new_alpha
 
-/atom/movable/sun_visuals/proc/apply_to_turf(var/turf/T)
+/atom/movable/sun_visuals/proc/apply_to_turf(turf/T)
 	T.vis_contents += src
 	T.dynamic_lumcount += 0.5
 	T.set_luminosity(1, TRUE)
 
 	var/list/localspreads
 	// Test for corners
-	for(var/direction in cornerdirs)
+	for(var/direction in GLOB.cornerdirs)
 		var/turf/dirturf = get_step(T, direction)
 		if(dirturf && !dirturf.is_outdoors())
 			var/turf/TL = get_step(T, turn(direction, -45))
@@ -138,7 +138,7 @@
 				LAZYADD(localspreads[dirturf], OL)
 
 	// Take all orthagonals
-	for(var/direction in cardinal)
+	for(var/direction in GLOB.cardinal)
 		var/turf/dirturf = get_step(T, direction)
 		if(dirturf && !dirturf.is_outdoors())
 			var/turf/TL = get_step(T, turn(direction, -45))
@@ -157,7 +157,7 @@
 	if(LAZYLEN(localspreads))
 		turfs_providing_spreads[T] = localspreads
 
-/atom/movable/sun_visuals/proc/remove_from_turf(var/turf/T)
+/atom/movable/sun_visuals/proc/remove_from_turf(turf/T)
 	T.vis_contents -= src
 	T.dynamic_lumcount -= 0.5
 	T.set_luminosity(0, TRUE)
@@ -166,7 +166,7 @@
 		for(var/turf/old as anything in applied)
 			old.vis_contents -= applied[old]
 			var/old_lit = FALSE
-			for(var/direction in alldirs)
+			for(var/direction in GLOB.alldirs)
 				var/turf/CT = get_step(old, direction)
 				if(CT && CT.is_outdoors())
 					old_lit = TRUE
@@ -185,7 +185,7 @@
 	alpha = 0
 	color = "#FFFFFF"
 
-/atom/movable/sun_visuals_overlap/New(newloc, newdir, newstate)
-	..()
+/atom/movable/sun_visuals_overlap/Initialize(mapload, newdir, newstate)
+	. = ..()
 	icon_state = newstate
 	dir = newdir

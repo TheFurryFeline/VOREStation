@@ -5,23 +5,23 @@
 
 /proc/register_radio(source, old_frequency, new_frequency, radio_filter)
 	if(old_frequency)
-		radio_controller.remove_object(source, old_frequency)
+		SSradio.remove_object(source, old_frequency)
 	if(new_frequency)
-		return radio_controller.add_object(source, new_frequency, radio_filter)
+		return SSradio.add_object(source, new_frequency, radio_filter)
 
 /proc/unregister_radio(source, frequency)
-	if(radio_controller)
-		radio_controller.remove_object(source, frequency)
+	if(SSradio)
+		SSradio.remove_object(source, frequency)
 
-/proc/get_frequency_name(var/display_freq)
+/proc/get_frequency_name(display_freq)
 	var/freq_text
 
 	// the name of the channel
-	if(display_freq in ANTAG_FREQS)
+	if(display_freq in GLOB.antag_frequencies)
 		freq_text = "#unkn"
 	else
-		for(var/channel in radiochannels)
-			if(radiochannels[channel] == display_freq)
+		for(var/channel in GLOB.radiochannels)
+			if(GLOB.radiochannels[channel] == display_freq)
 				freq_text = channel
 				break
 
@@ -39,29 +39,34 @@
 /datum/receptions
 	var/obj/machinery/message_server/message_server = null
 	var/sender_reception = TELECOMMS_RECEPTION_NONE
-	var/list/receiver_reception = new
+	var/list/receiver_reception = list()
 
 /proc/get_message_server()
-	if(message_servers)
-		for (var/obj/machinery/message_server/MS in message_servers)
+	if(GLOB.message_servers)
+		for (var/obj/machinery/message_server/MS in GLOB.message_servers)
 			if(MS.active)
 				return MS
 	return null
 
-/proc/check_signal(var/datum/signal/signal)
+/proc/check_signal(datum/signal/signal)
 	return signal && signal.data["done"]
 
-/proc/get_sender_reception(var/atom/sender, var/datum/signal/signal)
+/proc/get_sender_reception(atom/sender, datum/signal/signal)
 	return check_signal(signal) ? TELECOMMS_RECEPTION_SENDER : TELECOMMS_RECEPTION_NONE
 
-/proc/get_receiver_reception(var/receiver, var/datum/signal/signal)
+/proc/get_receiver_reception(receiver, datum/signal/signal)
 	if(receiver && check_signal(signal))
 		var/turf/pos = get_turf(receiver)
 		if(pos && (pos.z in signal.data["level"]))
 			return TELECOMMS_RECEPTION_RECEIVER
 	return TELECOMMS_RECEPTION_NONE
 
-/proc/get_reception(var/atom/sender, var/receiver, var/message = "", var/do_sleep = 1)
+#undef TELECOMMS_RECEPTION_NONE
+#undef TELECOMMS_RECEPTION_SENDER
+#undef TELECOMMS_RECEPTION_RECEIVER
+#undef TELECOMMS_RECEPTION_BOTH
+
+/proc/get_reception(atom/sender, receiver, message = "", do_sleep = 1)
 	var/datum/reception/reception = new
 
 	// check if telecomms I/O route 1459 is stable
@@ -74,7 +79,7 @@
 
 	return reception
 
-/proc/get_receptions(var/atom/sender, var/list/atom/receivers, var/do_sleep = 1)
+/proc/get_receptions(atom/sender, list/atom/receivers, do_sleep = 1)
 	var/datum/receptions/receptions = new
 	receptions.message_server = get_message_server()
 

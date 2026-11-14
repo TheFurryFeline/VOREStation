@@ -33,29 +33,29 @@
 	var/activation_cooldown = 30 SECONDS
 	var/last_activation = 0
 
-/obj/structure/cult/pylon/Initialize()
+/obj/structure/cult/pylon/Initialize(mapload)
 	. = ..()
 	START_PROCESSING(SSobj, src)
 
 /obj/structure/cult/pylon/attack_hand(mob/M as mob)
 	attackpylon(M, 5)
 
-/obj/structure/cult/pylon/attack_generic(var/mob/user, var/damage)
+/obj/structure/cult/pylon/attack_generic(mob/user, damage)
 	attackpylon(user, damage)
 
 /obj/structure/cult/pylon/attackby(obj/item/W as obj, mob/user as mob)
 	attackpylon(user, W.force)
 
-/obj/structure/cult/pylon/take_damage(var/damage)
+/obj/structure/cult/pylon/take_damage(damage)
 	pylonhit(damage)
 
-/obj/structure/cult/pylon/bullet_act(var/obj/item/projectile/Proj)
+/obj/structure/cult/pylon/bullet_act(obj/item/projectile/Proj)
 	pylonhit(Proj.get_structure_damage())
 
-/obj/structure/cult/pylon/proc/pylonhit(var/damage)
+/obj/structure/cult/pylon/proc/pylonhit(damage)
 	if(!isbroken)
 		if(prob(1+ damage * 5))
-			visible_message("<span class='danger'>[shatter_message]</span>")
+			visible_message(span_danger("[shatter_message]"))
 			STOP_PROCESSING(SSobj, src)
 			playsound(src,shatter_sound, 75, 1)
 			isbroken = 1
@@ -63,12 +63,12 @@
 			icon_state = "[initial(icon_state)]-broken"
 			set_light(0)
 
-/obj/structure/cult/pylon/proc/attackpylon(mob/user as mob, var/damage)
+/obj/structure/cult/pylon/proc/attackpylon(mob/user as mob, damage)
 	if(!isbroken)
 		if(prob(1+ damage * 5))
 			user.visible_message(
-				"<span class='danger'>[user] smashed \the [src]!</span>",
-				"<span class='warning'>You hit \the [src], and its crystal breaks apart!</span>",
+				span_danger("[user] smashed \the [src]!"),
+				span_warning("You hit \the [src], and its crystal breaks apart!"),
 				"You hear a tinkle of crystal shards."
 				)
 			STOP_PROCESSING(SSobj, src)
@@ -153,7 +153,8 @@
 /obj/effect/gateway/active/cult/cultify()
 	return
 
-/obj/effect/gateway/active/Initialize()
+/obj/effect/gateway/active/Initialize(mapload)
+	. = ..()
 	addtimer(CALLBACK(src, PROC_REF(spawn_and_qdel)), rand(30, 60) SECONDS)
 
 /obj/effect/gateway/active/proc/spawn_and_qdel()
@@ -162,12 +163,13 @@
 		new t(get_turf(src))
 	qdel(src)
 
-/obj/effect/gateway/active/Crossed(var/atom/A)
+/obj/effect/gateway/active/Crossed(atom/A)
+	. = ..()
 	if(A.is_incorporeal())
 		return
-	if(!istype(A, /mob/living))
+	if(!isliving(A))
 		return
 
 	var/mob/living/M = A
 
-	to_chat(M, "<span class='danger'>Walking into \the [src] is probably a bad idea, you think.</span>")
+	to_chat(M, span_danger("Walking into \the [src] is probably a bad idea, you think."))

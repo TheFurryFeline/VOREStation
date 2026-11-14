@@ -48,16 +48,6 @@
 		"bio" = 1000,
 		"rad" = 1000)
 
-	armor_soak = list(
-		"melee" = 1000,
-		"bullet" = 1000,
-		"laser" = 1000,
-		"energy" = 1000,
-		"bomb" = 1000,
-		"bio" = 1000,
-		"rad" = 1000
-		)
-
 	movement_cooldown = 5
 	copy_prefs_to_mob = FALSE
 	player_msg = "The dog accepts you into itself, allowing you to dictate what will happen. The dog occasionally thinks unknowable thoughts, though you can understand some of its needs and desires. The dog shares its experience with you. You can navigate space, 'transition' to certain locations, and you can dine upon some of the space weather. The dog doesn't seem to know how any of this works exactly, this is just how things are for the dog, they come as naturally to the dog as blinking."
@@ -69,15 +59,15 @@
 
 /mob/living/simple_mob/vore/overmap/stardog/Login()
 	. = ..()
-	verbs -= /mob/living/simple_mob/proc/set_name
-	verbs -= /mob/living/simple_mob/proc/set_desc
+	remove_verb(src, /mob/living/simple_mob/proc/set_name)
+	remove_verb(src, /mob/living/simple_mob/proc/set_desc)
 
 /mob/living/simple_mob/vore/overmap/stardog/attack_hand(mob/living/user)
 	if(!(user.pickup_pref && user.pickup_active))
 		return ..()
 	var/list/possible_targets = list()
 
-	for(var/mob/living/player in player_list)
+	for(var/mob/living/player in GLOB.player_list)
 		if(!(player.z in child_om_marker.map_z))
 			continue
 		if(!(isliving(player) && istype(player.loc,/turf/simulated/floor/outdoors/fur) && player.client))
@@ -87,16 +77,16 @@
 
 	if(!possible_targets.len)
 		return ..()
-	user.visible_message("<span class='warning'>\The [user] reaches for something in \the [src]'s fur...</span>","<span class='notice'>You look through \the [src]'s fur...</span>")
+	user.visible_message(span_warning("\The [user] reaches for something in \the [src]'s fur..."),span_notice("You look through \the [src]'s fur..."))
 	var/mob/living/that_one = tgui_input_list(user, "Select a mob:", "Select a mob to grab!", possible_targets)
 	if(!that_one)
 		return ..()
-	to_chat(that_one, "<span class='danger'>\The [user]'s hand reaches toward you!!!</span>")
-	if(!do_after(user, 3 SECONDS, src))
+	to_chat(that_one, span_danger("\The [user]'s hand reaches toward you!!!"))
+	if(!do_after(user, 3 SECONDS, target = src))
 		return ..()
 	if(!istype(that_one.loc,/turf/simulated/floor/outdoors/fur))
-		to_chat(user, "<span class='warning'>\The [that_one] got away...</span>")
-		to_chat(that_one, "<span class='notice'>You got away!</span>")
+		to_chat(user, span_warning("\The [that_one] got away..."))
+		to_chat(that_one, span_notice("You got away!"))
 		return
 	var/prev_size = that_one.size_multiplier
 	that_one.resize(RESIZE_TINY, ignore_prefs = TRUE)
@@ -127,7 +117,7 @@
 	if(istype(loc, /turf/unsimulated/map))
 		if(!invisibility)
 			invisibility = INVISIBILITY_ABSTRACT
-			child_om_marker.invisibility = 0
+			child_om_marker.invisibility = INVISIBILITY_NONE
 			ai_holder.base_wander_delay = 50
 			ai_holder.wander_delay = 1
 			melee_damage_lower = 50
@@ -137,7 +127,7 @@
 			movement_cooldown = 5
 
 	else if(invisibility)
-		invisibility = 0
+		invisibility = INVISIBILITY_NONE
 		child_om_marker.invisibility = INVISIBILITY_ABSTRACT
 		ai_holder.base_wander_delay = 5
 		ai_holder.wander_delay = 1
@@ -147,12 +137,16 @@
 		child_om_marker.set_light(0)
 		movement_cooldown = 0
 
-/mob/living/simple_mob/vore/overmap/stardog/perform_the_nom(mob/living/user, mob/living/prey, mob/living/pred, obj/belly/belly, delay)
-	to_chat(src, "<span class='warning'>You can't do that.</span>")	//The dog can move back and forth between the overmap.
+/mob/living/simple_mob/vore/overmap/stardog/perform_the_nom(mob/living/user, mob/living/prey, mob/living/pred, obj/belly/belly, delay_time)
+	to_chat(src, span_warning("You can't do that."))	//The dog can move back and forth between the overmap.
 	return															//If it can do normal vore mechanics, it can carry players to the OM,
 																	//and release them there. I think that's probably a bad idea.
 
-/mob/living/simple_mob/vore/overmap/stardog/Initialize()
+/mob/living/simple_mob/vore/overmap/stardog/begin_instant_nom(mob/living/user, mob/living/prey, mob/living/pred, obj/belly/belly)
+	to_chat(src, span_warning("You can't do that."))
+	return
+
+/mob/living/simple_mob/vore/overmap/stardog/Initialize(mapload)
 	. = ..()
 	child_om_marker.set_light(5, 1, "#ff8df5")
 
@@ -164,12 +158,12 @@
 		weather_areas -= anything
 	return ..()
 
-/mob/living/simple_mob/vore/overmap/stardog/Stat()
-	..()
-	if(statpanel("Status"))
-		stat(null, "Affinity: [round(affinity)]")
+/mob/living/simple_mob/vore/overmap/stardog/get_status_tab_items()
+	. = ..()
+	. += ""
+	. += "Affinity: [round(affinity)]"
 
-/mob/living/simple_mob/vore/overmap/stardog/start_pulling(var/atom/movable/AM)
+/mob/living/simple_mob/vore/overmap/stardog/start_pulling(atom/movable/AM)
 	if(!istype(loc, /turf/unsimulated/map))	//Don't pull stuff on the overmap
 		..()
 
@@ -187,14 +181,14 @@
 /mob/living/simple_mob/vore/overmap/stardog/verb/eject()
 	set name = "Eject"
 	set desc = "Stop controlling the dog and return to your own body."
-	set category = "Abilities"
+	set category = "Abilities.Stardog"
 
 	control_node.eject()
 
 /mob/living/simple_mob/vore/overmap/stardog/verb/eat_space_weather()
 	set name = "Eat Space Weather"
 	set desc = "Eat carp or rocks!"
-	set category = "Abilities"
+	set category = "Abilities.Stardog"
 
 	var/obj/effect/overmap/event/E
 	var/nut = 0
@@ -253,24 +247,24 @@
 			heal = TRUE
 			delet = FALSE
 		else
-			to_chat(src, "<span class='warning'>You can't eat \the [e].</span>")
+			to_chat(src, span_warning("You can't eat \the [e]."))
 			return
 
 	if(!E)
-		to_chat(src, "<span class='warning'>There isn't anything to eat here.</span>")
+		to_chat(src, span_warning("There isn't anything to eat here."))
 		return
 
-	to_chat(src, "<span class='notice'>You begin to eat \the [E]...</span>")
+	to_chat(src, span_notice("You begin to eat \the [E]..."))
 
-	if(!do_after(src, 20 SECONDS, E, exclusive = TRUE))
+	if(!do_after(src, 20 SECONDS, target = E))
 		return
-	to_chat(src, "<span class='notice'>[msg]</span>")
+	to_chat(src, span_notice("[msg]"))
 	if(nut || aff)
 		adjust_nutrition(nut)
 		adjust_affinity(aff)
 	if(mob)
 		spawn_mob()
-		to_chat(src, "<span class='notice'>You can feel something moving inside of you...</span>")
+		to_chat(src, span_notice("You can feel something moving inside of you..."))
 	if(ore)
 		spawn_ore(ore)
 	if(tre)
@@ -297,9 +291,9 @@
 /mob/living/simple_mob/vore/overmap/stardog/verb/transition()	//Don't ask how it works. I don't know. I didn't think about it. I just thought it would be cool.
 	set name = "Transition"
 	set desc = "Attempt to go to the location you have arrived at, or return to space!"
-	set category = "Abilities"
+	set category = "Abilities.Stardog"
 	if(nutrition <= 500)
-		to_chat(src, "<span class='warning'>You're too hungry...</span>")
+		to_chat(src, span_warning("You're too hungry..."))
 		return
 	if(istype(loc, /turf/unsimulated/map))
 		var/list/destinations = list()
@@ -312,38 +306,38 @@
 			for(var/our_z in v.map_z)
 				our_maps |= our_z
 		if(!our_maps.len)
-			to_chat(src, "<span class='warning'>There is nowhere nearby to go to! You need to get closer to somewhere you can transition to before you can transition.</span>")
+			to_chat(src, span_warning("There is nowhere nearby to go to! You need to get closer to somewhere you can transition to before you can transition."))
 			return
-		for(var/obj/effect/landmark/l in landmarks_list)
+		for(var/obj/effect/landmark/l in GLOB.landmarks_list)
 			if(l.z in our_maps)
 				if(istype(l,/obj/effect/landmark/stardog))
 					destinations |= l
 
 		if(!destinations.len)
-			to_chat(src, "<span class='warning'>There is nowhere nearby to land! You need to get closer to somewhere else that you can transition to before you can transition.</span>")
+			to_chat(src, span_warning("There is nowhere nearby to land! You need to get closer to somewhere else that you can transition to before you can transition."))
 			return
-		for(var/obj/effect/landmark/stardog/l in destinations)
+		//for(var/obj/effect/landmark/stardog/l in destinations)
 		var/obj/effect/overmap/visitable/our_dest = tgui_input_list(src, "Where would you like to try to go?", "Transition", destinations, timeout = 15 SECONDS, strict_modern = TRUE)
 		if(!our_dest)
-			to_chat(src, "<span class='warning'>You decide not to transition.</span>")
+			to_chat(src, span_warning("You decide not to transition."))
 			return
-		to_chat(src, "<span class='notice'>You begin to transition down to \the [our_dest], stay still...</span>")
-		if(!do_after(src, 15 SECONDS, exclusive = TRUE))
-			to_chat(src, "<span class='warning'>You were interrupted.</span>")
+		to_chat(src, span_notice("You begin to transition down to \the [our_dest], stay still..."))
+		if(!do_after(src, 15 SECONDS, target = src))
+			to_chat(src, span_warning("You were interrupted."))
 			return
-		visible_message("<span class='warning'>\The [src] disappears!!!</span>")
+		visible_message(span_warning("\The [src] disappears!!!"))
 		stop_pulling()
 		forceMove(get_turf(our_dest))
 		adjust_nutrition(-1000)
-		visible_message("<span class='warning'>\The [src] steps into the area as if from nowhere!</span>")
+		visible_message(span_warning("\The [src] steps into the area as if from nowhere!"))
 
 	else
-		to_chat(src, "<span class='notice'>You begin to transition back to space, stay still...</span>")
-		if(!do_after(src, 15 SECONDS, exclusive = TRUE))
-			to_chat(src, "<span class='warning'>You were interrupted.</span>")
+		to_chat(src, span_notice("You begin to transition back to space, stay still..."))
+		if(!do_after(src, 15 SECONDS, target = src))
+			to_chat(src, span_warning("You were interrupted."))
 			return
 
-		visible_message("<span class='warning'>\The [src] disappears!!!</span>")
+		visible_message(span_warning("\The [src] disappears!!!"))
 		stop_pulling()
 		forceMove(get_turf(get_overmap_sector(z)))
 		adjust_nutrition(-500)
@@ -375,9 +369,7 @@
 	icon = 'icons/turf/fur.dmi'
 	icon_state = "fur0"
 	edge_blending_priority = 4
-	initial_flooring = /decl/flooring/fur
-	can_dig = FALSE
-	turf_layers = list()
+	initial_flooring = /datum/decl/flooring/fur
 	var/tree_chance = 25
 	var/tree_color = null
 	var/tree_type = /obj/structure/flora/tree/fur
@@ -429,7 +421,7 @@
 	icon_state = "furX"
 	tree_chance = 0
 
-/turf/simulated/floor/outdoors/fur/Initialize()
+/turf/simulated/floor/outdoors/fur/Initialize(mapload)
 	. = ..()
 	if(tree_chance && prob(tree_chance) && !check_density())
 		var/obj/structure/flora/tree/tree = new tree_type(src)
@@ -451,10 +443,10 @@
 /turf/simulated/floor/outdoors/fur/verb/pet()
 	set name = "Pet Fur"
 	set desc = "Pet the fur!"
-	set category = "IC"
+	set category = "IC.Stardog"
 	set src in oview(1)
 
-	usr.visible_message("<span class = 'notice'>\The [usr] pets \the [src].</span>", "<span class = 'notice'>You pet \the [src].</span>", runemessage = "pet pat...")
+	usr.visible_message(span_notice("\The [usr] pets \the [src]."), span_notice("You pet \the [src]."), runemessage = "pet pat...")
 	var/obj/effect/overmap/visitable/ship/simplemob/stardog/s = get_overmap_sector(z)
 
 	if(s && istype(s, /obj/effect/overmap/visitable/ship/simplemob/stardog))
@@ -466,17 +458,17 @@
 /turf/simulated/floor/outdoors/fur/verb/emote_beyond(message as message)	//Now even the stars will know your sin.
 	set name = "Emote Beyond"
 	set desc = "Emote to those beyond the fur!"
-	set category = "IC"
+	set category = "IC.Chat"
 	set src in oview(1)
 
 	if(!isliving(usr))
 		return
 	var/mob/living/L = usr
 	if(L.client.prefs.muted & MUTE_IC)
-		to_chat(L, "<span class='warning'>You cannot speak in IC (muted).</span>")
+		to_chat(L, span_warning("You cannot speak in IC (muted)."))
 		return
 	if (!message)
-		message = tgui_input_text(usr, "Type a message to emote.","Emote Beyond")
+		message = tgui_input_text(usr, "Type a message to emote.","Emote Beyond", encode = FALSE)
 	message = sanitize_or_reflect(message,L)
 	if (!message)
 		return
@@ -488,29 +480,29 @@
 
 	var/mob/living/simple_mob/vore/overmap/stardog/m = s.parent
 
-	log_subtle(message,L)
-	message = "<span class='emotesubtle'><B>[L]</B> <I>[message]</I></span>"
-	message = "<B>(From the back of \the [m]) </B>" + message
+	L.log_message("(SUBTLE) [message]", LOG_EMOTE)
+	message = span_emote_subtle(span_bold("[L]") + " " + span_italics("[message]"))
+	message = span_bold("(From the back of \the [m]) ") + message
 	message = encode_html_emphasis(message)
 
-	var/undisplayed_message = "<span class='emote'><B>[L]</B> <I>does something too subtle for you to see.</I></span>"
+	var/undisplayed_message = span_emote(span_bold("[L]") + " " + span_italics("does something too subtle for you to see."))
 	var/list/vis = get_mobs_and_objs_in_view_fast(get_turf(m),1,2)
 	var/list/vis_mobs = vis["mobs"]
 	vis_mobs |= L
 	for(var/mob/M as anything in vis_mobs)
 		if(isnewplayer(M))
 			continue
-		if(isobserver(M) && (!M.is_preference_enabled(/datum/client_preference/ghost_see_whisubtle) || \
-		!L.is_preference_enabled(/datum/client_preference/whisubtle_vis) && !M.client?.holder))
+		if(isobserver(M) && (!M.client?.prefs?.read_preference(/datum/preference/toggle/ghost_see_whisubtle) || \
+		!L.client?.prefs?.read_preference(/datum/preference/toggle/whisubtle_vis) && !check_rights_for(M.client, R_HOLDER)))
 			spawn(0)
 				M.show_message(undisplayed_message, 2)
 		else
 			spawn(0)
 				M.show_message(message, 2)
-				if(M.is_preference_enabled(/datum/client_preference/subtle_sounds))
+				if(M.read_preference(/datum/preference/toggle/subtle_sounds))
 					M << sound('sound/talksounds/subtle_sound.ogg', volume = 50)
 
-/decl/flooring/fur
+/datum/decl/flooring/fur
 	name = "fur"
 	desc = "Thick, silky fur!"
 	icon = 'icons/turf/fur.dmi'
@@ -518,13 +510,6 @@
 	has_base_range = 15
 
 	can_paint = TRUE
-
-	footstep_sounds = list("human" = list(
-		'sound/effects/footstep/carpet1.ogg',
-		'sound/effects/footstep/carpet2.ogg',
-		'sound/effects/footstep/carpet3.ogg',
-		'sound/effects/footstep/carpet4.ogg',
-		'sound/effects/footstep/carpet5.ogg'))
 
 /obj/structure/flora/tree/fur
 	name = "tall fur"
@@ -605,13 +590,13 @@
 		var/obj/item/stack/material/fur/F = new product(get_turf(src), product_amount)
 		F.color = color
 		F.update_icon()
-	visible_message("<span class='notice'>\The [src] is felled!</span>")
+	visible_message(span_notice("\The [src] is felled!"))
 	if(prob(mob_chance))
 		if(!mob_list.len)
 			return
 		var/ourmob = pickweight(mob_list)
 		var/mob/living/simple_mob/s = new ourmob(get_turf(src))
-		visible_message("<span class='danger'>\The [s] tumbles out of \the [src]!</span>")
+		visible_message(span_danger("\The [s] tumbles out of \the [src]!"))
 		s.ai_holder.hostile = FALSE
 		s.ai_holder.retaliate = TRUE
 		s.ghostjoin = TRUE
@@ -628,7 +613,7 @@
 	name = "dense fur"
 	desc = "Silky and soft, but too thick to pass or cut!"
 
-/obj/structure/flora/tree/fur/wall/attackby(obj/item/weapon/W, mob/living/user)
+/obj/structure/flora/tree/fur/wall/attackby(obj/item/W, mob/living/user)
 	return
 
 /area/redgate/stardog
@@ -667,23 +652,23 @@
 	var/mob_chance = 10
 	var/treasure_chance = 50
 	var/list/valid_treasure = list(
-		/obj/item/weapon/cell/infinite = 5,
-		/obj/item/weapon/cell/device/weapon/recharge/alien = 5,
-		/obj/item/device/nif/authentic = 1,
+		/obj/item/cell/infinite = 5,
+		/obj/item/cell/device/weapon/recharge/alien = 5,
+		/obj/item/nif/authentic = 1,
 		/obj/item/toy/bosunwhistle = 50,
 		/obj/random/mouseray = 50,
-		/obj/item/weapon/gun/energy/mouseray/metamorphosis/advanced/random = 10,
-		/obj/item/weapon/gun/energy/mouseray/metamorphosis/advanced = 5,
+		/obj/item/gun/energy/mouseray/metamorphosis/advanced/random = 10,
+		/obj/item/gun/energy/mouseray/metamorphosis/advanced = 5,
 		/obj/item/clothing/mask/gas/voice = 25,
-		/obj/item/device/perfect_tele = 15,
-		/obj/item/weapon/gun/energy/sizegun = 50,
-		/obj/item/device/slow_sizegun = 50,
+		/obj/item/perfect_tele = 15,
+		/obj/item/gun/energy/sizegun = 50,
+		/obj/item/slow_sizegun = 50,
 		/obj/item/capture_crystal/master = 5,
 		/obj/item/capture_crystal/ultra = 15,
 		/obj/item/capture_crystal/great = 25,
 		/obj/item/capture_crystal/random = 50,
 		/obj/random/pizzabox = 10,	//The dog intercepted your pizza voucher delivery, what a scamp
-		/obj/item/weapon/bluespace_harpoon = 15,
+		/obj/item/bluespace_harpoon = 15,
 		/obj/random/awayloot = 5,
 		/obj/random/cash = 15,
 		/obj/random/cash/big = 10,
@@ -711,7 +696,7 @@
 	if(!spawnstuff)
 		return
 	if(!valid_flora.len)
-		to_world_log("[src] does not have a set valid flora list!")
+		log_mapping("[src] does not have a set valid flora list!")
 		return TRUE
 
 	var/obj/F
@@ -727,7 +712,7 @@
 	if(!spawnstuff)
 		return
 	if(!valid_mobs.len)
-		to_world_log("[src] does not have a set valid mobs list!")
+		log_mapping("[src] does not have a set valid mobs list!")
 		return TRUE
 
 	var/mob/M
@@ -754,7 +739,7 @@
 	if(!spawnstuff)
 		return
 	if(!valid_mobs.len)
-		to_world_log("[src] does not have a set valid mobs list!")
+		log_mapping("[src] does not have a set valid mobs list!")
 		return
 
 	if(!prob(mob_chance))
@@ -773,7 +758,7 @@
 	if(!spawnstuff)
 		return
 	if(!valid_flora.len)
-		to_world_log("[src] does not have a set valid flora list!")
+		log_mapping("[src] does not have a set valid flora list!")
 		return
 
 	var/obj/F
@@ -791,7 +776,7 @@
 	if(treasure_chance <= 0)
 		return
 	if(!valid_treasure.len)
-		to_world_log("[src] does not have a set valid treasure list!")
+		log_mapping("[src] does not have a set valid treasure list!")
 		return
 
 	var/obj/F
@@ -924,13 +909,13 @@
 	ghostjoin = FALSE
 
 /area/redgate/stardog/flesh_abyss/node
-	enter_message = "<span class='notice'>Radical energy hangs as a haze in the air. It's much less hot here than other places within the dog, but the air is thick with alien whispers and desires that you can hardly comprehend.</span>"
+	enter_message = span_notice("Radical energy hangs as a haze in the air. It's much less hot here than other places within the dog, but the air is thick with alien whispers and desires that you can hardly comprehend.")
 	icon_state = "yelwhisqu"
 	requires_power = 0
 	spawnstuff = FALSE
 
-/area/redgate/stardog/flesh_abyss/play_ambience(var/mob/living/L, initial = TRUE)
-	if(!L.is_preference_enabled(/datum/client_preference/digestion_noises))
+/area/redgate/stardog/flesh_abyss/play_ambience(mob/living/L, initial = TRUE)
+	if(!L.check_sound_preference(/datum/preference/toggle/digestion_noises))
 		return
 	..()
 
@@ -1051,26 +1036,26 @@
 	if(!host)
 		set_up()
 		if(!host)
-			to_chat(user, "<span class = 'warning'>It doesn't respond...</span>")
+			to_chat(user, span_warning("It doesn't respond..."))
 			return
 	control(user)
 
 /obj/structure/control_pod/proc/control(mob/living/user)
 	if(!host.affinity)	//take care of my dog
-		to_chat(user, "<span class = 'warning'>As you press your hand to \the [src], it resists your advance... A sense of longing ripples through your mind...</span>")
+		to_chat(user, span_warning("As you press your hand to \the [src], it resists your advance... A sense of longing ripples through your mind..."))
 		return
 	if(controller)	//busy
-		to_chat(user, "<span class = 'warning'>You can see \the [controller] inside! Tendrils of nerves seem to have attached themselves to \the [controller]! There's no room for you right now!</span>")
+		to_chat(user, span_warning("You can see \the [controller] inside! Tendrils of nerves seem to have attached themselves to \the [controller]! There's no room for you right now!"))
 		return
-	user.visible_message("<span class = 'notice'>\The [user] reaches out to touch \the [src]...</span>","<span class = 'notice'>You reach out to touch \the [src]...</span>")
-	if(!do_after(user, 10 SECONDS, src, exclusive = TRUE))
-		user.visible_message("<span class = 'warning'>\The [user] pulls back from \the [src].</span>","<span class = 'warning'>You pull back from \the [src].</span>")
+	user.visible_message(span_notice("\The [user] reaches out to touch \the [src]..."),span_notice("You reach out to touch \the [src]..."))
+	if(!do_after(user, 10 SECONDS, target = src))
+		user.visible_message(span_warning("\The [user] pulls back from \the [src]."),span_warning("You pull back from \the [src]."))
 		return
 	if(controller)	//got busy while you were waiting, get rekt
-		to_chat(user, "<span class = 'warning'>You can see \the [controller] inside! Tendrils of nerves seem to have attached themselves to \the [controller]! There's no room for you right now!</span>")
+		to_chat(user, span_warning("You can see \the [controller] inside! Tendrils of nerves seem to have attached themselves to \the [controller]! There's no room for you right now!"))
 		return
 	controller = user
-	visible_message("<span class = 'warning'>\The [src] accepts \the [controller], submerging them beneath the surface of the flesh!</span>")
+	visible_message(span_warning("\The [src] accepts \the [controller], submerging them beneath the surface of the flesh!"))
 	user.stop_pulling()
 	user.forceMove(src)
 	host.ckey = user.ckey
@@ -1080,10 +1065,10 @@
 	set_light(5, 0.75, "#f94bff")
 
 /obj/structure/control_pod/proc/eject()
-	to_chat(host, "<span class = 'warning'>You feel your control over \the [host] slip away from you!</span>")
+	to_chat(host, span_warning("You feel your control over \the [host] slip away from you!"))
 	controller.forceMove(get_turf(src))
 	controller.ckey = host.ckey
-	visible_message("<span class = 'warning'>\The [controller] is ejected from \the [src], tumbling free!</span>")
+	visible_message(span_warning("\The [controller] is ejected from \the [src], tumbling free!"))
 	log_admin("[controller.ckey] is no longer controlling [host], they have been returned to their body, [controller].")
 	icon_state = "control_node0"
 	plane = OBJ_PLANE
@@ -1102,22 +1087,22 @@
 	icon = 'icons/obj/landmark_vr.dmi'
 	icon_state = "transition"
 
-/obj/effect/landmark/stardog/Initialize()
+/obj/effect/landmark/stardog/Initialize(mapload)
 	. = ..()
 	var/area/a = get_area(src)
 	name = a.name
 
 /obj/effect/landmark/area_gatherer
 	name = "stardog area gatherer"
-/obj/effect/landmark/area_gatherer/Initialize()
+
+/obj/effect/landmark/area_gatherer/Initialize(mapload)
 	. = ..()
-	LateInitialize()
+	return INITIALIZE_HINT_LATELOAD
 
 /obj/effect/landmark/area_gatherer/LateInitialize()	//I am very afraid
 	var/obj/effect/overmap/visitable/ship/simplemob/stardog/s = get_overmap_sector(z)
 	var/mob/living/simple_mob/vore/overmap/stardog/dog = s.parent
 	dog.weather_areas |= get_area(src)
-	for(var/thing in dog.weather_areas)
 	qdel(src)
 
 /obj/machinery/computer/ship/navigation/telescreen/dog_eye
@@ -1139,17 +1124,17 @@
 /obj/machinery/computer/ship/navigation/verb/emote_beyond(message as message)	//I could have put this into any other file but right here will do
 	set name = "Emote Beyond"
 	set desc = "Emote to those beyond the ship!"
-	set category = "IC"
+	set category = "IC.Chat"
 	set src in oview(7)
 
 	if(!isliving(usr))
 		return
 	var/mob/living/L = usr
 	if(L.client.prefs.muted & MUTE_IC)
-		to_chat(L, "<span class='warning'>You cannot speak in IC (muted).</span>")
+		to_chat(L, span_warning("You cannot speak in IC (muted)."))
 		return
 	if (!message)
-		message = tgui_input_text(usr, "Type a message to emote.","Emote Beyond")
+		message = tgui_input_text(L, "Type a message to emote.","Emote Beyond", encode = FALSE)
 	message = sanitize_or_reflect(message,L)
 	if (!message)
 		return
@@ -1157,29 +1142,29 @@
 		return L.say_dead(message)
 	var/obj/effect/overmap/visitable/ship/s = get_overmap_sector(z)
 	if(!s || !istype(s, /obj/effect/overmap/visitable/ship))
-		to_chat(L, "<span class='warning'>You can't do that here.</span>")
+		to_chat(L, span_warning("You can't do that here."))
 		return
 
-	log_subtle(message,L)
-	message = "<span class='emotesubtle'><B>[L]</B> <I>[message]</I></span>"
-	message = "<B>(From within \the [s]) </B>" + message
+	L.log_message("(SUBTLE) [message]", LOG_EMOTE)
+	message = span_emote_subtle(span_bold("[L]") + " " + span_italics("[message]"))
+	message = span_bold("(From within \the [s]) ") + message
 	message = encode_html_emphasis(message)
 
-	var/undisplayed_message = "<span class='emote'><B>[L]</B> <I>does something too subtle for you to see.</I></span>"
+	var/undisplayed_message = span_emote(span_bold("[L]") + " " + span_italics("does something too subtle for you to see."))
 	var/list/vis = get_mobs_and_objs_in_view_fast(get_turf(s),1,2)
 	var/list/vis_mobs = vis["mobs"]
 	vis_mobs |= L
 	for(var/mob/M as anything in vis_mobs)
 		if(isnewplayer(M))
 			continue
-		if(isobserver(M) && (!M.is_preference_enabled(/datum/client_preference/ghost_see_whisubtle) || \
-		!L.is_preference_enabled(/datum/client_preference/whisubtle_vis) && !M.client?.holder))
+		if(isobserver(M) && (!M.client?.prefs?.read_preference(/datum/preference/toggle/ghost_see_whisubtle) || \
+		!L.client?.prefs?.read_preference(/datum/preference/toggle/whisubtle_vis) && !check_rights_for(M.client, R_HOLDER)))
 			spawn(0)
 				M.show_message(undisplayed_message, 2)
 		else
 			spawn(0)
 				M.show_message(message, 2)
-				if(M.is_preference_enabled(/datum/client_preference/subtle_sounds))
+				if(M.read_preference(/datum/preference/toggle/subtle_sounds))
 					M << sound('sound/talksounds/subtle_sound.ogg', volume = 50)
 
 /area/redgate/stardog/eyes
@@ -1234,7 +1219,7 @@
 
 /obj/effect/dog_nose/attack_hand(mob/living/user)
 	. = ..()
-	user.visible_message("<span class='notice'>\The [user] boops the snoot.</span>","<span class='notice'>You boop the snoot.</span>",runemessage = "boop")
+	user.visible_message(span_notice("\The [user] boops the snoot."),span_notice("You boop the snoot."),runemessage = "boop")
 
 /obj/effect/dog_nose/Crossed(atom/movable/AM as mob|obj)
 	. = ..()
@@ -1244,9 +1229,9 @@
 	if(!isliving(L))
 		return
 	if(L.client)
-		to_chat(L, "<span class='notice'>A hot breath rushes up from under your feet, before the air rushes back down into the dog's nose as the dog sniffs you! SNEEF SNEEF!!!</span>")
+		to_chat(L, span_notice("A hot breath rushes up from under your feet, before the air rushes back down into the dog's nose as the dog sniffs you! SNEEF SNEEF!!!"))
 
-/obj/effect/dog_eye/Initialize()
+/obj/effect/dog_eye/Initialize(mapload)
 	. = ..()
 	var/area/redgate/stardog/eyes/e = get_area(src)
 	if(istype(e,/area/redgate/stardog/eyes))
@@ -1257,7 +1242,7 @@
 	desc = "It's waiting to accept treats!"
 	icon = 'icons/obj/flesh_machines.dmi'
 	icon_state = "mouth"
-	invisibility = 0
+	invisibility = INVISIBILITY_NONE
 	anchored = TRUE
 	pixel_x = -16
 	var/id = "mouth_a"							//same id will be linked
@@ -1270,7 +1255,7 @@
 	var/check_keys = FALSE
 	var/check_prefs = TRUE
 
-/obj/effect/dog_teleporter/Initialize()
+/obj/effect/dog_teleporter/Initialize(mapload)
 	. = ..()
 	dog_teleporters |= src
 	do_setup()
@@ -1319,6 +1304,7 @@
 			return
 		L.stop_pulling()
 		L.Weaken(3)
+		L.reset_perspective() // Needed for food items that get gobbled with micros in them
 		GLOB.prey_eaten_roundstat++
 	if(target.reciever)		//We don't have to worry
 		AM.unbuckle_all_mobs(TRUE)
@@ -1335,8 +1321,8 @@
 	var/go = FALSE
 	if(isobserver(AM))
 		return
-	playsound(src, teleport_sound, vol = 100, vary = 1, preference = /datum/client_preference/eating_noises, volume_channel = VOLUME_CHANNEL_VORE)
-	playsound(target, teleport_sound, vol = 100, vary = 1, preference = /datum/client_preference/eating_noises, volume_channel = VOLUME_CHANNEL_VORE)
+	playsound(src, teleport_sound, vol = 100, vary = 1, preference = /datum/preference/toggle/eating_noises, volume_channel = VOLUME_CHANNEL_VORE)
+	playsound(target, teleport_sound, vol = 100, vary = 1, preference = /datum/preference/toggle/eating_noises, volume_channel = VOLUME_CHANNEL_VORE)
 	if(isliving(AM))
 		var/mob/living/L = AM
 		if(teleport_message && L.client)
@@ -1348,7 +1334,7 @@
 	if(!go)
 		return
 
-	visible_message("<span class='danger'>\The [AM] passes through \the [src]!</span>")
+	visible_message(span_danger("\The [AM] passes through \the [src]!"))
 	if(throw_through)	//We will throw the target to the south!
 		var/turf/throwtarg = locate(target.x, (target.y - 5), target.z)
 		spawn(0)
@@ -1356,13 +1342,12 @@
 
 /obj/effect/dog_teleporter/food_gobbler
 	teleport_sound = 'sound/vore/gulp.ogg'
-	teleport_message = "<span class='notice'>The thundering drum of the dog's heart beat throbs all around you, while the sweltering heat of its body soaks into you. It's soft and wet as a symphony of gurgles and glorps fills the steamy air!</span>"
+	teleport_message = span_notice("The thundering drum of the dog's heart beat throbs all around you, while the sweltering heat of its body soaks into you. It's soft and wet as a symphony of gurgles and glorps fills the steamy air!")
 
 /obj/effect/dog_teleporter/food_gobbler/Crossed(atom/movable/AM)
-
-	if(istype(AM, /obj/item/weapon/reagent_containers/food))
+	. = ..()
+	if(istype(AM, /obj/item/reagent_containers/food))
 		gobble_food(AM)
-	else return	..()
 
 /obj/effect/dog_teleporter/food_gobbler/proc/gobble_food(obj/item/I)
 	if(!isitem(I))
@@ -1374,10 +1359,11 @@
 		var/mob/living/simple_mob/vore/overmap/stardog/dog = s.parent
 		dog.adjust_nutrition(I.reagents.total_volume)
 		dog.adjust_affinity(25)
-		playsound(src, teleport_sound, vol = 100, vary = 1, preference = /datum/client_preference/eating_noises, volume_channel = VOLUME_CHANNEL_VORE)
-		visible_message("<span class='warning'>The dog gobbles up \the [I]!</span>")
+		playsound(src, teleport_sound, vol = 100, vary = 1, preference = /datum/preference/toggle/eating_noises, volume_channel = VOLUME_CHANNEL_VORE)
+		visible_message(span_warning("The dog gobbles up \the [I]!"))
 		if(dog.client)
-			to_chat(dog, "<span class='notice'>[I.thrower ? "\The [I.thrower]" : "Someone"] feeds \the [I] to you!</span>")
+			var/mob/thrower = I.throwing?.get_thrower()
+			to_chat(dog, span_notice("[thrower ? "\The [thrower]" : "Someone"] feeds \the [I] to you!"))
 		qdel(I)
 		GLOB.items_digested_roundstat++
 
@@ -1436,20 +1422,21 @@
 	water_icon = 'icons/turf/stomach_vr.dmi'
 	water_state = "enzyme_shallow"
 	under_state = "flesh_floor"
+	watercolor = "green"
 
-	reagent_type = "Sulphuric acid"	//why not
+	reagent_type = REAGENT_ID_SACID //why not
 	outdoors = FALSE
 	var/mob/living/simple_mob/vore/overmap/stardog/linked_mob
 	var/mobstuff = TRUE		//if false, we don't care about dogs, and that's terrible
 	var/we_process = FALSE	//don't start another process while you're processing, idiot
 
-/turf/simulated/floor/water/digestive_enzymes/Entered(atom/movable/AM)
-	if(digest_stuff(AM) && !we_process)
+/turf/simulated/floor/water/digestive_enzymes/Entered(atom/movable/source)
+	if(digest_stuff(source) && !we_process)
 		START_PROCESSING(SSturfs, src)
 		we_process = TRUE
 
-/turf/simulated/floor/water/digestive_enzymes/hitby(atom/movable/AM)
-	if(digest_stuff(AM) && !we_process)
+/turf/simulated/floor/water/digestive_enzymes/hitby(atom/movable/source, datum/thrownthing/throwingdatum)
+	if(digest_stuff(source) && !we_process)
 		START_PROCESSING(SSturfs, src)
 		we_process = TRUE
 
@@ -1458,30 +1445,35 @@
 		we_process = FALSE
 		return PROCESS_KILL
 
-/turf/simulated/floor/water/digestive_enzymes/proc/can_digest(atom/movable/AM as mob|obj)
+/turf/simulated/floor/water/digestive_enzymes/Destroy()
+	if(we_process)
+		STOP_PROCESSING(SSturfs, src)
+	. = ..()
+
+/turf/simulated/floor/water/digestive_enzymes/proc/can_digest(atom/movable/digest_target)
 	. = FALSE
-	if(AM.loc != src)
+	if(digest_target.loc != src)
 		return FALSE
-	if(isitem(AM))
-		var/obj/item/I = AM
+	if(isitem(digest_target))
+		var/obj/item/I = digest_target
 		if(I.unacidable || I.throwing || I.is_incorporeal())
 			return FALSE
 		var/food = FALSE
-		if(istype(I,/obj/item/weapon/reagent_containers/food))
+		if(istype(I,/obj/item/reagent_containers/food))
 			food = TRUE
 		if(prob(95))	//Give people a chance to pick them up
 			return TRUE
-		I.visible_message("<span class='warning'>\The [I] sizzles...</span>")
+		I.visible_message(span_warning("\The [I] sizzles..."))
 		var/yum = I.digest_act()	//Glorp
-		if(istype(I , /obj/item/weapon/card))
+		if(istype(I , /obj/item/card))
 			yum = 0		//No, IDs do not have infinite nutrition, thank you
 		if(mobstuff && linked_mob && yum)
 			if(food)
 				yum += 50
 			linked_mob.adjust_nutrition(yum)
 		return TRUE
-	if(isliving(AM))
-		var/mob/living/L = AM
+	if(isliving(digest_target))
+		var/mob/living/L = digest_target
 		if(L.unacidable || !L.digestable || L.buckled || L.hovering || L.throwing || L.is_incorporeal())
 			return FALSE
 		if(ishuman(L))
@@ -1492,7 +1484,7 @@
 				return TRUE
 		else return TRUE
 
-/turf/simulated/floor/water/digestive_enzymes/proc/digest_stuff(atom/movable/AM)	//I'm so sorry
+/turf/simulated/floor/water/digestive_enzymes/proc/digest_stuff(atom/movable/digest_target)	//I'm so sorry
 	. = FALSE
 
 	var/damage = 1
@@ -1515,7 +1507,7 @@
 		var/mob/living/carbon/human/H = thing
 		if(!H)
 			return
-		visible_message(runemessage = "blub...")
+		balloon_alert_visible("*blub...*")
 		if(H.stat == DEAD)
 			H.unacidable = TRUE	//Don't touch this one again, we're gonna delete it in a second
 			H.release_vore_contents()
@@ -1523,7 +1515,7 @@
 				if(istype(W, /obj/item/organ/internal/mmi_holder/posibrain))
 					var/obj/item/organ/internal/mmi_holder/MMI = W
 					MMI.removed()
-				if(istype(W, /obj/item/weapon/implant/backup) || istype(W, /obj/item/device/nif) || istype(W, /obj/item/organ))
+				if(istype(W, /obj/item/implant/backup) || istype(W, /obj/item/nif) || istype(W, /obj/item/organ))
 					continue
 				H.drop_from_inventory(W)
 			if(linked_mob)
@@ -1533,21 +1525,19 @@
 				linked_mob.adjust_nutrition(how_much)
 				H.mind?.vore_death = TRUE
 				GLOB.prey_digested_roundstat++
-			spawn(0)
 			qdel(H)	//glorp
 			return
+		H.burn_skin(damage)
 		if(linked_mob)
-			H.burn_skin(damage)
-			if(linked_mob)
-				var/how_much = (damage * H.size_multiplier) * H.get_digestion_nutrition_modifier() * linked_mob.get_digestion_efficiency_modifier()
-				if(!H.ckey)
-					how_much = how_much / 10	//Braindead mobs are worth less
-				linked_mob.adjust_nutrition(how_much)
+			var/how_much = (damage * H.size_multiplier) * H.get_digestion_nutrition_modifier() * linked_mob.get_digestion_efficiency_modifier()
+			if(!H.ckey)
+				how_much = how_much / 10	//Braindead mobs are worth less
+			linked_mob.adjust_nutrition(how_much)
 	else if (isliving(thing))
 		var/mob/living/L = thing
 		if(!L)
 			return
-		visible_message(runemessage = "blub...")
+		balloon_alert_visible("*blub...*")
 		if(L.stat == DEAD)
 			L.unacidable = TRUE	//Don't touch this one again, we're gonna delete it in a second
 			L.release_vore_contents()
@@ -1580,7 +1570,7 @@
 	if(!we_process)
 		START_PROCESSING(SSturfs, src)
 
-/turf/simulated/floor/flesh/mover/hitby(atom/movable/AM)
+/turf/simulated/floor/flesh/mover/hitby(atom/movable/source, datum/thrownthing/throwingdatum)
 	if(!we_process)
 		START_PROCESSING(SSturfs, src)
 
@@ -1630,9 +1620,9 @@
 		'sound/vore/sunesound/prey/squish_04.ogg',
 		'sound/vore/sunesound/prey/stomachmove.ogg'
 		)
-	var/faction = "macrobacteria"
+	var/faction = FACTION_MACROBACTERIA
 
-/obj/structure/auto_flesh_door/Initialize()
+/obj/structure/auto_flesh_door/Initialize(mapload)
 	. = ..()
 	countdown = rand(50,250)
 	START_PROCESSING(SSobj, src)
@@ -1653,7 +1643,7 @@
 			if(isliving(L))
 				L.Weaken(3)
 				if(prob(5))
-					to_chat(L, "<span class='warning'>\The [src] throbs heavily around you...</span>")
+					to_chat(L, span_warning("\The [src] throbs heavily around you..."))
 
 /obj/structure/auto_flesh_door/attack_generic(mob/user, damage, attack_verb)
 	. = ..()
@@ -1663,11 +1653,11 @@
 	else if(user.faction == faction)
 		SwitchState()
 	else if(user.a_intent == I_HELP)
-		visible_message("[user] knocks on \the [src].", "Someone knocks on \the [src].")
+		visible_message(span_warningplain("[user] knocks on \the [src]."), span_warningplain("Someone knocks on \the [src]."))
 		playsound(src, knock_sound, 50, 0, 3)
 		countdown -= 10
 	else
-		visible_message("<span class='warning'>[user] hammers on \the [src]!</span>", "<span class='warning'>Someone hammers loudly on \the [src]!</span>")
+		visible_message(span_warning("[user] hammers on \the [src]!"), span_warning("Someone hammers loudly on \the [src]!"))
 		playsound(src, knock_sound, 50, 0, 3)
 		countdown -= 25
 
@@ -1679,11 +1669,11 @@
 	else if(user.faction == faction)
 		SwitchState()
 	else if(user.a_intent == I_HELP)
-		visible_message("[user] knocks on \the [src].", "Someone knocks on \the [src].")
+		visible_message(span_warningplain("[user] knocks on \the [src]."), span_warningplain("Someone knocks on \the [src]."))
 		playsound(src, knock_sound, 50, 0, 3)
 		countdown -= 10
 	else
-		visible_message("<span class='warning'>[user] hammers on \the [src]!</span>", "<span class='warning'>Someone hammers loudly on \the [src]!</span>")
+		visible_message(span_warning("[user] hammers on \the [src]!"), span_warning("Someone hammers loudly on \the [src]!"))
 		playsound(src, knock_sound, 50, 0, 3)
 		countdown -= 25
 
@@ -1699,7 +1689,7 @@
 /obj/structure/auto_flesh_door/proc/Open()
 	isSwitchingStates = 1
 	var/oursound = pick(open_sounds)
-	playsound(src, oursound, 100, 1, preference = /datum/client_preference/digestion_noises , volume_channel = VOLUME_CHANNEL_VORE)
+	playsound(src, oursound, 100, 1, preference = /datum/preference/toggle/digestion_noises , volume_channel = VOLUME_CHANNEL_VORE)
 	flick("flesh-opening",src)
 	sleep(8)
 	density = FALSE
@@ -1715,7 +1705,7 @@
 /obj/structure/auto_flesh_door/proc/Close()
 	isSwitchingStates = 1
 	var/oursound = pick(open_sounds)
-	playsound(src, oursound, 100, 1, preference = /datum/client_preference/digestion_noises , volume_channel = VOLUME_CHANNEL_VORE)
+	playsound(src, oursound, 100, 1, preference = /datum/preference/toggle/digestion_noises , volume_channel = VOLUME_CHANNEL_VORE)
 	flick("flesh-closing",src)
 	sleep(8)
 	density = TRUE
@@ -1730,7 +1720,7 @@
 	for(var/mob/living/L in src.loc.contents)
 		if(isliving(L))
 			L.Weaken(3)
-			L.visible_message("<span class='danger'>\The [src] closes up on \the [L]!</span>","<span class='danger'>The weight of \the [src] closes in on you, squeezing you on all sides so tightly that you can hardly move! It throbs against you as the way is sealed, with you stuck in the middle!!!</span>")
+			L.visible_message(span_danger("\The [src] closes up on \the [L]!"),span_danger("The weight of \the [src] closes in on you, squeezing you on all sides so tightly that you can hardly move! It throbs against you as the way is sealed, with you stuck in the middle!!!"))
 
 /obj/structure/auto_flesh_door/update_icon()
 	if(state)

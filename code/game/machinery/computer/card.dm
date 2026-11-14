@@ -6,12 +6,13 @@
 	icon_keyboard = "id_key"
 	icon_screen = "id"
 	light_color = "#0099ff"
-	req_access = list(access_change_ids)
-	circuit = /obj/item/weapon/circuitboard/card
-	var/obj/item/weapon/card/id/scan = null
-	var/obj/item/weapon/card/id/modify = null
+	req_access = list(ACCESS_CHANGE_IDS)
+	circuit = /obj/item/circuitboard/card
+	var/obj/item/card/id/scan = null
+	var/obj/item/card/id/modify = null
 	var/mode = 0.0
 	var/printing = null
+	var/bot_login = FALSE
 
 /obj/machinery/computer/card/proc/is_centcom()
 	return 0
@@ -40,26 +41,37 @@
 	if(!usr || usr.stat || usr.lying)	return
 
 	if(scan)
-		to_chat(usr, "You remove \the [scan] from \the [src].")
-		scan.forceMove(get_turf(src))
-		if(!usr.get_active_hand() && istype(usr,/mob/living/carbon/human))
-			usr.put_in_hands(scan)
+		if(!bot_login)
+			to_chat(usr, "You remove \the [scan] from \the [src].")
+			scan.forceMove(get_turf(src))
+			if(!usr.get_active_hand() && ishuman(usr))
+				usr.put_in_hands(scan)
+		else
+			to_chat(usr, "You revoke the access from \the [src].")
+			bot_login = FALSE
 		scan = null
 	else if(modify)
 		to_chat(usr, "You remove \the [modify] from \the [src].")
 		modify.forceMove(get_turf(src))
-		if(!usr.get_active_hand() && istype(usr,/mob/living/carbon/human))
+		if(!usr.get_active_hand() && ishuman(usr))
 			usr.put_in_hands(modify)
 		modify = null
 	else
 		to_chat(usr, "There is nothing to remove from the console.")
 	return
 
-/obj/machinery/computer/card/attackby(obj/item/weapon/card/id/id_card, mob/user)
+/obj/machinery/computer/card/attackby(obj/item/card/id/id_card, mob/user)
+	if(isrobot(user))
+		var/mob/living/silicon/robot/our_bot = user
+		if(!istype(our_bot.module, /obj/item/robot_module/robot/chound))
+			return
+		scan = our_bot.idcard
+		bot_login = TRUE
+
 	if(!istype(id_card))
 		return ..()
 
-	if(!scan && (access_change_ids in id_card.access) && (user.unEquip(id_card) || (id_card.loc == user && istype(user,/mob/living/silicon/robot)))) //Grippers. Again. ~Mechoid
+	if(!scan && (ACCESS_CHANGE_IDS in id_card.GetAccess()) && (user.unEquip(id_card)))
 		user.drop_item()
 		id_card.forceMove(src)
 		scan = id_card
@@ -71,7 +83,7 @@
 	SStgui.update_uis(src)
 	attack_hand(user)
 
-/obj/machinery/computer/card/attack_ai(var/mob/user as mob)
+/obj/machinery/computer/card/attack_ai(mob/user as mob)
 	return attack_hand(user)
 
 /obj/machinery/computer/card/attack_hand(mob/user as mob)
@@ -87,9 +99,9 @@
 
 /obj/machinery/computer/card/tgui_static_data(mob/user)
 	var/list/data =  ..()
-	if(data_core)
-		data_core.get_manifest_list()
-	data["manifest"] = PDA_Manifest
+	if(GLOB.data_core)
+		GLOB.data_core.get_manifest_list()
+	data["manifest"] = GLOB.PDA_Manifest
 	return data
 
 /obj/machinery/computer/card/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
@@ -125,23 +137,23 @@
 	var/list/all_centcom_access = list()
 	var/list/regions = list()
 	if(modify && is_centcom())
-		for(var/access in get_all_centcom_access())
+		for(var/access in SSaccess.get_all_centcom_access())
 			all_centcom_access.Add(list(list(
-				"desc" = replacetext(get_centcom_access_desc(access), " ", "&nbsp;"),
+				"desc" = replacetext(SSaccess.get_centcom_access_desc(access), " ", "&nbsp;"),
 				"ref" = access,
-				"allowed" = (access in modify.access) ? 1 : 0)))
+				"allowed" = (access in modify.GetAccess()) ? 1 : 0)))
 	else if(modify)
 		for(var/i in ACCESS_REGION_SECURITY to ACCESS_REGION_SUPPLY)
 			var/list/accesses = list()
-			for(var/access in get_region_accesses(i))
-				if (get_access_desc(access))
+			for(var/access in SSaccess.get_region_accesses(i))
+				if (SSaccess.get_access_desc(access))
 					accesses.Add(list(list(
-						"desc" = replacetext(get_access_desc(access), " ", "&nbsp;"),
+						"desc" = replacetext(SSaccess.get_access_desc(access), " ", "&nbsp;"),
 						"ref" = access,
-						"allowed" = (access in modify.access) ? 1 : 0)))
+						"allowed" = (access in modify.GetAccess()) ? 1 : 0)))
 
 			regions.Add(list(list(
-				"name" = get_region_accesses_name(i),
+				"name" = SSaccess.get_region_accesses_name(i),
 				"accesses" = accesses)))
 
 	data["regions"] = regions
@@ -156,37 +168,40 @@
 	switch(action)
 		if("modify")
 			if(modify)
-				data_core.manifest_modify(modify.registered_name, modify.assignment, modify.rank)
+				GLOB.data_core.manifest_modify(modify.registered_name, modify.assignment, modify.rank)
 				modify.name = "[modify.registered_name]'s ID Card ([modify.assignment])"
-				if(ishuman(usr))
+				if(ishuman(ui.user))
 					modify.forceMove(get_turf(src))
-					if(!usr.get_active_hand())
-						usr.put_in_hands(modify)
+					if(!ui.user.get_active_hand())
+						ui.user.put_in_hands(modify)
 					modify = null
 				else
 					modify.forceMove(get_turf(src))
 					modify = null
 			else
-				var/obj/item/I = usr.get_active_hand()
-				if(istype(I, /obj/item/weapon/card/id) && usr.unEquip(I))
+				var/obj/item/I = ui.user.get_active_hand()
+				if(istype(I, /obj/item/card/id) && ui.user.unEquip(I))
 					I.forceMove(src)
 					modify = I
 			. = TRUE
 
 		if("scan")
 			if(scan)
-				if(ishuman(usr))
+				if(ishuman(ui.user))
 					scan.forceMove(get_turf(src))
-					if(!usr.get_active_hand())
-						usr.put_in_hands(scan)
+					if(!ui.user.get_active_hand())
+						ui.user.put_in_hands(scan)
 					scan = null
+				else if(bot_login)
+					scan = null
+					bot_login = FALSE
 				else
 					scan.forceMove(get_turf(src))
 					scan = null
 			else
-				var/obj/item/I = usr.get_active_hand()
-				if(istype(I, /obj/item/weapon/card/id))
-					usr.drop_item()
+				var/obj/item/I = ui.user.get_active_hand()
+				if(istype(I, /obj/item/card/id))
+					ui.user.drop_item()
 					I.forceMove(src)
 					scan = I
 			. = TRUE
@@ -195,7 +210,7 @@
 			if(is_authenticated())
 				var/access_type = text2num(params["access_target"])
 				var/access_allowed = text2num(params["allowed"])
-				if(access_type in (is_centcom() ? get_all_centcom_access() : get_all_station_access()))
+				if(access_type in (is_centcom() ? SSaccess.get_all_centcom_access() : SSaccess.get_all_station_access()))
 					modify.access -= access_type
 					if(!access_allowed)
 						modify.access += access_type
@@ -205,18 +220,18 @@
 			if(is_authenticated() && modify)
 				var/t1 = params["assign_target"]
 				if(t1 == "Custom")
-					var/temp_t = sanitize(tgui_input_text(usr, "Enter a custom job assignment.","Assignment"), 45)
+					var/temp_t = tgui_input_text(ui.user, "Enter a custom job assignment.","Assignment", "", 45)
 					//let custom jobs function as an impromptu alt title, mainly for sechuds
 					if(temp_t && modify)
 						modify.assignment = temp_t
 				else
 					var/list/access = list()
 					if(is_centcom())
-						access = get_centcom_access(t1)
+						access = SSaccess.get_centcom_access(t1)
 					else
 						var/datum/job/jobdatum = SSjob.get_job(t1)
 						if(!jobdatum)
-							to_chat(usr, "<span class='warning'>No log exists for this job: [t1]</span>")
+							to_chat(ui.user, span_warning("No log exists for this job: [t1]"))
 							return
 						access = jobdatum.get_access()
 
@@ -224,7 +239,7 @@
 					modify.assignment = t1
 					modify.rank = t1
 
-				callHook("reassign_employee", list(modify))
+				SEND_GLOBAL_SIGNAL(COMSIG_GLOB_REASSIGN_EMPLOYEE_IDCARD, modify)
 			. = TRUE
 
 		if("reg")
@@ -233,7 +248,7 @@
 				if(temp_name)
 					modify.registered_name = temp_name
 				else
-					visible_message("<span class='notice'>[src] buzzes rudely.</span>")
+					visible_message(span_notice("[src] buzzes rudely."))
 			. = TRUE
 
 		if("account")
@@ -253,12 +268,12 @@
 					printing = null
 					SStgui.update_uis(src)
 
-					var/obj/item/weapon/paper/P = new(loc)
+					var/obj/item/paper/P = new(loc)
 					if(mode)
 						P.name = text("crew manifest ([])", stationtime2text())
 						P.info = {"<h4>Crew Manifest</h4>
 							<br>
-							[data_core ? data_core.get_manifest(0) : ""]
+							[GLOB.data_core ? GLOB.data_core.get_manifest(0) : ""]
 						"}
 					else if(modify)
 						P.name = "access report"
@@ -273,15 +288,14 @@
 						"}
 
 						for(var/A in modify.access)
-							P.info += "  [get_access_desc(A)]"
+							P.info += "  [SSaccess.get_access_desc(A)]"
 				. = TRUE
 
 		if("terminate")
 			if(is_authenticated())
 				modify.assignment = "Dismissed"	//VOREStation Edit: setting adjustment
 				modify.access = list()
-
-				callHook("terminate_employee", list(modify))
+				SEND_GLOBAL_SIGNAL(COMSIG_GLOB_TERMINATE_EMPLOYEE_IDCARD, modify)
 
 			. = TRUE
 
@@ -290,8 +304,8 @@
 
 /obj/machinery/computer/card/centcom
 	name = "\improper CentCom ID card modification console"
-	circuit = /obj/item/weapon/circuitboard/card/centcom
-	req_access = list(access_cent_captain)
+	circuit = /obj/item/circuitboard/card/centcom
+	req_access = list(ACCESS_CENT_CAPTAIN)
 
 
 /obj/machinery/computer/card/centcom/is_centcom()

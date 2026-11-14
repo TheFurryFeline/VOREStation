@@ -17,6 +17,10 @@ SUBSYSTEM_DEF(tgui)
 	priority = FIRE_PRIORITY_TGUI
 	runlevels = RUNLEVEL_LOBBY | RUNLEVELS_DEFAULT
 
+	dependencies = list(
+		/datum/controller/subsystem/assets
+	)
+
 	/// A list of UIs scheduled to process
 	var/list/current_run = list()
 	/// A list of all open UIs
@@ -26,25 +30,52 @@ SUBSYSTEM_DEF(tgui)
 
 /datum/controller/subsystem/tgui/PreInit()
 	basehtml = file2text('tgui/public/tgui.html')
-	// Inject inline polyfills
-	var/polyfill = file2text('tgui/public/tgui-polyfill.min.js')
-	polyfill = "<script>\n[polyfill]\n</script>"
-	basehtml = replacetextEx(basehtml, "<!-- tgui:inline-polyfill -->", polyfill)
-	basehtml = replacetextEx(basehtml, "<!-- tgui:nt-copyright -->", "Nanotrasen (c) 2284-[CURRENT_STATION_YEAR]")
+
+	// Inject inline helper functions
+	var/helpers = file2text('tgui/public/helpers.min.js')
+	helpers = "<script type='text/javascript'>\n[helpers]\n</script>"
+	basehtml = replacetextEx(basehtml, "<!-- tgui:helpers -->", helpers)
+
+	// Inject inline ntos-error styles
+	var/ntos_error = file2text('tgui/public/ntos-error.min.css')
+	ntos_error = "<style type='text/css'>\n[ntos_error]\n</style>"
+	basehtml = replacetextEx(basehtml, "<!-- tgui:ntos-error -->", ntos_error)
+
+	basehtml = replacetextEx(basehtml, "<!-- tgui:nt-copyright -->", "Nanotrasen (c) 2284-[text2num(UTC_YEAR) + STATION_YEAR_OFFSET]") // This can't use the GLOB as it runs before those are populated
+
+/datum/controller/subsystem/tgui/OnConfigLoad()
+	var/storage_iframe = CONFIG_GET(string/storage_cdn_iframe)
+
+	if(storage_iframe && storage_iframe != /datum/config_entry/string/storage_cdn_iframe::default)
+		basehtml = replacetextEx(basehtml, "\[tgui:storagecdn]", storage_iframe)
+		return
+
+	if(CONFIG_GET(string/asset_transport) == "webroot")
+		var/datum/asset_transport/webroot/webroot = SSassets.transport
+
+		var/datum/asset_cache_item/item = webroot.register_asset("iframe.html", file("tgui/public/iframe.html"))
+		basehtml = replacetextEx(basehtml, "\[tgui:storagecdn]", webroot.get_asset_url("iframe.html", item))
+		return
+
+	if(!storage_iframe)
+		return
+
+	basehtml = replacetextEx(basehtml, "\[tgui:storagecdn]", storage_iframe)
 
 /datum/controller/subsystem/tgui/Shutdown()
 	close_all_uis()
 
-/datum/controller/subsystem/tgui/stat_entry()
-	..("P:[all_uis.len]")
+/datum/controller/subsystem/tgui/stat_entry(msg)
+	msg = "P:[length(all_uis)]"
+	return ..()
 
 /datum/controller/subsystem/tgui/fire(resumed = FALSE)
 	if(!resumed)
 		src.current_run = all_uis.Copy()
 	// Cache for sanic speed (lists are references anyways)
 	var/list/current_run = src.current_run
-	while(current_run.len)
-		var/datum/tgui/ui = current_run[current_run.len]
+	while(length(current_run))
+		var/datum/tgui/ui = current_run[length(current_run)]
 		current_run.len--
 		// TODO: Move user/src_object check to process()
 		if(ui?.user && ui.src_object)
@@ -121,8 +152,6 @@ SUBSYSTEM_DEF(tgui)
 	for(var/datum/tgui/ui in user.tgui_open_uis)
 		if(ui.window && ui.window.id == window_id)
 			ui.close(can_be_suspended = FALSE)
-	// Unset machine just to be sure.
-	user.unset_machine()
 	// Close window directly just to be sure.
 	user << browse(null, "window=[window_id]")
 
@@ -170,9 +199,9 @@ SUBSYSTEM_DEF(tgui)
  */
 /datum/controller/subsystem/tgui/proc/get_open_ui(mob/user, datum/src_object)
 	// No UIs opened for this src_object
-	if(!LAZYLEN(src_object?.open_uis))
+	if(!LAZYLEN(src_object?.open_tguis))
 		return null
-	for(var/datum/tgui/ui in src_object.open_uis)
+	for(var/datum/tgui/ui in src_object.open_tguis)
 		// Make sure we have the right user
 		if(ui.user == user)
 			return ui
@@ -189,10 +218,10 @@ SUBSYSTEM_DEF(tgui)
  */
 /datum/controller/subsystem/tgui/proc/update_uis(datum/src_object)
 	// No UIs opened for this src_object
-	if(!LAZYLEN(src_object?.open_uis))
+	if(!LAZYLEN(src_object?.open_tguis))
 		return 0
 	var/count = 0
-	for(var/datum/tgui/ui in src_object.open_uis)
+	for(var/datum/tgui/ui in src_object.open_tguis)
 		// Check if UI is valid.
 		if(ui?.src_object && ui.user && ui.src_object.tgui_host(ui.user))
 			INVOKE_ASYNC(ui, TYPE_PROC_REF(/datum/tgui, process), wait * 0.1, TRUE)
@@ -210,10 +239,10 @@ SUBSYSTEM_DEF(tgui)
  */
 /datum/controller/subsystem/tgui/proc/close_uis(datum/src_object)
 	// No UIs opened for this src_object
-	if(!LAZYLEN(src_object?.open_uis))
+	if(!LAZYLEN(src_object?.open_tguis))
 		return 0
 	var/count = 0
-	for(var/datum/tgui/ui in src_object.open_uis)
+	for(var/datum/tgui/ui in src_object.open_tguis)
 		// Check if UI is valid.
 		if(ui?.src_object && ui.user && ui.src_object.tgui_host(ui.user))
 			ui.close()
@@ -271,7 +300,7 @@ SUBSYSTEM_DEF(tgui)
 	if(length(user?.tgui_open_uis) == 0)
 		return count
 	for(var/datum/tgui/ui in user.tgui_open_uis)
-		if(isnull(src_object) || ui.src_object == src_object)
+		if((isnull(src_object) || ui.src_object == src_object) && ui.closeable)
 			ui.close(logout = logout)
 			count++
 	return count
@@ -285,7 +314,7 @@ SUBSYSTEM_DEF(tgui)
  */
 /datum/controller/subsystem/tgui/proc/on_open(datum/tgui/ui)
 	ui.user?.tgui_open_uis |= ui
-	LAZYOR(ui.src_object.open_uis, ui)
+	LAZYOR(ui.src_object.open_tguis, ui)
 	all_uis |= ui
 
 /**
@@ -305,7 +334,7 @@ SUBSYSTEM_DEF(tgui)
 	if(ui.user)
 		ui.user.tgui_open_uis -= ui
 	if(ui.src_object)
-		LAZYREMOVE(ui.src_object.open_uis, ui)
+		LAZYREMOVE(ui.src_object.open_tguis, ui)
 	return TRUE
 
 /**

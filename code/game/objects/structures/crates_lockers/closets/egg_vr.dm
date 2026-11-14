@@ -1,7 +1,7 @@
 /obj/structure/closet/secure_closet/egg
 	name = "egg"
 	desc = "It's an egg; it's smooth to the touch." //This is the default egg.
-	icon = 'icons/obj/egg_vr.dmi'
+	icon = 'icons/obj/egg.dmi'
 	icon_state = "egg"
 	density = FALSE //Just in case there's a lot of eggs, so it doesn't block hallways/areas.
 	var/icon_closed = "egg"
@@ -23,7 +23,7 @@
 		else
 			icon_state = icon_closed
 
-/obj/structure/closet/secure_closet/egg/attackby(obj/item/weapon/W, mob/user as mob) //This also prevents crew from welding the eggs and making them unable to be opened.
+/obj/structure/closet/secure_closet/egg/attackby(obj/item/W, mob/user as mob) //This also prevents crew from welding the eggs and making them unable to be opened.
 	if(W.has_tool_quality(TOOL_WELDER))
 		src.dump_contents()
 		qdel(src)

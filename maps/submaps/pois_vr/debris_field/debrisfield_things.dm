@@ -18,7 +18,7 @@
 
 /obj/tether_away_spawner/debrisfield/derelict
 	name = "debris field derelict random mob spawner"
-	faction = "derelict"
+	faction = FACTION_DERELICT
 	mobs_to_pick_from = list(
 		/mob/living/simple_mob/mechanical/corrupt_maint_drone = 2,
 		/mob/living/simple_mob/mechanical/infectionbot = 3,
@@ -27,14 +27,14 @@
 
 /obj/tether_away_spawner/debrisfield/derelict/corrupt_maint_swarm
 	name = "debris field derelict maint swarm"
-	faction = "derelict"
+	faction = FACTION_DERELICT
 	mobs_to_pick_from = list(
 		/mob/living/simple_mob/mechanical/corrupt_maint_drone = 4
 	)
 
 /obj/tether_away_spawner/debrisfield/derelict/mech_wizard
 	name = "debris field derelict wizard lol"
-	faction = "derelict"
+	faction = FACTION_DERELICT
 	mobs_to_pick_from = list(
 		/mob/living/simple_mob/mechanical/technomancer_golem = 2
 	)
@@ -51,7 +51,7 @@
 	max_n2 = 0
 	minbodytemp = 0
 
-/mob/living/simple_mob/tomato/space/Process_Spacemove(var/check_drift = 0)
+/mob/living/simple_mob/tomato/space/Process_Spacemove(check_drift = 0)
 	return TRUE
 
 //Begin tourist ship stuff
@@ -66,7 +66,7 @@
 	max_n2 = 0
 	minbodytemp = 0
 
-/mob/living/simple_mob/animal/giant_spider/space/Process_Spacemove(var/check_drift = 0)
+/mob/living/simple_mob/animal/giant_spider/space/Process_Spacemove(check_drift = 0)
 	return TRUE
 
 /mob/living/simple_mob/animal/giant_spider/nurse/space
@@ -80,7 +80,7 @@
 	max_n2 = 0
 	minbodytemp = 0
 
-/mob/living/simple_mob/animal/giant_spider/nurse/space/Process_Spacemove(var/check_drift = 0)
+/mob/living/simple_mob/animal/giant_spider/nurse/space/Process_Spacemove(check_drift = 0)
 	return TRUE
 
 /mob/living/simple_mob/animal/giant_spider/hunter/space
@@ -94,7 +94,7 @@
 	max_n2 = 0
 	minbodytemp = 0
 
-/mob/living/simple_mob/animal/giant_spider/hunter/space/Process_Spacemove(var/check_drift = 0)
+/mob/living/simple_mob/animal/giant_spider/hunter/space/Process_Spacemove(check_drift = 0)
 	return TRUE
 
 /mob/living/simple_mob/animal/giant_spider/tunneler/space
@@ -108,7 +108,7 @@
 	max_n2 = 0
 	minbodytemp = 0
 
-/mob/living/simple_mob/animal/giant_spider/tunneler/space/Process_Spacemove(var/check_drift = 0)
+/mob/living/simple_mob/animal/giant_spider/tunneler/space/Process_Spacemove(check_drift = 0)
 	return TRUE
 
 /obj/structure/ghost_pod/manual/survivor/spidership
@@ -127,12 +127,13 @@
 
 
 
-/obj/item/device/taperecorder/tourist
+/obj/item/taperecorder/tourist
 	name = "Body-Microphone"
 	desc = "A sort of liability device worn by security on luxury yachts. Records everything they say. Strange that the captain was wearing it."
-	mytape = /obj/item/device/tape/touristguard
+	mytape = /obj/item/rectape/touristguard
 
-/obj/item/device/tape/touristguard/New()
+/obj/item/rectape/touristguard/Initialize(mapload)
+	. = ..()
 	storedinfo += "01:37  *sounds of metal creaking"
 	storedinfo += "01:55  *sounds of distant screaming!"
 	storedinfo += "01:37  *Sounds of hissing, both airlocks and spiders alike. Screaming continues."
@@ -144,13 +145,15 @@
 /obj/item/space_spider_egg
 	name = "ruptured giant spider egg"
 	desc = "An attempt by space-adapted giant spiders to reproduce! Unfortunately, their young cannot yet survive hard vacuum. Yet."
-	icon = 'icons/obj/egg_new_vr.dmi'	//VOREStation Edit
+	icon = 'icons/obj/egg.dmi'
 	icon_state = "egg_slimeglob"
-	origin_tech = list(TECH_BIO = 10)
 
-/obj/item/space_spider_egg/attack_self(mob/user as mob)
+/obj/item/space_spider_egg/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	var/turf/drop_loc = user.loc
-	to_chat(user, SPAN_WARNING("The egg cracks open, splattering disgusting goop at your feet...\n \
+	to_chat(user, span_warning("The egg cracks open, splattering disgusting goop at your feet...\n \
 	Whatever life laid within shall never awaken, if it was even alive."))
 	new /obj/effect/decal/cleanable/spiderling_remains(drop_loc)
 	qdel(src)
@@ -187,7 +190,7 @@
 				prob(1);/obj/item/slime_extract/grey,
 				prob(1);/obj/item/slime_extract/rainbow)
 
-/obj/item/weapon/paper/robo_escape_pod
+/obj/item/paper/robo_escape_pod
 	name = "faded note"
 	info = {"<i>This paper is old and the shaky writing has faded, rendering it difficult to read.</i><br>\
 whichever poor bastard finds this pod<br>\
@@ -217,7 +220,7 @@ i just hope whatever happens, she finds the mercy we werent equipped to give her
 	ai_holder_type = /datum/ai_holder/simple_mob/merc/tanker_escort
 	say_list_type = /datum/say_list/merc/drone/tanker_escort
 	corpse = /obj/effect/landmark/mobcorpse/syndicatesoldier/drone/tanker
-	loot_list = list(/obj/item/poi/broken_drone_circuit/phoron_tanker = 100, /obj/item/weapon/material/knife/tacknife = 100)
+	loot_list = list(/obj/item/poi/broken_drone_circuit/phoron_tanker = 100, /obj/item/material/knife/tacknife = 100)
 	min_oxy = 0
 	max_oxy = 0
 	min_tox = 0
@@ -240,7 +243,7 @@ i just hope whatever happens, she finds the mercy we werent equipped to give her
 	say_list_type = /datum/say_list/merc/drone/tanker_escort
 	corpse = /obj/effect/landmark/mobcorpse/syndicatesoldier/drone/tanker
 	loot_list = list(/obj/item/poi/broken_drone_circuit/phoron_tanker = 100,
-	/obj/item/weapon/shield/energy = 100, /obj/item/weapon/melee/energy/sword/color = 20)
+	/obj/item/shield/energy = 100, /obj/item/melee/energy/sword = 20)
 	min_oxy = 0
 	max_oxy = 0
 	min_tox = 0
@@ -259,7 +262,7 @@ i just hope whatever happens, she finds the mercy we werent equipped to give her
 	ai_holder_type = /datum/ai_holder/simple_mob/merc/ranged/tanker_escort
 	say_list_type = /datum/say_list/merc/drone/tanker_escort
 	corpse = /obj/effect/landmark/mobcorpse/syndicatesoldier/drone/tanker
-	loot_list = list(/obj/item/poi/broken_drone_circuit/phoron_tanker = 100, /obj/item/weapon/gun/projectile/automatic/c20r = 100)
+	loot_list = list(/obj/item/poi/broken_drone_circuit/phoron_tanker = 100, /obj/item/gun/projectile/automatic/c20r = 100)
 	min_oxy = 0
 	max_oxy = 0
 	min_tox = 0
@@ -296,7 +299,6 @@ i just hope whatever happens, she finds the mercy we werent equipped to give her
 	say_escalate = list("Janitorial Engaged!", "Shoot to-ta-te stun!")
 
 /obj/item/poi/broken_drone_circuit/phoron_tanker
-	origin_tech = list(TECH_ENGINEERING = 4, TECH_MATERIAL = 3, TECH_DATA = 4, TECH_COMBAT = 6)
 	var/static/area/submap/debrisfield/phoron_tanker/tanker	//Doing this to save some perf
 	examine_multitool = "ERR- ERR- KZZZHT \n \
 	designation: <b>kzth!</b> \n assignment: <b>CRACKLE</b> \n \
@@ -304,7 +306,8 @@ i just hope whatever happens, she finds the mercy we werent equipped to give her
 	goal: RETURN HOME status: Successful \n \
 	goal: PRO-PRO"
 
-/obj/item/poi/broken_drone_circuit/phoron_tanker/New()
+/obj/item/poi/broken_drone_circuit/phoron_tanker/Initialize(mapload)
+	. = ..()
 	drone_name = "NED-[pick(list("ADA","DOS","GNU","MAC","WIN","NJS","SKS","DRD","IOS","CRM","IBM","TEX","LVM","BSD",))]-[rand(1000, 9999)]]"
 	tanker = locate("POI_NT_TANKER_BOAT")	//actual .dmm area has this
 	var/tankername = "Unknown Ship"

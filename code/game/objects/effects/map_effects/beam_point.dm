@@ -31,7 +31,7 @@ GLOBAL_LIST_EMPTY(all_beam_points)
 	var/beam_type = /obj/effect/ebeam // The type of beam. Default has no special properties. Some others may do things like hurt things touching it.
 	var/beam_sleep_time = 3 // How often the beam updates visually. Suggested to leave this alone, 3 is already fast.
 
-/obj/effect/map_effect/beam_point/Initialize()
+/obj/effect/map_effect/beam_point/Initialize(mapload)
 	GLOB.all_beam_points += src
 	if(make_beams_on_init)
 		create_beams()
@@ -71,7 +71,7 @@ GLOBAL_LIST_EMPTY(all_beam_points)
 
 // Checks if the two points have an active beam between them.
 // Used to make sure two points don't have more than one beam.
-/obj/effect/map_effect/beam_point/proc/has_active_beam(var/obj/effect/map_effect/beam_point/them)
+/obj/effect/map_effect/beam_point/proc/has_active_beam(obj/effect/map_effect/beam_point/them)
 	// First, check our beams.
 	for(var/datum/beam/B in my_beams)
 		if(B.target == them)
@@ -88,9 +88,9 @@ GLOBAL_LIST_EMPTY(all_beam_points)
 
 	return FALSE
 
-/obj/effect/map_effect/beam_point/proc/build_beam(var/atom/beam_target)
+/obj/effect/map_effect/beam_point/proc/build_beam(atom/beam_target)
 	if(!beam_target)
-		log_debug("[src] ([src.type] \[[x],[y],[z]\]) failed to build its beam due to not having a target.")
+		log_mapping("[src] ([src.type] \[[x],[y],[z]\]) failed to build its beam due to not having a target.")
 		return FALSE
 
 	var/datum/beam/new_beam = Beam(beam_target, beam_icon_state, beam_icon, beam_time, beam_max_distance, beam_type, beam_sleep_time)
@@ -100,13 +100,13 @@ GLOBAL_LIST_EMPTY(all_beam_points)
 
 	return TRUE
 
-/obj/effect/map_effect/beam_point/proc/destroy_beam(var/datum/beam/B)
+/obj/effect/map_effect/beam_point/proc/destroy_beam(datum/beam/B)
 	if(!B)
-		log_debug("[src] ([src.type] \[[x],[y],[z]\]) was asked to destroy a beam that does not exist.")
+		log_mapping("[src] ([src.type] \[[x],[y],[z]\]) was asked to destroy a beam that does not exist.")
 		return FALSE
 
 	if(!(B in my_beams))
-		log_debug("[src] ([src.type] \[[x],[y],[z]\]) was asked to destroy a beam it did not own.")
+		log_mapping("[src] ([src.type] \[[x],[y],[z]\]) was asked to destroy a beam it did not own.")
 		return FALSE
 
 	my_beams -= B

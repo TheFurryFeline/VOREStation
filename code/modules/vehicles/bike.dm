@@ -28,36 +28,36 @@
 	var/datum/effect/effect/system/ion_trail_follow/ion
 	var/kickstand = 1
 
-/obj/vehicle/bike/Initialize()
+/obj/vehicle/bike/Initialize(mapload)
 	. = ..()
-	cell = new /obj/item/weapon/cell/high(src)
+	cell = new /obj/item/cell/high(src)
 	ion = new /datum/effect/effect/system/ion_trail_follow()
 	ion.set_up(src)
 	turn_off()
 	icon_state = "[bike_icon]_off"
 	update_icon()
 
-/obj/vehicle/bike/built/New()
-	..()
+/obj/vehicle/bike/built/Initialize(mapload)
+	. = ..()
 	qdel(cell)
 	cell = null
 
-/obj/vehicle/bike/random/New()
+/obj/vehicle/bike/random/Initialize(mapload)
 	paint_color = rgb(rand(1,255),rand(1,255),rand(1,255))
-	..()
+	. = ..()
 
-/obj/vehicle/bike/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W, /obj/item/device/multitool) && open)
-		var/new_paint = input(usr, "Please select paint color.", "Paint Color", paint_color) as color|null
+/obj/vehicle/bike/attackby(obj/item/W, mob/user)
+	if(istype(W, /obj/item/multitool) && open)
+		var/new_paint = tgui_color_picker(user, "Please select paint color.", "Paint Color", paint_color)
 		if(new_paint)
 			paint_color = new_paint
 			update_icon()
 			return
 	..()
 
-/obj/vehicle/bike/CtrlClick(var/mob/user)
+/obj/vehicle/bike/click_ctrl(mob/user)
 	if(Adjacent(user) && anchored)
-		toggle()
+		return toggle_proc(user)
 	else
 		return ..()
 
@@ -65,31 +65,36 @@
 	set name = "Toggle Engine"
 	set category = "Vehicle"
 	set src in view(0)
+	toggle_proc(usr)
 
-	if(!isliving(usr) || ismouse(usr))
-		return
+/obj/vehicle/bike/proc/toggle_proc(mob/user)
+	if(!isliving(user) || HAS_TRAIT(user, TRAIT_AMBIENT_PEST_MOB))
+		return CLICK_ACTION_BLOCKING
 
-	if(usr.incapacitated()) return
+	if(user.incapacitated())
+		return CLICK_ACTION_BLOCKING
 
 	if(!on && cell && cell.charge > charge_use)
 		turn_on()
-		src.visible_message("\The [src] rumbles to life.", "You hear something rumble deeply.")
+		visible_message("\The [src] rumbles to life.", "You hear something rumble deeply.")
+		return CLICK_ACTION_SUCCESS
 	else
 		turn_off()
-		src.visible_message("\The [src] putters before turning off.", "You hear something putter slowly.")
+		visible_message("\The [src] putters before turning off.", "You hear something putter slowly.")
+		return CLICK_ACTION_SUCCESS
 
-/obj/vehicle/bike/AltClick(var/mob/user)
+/obj/vehicle/bike/click_alt(mob/user)
 	if(Adjacent(user))
 		kickstand(user)
 	else
 		return ..()
 
-/obj/vehicle/bike/verb/kickstand(var/mob/user as mob)
+/obj/vehicle/bike/verb/kickstand(mob/user as mob)
 	set name = "Toggle Kickstand"
 	set category = "Vehicle"
 	set src in view(0)
 
-	if(!isliving(usr) || ismouse(usr))
+	if(!isliving(usr) || HAS_TRAIT(usr, TRAIT_AMBIENT_PEST_MOB))
 		return
 
 	if(usr.incapacitated()) return
@@ -98,7 +103,7 @@
 		visible_message("[user] puts up \the [src]'s kickstand.")
 	else
 		if(istype(src.loc,/turf/space) || istype(src.loc, /turf/simulated/floor/water))
-			to_chat(usr, "<span class='warning'> You don't think kickstands work here...</span>")
+			to_chat(usr, span_warning(" You don't think kickstands work here..."))
 			return
 		visible_message("[user] puts down \the [src]'s kickstand.")
 		if(pulledby)
@@ -107,19 +112,19 @@
 	kickstand = !kickstand
 	anchored = (kickstand || on)
 
-/obj/vehicle/bike/load(var/atom/movable/C, var/mob/user as mob)
+/obj/vehicle/bike/load(atom/movable/C, mob/user as mob)
 	var/mob/living/M = C
 	if(!istype(C)) return 0
 	if(M.buckled || M.restrained() || !Adjacent(M) || !M.Adjacent(src))
 		return 0
 	return ..(M, user)
 
-/obj/vehicle/bike/MouseDrop_T(var/atom/movable/C, var/mob/user as mob)
+/obj/vehicle/bike/MouseDrop_T(atom/movable/C, mob/user as mob)
 	if(!load(C, user))
-		to_chat(user, "<span class='warning'> You were unable to load \the [C] onto \the [src].</span>")
+		to_chat(user, span_warning(" You were unable to load \the [C] onto \the [src]."))
 		return
 
-/obj/vehicle/bike/attack_hand(var/mob/user as mob)
+/obj/vehicle/bike/attack_hand(mob/user as mob)
 	if(user == load)
 		unload(load, user)
 		to_chat(user, "You unbuckle yourself from \the [src].")
@@ -133,25 +138,25 @@
 		return 1
 	return 0
 
-/obj/vehicle/bike/Move(var/turf/destination)
+/obj/vehicle/bike/Move(atom/newloc, direct = 0, movetime)
 	if(kickstand) return 0
 
 	if(on && (!cell || cell.charge < charge_use))
 		turn_off()
-		visible_message("<span class='warning'>\The [src] whines, before its engines wind down.</span>")
-		return 0
+		visible_message(span_warning("\The [src] whines, before its engines wind down."))
+		return FALSE
 
 	//these things like space, not turf. Dragging shouldn't weigh you down.
 	if(on && cell)
 		cell.use(charge_use)
 
-	if(istype(destination,/turf/space) || istype(destination, /turf/simulated/floor/water) || pulledby)
+	if(is_vehicle_inpassable(newloc) || pulledby)
 		if(!space_speed)
-			return 0
+			return FALSE
 		move_delay = space_speed
 	else
 		if(!land_speed)
-			return 0
+			return FALSE
 		move_delay = land_speed
 	return ..()
 
@@ -173,7 +178,7 @@
 
 	..()
 
-/obj/vehicle/bike/bullet_act(var/obj/item/projectile/Proj)
+/obj/vehicle/bike/bullet_act(obj/item/projectile/Proj)
 	if(has_buckled_mobs() && prob(protection_percent))
 		var/mob/living/L = pick(buckled_mobs)
 		L.bullet_act(Proj)
@@ -258,4 +263,4 @@
 /obj/vehicle/bike/Destroy()
 	qdel(ion)
 
-	..()
+	. = ..()

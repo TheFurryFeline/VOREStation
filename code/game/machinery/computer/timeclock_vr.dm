@@ -7,6 +7,7 @@
 //
 /obj/machinery/computer/timeclock
 	name = "timeclock terminal"
+	desc = "This device is connected to the employment servers, allowing you to clock in, or out, of your job. Slacker."
 	icon = 'icons/obj/machines/timeclock_vr.dmi'
 	icon_state = "timeclock"
 	icon_keyboard = null
@@ -14,17 +15,18 @@
 	light_power_on = 0.5
 	layer = ABOVE_WINDOW_LAYER
 	density = FALSE
-	circuit = /obj/item/weapon/circuitboard/timeclock
+	circuit = /obj/item/circuitboard/timeclock
 	clicksound = null
+	flags = WALL_ITEM
 	var/channel = "Common" //Radio channel to announce on
 
-	var/obj/item/weapon/card/id/card // Inserted Id card
-	var/obj/item/device/radio/intercom/announce	// Integreated announcer
+	var/obj/item/card/id/card // Inserted Id card
+	var/obj/item/radio/intercom/announce	// Integreated announcer
 
 
-/obj/machinery/computer/timeclock/New()
-	announce = new /obj/item/device/radio/intercom(src)
-	..()
+/obj/machinery/computer/timeclock/Initialize(mapload)
+	. = ..()
+	announce = new /obj/item/radio/intercom(src)
 
 /obj/machinery/computer/timeclock/Destroy()
 	if(card)
@@ -51,21 +53,20 @@
 		set_light(light_range_on, light_power_on)
 
 /obj/machinery/computer/timeclock/attackby(obj/I, mob/user)
-	if(istype(I, /obj/item/weapon/card/id))
+	if(istype(I, /obj/item/card/id))
 		if(!card && user.unEquip(I))
 			I.forceMove(src)
 			card = I
 			SStgui.update_uis(src)
 			update_icon()
 		else if(card)
-			to_chat(user, "<span class='warning'>There is already ID card inside.</span>")
+			to_chat(user, span_warning("There is already ID card inside."))
 		return
 	. = ..()
 
-/obj/machinery/computer/timeclock/attack_hand(var/mob/user as mob)
+/obj/machinery/computer/timeclock/attack_hand(mob/user as mob)
 	if(..())
 		return
-	user.set_machine(src)
 	tgui_interact(user)
 
 /obj/machinery/computer/timeclock/tgui_interact(mob/user, datum/tgui/ui)
@@ -91,7 +92,8 @@
 	if(card)
 		data["card"] = "[card]"
 		data["assignment"] = card.assignment
-		var/datum/job/job = job_master.GetJob(card.rank)
+		data["card_cooldown"] = getCooldown()
+		var/datum/job/job = SSjob.get_job(card.rank)
 		if(job)
 			data["job_datum"] = list(
 				"title" = job.title,
@@ -101,7 +103,7 @@
 				"timeoff_factor" = job.timeoff_factor,
 				"pto_department" = job.pto_type
 			)
-		if(config.time_off && config.pto_job_change)
+		if(CONFIG_GET(flag/time_off) && CONFIG_GET(flag/pto_job_change))
 			data["allow_change_job"] = TRUE
 			if(job && job.timeoff_factor < 0) // Currently are Off Duty, so gotta lookup what on-duty jobs are open
 				data["job_choices"] = getOpenOnDutyJobs(user, job.pto_type)
@@ -112,40 +114,40 @@
 	if(..())
 		return TRUE
 
-	add_fingerprint(usr)
+	add_fingerprint(ui.user)
 
 	switch(action)
 		if("id")
 			if(card)
-				usr.put_in_hands(card)
+				ui.user.put_in_hands(card)
 				card = null
 			else
-				var/obj/item/I = usr.get_active_hand()
-				if (istype(I, /obj/item/weapon/card/id) && usr.unEquip(I))
+				var/obj/item/I = ui.user.get_active_hand()
+				if (istype(I, /obj/item/card/id) && ui.user.unEquip(I))
 					I.forceMove(src)
 					card = I
 			update_icon()
 			return TRUE
 		if("switch-to-onduty-rank")
-			if(checkFace())
-				if(checkCardCooldown())
-					makeOnDuty(params["switch-to-onduty-rank"], params["switch-to-onduty-assignment"])
-					usr.put_in_hands(card)
+			if(checkFace(ui.user))
+				if(checkCardCooldown(ui.user))
+					makeOnDuty(params["switch-to-onduty-rank"], params["switch-to-onduty-assignment"], ui.user)
+					ui.user.put_in_hands(card)
 					card = null
 			update_icon()
 			return TRUE
 		if("switch-to-offduty")
-			if(checkFace())
-				if(checkCardCooldown())
-					makeOffDuty()
-					usr.put_in_hands(card)
+			if(checkFace(ui.user))
+				if(checkCardCooldown(ui.user))
+					makeOffDuty(ui.user)
+					ui.user.put_in_hands(card)
 					card = null
 			update_icon()
 			return TRUE
 
-/obj/machinery/computer/timeclock/proc/getOpenOnDutyJobs(var/mob/user, var/department)
+/obj/machinery/computer/timeclock/proc/getOpenOnDutyJobs(mob/user, department)
 	var/list/available_jobs = list()
-	for(var/datum/job/job in job_master.occupations)
+	for(var/datum/job/job in SSjob.occupations)
 		if(isOpenOnDutyJob(user, department, job))
 			available_jobs[job.title] = list(job.title)
 			if(job.alt_titles)
@@ -154,21 +156,21 @@
 						available_jobs[job.title] += alt_job
 	return available_jobs
 
-/obj/machinery/computer/timeclock/proc/isOpenOnDutyJob(var/mob/user, var/department, var/datum/job/job)
+/obj/machinery/computer/timeclock/proc/isOpenOnDutyJob(mob/user, department, datum/job/job)
 	return job \
-		   && job.is_position_available() \
-		   && !job.whitelist_only \
-		   && !jobban_isbanned(user,job.title) \
-		   && job.player_old_enough(user.client) \
-		   && job.player_has_enough_playtime(user.client) \
-		   && job.pto_type == department \
-		   && !job.disallow_jobhop \
-		   && job.timeoff_factor > 0
+		&& job.is_position_available() \
+		&& !job.whitelist_only \
+		&& !jobban_isbanned(user,job.title) \
+		&& job.player_old_enough(user.client) \
+		&& job.player_has_enough_playtime(user.client) \
+		&& job.pto_type == department \
+		&& !job.disallow_jobhop \
+		&& job.timeoff_factor > 0
 
-/obj/machinery/computer/timeclock/proc/makeOnDuty(var/newrank, var/newassignment)
-	var/datum/job/oldjob = job_master.GetJob(card.rank)
-	var/datum/job/newjob = job_master.GetJob(newrank)
-	if(!oldjob || !isOpenOnDutyJob(usr, oldjob.pto_type, newjob))
+/obj/machinery/computer/timeclock/proc/makeOnDuty(newrank, newassignment, mob/user)
+	var/datum/job/oldjob = SSjob.get_job(card.rank)
+	var/datum/job/newjob = SSjob.get_job(newrank)
+	if(!oldjob || !isOpenOnDutyJob(user, oldjob.pto_type, newjob))
 		return
 	if(newassignment != newjob.title && !(newassignment in newjob.alt_titles))
 		return
@@ -177,23 +179,23 @@
 		card.rank = newjob.title
 		card.assignment = newassignment
 		card.name = text("[card.registered_name]'s ID Card ([card.assignment])")
-		data_core.manifest_modify(card.registered_name, card.assignment, card.rank)
+		GLOB.data_core.manifest_modify(card.registered_name, card.assignment, card.rank)
 		card.last_job_switch = world.time
-		callHook("reassign_employee", list(card))
+		SEND_GLOBAL_SIGNAL(COMSIG_GLOB_REASSIGN_EMPLOYEE_IDCARD, card)
 		newjob.current_positions++
-		var/mob/living/carbon/human/H = usr
+		var/mob/living/carbon/human/H = user
 		H.mind.assigned_role = card.rank
 		H.mind.role_alt_title = card.assignment
 		announce.autosay("[card.registered_name] has moved On-Duty as [card.assignment].", "Employee Oversight", channel, zlevels = using_map.get_map_levels(get_z(src)))
 	return
 
-/obj/machinery/computer/timeclock/proc/makeOffDuty()
-	var/datum/job/foundjob = job_master.GetJob(card.rank)
+/obj/machinery/computer/timeclock/proc/makeOffDuty(mob/user)
+	var/datum/job/foundjob = SSjob.get_job(card.rank)
 	if(!foundjob)
 		return
 	var/new_dept = foundjob.pto_type || PTO_CIVILIAN
 	var/datum/job/ptojob = null
-	for(var/datum/job/job in job_master.occupations)
+	for(var/datum/job/job in SSjob.occupations)
 		if(job.pto_type == new_dept && job.timeoff_factor < 0)
 			ptojob = job
 			break
@@ -203,47 +205,57 @@
 		card.rank = ptojob.title
 		card.assignment = ptojob.title
 		card.name = text("[card.registered_name]'s ID Card ([card.assignment])")
-		data_core.manifest_modify(card.registered_name, card.assignment, card.rank)
+		GLOB.data_core.manifest_modify(card.registered_name, card.assignment, card.rank)
 		card.last_job_switch = world.time
-		callHook("reassign_employee", list(card))
-		var/mob/living/carbon/human/H = usr
+		SEND_GLOBAL_SIGNAL(COMSIG_GLOB_REASSIGN_EMPLOYEE_IDCARD, card)
+		var/mob/living/carbon/human/H = user
 		H.mind.assigned_role = ptojob.title
 		H.mind.role_alt_title = ptojob.title
 		foundjob.current_positions--
 		announce.autosay("[card.registered_name], [oldtitle], has moved Off-Duty.", "Employee Oversight", channel, zlevels = using_map.get_map_levels(get_z(src)))
 	return
 
-/obj/machinery/computer/timeclock/proc/checkCardCooldown()
+/obj/machinery/computer/timeclock/proc/checkCardCooldown(mob/user)
 	if(!card)
 		return FALSE
-	var/time_left = 10 MINUTES - (world.time - card.last_job_switch)
+	var/time_left = getCooldown()
 	if(time_left > 0)
-		to_chat(usr, "You need to wait another [round((time_left/10)/60, 1)] minute\s before you can switch.")
+		to_chat(user, "You need to wait another [round((time_left/10)/60, 1)] minute\s before you can switch.")
 		return FALSE
 	return TRUE
 
-/obj/machinery/computer/timeclock/proc/checkFace()
+/obj/machinery/computer/timeclock/proc/getCooldown()
+	return 10 MINUTES - (world.time - card.last_job_switch)
+
+/obj/machinery/computer/timeclock/proc/checkFace(mob/user)
 	if(!card)
-		to_chat(usr, "<span class='notice'>No ID is inserted.</span>")
+		to_chat(user, span_notice("No ID is inserted."))
 		return FALSE
-	var/mob/living/carbon/human/H = usr
+	var/mob/living/carbon/human/H = user
 	if(!(istype(H)))
-		to_chat(usr, "<span class='warning'>Invalid user detected. Access denied.</span>")
+		to_chat(user, span_warning("Invalid user detected. Access denied."))
 		return FALSE
 	else if((H.wear_mask && (H.wear_mask.flags_inv & HIDEFACE)) || (H.head && (H.head.flags_inv & HIDEFACE)))	//Face hiding bad
-		to_chat(usr, "<span class='warning'>Facial recognition scan failed due to physical obstructions. Access denied.</span>")
+		to_chat(user, span_warning("Facial recognition scan failed due to physical obstructions. Access denied."))
 		return FALSE
 	else if(H.get_face_name() == "Unknown" || !(H.real_name == card.registered_name))
-		to_chat(usr, "<span class='warning'>Facial recognition scan failed. Access denied.</span>")
+		to_chat(user, span_warning("Facial recognition scan failed. Access denied."))
 		return FALSE
 	else
 		return TRUE
 
-/obj/item/weapon/card/id
+/obj/item/card/id
 	var/last_job_switch
 
-/obj/item/weapon/card/id/New()
-	.=..()
+	///Var for attack_self chain
+	var/special_handling = FALSE
+
+	///Var for event IDs
+	var/can_configure = FALSE
+	var/configured = FALSE
+
+/obj/item/card/id/Initialize(mapload)
+	. = ..()
 	last_job_switch = world.time
 
 //
@@ -258,7 +270,7 @@
 	y_offset = 30
 	icon_override = 'icons/obj/machines/timeclock_vr.dmi'
 
-/datum/frame/frame_types/timeclock_terminal/get_icon_state(var/state)
+/datum/frame/frame_types/timeclock_terminal/get_icon_state(state)
 	return "timeclock_b[state]"
 
 //

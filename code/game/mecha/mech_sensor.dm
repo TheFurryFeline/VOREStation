@@ -12,7 +12,7 @@
 	var/on = 0
 	var/id_tag = null
 
-	var/frequency = 1379
+	var/frequency = AIRLOCK_FREQ
 	var/datum/radio_frequency/radio_connection
 
 /obj/machinery/mech_sensor/CanPass(atom/movable/mover, turf/target)
@@ -36,7 +36,7 @@
 	return istype(O, /obj/mecha) || istype(O, /obj/vehicle)
 
 /obj/machinery/mech_sensor/proc/give_feedback(O as obj)
-	var/block_message = "<span class='warning'>Movement control overridden. Area denial active.</span>"
+	var/block_message = span_warning("Movement control overridden. Area denial active.")
 	var/feedback_timer = 0
 	if(feedback_timer)
 		return
@@ -63,22 +63,22 @@
 	if(old_stat != stat)
 		update_icon()
 
-/obj/machinery/mech_sensor/update_icon(var/safety = 0)
+/obj/machinery/mech_sensor/update_icon(safety = 0)
 	if (enabled())
 		icon_state = "airlock_sensor_standby"
 	else
 		icon_state = "airlock_sensor_off"
 
-/obj/machinery/mech_sensor/Initialize()
+/obj/machinery/mech_sensor/Initialize(mapload)
 	. = ..()
 	set_frequency(frequency)
 
 /obj/machinery/mech_sensor/proc/set_frequency(new_frequency)
 	if(radio_connection)
-		radio_controller.remove_object(src, frequency)
+		SSradio.remove_object(src, frequency)
 	frequency = new_frequency
 	if(frequency)
-		radio_connection = radio_controller.add_object(src, frequency)
+		radio_connection = SSradio.add_object(src, frequency)
 
 /obj/machinery/mech_sensor/receive_signal(datum/signal/signal)
 	if(stat & NOPOWER)

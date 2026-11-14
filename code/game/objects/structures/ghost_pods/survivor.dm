@@ -36,7 +36,7 @@
 	var/suffer_cloneloss = FALSE
 	var/clone_severity = 5
 
-/obj/structure/ghost_pod/manual/survivor/Initialize()
+/obj/structure/ghost_pod/manual/survivor/Initialize(mapload)
 	. = ..()
 
 	handle_clothing_setup()
@@ -44,9 +44,9 @@
 /obj/structure/ghost_pod/manual/survivor/trigger()
 	. = ..()
 	desc += "\n The Pod's stasis is broken!"
-	visible_message(message = SPAN_WARNING("\The [src] hisses and blinks in a myriad of lights as its stasis ceases! \n \
+	visible_message(message = span_warning("\The [src] hisses and blinks in a myriad of lights as its stasis ceases! \n \
 	What or whoever lays beneath may yet stir once more, but their wounds may be too grevious... "),
-	blind_message = SPAN_WARNING("You hear hissing from [src]!"),
+	blind_message = span_warning("You hear hissing from [src]!"),
 	runemessage = "HISS")
 
 
@@ -56,17 +56,17 @@
 	clothing_possibilities |= subtypesof(/obj/item/clothing/under/utility)
 	clothing_possibilities |= subtypesof(/obj/item/clothing/head/beret)
 	clothing_possibilities |= /obj/item/clothing/shoes/black
-	clothing_possibilities |= /obj/item/device/radio/headset
+	clothing_possibilities |= /obj/item/radio/headset
 
-/obj/structure/ghost_pod/manual/survivor/create_occupant(var/mob/M)
+/obj/structure/ghost_pod/manual/survivor/create_occupant(mob/M)
 	..()
 	var/turf/T = get_turf(src)
 	var/mob/living/carbon/human/H = new(src)
 	if(M.mind)
 		M.mind.transfer_to(H)
-	to_chat(M, "<span class='notice'>You are a [occupant_type]!</span>")
+	to_chat(M, span_notice("You are a [occupant_type]!"))
 	H.ckey = M.ckey
-	visible_message("<span class='warning'>As \the [src] opens, the pipes on \the [src] surge, before it grows dark.</span>")
+	visible_message(span_warning("As \the [src] opens, the pipes on \the [src] surge, before it grows dark."))
 	log_and_message_admins("successfully opened \a [src] and got a [occupant_type].")
 
 	var/list/uniform_options
@@ -88,7 +88,7 @@
 				if(!head_options)
 					head_options = list()
 				head_options |= path
-			if(ispath(path, /obj/item/device/radio/headset))
+			if(ispath(path, /obj/item/radio/headset))
 				if(!headset_options)
 					headset_options = list()
 				headset_options |= path
@@ -113,7 +113,7 @@
 		var/obj/item/C = new newpath(H)
 		H.equip_to_appropriate_slot(C)
 
-	var/newname = sanitize(tgui_input_text(H, "Your mind feels foggy, and you recall your name might be [H.real_name]. Would you like to change your name?", "Name change", null, MAX_NAME_LEN), MAX_NAME_LEN)
+	var/newname = tgui_input_text(H, "Your mind feels foggy, and you recall your name might be [H.real_name]. Would you like to change your name?", "Name change", null, MAX_NAME_LEN)
 	if (newname)
 		H.real_name = newname
 
@@ -122,7 +122,7 @@
 	H.forceMove(T)
 
 	if(special_role)
-		var/datum/antagonist/role = all_antag_types[special_role] //Explicitly NOT an antagonist.
+		var/datum/antagonist/role = SSantag_job.all_antag_types[special_role] //Explicitly NOT an antagonist.
 		if(role)
 			if(role.add_antagonist(H.mind, 1, 1, 0, 1, 1))
 				log_admin("\The [src] made [key_name(src)] into a [role.role_text].")
@@ -144,4 +144,4 @@
 	if(allow_appearance_change)
 		H.change_appearance(APPEARANCE_ALL, H, check_species_whitelist = 1)
 
-	visible_message("<span class='aliem'>\The [src] [pick("gurgles", "seizes", "clangs")] before releasing \the [H]!</span>")
+	visible_message(span_alien("\The [src] [pick("gurgles", "seizes", "clangs")] before releasing \the [H]!"))

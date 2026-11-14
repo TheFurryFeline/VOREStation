@@ -103,8 +103,8 @@ GLOBAL_DATUM_INIT(catalogue_data, /datum/category_collection/catalogue, new)
 						. += item
 
 /datum/category_item/catalogue/proc/display_in_chatlog(mob/user)
-	to_chat(user, "<br>")
-	to_chat(user, span("notice", "<b>[uppertext(name)]</b>"))
+	to_chat(user, span_infoplain("<br>"))
+	to_chat(user, span_boldnotice("[uppertext(name)]"))
 
 	// Some entries get very long so lets not totally flood the chatlog.
 	var/desc_length_limit = 750
@@ -113,9 +113,9 @@ GLOBAL_DATUM_INIT(catalogue_data, /datum/category_collection/catalogue, new)
 		displayed_desc = copytext(displayed_desc, 1, desc_length_limit + 1)
 		displayed_desc += "... (View databanks for full data)"
 
-	to_chat(user, span("notice", "<i>[displayed_desc]</i>"))
-	to_chat(user, span("notice", "Cataloguers : <b>[english_list(cataloguers)]</b>."))
-	to_chat(user, span("notice", "Contributes <b>[value]</b> points to personal exploration fund."))
+	to_chat(user, span_notice(span_italics("[displayed_desc]")))
+	to_chat(user, span_notice("Cataloguers : <b>[english_list(cataloguers)]</b>."))
+	to_chat(user, span_notice("Contributes <b>[value]</b> points to personal exploration fund."))
 
 /*
 		// Truncates text to limit if necessary.
@@ -209,15 +209,16 @@ GLOBAL_DATUM_INIT(catalogue_data, /datum/category_collection/catalogue, new)
 
 /datum/category_item/catalogue/fauna/teshari
 	name = "Sapients - Teshari"
-	desc = "The Teshari are reptilian pack predators from the Skrell homeworld. \
+	desc = "The Teshari are nomadic pack predators from the Skrell homeworld. \
 	While they evolved alongside the Skrell, their interactions with them tended \
 	to be confused and violent, and until peaceful contact was made they largely \
-	stayed in their territories on and around the poles, in tundral terrain far \
-	too desolate and cold to be of interest to the Skrell. In more enlightened \
-	times, the Teshari are a minority culture on many Skrell worlds, maintaining \
-	their own settlements and cultures, but often finding themselves standing \
-	on the shoulders of their more technologically advanced neighbors when it \
-	comes to meeting and exploring the rest of the galaxy."
+	stayed in their territories on and around the poles, in tundral and alpine terrain \
+	far too desolate and cold to be of interest to the Skrell. In more enlightened \
+	times, the Teshari are a society of their own, holding territory on their home \
+	world as well as several colonies on others. They often found themselves \
+	standing on the shoulders of their more technologically advanced neighbours \
+	when it came to meeting and exploring the rest of the galaxy, but their \
+	independence has since grown."
 	value = CATALOGUER_REWARD_TRIVIAL
 
 /datum/category_item/catalogue/fauna/zaddat
@@ -290,7 +291,6 @@ GLOBAL_DATUM_INIT(catalogue_data, /datum/category_collection/catalogue, new)
 	full set of prosthetic limbs."
 	value = CATALOGUER_REWARD_TRIVIAL
 
-
 /datum/category_item/catalogue/information
 
 // For these we can piggyback off of the lore datums that are already defined and used in some places.
@@ -352,7 +352,7 @@ GLOBAL_DATUM_INIT(catalogue_data, /datum/category_collection/catalogue, new)
 	name = "TSC - Major Bill's Transportation"
 	datum_to_copy = /datum/lore/organization/tsc/mbt
 
-/datum/category_item/catalogue/information/organization/commonwealth //VS EDIT 1
+/datum/category_item/catalogue/information/organization/solgov //VS EDIT 1
 	name = "Government - Commonwealth of Sol-Procyon" //VS EDIT 2
 	datum_to_copy = /datum/lore/organization/gov/commonwealth //VS EDIT 3
 

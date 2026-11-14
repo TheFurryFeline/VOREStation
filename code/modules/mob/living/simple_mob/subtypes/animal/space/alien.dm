@@ -8,7 +8,7 @@
 	icon_gib = "syndicate_gib"
 	icon_rest = "alienh_sleep"
 
-	faction = "xeno"
+	faction = FACTION_XENO
 
 	mob_class = MOB_CLASS_ABERRATION
 
@@ -30,8 +30,13 @@
 	attacktext = list("slashed")
 	attack_sound = 'sound/weapons/bladeslice.ogg'
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/xenomeat
+	meat_type = /obj/item/reagent_containers/food/snacks/xenomeat
 	meat_amount = 5
+
+	can_be_drop_prey = FALSE
+
+	export_research_value = TECHWEB_TIER_2_POINTS
+	export_research_diminished_max = 4
 
 /mob/living/simple_mob/animal/space/alien/drone
 	name = "alien drone"

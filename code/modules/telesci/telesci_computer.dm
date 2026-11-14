@@ -3,7 +3,7 @@
 	desc = "Used to teleport objects to and from the telescience telepad."
 	icon_screen = "teleport"
 	icon_keyboard = "teleport_key"
-	circuit = /obj/item/weapon/circuitboard/telesci_console
+	circuit = /obj/item/circuitboard/telesci_console
 	var/sending = 1
 	var/obj/machinery/telepad/telepad = null
 	var/temp_msg = "Telescience control console initialized. Welcome."
@@ -20,14 +20,14 @@
 	var/distance = 5
 
 	// Based on the distance used
-	var/teleport_cooldown = 0
+	COOLDOWN_DECLARE(teleport_cooldown)
 	var/teleporting = 0
 	var/starting_crystals = 0
 	var/max_crystals = 4
 	// Used to adjust OP-ness: (4 crystals * 6 efficiency * 12.5 coefficient) = 300 range.
 	var/powerCoefficient = 12.5
 	var/list/crystals = list()
-	var/obj/item/device/gps/inserted_gps
+	var/obj/item/gps/inserted_gps
 	var/overmap_range = 3
 
 /obj/machinery/computer/telescience/Destroy()
@@ -42,35 +42,34 @@
 	if(Adjacent(user))
 		. += "There are [crystals.len ? crystals.len : "no"] bluespace crystal\s in the crystal slots."
 
-/obj/machinery/computer/telescience/Initialize()
+/obj/machinery/computer/telescience/Initialize(mapload)
 	. = ..()
 	recalibrate()
 	for(var/i = 1; i <= starting_crystals; i++)
-		crystals += new /obj/item/weapon/bluespace_crystal/artificial(src) // starting crystals
+		crystals += new /obj/item/bluespace_crystal/artificial(src) // starting crystals
 
 /obj/machinery/computer/telescience/attackby(obj/item/W, mob/user, params)
-	if(istype(W, /obj/item/weapon/bluespace_crystal))
+	if(istype(W, /obj/item/bluespace_crystal))
 		if(crystals.len >= max_crystals)
-			to_chat(user, "<span class='warning'>There are not enough crystal slots.</span>")
+			to_chat(user, span_warning("There are not enough crystal slots."))
 			return
 		if(!user.unEquip(W))
 			return
 		crystals += W
 		W.forceMove(src)
-		user.visible_message("[user] inserts [W] into \the [src]'s crystal slot.", "<span class='notice'>You insert [W] into \the [src]'s crystal slot.</span>")
-		updateDialog()
-	else if(istype(W, /obj/item/device/gps))
+		user.visible_message("[user] inserts [W] into \the [src]'s crystal slot.", span_notice("You insert [W] into \the [src]'s crystal slot."))
+	else if(istype(W, /obj/item/gps))
 		if(!inserted_gps)
 			inserted_gps = W
 			user.unEquip(W)
 			W.forceMove(src)
-			user.visible_message("[user] inserts [W] into \the [src]'s GPS device slot.", "<span class='notice'>You insert [W] into \the [src]'s GPS device slot.</span>")
-	else if(istype(W, /obj/item/device/multitool))
-		var/obj/item/device/multitool/M = W
+			user.visible_message("[user] inserts [W] into \the [src]'s GPS device slot.", span_notice("You insert [W] into \the [src]'s GPS device slot."))
+	else if(istype(W, /obj/item/multitool))
+		var/obj/item/multitool/M = W
 		if(M.connectable && istype(M.connectable, /obj/machinery/telepad))
 			telepad = M.connectable
 			M.connectable = null
-			to_chat(user, "<span class='caution'>You upload the data from the [W.name]'s buffer.</span>")
+			to_chat(user, span_warning("You upload the data from the [W.name]'s buffer."))
 	else
 		return ..()
 
@@ -101,7 +100,7 @@
 		data["insertedGps"] = inserted_gps
 		data["rotation"] = rotation
 		data["currentZ"] = z_co
-		data["cooldown"] = max(0, min(100, round(teleport_cooldown - world.time) / 10))
+		data["cooldown"] = max(0, min(100, COOLDOWN_TIMELEFT(src, teleport_cooldown) / 10))
 		data["crystalCount"] = crystals.len
 		data["maxCrystals"] = max_crystals
 		data["maxPossibleDistance"] = FLOOR((max_crystals * powerCoefficient * 6), 1); // max efficiency is 6
@@ -154,17 +153,17 @@
 			if(last_target && inserted_gps)
 				// TODO - What was this even supposed to do??
 				//inserted_gps.locked_location = last_target
-				temp_msg = "Location saved."
+				temp_msg = "Function Deprecated. No action taken."
 			else
-				temp_msg = "ERROR! No data was stored."
+				temp_msg = "Function Deprecated. No action taken."
 
 		if("send")
 			sending = 1
-			teleport(usr)
+			teleport(ui.user)
 
 		if("receive")
 			sending = 0
-			teleport(usr)
+			teleport(ui.user)
 
 		if("recal")
 			recalibrate()
@@ -188,26 +187,27 @@
 		return
 
 /obj/machinery/computer/telescience/proc/telefail()
+	COOLDOWN_START(src, teleport_cooldown, (2 SECONDS))
 	switch(rand(99))
 		if(0 to 85)
 			sparks()
-			visible_message("<span class='warning'>The telepad weakly fizzles.</span>")
+			visible_message(span_warning("The telepad weakly fizzles."))
 			return
 		if(86 to 90)
 			// Irradiate everyone in telescience!
-			for(var/obj/machinery/telepad/E in machines)
+			for(var/obj/machinery/telepad/E in GLOB.machines)
 				var/L = get_turf(E)
 				sparks()
 				for(var/mob/living/carbon/human/M in viewers(L, null))
 					M.apply_effect((rand(10, 20)), IRRADIATE, 0)
-					to_chat(M, "<span class='warning'>You feel strange.</span>")
+					to_chat(M, span_warning("You feel strange."))
 			return
 		if(91 to 98)
 			// They did the mash! (They did the monster mash!) The monster mash! (It was a graveyard smash!)
 			sparks()
 			if(telepad)
 				var/L = get_turf(telepad)
-				var/blocked = list(/mob/living/simple_mob/vore)
+				var/blocked = list(/mob/living/simple_mob/vore, /mob/living/simple_mob/vore/ddraig) + typesof(/mob/living/simple_mob/vore/woof) + typesof(/mob/living/simple_mob/vore/overmap)
 				var/list/hostiles = typesof(/mob/living/simple_mob/vore) - blocked
 				playsound(L, 'sound/effects/phasein.ogg', 100, 1, extrarange = 3, falloff = 5)
 				for(var/i in 1 to rand(1,4))
@@ -219,15 +219,13 @@
 			return
 		if(99)
 			sparks()
-			visible_message("<span class='warning'>The telepad changes colors rapidly, and opens a portal, and you see what your mind seems to think is the very threads that hold the pattern of the universe together, and a eerie sense of paranoia creeps into you.</span>")
+			visible_message(span_warning("The telepad changes colors rapidly, and opens a portal, and you see what your mind seems to think is the very threads that hold the pattern of the universe together, and a eerie sense of paranoia creeps into you."))
 			spacevine_infestation()
 			return
 
 /obj/machinery/computer/telescience/proc/doteleport(mob/user)
 
-	if(teleport_cooldown > world.time)
-		return
-	if(teleporting)
+	if(!COOLDOWN_FINISHED(src, teleport_cooldown))
 		return
 
 	if(telepad)
@@ -263,7 +261,7 @@
 			if(telepad.inoperable())
 				return
 			teleporting = 0
-			teleport_cooldown = world.time + (spawn_time * 2)
+			COOLDOWN_START(src, teleport_cooldown, (spawn_time * 2))
 			teles_left -= 1
 
 			// use a lot of power
@@ -273,7 +271,7 @@
 			S.set_up(5, 1, get_turf(telepad))
 			S.start()
 
-			if(!A || (A.flags & BLUE_SHIELDED))
+			if(!A || (A.flag_check(BLUE_SHIELDED)))
 				telefail()
 				temp_msg = "ERROR! Target is shielded from bluespace intersection!"
 				return
@@ -297,6 +295,7 @@
 				source = dest
 				dest = target
 
+			var/list/sent_atoms = list()
 			flick("pad-beam", telepad)
 			playsound(telepad, 'sound/weapons/emitter2.ogg', 25, 1, extrarange = 3, falloff = 5)
 			for(var/atom/movable/ROI in source)
@@ -332,15 +331,24 @@
 						else
 							log_msg += ")"
 					log_msg += ", "
+				sent_atoms += ROI
 				do_teleport(ROI, dest)
+			// Either works for the experiment scan, so fire signals on both
+			SEND_SIGNAL(src, COMSIG_TELESCI_TELEPORT, sent_atoms, target, sending)
+			SEND_SIGNAL(telepad, COMSIG_TELESCI_TELEPORT, sent_atoms, target, sending)
 
 			if (!dd_hassuffix(log_msg, ", "))
 				log_msg += "nothing"
 			log_msg += " [sending ? "to" : "from"] [trueX], [trueY], [z_co] ([A ? A.name : "null area"])"
 			investigate_log(log_msg, "telesci")
-			updateDialog()
 
 /obj/machinery/computer/telescience/proc/teleport(mob/user)
+	if(!COOLDOWN_FINISHED(src, teleport_cooldown))
+		temp_msg = "ERROR! Teleportation console is cooling down. Please wait."
+		return
+	if(teleporting)
+		temp_msg = "ERROR! Teleportation in progress. Please wait."
+		return
 	distance = CLAMP(distance, 0, get_max_allowed_distance())
 	if(rotation == null || distance == null || z_co == null)
 		temp_msg = "ERROR! Set a distance, rotation and sector."
@@ -374,7 +382,7 @@
 
 
 // Procedure that calculates the actual trajectory taken!
-/proc/simple_projectile_trajectory(var/src_x, var/src_y, var/rotation, var/distance)
+/proc/simple_projectile_trajectory(src_x, src_y, rotation, distance)
 	var/time = distance / 10 // 100ms per distance seems fine?
 	var/dest_x = src_x + distance*sin(rotation);
 	var/dest_y = src_y + distance*cos(rotation);

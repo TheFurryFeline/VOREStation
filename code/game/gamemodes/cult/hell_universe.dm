@@ -12,15 +12,15 @@ In short:
 
 	decay_rate = 5 // 5% chance of a turf decaying on lighting update/airflow (there's no actual tick for turfs)
 
-/datum/universal_state/hell/OnShuttleCall(var/mob/user)
+/datum/universal_state/hell/OnShuttleCall(mob/user)
 	return 1
 	/*
 	if(user)
-		to_chat(user, "<span class='sinister'>All you hear on the frequency is static and panicked screaming. There will be no shuttle call today.</span>")
+		to_chat(user, span_sinister("All you hear on the frequency is static and panicked screaming. There will be no shuttle call today."))
 	return 0
 	*/
 
-/datum/universal_state/hell/DecayTurf(var/turf/T)
+/datum/universal_state/hell/DecayTurf(turf/T)
 	if(!T.holy)
 		T.cultify()
 		for(var/obj/machinery/light/L in T.contents)
@@ -29,7 +29,7 @@ In short:
 	return
 
 
-/datum/universal_state/hell/OnTurfChange(var/turf/T)
+/datum/universal_state/hell/OnTurfChange(turf/T)
 	var/turf/space/S = T
 	if(istype(S))
 		S.color = "#FF0000"
@@ -41,7 +41,7 @@ In short:
 	set background = 1
 //	garbage_collector.garbage_collect = 0
 
-	escape_list = get_area_turfs(locate(/area/hallway/secondary/exit))
+	GLOB.escape_list = get_area_turfs(locate(/area/hallway/secondary/exit))
 
 	//Separated into separate procs for profiling
 	AreaSet()
@@ -50,7 +50,7 @@ In short:
 	OverlayAndAmbientSet()
 	lightsout(0,0)
 
-	runedec += 9000	//basically removing the rune cap
+	GLOB.runedec += 9000	//basically removing the rune cap
 
 
 /datum/universal_state/hell/proc/AreaSet()
@@ -73,7 +73,7 @@ In short:
 		if(!T.holy && prob(1))
 			new /obj/effect/gateway/active/cult(T)
 
-	for (var/obj/machinery/firealarm/alm in machines)
+	for (var/obj/machinery/firealarm/alm in GLOB.machines)
 		if (!(alm.stat & BROKEN))
 			alm.ex_act(2)
 

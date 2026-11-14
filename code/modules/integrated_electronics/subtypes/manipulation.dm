@@ -7,8 +7,10 @@
 	extended_desc = "The firing mechanism can slot in most ranged weapons, ballistic and energy.  \
 	The first and second inputs need to be numbers.  They are coordinates for the gun to fire at, relative to the machine itself.  \
 	The 'fire' activator will cause the mechanism to attempt to fire the weapon at the coordinates, if possible.  Note that the \
-	normal limitations to firearms, such as ammunition requirements and firing delays, still hold true if fired by the mechanism."
-	complexity = 20
+	normal limitations to firearms, such as ammunition requirements and firing delays, still hold true if fired by the mechanism. \
+	Additionally, the complexity of the circuit increases based on the weapon's size. A tiny gun will have 30 complexity, a small 60, medium 90, large 120, and bulky 150. \
+	It can likewise not shoot while obscured (inside a container, such as a closet or backpack) or if there is a closet or container on the same tile as it."
+	complexity = 30 // Increased due to clear balance necessity.
 	w_class = ITEMSIZE_NORMAL
 	size = 3
 	inputs = list(
@@ -19,86 +21,109 @@
 	activators = list(
 		"fire" = IC_PINTYPE_PULSE_IN
 	)
-	var/obj/item/weapon/gun/installed_gun = null
+	var/obj/item/gun/installed_gun = null
 	spawn_flags = IC_SPAWN_RESEARCH
-	origin_tech = list(TECH_ENGINEERING = 3, TECH_DATA = 3, TECH_COMBAT = 4)
 	power_draw_per_use = 50 // The targeting mechanism uses this.  The actual gun uses its own cell for firing if it's an energy weapon.
 
 /obj/item/integrated_circuit/manipulation/weapon_firing/Destroy()
 	installed_gun = null // It will be qdel'd by ..() if still in our contents
 	return ..()
 
-/obj/item/integrated_circuit/manipulation/weapon_firing/attackby(var/obj/O, var/mob/user)
-	if(istype(O, /obj/item/weapon/gun))
-		var/obj/item/weapon/gun/gun = O
+/obj/item/integrated_circuit/manipulation/weapon_firing/attackby(obj/O, mob/user)
+	if(istype(O, /obj/item/gun))
+		var/obj/item/gun/gun = O
 		if(installed_gun)
-			to_chat(user, "<span class='warning'>There's already a weapon installed.</span>")
+			to_chat(user, span_warning("There's already a weapon installed."))
 			return
 		user.drop_from_inventory(gun)
 		installed_gun = gun
 		size += gun.w_class
+		complexity = complexity * gun.w_class //Max complexity that a case can reach is 240. This means a small gun = 60 complexity, normal = 90, large = 120. This means you could fit 3 small guns, 2 normal guns, or 1 large gun in the circuit.
 		gun.forceMove(src)
-		to_chat(user, "<span class='notice'>You slide \the [gun] into the firing mechanism.</span>")
+		to_chat(user, span_notice("You slide \the [gun] into the firing mechanism."))
 		playsound(src, 'sound/items/Crowbar.ogg', 50, 1)
 	else
 		..()
 
-/obj/item/integrated_circuit/manipulation/weapon_firing/attack_self(var/mob/user)
+/obj/item/integrated_circuit/manipulation/weapon_firing/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(installed_gun)
 		installed_gun.forceMove(get_turf(src))
-		to_chat(user, "<span class='notice'>You slide \the [installed_gun] out of the firing mechanism.</span>")
+		to_chat(user, span_notice("You slide \the [installed_gun] out of the firing mechanism."))
 		size = initial(size)
+		complexity = initial(complexity)
 		playsound(src, 'sound/items/Crowbar.ogg', 50, 1)
 		installed_gun = null
 	else
-		to_chat(user, "<span class='notice'>There's no weapon to remove from the mechanism.</span>")
+		to_chat(user, span_notice("There's no weapon to remove from the mechanism."))
 
 /obj/item/integrated_circuit/manipulation/weapon_firing/do_work()
 	if(!installed_gun)
+		return
+	if(!assembly)
+		return
+	if(!istype(loc, /obj/item/electronic_assembly))
+		return
+
+	//Check to see if we are in a banned position (inside a closet, backpack, etc)
+	//LOC is The circuit we are in. loc.loc is 'what that circuit is in'.
+	//Generally, this should be a mob, the floor, or a circuitry clothing item.
+	var/our_position = loc.loc
+	if(!ismob(our_position) && !isturf(our_position)) //If we're being held by a mob or we're on the ground, that's fine, continue.
+		var/list/banned_positions = list(
+			/obj/item/storage,
+			/obj/structure/closet,
+			/obj/mecha
+		)
+		if(is_type_in_list(our_position, banned_positions))
+			return
+	//Prevents shoving 40 of these into a closet, opening it, and having it annihilate some poor sap.
+	else if(isturf(our_position) && (/obj/structure/closet in range(0, our_position)))
 		return
 
 	var/datum/integrated_io/target_x = inputs[1]
 	var/datum/integrated_io/target_y = inputs[2]
 
-	if(src.assembly)
-		if(isnum(target_x.data))
-			target_x.data = round(target_x.data)
-		if(isnum(target_y.data))
-			target_y.data = round(target_y.data)
+	if(isnum(target_x.data))
+		target_x.data = round(target_x.data)
+	if(isnum(target_y.data))
+		target_y.data = round(target_y.data)
 
-		var/turf/T = get_turf(src.assembly)
+	var/turf/T = get_turf(src.assembly)
 
-		if(target_x.data == 0 && target_y.data == 0) // Don't shoot ourselves.
-			return
+	if(target_x.data == 0 && target_y.data == 0) // Don't shoot ourselves.
+		return
 
-		// We need to do this in order to enable relative coordinates, as locate() only works for absolute coordinates.
-		var/i
-		if(target_x.data > 0)
-			i = abs(target_x.data)
-			while(i > 0)
-				T = get_step(T, EAST)
-				i--
-		else
-			i = abs(target_x.data)
-			while(i > 0)
-				T = get_step(T, WEST)
-				i--
+	// We need to do this in order to enable relative coordinates, as locate() only works for absolute coordinates.
+	var/i
+	if(target_x.data > 0)
+		i = abs(target_x.data)
+		while(i > 0)
+			T = get_step(T, EAST)
+			i--
+	else
+		i = abs(target_x.data)
+		while(i > 0)
+			T = get_step(T, WEST)
+			i--
 
-		i = 0
-		if(target_y.data > 0)
-			i = abs(target_y.data)
-			while(i > 0)
-				T = get_step(T, NORTH)
-				i--
-		else if(target_y.data < 0)
-			i = abs(target_y.data)
-			while(i > 0)
-				T = get_step(T, SOUTH)
-				i--
+	i = 0
+	if(target_y.data > 0)
+		i = abs(target_y.data)
+		while(i > 0)
+			T = get_step(T, NORTH)
+			i--
+	else if(target_y.data < 0)
+		i = abs(target_y.data)
+		while(i > 0)
+			T = get_step(T, SOUTH)
+			i--
 
-		if(!T)
-			return
-		installed_gun.Fire_userless(T)
+	if(!T)
+		return
+	installed_gun.Fire_userless(T)
 
 /obj/item/integrated_circuit/manipulation/locomotion
 	name = "locomotion circuit"
@@ -141,12 +166,11 @@
 	outputs = list()
 	activators = list("prime grenade" = IC_PINTYPE_PULSE_IN)
 	spawn_flags = IC_SPAWN_RESEARCH
-	origin_tech = list(TECH_ENGINEERING = 3, TECH_DATA = 3, TECH_COMBAT = 4)
-	var/obj/item/weapon/grenade/attached_grenade
+	var/obj/item/grenade/attached_grenade
 	var/pre_attached_grenade_type
 
-/obj/item/integrated_circuit/manipulation/grenade/New()
-	..()
+/obj/item/integrated_circuit/manipulation/grenade/Initialize(mapload)
+	. = ..()
 	if(pre_attached_grenade_type)
 		var/grenade = new pre_attached_grenade_type(src)
 		attach_grenade(grenade)
@@ -157,20 +181,23 @@
 	detach_grenade()
 	. =..()
 
-/obj/item/integrated_circuit/manipulation/grenade/attackby(var/obj/item/weapon/grenade/G, var/mob/user)
+/obj/item/integrated_circuit/manipulation/grenade/attackby(obj/item/grenade/G, mob/user)
 	if(istype(G))
 		if(attached_grenade)
-			to_chat(user, "<span class='warning'>There is already a grenade attached!</span>")
+			to_chat(user, span_warning("There is already a grenade attached!"))
 		else if(user.unEquip(G, force=1))
-			user.visible_message("<span class='warning'>\The [user] attaches \a [G] to \the [src]!</span>", "<span class='notice'>You attach \the [G] to \the [src].</span>")
+			user.visible_message(span_warning("\The [user] attaches \a [G] to \the [src]!"), span_notice("You attach \the [G] to \the [src]."))
 			attach_grenade(G)
 			G.forceMove(src)
 	else
 		..()
 
-/obj/item/integrated_circuit/manipulation/grenade/attack_self(var/mob/user)
+/obj/item/integrated_circuit/manipulation/grenade/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(attached_grenade)
-		user.visible_message("<span class='warning'>\The [user] removes \an [attached_grenade] from \the [src]!</span>", "<span class='notice'>You remove \the [attached_grenade] from \the [src].</span>")
+		user.visible_message(span_warning("\The [user] removes \an [attached_grenade] from \the [src]!"), span_notice("You remove \the [attached_grenade] from \the [src]."))
 		user.put_in_any_hand_if_possible(attached_grenade) || attached_grenade.dropInto(loc)
 		detach_grenade()
 	else
@@ -183,24 +210,24 @@
 			attached_grenade.det_time = between(1, detonation_time.data, 12) SECONDS
 		attached_grenade.activate()
 		var/atom/holder = loc
-		log_and_message_admins("activated a grenade assembly. Last touches: Assembly: [holder.fingerprintslast] Circuit: [fingerprintslast] Grenade: [attached_grenade.fingerprintslast]")
+		log_and_message_admins("activated a grenade assembly. Last touches: Assembly: [holder.forensic_data?.get_lastprint()] Circuit: [forensic_data?.get_lastprint()] Grenade: [attached_grenade.forensic_data?.get_lastprint()]")
 
 // These procs do not relocate the grenade, that's the callers responsibility
-/obj/item/integrated_circuit/manipulation/grenade/proc/attach_grenade(var/obj/item/weapon/grenade/G)
+/obj/item/integrated_circuit/manipulation/grenade/proc/attach_grenade(obj/item/grenade/G)
 	attached_grenade = G
-	GLOB.destroyed_event.register(attached_grenade, src, /obj/item/integrated_circuit/manipulation/grenade/proc/detach_grenade)
+	RegisterSignal(attached_grenade, COMSIG_OBSERVER_DESTROYED, /obj/item/integrated_circuit/manipulation/grenade/proc/detach_grenade)
 	size += G.w_class
 	desc += " \An [attached_grenade] is attached to it!"
 
 /obj/item/integrated_circuit/manipulation/grenade/proc/detach_grenade()
+	SIGNAL_HANDLER
 	if(!attached_grenade)
 		return
-	GLOB.destroyed_event.unregister(attached_grenade, src, /obj/item/integrated_circuit/manipulation/grenade/proc/detach_grenade)
+	UnregisterSignal(attached_grenade, COMSIG_OBSERVER_DESTROYED)
 	attached_grenade = null
 	size = initial(size)
 	desc = initial(desc)
 
 /obj/item/integrated_circuit/manipulation/grenade/frag
-	pre_attached_grenade_type = /obj/item/weapon/grenade/explosive
-	origin_tech = list(TECH_ENGINEERING = 3, TECH_DATA = 3, TECH_COMBAT = 10)
+	pre_attached_grenade_type = /obj/item/grenade/explosive
 	spawn_flags = null			// Used for world initializing, see the #defines above.

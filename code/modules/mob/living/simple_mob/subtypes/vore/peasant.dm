@@ -28,10 +28,10 @@
 		"peasantmb"
 	)
 
-	faction = "peasant"
+	faction = FACTION_PEASANT
 
-/mob/living/simple_mob/vore/peasant/New()
-	..()
+/mob/living/simple_mob/vore/peasant/Initialize(mapload)
+	. = ..()
 	if(random_skin)
 		icon_living = pick(skins)
 		icon_rest = "[icon_living]asleep"
@@ -54,13 +54,13 @@
 	emote_hear = list("yawns","'s stomach grumbles","shuffles")
 	emote_see = list("exists","just stands there","smiles","looks around")
 
-/mob/living/simple_mob/vore/peasant/init_vore()
-	..()
+/mob/living/simple_mob/vore/peasant/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stomach"
 	B.desc = "You've somehow managed to get yourself eaten by one of the local peasants. After jamming you down into their stomach, you find yourself cramped up tight in a space that clearly shouldn't be able to accept you. They let out a relieved sigh as they heft around their new found weight, giving it a hearty pat, clearly content to get a good meal for once. The world around you groans and grumbles, but the gut is far from harmful to you right now, even as the walls clench down on your body."
 	B.mode_flags = DM_FLAG_THICKBELLY
-	B.belly_fullscreen = "yet_another_tumby"
+	B.belly_fullscreen = "VBO_fleshs"
 	B.digest_brute = 1
 	B.digest_burn = 1
 	B.digest_oxy = 0
@@ -69,4 +69,3 @@
 	B.escapechance = 15
 	B.selective_preference = DM_HOLD
 	B.escape_stun = 5
-

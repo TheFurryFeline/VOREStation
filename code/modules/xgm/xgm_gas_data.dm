@@ -1,4 +1,4 @@
-/var/datum/xgm_gas_data/gas_data
+GLOBAL_DATUM_INIT(gas_data, /datum/xgm_gas_data, new())
 
 /datum/xgm_gas_data
 	//Simple list of all the gas IDs.
@@ -16,7 +16,29 @@
 	//Flags.
 	var/list/flags = list()
 
-/decl/xgm_gas
+/datum/xgm_gas_data/New()
+	. = ..()
+	for(var/p in subtypesof(/datum/decl/xgm_gas))
+		var/datum/decl/xgm_gas/gas = new p //avoid initial() because of potential New() actions
+
+		if(gas.id in gases)
+			log_world("## ERROR Duplicate gas id `[gas.id]` in `[p]`")
+
+		gases += gas.id
+		name[gas.id] = gas.name
+		specific_heat[gas.id] = gas.specific_heat
+		molar_mass[gas.id] = gas.molar_mass
+		if(gas.tile_overlay)
+			var/atom/movable/gas_visuals/GV = new(null)
+			GV.icon_state = gas.tile_overlay
+			tile_overlay[gas.id] = GV
+		if(gas.overlay_limit)
+			overlay_limit[gas.id] = gas.overlay_limit
+		flags[gas.id] = gas.flags
+
+	return 1
+
+/datum/decl/xgm_gas
 	var/id = ""
 	var/name = "Unnamed Gas"
 	var/specific_heat = 20	// J/(mol*K)
@@ -25,32 +47,9 @@
 	var/tile_overlay = null
 	var/overlay_limit = null
 
-	var/flags = 0
-
-/hook/startup/proc/generateGasData()
-	gas_data = new
-	for(var/p in subtypesof(/decl/xgm_gas))
-		var/decl/xgm_gas/gas = new p //avoid initial() because of potential New() actions
-
-		if(gas.id in gas_data.gases)
-			error("Duplicate gas id `[gas.id]` in `[p]`")
-
-		gas_data.gases += gas.id
-		gas_data.name[gas.id] = gas.name
-		gas_data.specific_heat[gas.id] = gas.specific_heat
-		gas_data.molar_mass[gas.id] = gas.molar_mass
-		if(gas.tile_overlay)
-			gas_data.tile_overlay[gas.id] = new /atom/movable/gas_visuals(null, gas.tile_overlay)
-		if(gas.overlay_limit)	
-			gas_data.overlay_limit[gas.id] = gas.overlay_limit
-		gas_data.flags[gas.id] = gas.flags
-
-	return 1
+	var/flags = NONE
 
 /atom/movable/gas_visuals
 	icon = 'icons/effects/tile_effects.dmi'
 	mouse_opacity = 0
 	plane = ABOVE_MOB_PLANE
-/atom/movable/gas_visuals/New(newloc, ico)
-	..()
-	icon_state = ico

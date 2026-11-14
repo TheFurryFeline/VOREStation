@@ -15,12 +15,14 @@
 	plane = TURF_PLANE
 	layer = ABOVE_WINDOW_LAYER
 	name = "status display"
+	desc = "A cheap, mass produced screen linked to command consoles. Used to display alerts, information, or whatever else the bridge secretary decided this time."
 	anchored = TRUE
 	density = FALSE
 	unacidable = TRUE
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 10
-	circuit =  /obj/item/weapon/circuitboard/status_display
+	circuit =  /obj/item/circuitboard/status_display
+	flags = WALL_ITEM
 	var/mode = 1	// 0 = Blank
 					// 1 = Shuttle timer
 					// 2 = Arbitrary message(s)
@@ -34,7 +36,7 @@
 	var/index2
 	var/picture = null
 
-	var/frequency = 1435		// radio frequency
+	var/frequency = DISPLAY_FREQ		// radio frequency
 
 	var/friendc = 0      // track if Friend Computer mode
 	var/ignore_friendc = 0
@@ -53,8 +55,8 @@
 	var/seclevel = "green"
 
 /obj/machinery/status_display/Destroy()
-	if(radio_controller)
-		radio_controller.remove_object(src,frequency)
+	if(SSradio)
+		SSradio.remove_object(src,frequency)
 	return ..()
 
 /obj/machinery/status_display/attackby(I as obj, user as mob)
@@ -65,10 +67,10 @@
 	return
 
 // register for radio system
-/obj/machinery/status_display/Initialize()
+/obj/machinery/status_display/Initialize(mapload)
 	. = ..()
-	if(radio_controller)
-		radio_controller.add_object(src, frequency)
+	if(SSradio)
+		SSradio.add_object(src, frequency)
 
 // timed process
 /obj/machinery/status_display/process()
@@ -77,12 +79,12 @@
 		return
 	update()
 
-/obj/machinery/status_display/emp_act(severity)
+/obj/machinery/status_display/emp_act(severity, recursive)
 	if(stat & (BROKEN|NOPOWER))
-		..(severity)
+		..(severity, recursive)
 		return
 	set_picture("ai_bsod")
-	..(severity)
+	..(severity, recursive)
 
 // set what is displayed
 /obj/machinery/status_display/proc/update()
@@ -95,20 +97,20 @@
 		if(STATUS_DISPLAY_BLANK)	//blank
 			return 1
 		if(STATUS_DISPLAY_TRANSFER_SHUTTLE_TIME)				//emergency shuttle timer
-			if(!emergency_shuttle)
+			if(!SSemergency_shuttle)
 				message1 = "-ETA-"
 				message2 = "Never" // You're here forever.
 				return 1
-			if(emergency_shuttle.waiting_to_leave())
+			if(SSemergency_shuttle.waiting_to_leave())
 				message1 = "-ETD-"
-				if(emergency_shuttle.shuttle.is_launching())
+				if(SSemergency_shuttle.shuttle.is_launching())
 					message2 = "Launch"
 				else
 					message2 = get_shuttle_timer_departure()
 					if(length(message2) > CHARS_PER_LINE)
 						message2 = "Error"
 				update_display(message1, message2)
-			else if(emergency_shuttle.has_eta())
+			else if(SSemergency_shuttle.has_eta())
 				message1 = "-ETA-"
 				message2 = get_shuttle_timer_arrival()
 				if(length(message2) > CHARS_PER_LINE)
@@ -168,7 +170,7 @@
 		message2 = ""
 		index2 = 0
 
-/obj/machinery/status_display/proc/display_alert(var/newlevel)
+/obj/machinery/status_display/proc/display_alert(newlevel)
 	remove_display()
 	if(seclevel != newlevel)
 		seclevel = newlevel
@@ -207,17 +209,17 @@
 		maptext = new_text
 
 /obj/machinery/status_display/proc/get_shuttle_timer_arrival()
-	if(!emergency_shuttle)
+	if(!SSemergency_shuttle)
 		return "Error"
-	var/timeleft = emergency_shuttle.estimate_arrival_time()
+	var/timeleft = SSemergency_shuttle.estimate_arrival_time()
 	if(timeleft < 0)
 		return ""
 	return "[add_zero(num2text((timeleft / 60) % 60),2)]:[add_zero(num2text(timeleft % 60), 2)]"
 
 /obj/machinery/status_display/proc/get_shuttle_timer_departure()
-	if(!emergency_shuttle)
+	if(!SSemergency_shuttle)
 		return "Error"
-	var/timeleft = emergency_shuttle.estimate_launch_time()
+	var/timeleft = SSemergency_shuttle.estimate_launch_time()
 	if(timeleft < 0)
 		return ""
 	return "[add_zero(num2text((timeleft / 60) % 60),2)]:[add_zero(num2text(timeleft % 60), 2)]"

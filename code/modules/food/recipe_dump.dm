@@ -1,17 +1,10 @@
-/client/proc/recipe_dump()
-	set name = "Generate Recipe Dump"
-	set category = "Server"
-	set desc = "Dumps food and drink recipe info and images for wiki or other use."
-
-	if(!holder)
-		return
-
+ADMIN_VERB(recipe_dump, R_SERVER, "Generate Recipe Dump", "Dumps food and drink recipe info and images for wiki or other use.", ADMIN_CATEGORY_SERVER_ADMIN)
 	//////////////////////// DRINK
 	var/list/drink_recipes = list()
-	for(var/decl/chemical_reaction/instant/drinks/CR in SSchemistry.chemical_reactions)
+	for(var/datum/decl/chemical_reaction/instant/drinks/CR in SSchemistry.chemical_reactions)
 		drink_recipes[CR.type] = list("Result" = CR.name,
-        						"ResAmt" = CR.result_amount,
-        						"Reagents" = CR.required_reagents,
+								"ResAmt" = CR.result_amount,
+								"Reagents" = CR.required_reagents,
 								"Catalysts" = CR.catalysts)
 
 	//////////////////////// FOOD
@@ -41,7 +34,7 @@
 		qdel(R)
 
 	//////////////////////// FOOD+ (basically condiments, tofu, cheese, soysauce, etc)
-	for(var/decl/chemical_reaction/instant/food/CR in SSchemistry.chemical_reactions)
+	for(var/datum/decl/chemical_reaction/instant/food/CR in SSchemistry.chemical_reactions)
 		food_recipes[CR.type] = list("Result" = CR.name,
 								"ResAmt" = CR.result_amount,
 								"Reagents" = CR.required_reagents,
@@ -57,7 +50,7 @@
 		food_recipes[Rp]["has_coatable_items"] = FALSE
 		for(var/I in food_recipes[Rp]["Ingredients"])
 			var/atom/ing = new I()
-			if(istype(ing, /obj/item/weapon/reagent_containers/food/snacks)) // only subtypes of this have a coating variable and are checked for it (fruit are a subtype of this, so there's a check for them too later)
+			if(istype(ing, /obj/item/reagent_containers/food/snacks)) // only subtypes of this have a coating variable and are checked for it (fruit are a subtype of this, so there's a check for them too later)
 				food_recipes[Rp]["has_coatable_items"] = TRUE
 
 			//So now we add something like "Bread" = 3
@@ -110,7 +103,7 @@
 			var/amt = drink_recipes[Rp]["Catalysts"][rid]
 			drink_recipes[Rp]["Catalysts"] -= rid
 			drink_recipes[Rp]["Catalysts"][R_name] = amt
-			
+
 	//We can also change the appliance to its proper name.
 	for(var/Rp in food_recipes)
 		switch(food_recipes[Rp]["Appliance"])
@@ -175,13 +168,13 @@
 		if(icon_to_give)
 			var/image_path = "recipe-[ckey(food_recipes[Rp]["Result"])].png"
 			html += "<td><img src='imgrecipes/[image_path]' /></td>"
-			src << browse(icon_to_give, "window=picture;file=[image_path];display=0")
+			user << browse(icon_to_give, "window=picture;file=[image_path];display=0")
 		else
 			html += "<td>No<br>Image</td>"
 
 		//Name
 		html += "<td><b>[food_recipes[Rp]["Result"]]</b></td>"
-		
+
 		//Appliance
 		html += "<td><b>[food_recipes[Rp]["Appliance"]]</b></td>"
 
@@ -199,9 +192,9 @@
 
 		//Coating
 		if(!food_recipes[Rp]["has_coatable_items"])
-			html += "<span class = \"coating coating_not_applicable\"><li><b>Coating:</b> N/A, no coatable items</li></span>" 
+			html += "<span class = \"coating coating_not_applicable\"><li><b>Coating:</b> N/A, no coatable items</li></span>"
 			// css can be used to style or hide these depending on the class.  This has two classes
-			// coating and coating_not_applicable, which can each have styles applied. 
+			// coating and coating_not_applicable, which can each have styles applied.
 		else if(food_recipes[Rp]["Coating"] == -1)
 			html += "<span class = \"coating coating_any_coating\"><li><b>Coating:</b> Optionally, any coating</li></span>"
 		else if(isnull(food_recipes[Rp]["Coating"]))
@@ -244,7 +237,7 @@
 		html += "</tr>"
 
 	html += "</table></body></html>"
-	src << browse(html, "window=recipes;file=recipes_food.html;display=0")
+	user << browse(html, "window=recipes;file=recipes_food.html;display=0")
 
 	//Drink Output
 	html = "<head>\
@@ -293,6 +286,6 @@
 		html += "</tr>"
 
 	html += "</table></body></html>"
-	src << browse(html, "window=recipes;file=recipes_drinks.html;display=0")
+	user << browse(html, "window=recipes;file=recipes_drinks.html;display=0")
 
-	to_chat(src, "<span class='notice'>In your byond cache, recipe-xxx.png files and recipes_drinks.html and recipes_food.html now exist. Place recipe-xxx.png files in a subfolder named 'imgrecipes' wherever you put them. The file will take a food.css or drinks.css file if in the same path.</span>")
+	to_chat(user, span_notice("In your byond cache, recipe-xxx.png files and recipes_drinks.html and recipes_food.html now exist. Place recipe-xxx.png files in a subfolder named 'imgrecipes' wherever you put them. The file will take a food.css or drinks.css file if in the same path."))

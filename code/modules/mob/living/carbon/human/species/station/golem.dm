@@ -7,7 +7,7 @@
 
 	language = "Sol Common" //todo?
 	unarmed_types = list(/datum/unarmed_attack/stomp, /datum/unarmed_attack/kick, /datum/unarmed_attack/punch)
-	flags = NO_PAIN | NO_SCAN | NO_POISON | NO_MINOR_CUT | NO_DEFIB
+	flags = NO_PAIN | NO_DNA | NO_SLEEVE | NO_POISON | NO_MINOR_CUT | NO_DEFIB
 	spawn_flags = SPECIES_IS_RESTRICTED
 	siemens_coefficient = 0
 
@@ -22,17 +22,17 @@
 	virus_immune = 1
 
 	has_organ = list(
-		"brain" = /obj/item/organ/internal/brain/golem
+		O_BRAIN = /obj/item/organ/internal/brain/golem
 		)
 
 	death_message = "becomes completely motionless..."
 
 	genders = list(NEUTER)
 
-/datum/species/golem/handle_post_spawn(var/mob/living/carbon/human/H)
+/datum/species/golem/handle_post_spawn(mob/living/carbon/human/H)
 	if(H.mind)
-		H.mind.assigned_role = "Golem"
-		H.mind.special_role = "Golem"
+		H.mind.assigned_role = JOB_GOLEM
+		H.mind.special_role = JOB_GOLEM
 	H.real_name = "adamantine golem ([rand(1, 1000)])"
 	H.name = H.real_name
 	..()

@@ -28,7 +28,7 @@
 	tt_desc = "B Lepidoptera cinereus"
 	catalogue_data = list(/datum/category_item/catalogue/fauna/tymisian)
 
-	faction = "spiders" //Hostile to most mobs, not all.
+	faction = FACTION_SPIDERS //Hostile to most mobs, not all.
 
 	icon_state = "moth"
 	icon_living = "moth"
@@ -48,7 +48,7 @@
 	base_attack_cooldown = 1.5 SECONDS
 	attacktext = list("nipped", "bit", "pinched")
 
-	organ_names = /decl/mob_organ_names/moth
+	organ_names = /datum/decl/mob_organ_names/moth
 
 	projectiletype = /obj/item/projectile/energy/blob
 
@@ -116,11 +116,11 @@
 
 			return FALSE
 
-/mob/living/simple_mob/animal/sif/tymisian/Initialize()
+/mob/living/simple_mob/animal/sif/tymisian/Initialize(mapload)
 	. = ..()
 	smoke_spore = new
-	verbs += /mob/living/proc/ventcrawl
-	verbs += /mob/living/proc/hide
+	add_verb(src, /mob/living/proc/ventcrawl)
+	add_verb(src, /mob/living/proc/hide)
 
 /mob/living/simple_mob/animal/sif/tymisian/handle_special()
 	..()
@@ -128,20 +128,14 @@
 	if(energy < max_energy)
 		energy++
 
-/mob/living/simple_mob/animal/sif/tymisian/Stat()
-	..()
-	if(client.statpanel == "Status")
-		statpanel("Status")
-		if(emergency_shuttle)
-			var/eta_status = emergency_shuttle.get_status_panel_eta()
-			if(eta_status)
-				stat(null, eta_status)
-		stat("Energy", energy)
+/mob/living/simple_mob/animal/sif/tymisian/get_status_tab_items()
+	. = ..()
+	. += "Energy: [energy]"
 
 /mob/living/simple_mob/animal/sif/tymisian/should_special_attack(atom/A)
 	if(energy >= 20)
 		return TRUE
 	return FALSE
 
-/decl/mob_organ_names/moth
+/datum/decl/mob_organ_names/moth
 	hit_zones = list("head", "thorax", "abdomen", "left forewing", "left hindwing", "right forewing", "right hindwing", "left foreleg", "right foreleg", "left hindleg", "right hindleg")

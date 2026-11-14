@@ -3,13 +3,14 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 /obj/machinery/suit_cycler
 	name = "suit cycler"
 	desc = "An industrial machine for painting and refitting voidsuits."
+	description_antag = "Safeties can be overriden with the use of a cryptographic sequencer. Or emag, if you aren't a nerd."
 	anchored = TRUE
 	density = TRUE
 
 	icon = 'icons/obj/suit_cycler.dmi'
 	icon_state = "suit_cycler"
 
-	req_access = list(access_captain,access_heads)
+	req_access = list(ACCESS_CAPTAIN,ACCESS_HEADS)
 
 	var/active = 0          // PLEASE HOLD.
 	var/safeties = 1        // The cycler won't start with a living thing inside it unless safeties are off.
@@ -50,9 +51,7 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 	var/obj/item/clothing/suit/space/void/suit = null
 	var/obj/item/clothing/head/helmet/space/helmet = null
 
-	var/datum/wires/suit_storage_unit/wires = null
-
-/obj/machinery/suit_cycler/Initialize()
+/obj/machinery/suit_cycler/Initialize(mapload)
 	. = ..()
 
 	departments = load_departments()
@@ -66,7 +65,7 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 	if(!target_department || !target_species)
 		stat |= BROKEN
 
-	wires = new(src)
+	set_wires(new /datum/wires/suit_storage_unit(src))
 
 /obj/machinery/suit_cycler/Destroy()
 	qdel(wires)
@@ -131,50 +130,45 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 
 	return loaded
 
-/obj/machinery/suit_cycler/attack_ai(mob/user as mob)
+/obj/machinery/suit_cycler/attack_ai(mob/user)
 	return attack_hand(user)
 
-/obj/machinery/suit_cycler/attackby(obj/item/I as obj, mob/user as mob)
+/obj/machinery/suit_cycler/attackby(obj/item/I, mob/user)
 
 	if(electrified != 0)
 		if(shock(user, 100))
 			return
 
 	//Hacking init.
-	if(istype(I, /obj/item/device/multitool) || I.has_tool_quality(TOOL_WIRECUTTER))
+	if(istype(I, /obj/item/multitool) || I.has_tool_quality(TOOL_WIRECUTTER))
 		if(panel_open)
 			attack_hand(user)
 		return
 	//Other interface stuff.
-	if(istype(I, /obj/item/weapon/grab))
-		var/obj/item/weapon/grab/G = I
+	if(istype(I, /obj/item/grab))
+		var/obj/item/grab/G = I
 
 		if(!(ismob(G.affecting)))
 			return
 
 		if(locked)
-			to_chat(user, "<span class='danger'>The suit cycler is locked.</span>")
+			to_chat(user, span_danger("The suit cycler is locked."))
 			return
 
 		if(contents.len > 0)
-			to_chat(user, "<span class='danger'>There is no room inside the cycler for [G.affecting.name].</span>")
+			to_chat(user, span_danger("There is no room inside the cycler for [G.affecting.name]."))
 			return
 
-		visible_message("<span class='notice'>[user] starts putting [G.affecting.name] into the suit cycler.</span>", 3)
+		visible_message(span_notice("[user] starts putting [G.affecting.name] into the suit cycler."), 3)
 
-		if(do_after(user, 20))
+		if(do_after(user, 2 SECONDS, target = src))
 			if(!G || !G.affecting) return
 			var/mob/M = G.affecting
-			if(M.client)
-				M.client.perspective = EYE_PERSPECTIVE
-				M.client.eye = src
-			M.loc = src
+			M.forceMove(src)
 			occupant = M
 
 			add_fingerprint(user)
 			qdel(G)
-
-			updateUsrDialog()
 
 			return
 	else if(I.has_tool_quality(TOOL_SCREWDRIVER))
@@ -182,29 +176,27 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 		panel_open = !panel_open
 		playsound(src, I.usesound, 50, 1)
 		to_chat(user, "You [panel_open ?  "open" : "close"] the maintenance panel.")
-		updateUsrDialog()
 		return
 
 	else if(istype(I,/obj/item/clothing/head/helmet/space/void) && !istype(I, /obj/item/clothing/head/helmet/space/rig))
 		var/obj/item/clothing/head/helmet/space/void/IH = I
 
 		if(locked)
-			to_chat(user, "<span class='danger'>The suit cycler is locked.</span>")
+			to_chat(user, span_danger("The suit cycler is locked."))
 			return
 
 		if(helmet)
-			to_chat(user, "<span class='danger'>The cycler already contains a helmet.</span>")
+			to_chat(user, span_danger("The cycler already contains a helmet."))
 			return
 
 		if(IH.no_cycle)
-			to_chat(user, "<span class='danger'>That item is not compatible with the cycler's protocols.</span>")
+			to_chat(user, span_danger("That item is not compatible with the cycler's protocols."))
 			return
 
 		if(I.icon_override == CUSTOM_ITEM_MOB)
 			to_chat(user, "You cannot refit a customised voidsuit.")
 			return
 
-		//VOREStation Edit BEGINS
 		//Make it so autolok suits can't be refitted in a cycler
 		if(istype(I,/obj/item/clothing/head/helmet/space/void/autolok))
 			to_chat(user, "You cannot refit an autolok helmet. In fact you shouldn't even be able to remove it in the first place. Inform an admin!")
@@ -214,30 +206,28 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 		if(istype(I,/obj/item/clothing/head/helmet/space/void/responseteam))
 			to_chat(user, "The cycler indicates that the Mark VII Emergency Response Helmet is not compatible with the refitting system. How did you manage to detach it anyway? Inform an admin!")
 			return
-		//VOREStation Edit ENDS
 
 		to_chat(user, "You fit \the [I] into the suit cycler.")
 		user.drop_item()
-		I.loc = src
+		I.forceMove(src)
 		helmet = I
 
 		update_icon()
-		updateUsrDialog()
 		return
 
 	else if(istype(I,/obj/item/clothing/suit/space/void))
 		var/obj/item/clothing/suit/space/void/IS = I
 
 		if(locked)
-			to_chat(user, "<span class='danger'>The suit cycler is locked.</span>")
+			to_chat(user, span_danger("The suit cycler is locked."))
 			return
 
 		if(suit)
-			to_chat(user, "<span class='danger'>The cycler already contains a voidsuit.</span>")
+			to_chat(user, span_danger("The cycler already contains a voidsuit."))
 			return
 
 		if(IS.no_cycle)
-			to_chat(user, "<span class='danger'>That item is not compatible with the cycler's protocols.</span>")
+			to_chat(user, span_danger("That item is not compatible with the cycler's protocols."))
 			return
 
 		if(I.icon_override == CUSTOM_ITEM_MOB)
@@ -258,27 +248,25 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 
 		to_chat(user, "You fit \the [I] into the suit cycler.")
 		user.drop_item()
-		I.loc = src
+		I.forceMove(src)
 		suit = I
 
 		update_icon()
-		updateUsrDialog()
 		return
 
 	..()
 
-/obj/machinery/suit_cycler/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/suit_cycler/emag_act(remaining_charges, mob/user)
 	if(emagged)
-		to_chat(user, "<span class='danger'>The cycler has already been subverted.</span>")
+		to_chat(user, span_danger("The cycler has already been subverted."))
 		return
 
 	//Clear the access reqs, disable the safeties, and open up all paintjobs.
-	to_chat(user, "<span class='danger'>You run the sequencer across the interface, corrupting the operating protocols.</span>")
+	to_chat(user, span_danger("You run the sequencer across the interface, corrupting the operating protocols."))
 
 	emagged = 1
 	safeties = 0
 	req_access = list()
-	updateUsrDialog()
 	return 1
 
 /obj/machinery/suit_cycler/attack_hand(mob/user as mob)
@@ -357,7 +345,7 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 
 	return data
 
-/obj/machinery/suit_cycler/tgui_act(action, params)
+/obj/machinery/suit_cycler/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
 
@@ -396,7 +384,7 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 			active = 1
 			spawn(100)
 				repair_suit()
-				finished_job()
+				finished_job(ui.user)
 			. = TRUE
 
 		if("apply_paintjob")
@@ -405,24 +393,24 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 			active = 1
 			spawn(100)
 				apply_paintjob()
-				finished_job()
+				finished_job(ui.user)
 			. = TRUE
 
 		if("lock")
-			if(allowed(usr))
+			if(allowed(ui.user))
 				locked = !locked
-				to_chat(usr, "You [locked ? "" : "un"]lock \the [src].")
+				to_chat(ui.user, "You [locked ? "" : "un"]lock \the [src].")
 			else
-				to_chat(usr, "<span class='danger'>Access denied.</span>")
+				to_chat(ui.user, span_danger("Access denied."))
 			. = TRUE
 
 		if("eject_guy")
-			eject_occupant(usr)
+			eject_occupant(ui.user)
 			. = TRUE
 
 		if("uv")
 			if(safeties && occupant)
-				to_chat(usr, "<span class='danger'>The cycler has detected an occupant. Please remove the occupant before commencing the decontamination cycle.</span>")
+				to_chat(ui.user, span_danger("The cycler has detected an occupant. Please remove the occupant before commencing the decontamination cycle."))
 				return
 
 			active = 1
@@ -432,15 +420,15 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 
 			if(helmet)
 				if(radiation_level > 2)
-					helmet.decontaminate()
+					helmet.wash(CLEAN_TYPE_RADIATION)
 				if(radiation_level > 1)
-					helmet.clean_blood()
+					helmet.wash(CLEAN_SCRUB)
 
 			if(suit)
 				if(radiation_level > 2)
-					suit.decontaminate()
+					suit.wash(CLEAN_TYPE_RADIATION)
 				if(radiation_level > 1)
-					suit.clean_blood()
+					suit.wash(CLEAN_SCRUB)
 
 			. = TRUE
 
@@ -475,13 +463,12 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 			occupant.take_organ_damage(0,radiation_level + rand(1,3))
 		occupant.apply_effect(radiation_level*10, IRRADIATE)
 
-/obj/machinery/suit_cycler/proc/finished_job()
+/obj/machinery/suit_cycler/proc/finished_job(mob/user)
 	var/turf/T = get_turf(src)
-	T.visible_message("\icon[src][bicon(src)]<span class='notice'>The [src] beeps several times.</span>")
+	T.visible_message("[icon2html(src,viewers(src))]" + span_notice("The [src] beeps several times."))
 	icon_state = initial(icon_state)
 	active = 0
 	playsound(src, 'sound/machines/boobeebeep.ogg', 50)
-	updateUsrDialog()
 
 /obj/machinery/suit_cycler/proc/repair_suit()
 	if(!suit || !suit.damage || !suit.can_breach)
@@ -502,24 +489,19 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 
 	eject_occupant(usr)
 
-/obj/machinery/suit_cycler/proc/eject_occupant(mob/user as mob)
+/obj/machinery/suit_cycler/proc/eject_occupant(mob/user)
 
 	if(locked || active)
-		to_chat(user, "<span class='warning'>The cycler is locked.</span>")
+		to_chat(user, span_warning("The cycler is locked."))
 		return
 
 	if(!occupant)
 		return
 
-	if(occupant.client)
-		occupant.client.eye = occupant.client.mob
-		occupant.client.perspective = MOB_PERSPECTIVE
-
-	occupant.loc = get_turf(occupant)
+	occupant.forceMove(get_turf(src))
 	occupant = null
 
 	add_fingerprint(user)
-	updateUsrDialog()
 	update_icon()
 
 	return
@@ -536,12 +518,12 @@ GLOBAL_LIST_EMPTY(suit_cycler_typecache)
 	if(target_department.can_refit_suit(suit))
 		target_department.do_refit_suit(suit)
 	// Attached voidsuit helmet to new paint
-	if(target_department.can_refit_helmet(suit?.helmet))
-		target_department.do_refit_helmet(suit.helmet)
+	if(target_department.can_refit_helmet(suit?.hood))
+		target_department.do_refit_helmet(suit?.hood)
 
 	// Species fitting for all 3 potential changes
-	if(target_species.can_refit_to(helmet, suit, suit?.helmet))
-		target_species.do_refit_to(helmet, suit, suit?.helmet)
+	if(target_species.can_refit_to(helmet, suit, suit?.hood))
+		target_species.do_refit_to(helmet, suit, suit?.hood)
 	else
-		visible_message("\icon[src][bicon(src)]<span class='warning'>Unable to apply specified cosmetics with specified species. Please try again with a different species or cosmetic option selected.</span>")
+		visible_message("[icon2html(src,viewers(src))]" + span_warning("Unable to apply specified cosmetics with specified species. Please try again with a different species or cosmetic option selected."))
 		return

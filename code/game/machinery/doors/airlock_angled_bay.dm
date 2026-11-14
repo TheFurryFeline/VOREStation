@@ -8,7 +8,7 @@
  * icons being built at runtime to afford the luxury of not needing to pre-bake
  * all the icons like we have in the past, but preventing the overlay thrashing that
  * Bay's seem to encounter. All the heavy lifting is just done once at initialization.
- * 
+ *
  * The input state names from the various Bay files are:
  * preview: Only in base_icon for mapping
  * closed: static, when closed
@@ -16,7 +16,7 @@
  * closing: anim, from open to closed transition
  * opening: anim, from closed to open transition
  * deny: static/anim, when denying a mob access
- * 
+ *
  * The output state names to our system are:
  * door_closed: closed
  * door_locked: closed+bolted lights
@@ -28,7 +28,7 @@
  * o_door_closing: closing+panel
  * door_opening_stat: opening
  * door_closing_stat: closing
- * 
+ *
  * These do not include the door icon and are overlays:
  * panel_open: bare panel overlay
  * welded: bare welded overlay
@@ -86,7 +86,7 @@
 	/// Optional: If door_color_icon is not null, this color will be applied to the door color overlay
 	var/door_color
 
-/obj/machinery/door/airlock/angled_bay/Initialize()
+/obj/machinery/door/airlock/angled_bay/Initialize(mapload)
 	obtain_icon()
 	. = ..()
 
@@ -114,7 +114,7 @@
 		icon = mine
 		update_icon()
 		return // hooray
-	
+
 	// Base layer - the bare metal - absolutely required sprites
 	var/icon/door_closed = icon(base_icon, "closed")
 	var/icon/door_open = icon(base_icon, "open")
@@ -127,7 +127,7 @@
 	var/icon/door_closing_stat = icon(base_icon, "closing")
 	var/icon/o_door_opening = icon(base_icon, "opening")
 	var/icon/o_door_closing = icon(base_icon, "closing")
-	
+
 	// Optional icons
 	var/icon/panel_open
 	var/icon/welded_closed
@@ -135,26 +135,26 @@
 	var/icon/sparks_damaged
 	var/icon/sparks_open
 	var/icon/sparks_broken
-	
+
 	if(panel_icon)
 		panel_open = icon(panel_icon, "closed")
 	else
 		panel_open = icon('icons/effects/effects.dmi', "nothing")
-	
+
 	if(welded_icon)
 		welded_closed = icon(welded_icon, "closed")
 		welded_open = icon(welded_icon, "open") // only used on firedoors far as I can tell
 	else
 		welded_closed = icon('icons/effects/effects.dmi', "nothing")
 		welded_open = icon('icons/effects/effects.dmi', "nothing")
-	
+
 	if(spark_damaged_icon)
 		sparks_damaged = icon(spark_damaged_icon, "closed")
 		sparks_open = icon(spark_damaged_icon, "open")
 	else
 		sparks_damaged = icon('icons/effects/effects.dmi', "nothing")
 		sparks_open = icon('icons/effects/effects.dmi', "nothing")
-	
+
 	if(spark_broken_icon)
 		sparks_broken = icon(spark_broken_icon, "closed")
 	else
@@ -231,10 +231,10 @@
 		o_door_opening.Blend(icon(lights_green_icon, "opening"), ICON_OVERLAY)
 		door_closing.Blend(icon(lights_green_icon, "closing"), ICON_OVERLAY)
 		o_door_closing.Blend(icon(lights_green_icon, "closing"), ICON_OVERLAY)
-	
+
 	if(lights_deny_icon)
 		door_deny.Blend(icon(lights_deny_icon, "deny"), ICON_OVERLAY)
-	
+
 	if(lights_bolts_icon)
 		door_locked.Blend(icon(lights_bolts_icon, "closed"), ICON_OVERLAY)
 
@@ -296,7 +296,7 @@
 	lights_deny_icon = 'icons/obj/doors/angled/station/lights_deny.dmi'
 	lights_green_icon = 'icons/obj/doors/angled/station/lights_green.dmi'
 	lights_bolts_icon = 'icons/obj/doors/angled/station/lights_bolts.dmi'
-	lights_emag_icon = 'icons/obj/doors/angled/station/emag.dmi'
+	lights_emag_icon = 'icons/obj/doors/angled/external/emag.dmi'
 	panel_icon = 'icons/obj/doors/angled/station/panel.dmi'
 	welded_icon = 'icons/obj/doors/angled/station/welded.dmi'
 /obj/machinery/door/airlock/angled_bay/standard/glass
@@ -319,7 +319,7 @@
 	lights_deny_icon = 'icons/obj/doors/angled/hatch/lights_deny.dmi'
 	lights_green_icon = 'icons/obj/doors/angled/hatch/lights_green.dmi'
 	lights_bolts_icon = 'icons/obj/doors/angled/hatch/lights_bolts.dmi'
-	lights_emag_icon = 'icons/obj/doors/angled/hatch/emag.dmi'
+	lights_emag_icon = 'icons/obj/doors/angled/external/emag.dmi'
 	panel_icon = 'icons/obj/doors/angled/hatch/panel.dmi'
 	welded_icon = 'icons/obj/doors/angled/hatch/welded.dmi'
 
@@ -365,9 +365,9 @@
 	fill_type = FILL_METAL
 
 	base_icon = 'icons/obj/doors/angled/elevator/door.dmi'
-	metal_fill_icon = 'icons/obj/doors/angled/elevator/fill_steel.dmi'
+	metal_fill_icon = 'icons/obj/doors/angled/elevator/fill_glass.dmi'
 	glass_fill_icon = 'icons/obj/doors/angled/elevator/fill_glass.dmi'
-	lights_deny_icon = 'icons/obj/doors/angled/elevator/lights_deny.dmi'
+	lights_deny_icon = 'icons/obj/doors/angled/elevator/lights_bolts.dmi'
 	lights_green_icon = 'icons/obj/doors/angled/elevator/lights_green.dmi'
 	lights_bolts_icon = 'icons/obj/doors/angled/elevator/lights_bolts.dmi'
 	welded_icon = 'icons/obj/doors/angled/elevator/welded.dmi'
@@ -389,7 +389,7 @@
 	fill_type = FILL_METAL // the only option
 
 	base_icon = 'icons/obj/doors/angled/vault/door.dmi'
-	metal_fill_icon = 'icons/obj/doors/angled/vault/fill_steel.dmi'
+	metal_fill_icon = 'icons/obj/doors/angled/secure/fill_steel.dmi'
 
 /obj/machinery/door/airlock/angled_bay/secure
 	icon = 'icons/obj/doors/angled/secure/door.dmi'
@@ -425,7 +425,7 @@
 	lights_deny_icon = 'icons/obj/doors/angled/double/lights_deny.dmi'
 	lights_green_icon = 'icons/obj/doors/angled/double/lights_green.dmi'
 	lights_bolts_icon = 'icons/obj/doors/angled/double/lights_bolts.dmi'
-	lights_emag_icon = 'icons/obj/doors/angled/double/emag.dmi'
+	lights_emag_icon = 'icons/obj/doors/angled/double/lights_deny.dmi'
 	panel_icon = 'icons/obj/doors/angled/double/panel.dmi'
 	welded_icon = 'icons/obj/doors/angled/double/welded.dmi'
 	spark_damaged_icon = 'icons/obj/doors/angled/double/sparks_damaged.dmi'
@@ -462,3 +462,8 @@
 	else
 		bound_width = world.icon_size
 		bound_height = width * world.icon_size
+
+#undef FILL_NONE
+#undef FILL_METAL
+#undef FILL_GLASS
+#undef FILL_COLOR

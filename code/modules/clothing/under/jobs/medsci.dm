@@ -2,7 +2,7 @@
  * Science
  */
 /obj/item/clothing/under/rank/research_director
-	desc = "It's a jumpsuit worn by those with the know-how to achieve the position of \"Research Director\". Its fabric provides minor protection from biological contaminants."
+	desc = "It's a jumpsuit worn by those with the know-how to achieve the position of \"" + JOB_RESEARCH_DIRECTOR + "\". Its fabric provides minor protection from biological contaminants."
 	name = "research director's jumpsuit"
 	icon_state = "director"
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 10, rad = 0)
@@ -19,7 +19,7 @@
 	desc = "Feminine fashion for the style conscious RD. Its fabric provides minor protection from biological contaminants."
 	icon_state = "dress_rd"
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 10, rad = 0)
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS
+	body_parts_covered = CHEST|ARMS
 
 /obj/item/clothing/under/rank/scientist
 	desc = "It's made of a special fiber that provides minor protection against biohazards. It has markings that denote the wearer as a scientist."
@@ -51,7 +51,7 @@
  * Medical
  */
 /obj/item/clothing/under/rank/chief_medical_officer
-	desc = "It's a jumpsuit worn by those with the experience to be \"Chief Medical Officer\". It provides minor biological protection."
+	desc = "It's a jumpsuit worn by those with the experience to be \"" + JOB_CHIEF_MEDICAL_OFFICER + "\". It provides minor biological protection."
 	name = "chief medical officer's jumpsuit"
 	icon_state = "cmo"
 	item_state_slots = list(slot_r_hand_str = "white", slot_l_hand_str = "white")
@@ -83,7 +83,7 @@
 	icon_state = "nursesuit"
 	permeability_coefficient = 0.50
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 10, rad = 0)
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 	rolled_sleeves = -1
 
 /obj/item/clothing/under/rank/nurse
@@ -93,7 +93,7 @@
 	item_state_slots = list(slot_r_hand_str = "nursesuit", slot_l_hand_str = "nursesuit")
 	permeability_coefficient = 0.50
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 10, rad = 0)
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 	rolled_sleeves = -1
 
 /obj/item/clothing/under/rank/orderly
@@ -126,7 +126,7 @@
 	desc = "It's made of a special fiber that provides minor protection against biohazards. This one is the color scheme that designates a rapid first responder."
 	icon_state = "paramedic"
 	item_state_slots = list(slot_r_hand_str = "white", slot_l_hand_str = "white")
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS
+	body_parts_covered = CHEST|LEGS
 	rolled_down = -1
 	rolled_sleeves = -1
 
@@ -135,7 +135,7 @@
 	desc = "It's made of a special fiber that provides minor protection against biohazards. This one has a cross on the chest denoting that the wearer is trained medical personnel."
 	icon_state = "medical_short"
 	item_state_slots = list(slot_r_hand_str = "white", slot_l_hand_str = "white")
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS
+	body_parts_covered = CHEST|LEGS
 	rolled_sleeves = -1
 
 /obj/item/clothing/under/rank/medical/scrubs

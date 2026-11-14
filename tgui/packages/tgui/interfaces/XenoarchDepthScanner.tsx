@@ -1,15 +1,14 @@
-import { useBackend } from '../backend';
-import { Box, Button, LabeledList, Section } from '../components';
-import { Window } from '../layouts';
+import { useBackend } from 'tgui/backend';
+import { Window } from 'tgui/layouts';
+import { Box, Button, LabeledList, Section } from 'tgui-core/components';
 
 type Data = {
+  theme?: string;
   current: {
     index: string;
     time: string;
     coords: string;
     depth: number;
-    clearance: number;
-    dissonance_spread: number;
     material: string;
   };
   positive_locations: { index: string; time: string; coords: string }[];
@@ -18,10 +17,10 @@ type Data = {
 export const XenoarchDepthScanner = (props) => {
   const { act, data } = useBackend<Data>();
 
-  const { current, positive_locations } = data;
+  const { theme, current, positive_locations } = data;
 
   return (
-    <Window width={300} height={500}>
+    <Window width={300} height={500} theme={theme}>
       <Window.Content scrollable>
         {(Object.keys(current).length && (
           <Section
@@ -31,9 +30,10 @@ export const XenoarchDepthScanner = (props) => {
                 color="bad"
                 icon="trash"
                 confirmIcon="trash"
-                content="Delete Entry"
                 onClick={() => act('clear', { index: current.index })}
-              />
+              >
+                Delete Entry
+              </Button.Confirm>
             }
           >
             <LabeledList>
@@ -43,12 +43,6 @@ export const XenoarchDepthScanner = (props) => {
               </LabeledList.Item>
               <LabeledList.Item label="Anomaly Depth">
                 {current.depth} cm
-              </LabeledList.Item>
-              <LabeledList.Item label="Anomaly Size">
-                {current.clearance} cm
-              </LabeledList.Item>
-              <LabeledList.Item label="Dissonance Spread">
-                {current.dissonance_spread}
               </LabeledList.Item>
               <LabeledList.Item label="Anomaly Material">
                 {current.material}
@@ -64,9 +58,10 @@ export const XenoarchDepthScanner = (props) => {
               color="red"
               icon="trash"
               confirmIcon="trash"
-              content="Delete All"
               onClick={() => act('clear')}
-            />
+            >
+              Delete All
+            </Button.Confirm>
           }
         >
           {(positive_locations.length &&

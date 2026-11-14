@@ -1,29 +1,37 @@
-/decl/emote/audible/sneeze
+/datum/decl/emote/audible/sneeze
 	key = "sneeze"
 	emote_message_1p = "You sneeze."
 	emote_message_3p = "sneezes."
-	emote_sound_synthetic = list(
-		FEMALE = 'sound/effects/mob_effects/machine_sneeze.ogg',
-		MALE =   'sound/effects/mob_effects/f_machine_sneeze.ogg',
-		NEUTER = 'sound/effects/mob_effects/f_machine_sneeze.ogg',
-		PLURAL = 'sound/effects/mob_effects/f_machine_sneeze.ogg'
-	)
 	emote_message_synthetic_1p = "You emit a robotic sneeze."
 	emote_message_synthetic_1p_target = "You emit a robotic sneeze towards TARGET."
 	emote_message_synthetic_3p = "emits a robotic sneeze."
 	emote_message_synthetic_3p_target = "emits a robotic sneeze towards TARGET."
+	emote_message_mute_1p = "You act out an exaggerated silent sneeze."
+	emote_message_mute_3p = "acts out an exaggerated silent sneeze."
 
-/decl/emote/audible/sneeze/get_emote_sound(var/atom/user)
+/datum/decl/emote/audible/sneeze/get_emote_sound(atom/user)
 	if(ishuman(user) && !check_synthetic(user))
 		var/mob/living/carbon/human/H = user
-		if(H.get_gender() == FEMALE)
-			return list(
-				"sound" = H.species.female_sneeze_sound,
-				"vol" = emote_volume
-			)
-		else
-			return list(
-				"sound" = H.species.male_sneeze_sound,
-				"vol" = emote_volume
+		var/vol = H.species.sneeze_volume
+		var/s = get_species_sound(get_gendered_sound(H))["sneeze"]
+		if(!s && !(get_species_sound(H.species.species_sounds) == "None")) // Failsafe, so we always use the default sneeze/etc sounds. None will cancel out anyways.
+			if(H.identifying_gender == FEMALE)
+				s = get_species_sound("Human Female")["sneeze"]
+			else // Update this if we ever get herm/etc sounds.
+				s = get_species_sound("Human Male")["sneeze"]
+		return list(
+				"sound" = s,
+				"vol" = vol,
+				"exr" = 20,
+				"volchannel" = VOLUME_CHANNEL_SPECIES_SOUNDS
 			)
 	return ..()
+
+/datum/decl/emote/audible/sneeze/do_extra(atom/user, atom/target)
+	if(ishuman(user) && HAS_TRAIT(user, TRAIT_UNLUCKY) && prob(10))
+		var/mob/living/carbon/human/human = user
+		if(human.glasses)
+			var/obj/item/glasses = human.glasses
+			human.unEquip(glasses, FALSE, get_step(human, human.dir))
+			glasses.throw_at(get_step(human, human.dir), 10, 10)
+			human.visible_message(span_notice("[human]'s [glasses] go flying after a sneeze!"), span_danger("Your [glasses] go flying!"))

@@ -7,20 +7,23 @@
 	icon_state = "telecrystal"
 	w_class = ITEMSIZE_TINY
 	max_amount = 240
-	origin_tech = list(TECH_MATERIAL = 6, TECH_BLUESPACE = 4)
 	force = 1 //Needs a token force to ensure you can attack because for some reason you can't attack with 0 force things
+	custom_handling = TRUE
 
-/obj/item/stack/telecrystal/apply_hit_effect(mob/living/target, mob/living/user, var/hit_zone)
+/obj/item/stack/telecrystal/apply_hit_effect(mob/living/target, mob/living/user, hit_zone)
 	if(amount >= 5)
-		target.visible_message("<span class='warning'>\The [target] has been transported with \the [src] by \the [user].</span>")
+		target.visible_message(span_warning("\The [target] has been transported with \the [src] by \the [user]."))
 		safe_blink(target, 14)
 		use(5)
 	else
-		to_chat(user, "<span class='warning'>There are not enough telecrystals to do that.</span>")
+		to_chat(user, span_warning("There are not enough telecrystals to do that."))
 
-/obj/item/stack/telecrystal/attack_self(mob/user as mob)
+/obj/item/stack/telecrystal/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(user.mind.accept_tcrystals) //Checks to see if antag type allows for tcrystals
-		to_chat(user, "<span class='notice'>You use \the [src], adding [src.amount] to your balance.</span>")
+		to_chat(user, span_notice("You use \the [src], adding [src.amount] to your balance."))
 		user.mind.tcrystals += amount
 		use(amount)
 	return

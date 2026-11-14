@@ -1,6 +1,6 @@
 // Powersink - used to drain station power
 
-/obj/item/device/powersink
+/obj/item/powersink
 	name = "power sink"
 	desc = "A nulling power sink which drains energy from electrical systems."
 	icon_state = "powersink0"
@@ -10,9 +10,8 @@
 	throw_speed = 1
 	throw_range = 2
 
-	matter = list(MAT_STEEL = 750)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.375))
 
-	origin_tech = list(TECH_POWER = 3, TECH_ILLEGAL = 5)
 	var/drain_rate = 1500000		// amount of power to drain per tick
 	var/apc_drain_rate = 5000 		// Max. amount drained from single APC. In Watts.
 	var/dissipation_rate = 20000	// Passive dissipation of drained power. In Watts.
@@ -24,12 +23,15 @@
 	var/datum/powernet/PN			// Our powernet
 	var/obj/structure/cable/attached		// the attached cable
 
-/obj/item/device/powersink/Destroy()
+	pickup_sound = 'sound/items/pickup/device.ogg'
+	drop_sound = 'sound/items/drop/device.ogg'
+
+/obj/item/powersink/Destroy()
 	STOP_PROCESSING(SSobj, src)
 	STOP_PROCESSING_POWER_OBJECT(src)
-	..()
+	. = ..()
 
-/obj/item/device/powersink/attackby(var/obj/item/I, var/mob/user)
+/obj/item/powersink/attackby(obj/item/I, mob/user)
 	if(I.has_tool_quality(TOOL_SCREWDRIVER))
 		if(mode == 0)
 			var/turf/T = loc
@@ -41,7 +43,7 @@
 				else
 					anchored = TRUE
 					mode = 1
-					src.visible_message("<span class='notice'>[user] attaches [src] to the cable!</span>")
+					src.visible_message(span_notice("[user] attaches [src] to the cable!"))
 					playsound(src, I.usesound, 50, 1)
 					return
 			else
@@ -53,7 +55,7 @@
 				STOP_PROCESSING_POWER_OBJECT(src)
 			anchored = FALSE
 			mode = 0
-			src.visible_message("<span class='notice'>[user] detaches [src] from the cable!</span>")
+			src.visible_message(span_notice("[user] detaches [src] from the cable!"))
 			set_light(0)
 			playsound(src, I.usesound, 50, 1)
 			icon_state = "powersink0"
@@ -62,29 +64,29 @@
 	else
 		..()
 
-/obj/item/device/powersink/attack_ai()
+/obj/item/powersink/attack_ai()
 	return
 
-/obj/item/device/powersink/attack_hand(var/mob/user)
+/obj/item/powersink/attack_hand(mob/user)
 	switch(mode)
 		if(0)
 			..()
 		if(1)
-			src.visible_message("<span class='notice'>[user] activates [src]!</span>")
+			src.visible_message(span_notice("[user] activates [src]!"))
 			mode = 2
 			icon_state = "powersink1"
 			START_PROCESSING(SSobj, src)
 			datum_flags &= ~DF_ISPROCESSING // Have to reset this flag so that PROCESSING_POWER_OBJECT can re-add it. It fails if the flag is already present. - Ater
 			START_PROCESSING_POWER_OBJECT(src)
 		if(2)  //This switch option wasn't originally included. It exists now. --NeoFite
-			src.visible_message("<span class='notice'>[user] deactivates [src]!</span>")
+			src.visible_message(span_notice("[user] deactivates [src]!"))
 			mode = 1
 			set_light(0)
 			icon_state = "powersink0"
 			STOP_PROCESSING(SSobj, src)
 			STOP_PROCESSING_POWER_OBJECT(src)
 
-/obj/item/device/powersink/pwr_drain()
+/obj/item/powersink/pwr_drain()
 	if(!attached)
 		return 0
 
@@ -119,7 +121,7 @@
 	return 1
 
 
-/obj/item/device/powersink/process()
+/obj/item/powersink/process()
 	drained_this_tick = 0
 	power_drained -= min(dissipation_rate, power_drained)
 	if(power_drained > max_power * 0.95)

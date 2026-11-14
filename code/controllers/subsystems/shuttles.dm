@@ -8,7 +8,11 @@ SUBSYSTEM_DEF(shuttles)
 	name = "Shuttles"
 	wait = 2 SECONDS
 	priority = FIRE_PRIORITY_SHUTTLES
-	init_order = INIT_ORDER_SHUTTLES
+	dependencies = list(
+		/datum/controller/subsystem/machines,
+		/datum/controller/subsystem/atoms,
+		/datum/controller/subsystem/radio
+	)
 	flags = SS_KEEP_TIMING|SS_NO_TICK_CHECK
 	runlevels = RUNLEVEL_GAME|RUNLEVEL_POSTGAME
 
@@ -32,7 +36,7 @@ SUBSYSTEM_DEF(shuttles)
 
 	var/tmp/list/current_run                       // Shuttles remaining to process this fire() tick
 
-/datum/controller/subsystem/shuttles/Initialize(timeofday)
+/datum/controller/subsystem/shuttles/Initialize()
 	last_landmark_registration_time = world.time
 	// Find all declared shuttle datums and initailize them. (Okay, queue them for initialization a few lines further down)
 	for(var/shuttle_type in subtypesof(/datum/shuttle)) // This accounts for most shuttles, though away maps can queue up more.
@@ -43,18 +47,18 @@ SUBSYSTEM_DEF(shuttles)
 			LAZYDISTINCTADD(shuttles_to_initialize, shuttle_type)
 	block_init_queue = FALSE
 	process_init_queues()
-	return ..()
+	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/shuttles/fire(resumed = 0)
 	if (!resumed)
 		src.current_run = process_shuttles.Copy()
 
 	var/list/working_shuttles = src.current_run // Cache for sanic speed
-	while(working_shuttles.len)
-		var/datum/shuttle/S = working_shuttles[working_shuttles.len]
+	while(length(working_shuttles))
+		var/datum/shuttle/S = working_shuttles[length(working_shuttles)]
 		working_shuttles.len--
 		if(!istype(S) || QDELETED(S))
-			error("Bad entry in SSshuttles.process_shuttles - [log_info_line(S)] ")
+			log_world("## ERROR Bad entry in SSshuttles.process_shuttles - [log_info_line(S)] ")
 			process_shuttles -= S
 			continue
 		// NOTE - In old system, /datum/shuttle/ferry was processed only if (F.process_state || F.always_process)
@@ -101,7 +105,7 @@ SUBSYSTEM_DEF(shuttles)
 			O = get_overmap_sector(get_z(shuttle_landmark))
 			O ? O.add_landmark(shuttle_landmark, shuttle_landmark.shuttle_restricted) : (landmarks_awaiting_sector += shuttle_landmark)
 
-/datum/controller/subsystem/shuttles/proc/get_landmark(var/shuttle_landmark_tag)
+/datum/controller/subsystem/shuttles/proc/get_landmark(shuttle_landmark_tag)
 	return registered_shuttle_landmarks[shuttle_landmark_tag]
 
 //Checks if the given sector's landmarks have initialized; if so, registers them with the sector, if not, marks them for assignment after they come in.
@@ -138,12 +142,12 @@ SUBSYSTEM_DEF(shuttles)
 			given_sector.add_landmark(landmark, shuttle_name)
 			. = 1
 
-/datum/controller/subsystem/shuttles/proc/initialize_shuttle(var/shuttle_type)
+/datum/controller/subsystem/shuttles/proc/initialize_shuttle(shuttle_type)
 	var/datum/shuttle/shuttle = shuttle_type
 	if(initial(shuttle.category) != shuttle_type) // Skip if its an "abstract class" datum
 		shuttle = new shuttle()
 		shuttle_areas |= shuttle.shuttle_area
-		log_debug("Initialized shuttle [shuttle] ([shuttle.type])")
+		log_world("Initialized shuttle [shuttle] ([shuttle.type])")
 		return shuttle
 		// Historical note:  No need to call shuttle.init_docking_controllers(), controllers register themselves
 		// and shuttles fetch refs in New().  Shuttles also dock() themselves in new if they want.
@@ -157,7 +161,7 @@ SUBSYSTEM_DEF(shuttles)
 				S.motherdock = S.current_location.landmark_tag
 				mothership.shuttle_area |= S.shuttle_area
 			else
-				error("Shuttle [S] was unable to find mothership [mothership]!")
+				log_world("## ERROR Shuttle [S] was unable to find mothership [mothership]!")
 
 // Let shuttles scan their owned areas for objects they want to configure (Called after mothership hookup)
 /datum/controller/subsystem/shuttles/proc/hook_up_shuttle_objects(shuttles_list)
@@ -172,5 +176,6 @@ SUBSYSTEM_DEF(shuttles)
 	for(var/obj/effect/overmap/visitable/ship/ship_effect as anything in ships)
 		overmap_halted ? ship_effect.halt() : ship_effect.unhalt()
 
-/datum/controller/subsystem/shuttles/stat_entry()
-	..("Shuttles:[process_shuttles.len]/[shuttles.len], Ships:[ships.len], L:[registered_shuttle_landmarks.len][overmap_halted ? ", HALT" : ""]")
+/datum/controller/subsystem/shuttles/stat_entry(msg)
+	msg = "Shuttles:[length(process_shuttles)]/[length(shuttles)], Ships:[length(ships)], L:[length(registered_shuttle_landmarks)][overmap_halted ? ", HALT" : ""]"
+	return ..()

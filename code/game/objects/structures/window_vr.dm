@@ -4,13 +4,14 @@
 	basestate = "window"
 	icon_state = "window"
 	color = "#A7A3A6"
-	shardtype = /obj/item/weapon/material/shard/titaniumglass
+	shardtype = /obj/item/material/shard/titaniumglass
 	glasstype = /obj/item/stack/material/glass/titanium
 	reinf = 0
 	maximal_heat = T0C + 5000
 	damage_per_fire_tick = 1.0
 	maxhealth = 100.0
 	force_threshold = 10
+	rad_insulation = RAD_EXTREME_INSULATION
 
 /obj/structure/window/titanium/full
 	icon_state = "window-full"
@@ -23,13 +24,14 @@
 	basestate = "window"
 	icon_state = "window"
 	color = "#676366"
-	shardtype = /obj/item/weapon/material/shard/plastitaniumglass
+	shardtype = /obj/item/material/shard/plastitaniumglass
 	glasstype = /obj/item/stack/material/glass/plastitanium
 	reinf = 0
 	maximal_heat = T0C + 7000
 	damage_per_fire_tick = 1.0
 	maxhealth = 120.0
 	force_threshold = 10
+	rad_insulation = RAD_EXTREME_INSULATION
 
 /obj/structure/window/plastitanium/full
 	icon_state = "window-full"

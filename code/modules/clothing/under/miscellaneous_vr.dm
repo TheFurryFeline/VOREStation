@@ -18,8 +18,6 @@
 
 /obj/item/clothing/under/hyperfiber
 	name = "HYPER jumpsuit"
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	icon_override = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "hyper"
 	item_icons = list(
 			slot_l_hand_str = 'icons/mob/items/lefthand_uniforms.dmi',
@@ -63,49 +61,50 @@
 	set src in usr
 	bluespace_size(usr)
 
-/obj/item/clothing/under/hyperfiber/bluespace/proc/bluespace_size(mob/usr as mob)
-	if (!ishuman(usr))
+/obj/item/clothing/under/hyperfiber/bluespace/proc/bluespace_size(mob/user)
+	if (!ishuman(user))
 		return
 
-	var/mob/living/carbon/human/H = usr
+	var/mob/living/carbon/human/H = user
 
 	if (H.stat || H.restrained())
 		return
 
 	if (src != H.w_uniform)
-		to_chat(H,"<span class='warning'>You must be WEARING the uniform to change your size.</span>")
+		to_chat(H,span_warning("You must be WEARING the uniform to change your size."))
 		return
 
-	var/new_size = tgui_input_number(usr, "Put the desired size (25-200%), or (1-600%) in dormitory areas.", "Set Size", 200, 600, 1)
+	var/new_size
+	if(H.has_large_resize_bounds())
+		new_size = tgui_input_number(H, "Put the desired size ([RESIZE_MINIMUM * 100]-[RESIZE_MAXIMUM * 100]%), or ([RESIZE_MINIMUM_DORMS * 100]-[RESIZE_MAXIMUM_DORMS * 100]%) in dormitory areas.", "Set Size", H.size_multiplier * 100, RESIZE_MAXIMUM_DORMS * 100, RESIZE_MINIMUM_DORMS * 100)
+	else
+		new_size = tgui_input_number(H, "Put the desired size ([RESIZE_MINIMUM * 100]-[RESIZE_MAXIMUM * 100]%), or ([RESIZE_MINIMUM_DORMS * 100]-[RESIZE_MAXIMUM_DORMS * 100]%) in dormitory areas.", "Set Size", H.size_multiplier * 100, RESIZE_MAXIMUM * 100, RESIZE_MINIMUM * 100)
 	if(!new_size)
 		return //cancelled
 
 	//Check AGAIN because we accepted user input which is blocking.
 	if (src != H.w_uniform)
-		to_chat(H,"<span class='warning'>You must be WEARING the uniform to change your size.</span>")
+		to_chat(H,span_warning("You must be WEARING the uniform to change your size."))
 		return
 
 	if (H.stat || H.restrained())
 		return
 
 	if (isnull(H.size_multiplier)) // Why would this ever be the case?
-		to_chat(H,"<span class='warning'>The uniform panics and corrects your apparently microscopic size.</span>")
+		to_chat(H,span_warning("The uniform panics and corrects your apparently microscopic size."))
 		H.resize(RESIZE_NORMAL, ignore_prefs = TRUE)
 		H.update_icons() //Just want the matrix transform
 		return
 
 	if (!H.size_range_check(new_size))
-		to_chat(H,"<span class='notice'>The safety features of the uniform prevent you from choosing this size.</span>")
+		to_chat(H,span_notice("The safety features of the uniform prevent you from choosing this size."))
 		return
 
-	else if(new_size)
-		if(new_size != H.size_multiplier)
-			if(!original_size)
-				original_size = H.size_multiplier
-			H.resize(new_size/100, uncapped = H.has_large_resize_bounds(), ignore_prefs = TRUE) // Ignores prefs because you can only resize yourself
-			H.visible_message("<span class='warning'>The space around [H] distorts as they change size!</span>","<span class='notice'>The space around you distorts as you change size!</span>")
-		else //They chose their current size.
-			return
+	if(new_size != H.size_multiplier)
+		if(!original_size)
+			original_size = H.size_multiplier
+		H.resize(new_size/100, uncapped = H.has_large_resize_bounds(), ignore_prefs = TRUE) // Ignores prefs because you can only resize yourself
+		H.visible_message(span_warning("The space around [H] distorts as they change size!"),span_notice("The space around you distorts as you change size!"))
 
 /obj/item/clothing/under/hyperfiber/bluespace/mob_can_unequip(mob/M, slot, disable_warning = 0)
 	. = ..()
@@ -113,12 +112,12 @@
 		var/mob/living/carbon/human/H = M
 		H.resize(original_size, ignore_prefs = TRUE)
 		original_size = null
-		H.visible_message("<span class='warning'>The space around [H] distorts as they return to their original size!</span>","<span class='notice'>The space around you distorts as you return to your original size!</span>")
+		H.visible_message(span_warning("The space around [H] distorts as they return to their original size!"),span_notice("The space around you distorts as you return to your original size!"))
 
 /obj/item/clothing/gloves/bluespace
 	name = "size standardization bracelet"
 	desc = "A somewhat bulky metal bracelet featuring a crystal, glowing blue. The outer side of the bracelet has an elongated case that one might imagine contains electronic components. This bracelet is used to standardize the size of crewmembers who may need a non-permanent size assist."
-	icon = 'icons/inventory/accessory/item_vr.dmi'
+	icon = 'icons/inventory/accessory/item.dmi'
 	icon_state = "bs_bracelet"
 	w_class = ITEMSIZE_TINY
 	glove_level = 1
@@ -138,12 +137,12 @@
 			return
 		if(H.size_multiplier != target_size)
 			if(!(world.time - last_activated > 10 SECONDS))
-				to_chat(M, "<span class ='warning'>\The [src] flickers. It seems to be recharging.</span>")
+				to_chat(M, span_warning("\The [src] flickers. It seems to be recharging."))
 				return
 			last_activated = world.time
 			original_size = H.size_multiplier
 			H.resize(target_size, uncapped = emagged, ignore_prefs = FALSE)		//In case someone else tries to put it on you.
-			H.visible_message("<span class='warning'>The space around [H] distorts as they change size!</span>","<span class='notice'>The space around you distorts as you change size!</span>")
+			H.visible_message(span_warning("The space around [H] distorts as they change size!"),span_notice("The space around you distorts as you change size!"))
 			log_admin("Admin [key_name(M)]'s size was altered by a bluespace bracelet.")
 
 /obj/item/clothing/gloves/bluespace/mob_can_unequip(mob/M, gloves, disable_warning = 0)
@@ -155,37 +154,105 @@
 		last_activated = world.time
 		H.resize(original_size, uncapped = emagged, ignore_prefs = FALSE)
 		original_size = null
-		H.visible_message("<span class='warning'>The space around [H] distorts as they return to their original size!</span>","<span class='notice'>The space around you distorts as you return to your original size!</span>")
+		H.visible_message(span_warning("The space around [H] distorts as they return to their original size!"),span_notice("The space around you distorts as you return to your original size!"))
 		log_admin("Admin [key_name(M)]'s size was altered by a bluespace bracelet.")
-		to_chat(M, "<span class ='warning'>\The [src] flickers. It is now recharging and will be ready again in thirty seconds.</span>")
+		to_chat(M, span_warning("\The [src] flickers. It is now recharging and will be ready again in thirty seconds."))
 
-/obj/item/clothing/gloves/bluespace/examine(var/mob/user)
+/obj/item/clothing/gloves/bluespace/examine(mob/user)
 	. = ..()
 	var/cooldowntime = round((10 SECONDS - (world.time - last_activated)) * 0.1)
 	if(Adjacent(user))
 		if(cooldowntime >= 0)
-			. += "<span class='notice'>It appears to be recharging.</span>"
+			. += span_notice("It appears to be recharging.")
 		if(emagged)
-			. += "<span class='warning'>The crystal is flickering.</span>"
+			. += span_warning("The crystal is flickering.")
 
-/obj/item/clothing/gloves/bluespace/emag_act(R_charges, var/mob/user, emag_source)
+/obj/item/clothing/gloves/bluespace/emag_act(R_charges, mob/user, emag_source)
 	. = ..()
 	if(!emagged)
 		emagged = TRUE
 		target_size = (rand(1,300)) /100
 		if(target_size < 0.1)
 			target_size = 0.1
-		user.visible_message("<span class='notice'>\The [user] swipes the [emag_source] over the \the [src].</span>","<span class='notice'>You swipes the [emag_source] over the \the [src].</span>")
+		user.visible_message(span_notice("\The [user] swipes the [emag_source] over the \the [src]."),span_notice("You swipes the [emag_source] over the \the [src]."))
 		return 1
 
 /obj/item/clothing/gloves/bluespace/emagged
 	emagged = TRUE
 
-/obj/item/clothing/gloves/bluespace/emagged/Initialize()
+/obj/item/clothing/gloves/bluespace/emagged/Initialize(mapload)
 	. = ..()
 	target_size = (rand(1,300)) /100
 	if(target_size < 0.1)
 		target_size = 0.1
+
+/obj/item/clothing/gloves/bluespace/deluxe
+	name = "deluxe size standardization bracelet"
+	desc = "A somewhat bulky metal bracelet featuring a crystal, glowing blue. The outer side of the bracelet has an elongated case that one might imagine \
+	contains electronic components. This bracelet is used to standardize the size of crewmembers who may need a non-permanent size assist. This one appears \
+	to be a deluxe edition and contains a wheel that allows for adjustment of what the 'standard' size is!"
+
+/obj/item/clothing/gloves/bluespace/deluxe/examine(mob/user)
+	. = ..()
+	if(Adjacent(user))
+		. += "The dial seems to be set to [target_size*100]%"
+
+/obj/item/clothing/gloves/bluespace/deluxe/verb/turn_dial()
+	set name = "Adjust Bluespace Dial"
+	set desc = "Adjust your bracelet's standard size setting. Effect is limited to when you have the bracelet on."
+	set category = "Object"
+	set src in usr
+	bluespace_size(usr)
+
+/obj/item/clothing/gloves/bluespace/deluxe/proc/bluespace_size(mob/user) //Taken from HYPER suit
+	if(!ishuman(user))
+		return
+
+	var/mob/living/carbon/human/H = user
+
+	var/cooldowntime = round((10 SECONDS - (world.time - last_activated)) * 0.1) //Anti Spam
+	if(cooldowntime >= 0)
+		to_chat(H, span_warning("The bracelet is currently recharging!"))
+		return
+
+	if (H.stat || H.restrained())
+		return
+
+	if (src != H.gloves)
+		to_chat(H, span_warning("You must be WEARING the bracelet and have it uncovered to change your size."))
+		return
+
+	var/new_size
+	if(H.has_large_resize_bounds())
+		new_size = tgui_input_number(H, "Put the desired size ([RESIZE_MINIMUM * 100]-[RESIZE_MAXIMUM * 100]%), or ([RESIZE_MINIMUM_DORMS * 100]-[RESIZE_MAXIMUM_DORMS * 100]%) in dormitory areas.", "Set Size", H.size_multiplier * 100, RESIZE_MAXIMUM_DORMS * 100, RESIZE_MINIMUM_DORMS * 100)
+	else
+		new_size = tgui_input_number(H, "Put the desired size ([RESIZE_MINIMUM * 100]-[RESIZE_MAXIMUM * 100]%), or ([RESIZE_MINIMUM_DORMS * 100]-[RESIZE_MAXIMUM_DORMS * 100]%) in dormitory areas.", "Set Size", H.size_multiplier * 100, RESIZE_MAXIMUM * 100, RESIZE_MINIMUM * 100)
+
+	if(!new_size)
+		return
+
+	//Check AGAIN because we accepted user input which is blocking.
+	if (src != H.gloves)
+		to_chat(H, span_warning("You must be WEARING the bracelet and have it uncovered to change your size."))
+		return
+
+	if (H.stat || H.restrained())
+		return
+
+	if (isnull(H.size_multiplier)) // Why would this ever be the case?
+		to_chat(H, span_warning("The gloves panics and corrects your apparently microscopic size."))
+		H.resize(RESIZE_NORMAL, ignore_prefs = TRUE)
+		H.update_icons() //Just want the matrix transform
+		return
+
+	if(new_size != H.size_multiplier)
+		if(!original_size)
+			original_size = H.size_multiplier
+		H.resize(new_size/100, ignore_prefs = TRUE) // Ignores prefs because you can only resize yourself
+		H.visible_message(span_notice("The space around [H] distorts as they change size!"), span_notice("The space around you distorts as you change size!"))
+		target_size = new_size/100
+		last_activated = world.time
+
 
 //Same as Nanotrasen Security Uniforms
 /obj/item/clothing/under/ert
@@ -194,11 +261,9 @@
 /obj/item/clothing/under/qipao
 	name = "black qipao"
 	desc = "A type of feminine body-hugging dress with distinctive Chinese features of Manchu origin."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	icon_override = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "qipao"
 	item_state = "qipao"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 
 /obj/item/clothing/under/qipao/white
 	name = "white qipao"
@@ -217,87 +282,132 @@
 /obj/item/clothing/under/pizzaguy
 	name = "pizza delivery uniform"
 	desc = "A dedicated outfit for pizza delivery people, one of most dangerous occupations around these parts. Can be rolled up for extra show of skin."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	icon_override = 'icons/inventory/uniform/mob_vr.dmi'
-	rolled_down_icon = 'icons/inventory/uniform/mob_vr_rolled_down.dmi'
 	rolled_down_icon_override = FALSE
 	icon_state = "pizzadelivery"
 	item_state = "pizzadelivery"
 	rolled_down = 0
 
+/obj/item/clothing/under/names_pizza
+	name = "pizza delivery uniform"
+	desc = "An outfit fit for delivering pizzas! Whoever wears it either has a vore-wish or really needs the money. Maybe both."
+	icon_state = "pizzadelivery_fluff"
+	item_state = "pizzadelivery_fluff"
+	body_parts_covered = CHEST
+
 //////////////////////TALON JUMPSUITS//////////////////////
 
-/obj/item/clothing/under/rank/talon/basic
+/obj/item/clothing/under/rank/talon
 	name = "Talon jumpsuit"
 	desc = "A basic jumpsuit that bares the ITV Talon logo on the breast."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	rolled_down_icon = 'icons/inventory/uniform/mob_vr_rolled_down.dmi'
-	icon_override = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "talon_basic"
 	item_state = "talon_basic"
 	rolled_sleeves = 0
 	rolled_down_icon_override = FALSE
 	rolled_sleeves_icon_override = FALSE
+	sprite_sheets = list(
+		SPECIES_TESHARI = 'icons/inventory/uniform/mob_teshari.dmi',
+		)
 
-/obj/item/clothing/under/rank/talon/proper
-	name = "Talon proper jumpsuit"
-	desc = "A neat and proper uniform for a proper private ship."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	rolled_down_icon = 'icons/inventory/uniform/mob_vr_rolled_down.dmi'
-	icon_override = 'icons/inventory/uniform/mob_vr.dmi'
-	icon_state = "talon_jumpsuit"
-	item_state = "talon_jumpsuit"
-	rolled_sleeves = 0
-	rolled_down_icon_override = FALSE
-	rolled_sleeves_icon_override = FALSE
+/obj/item/clothing/under/rank/talon/medical
+	name = "Talon medical jumpsuit"
+	desc = "A neat and proper uniform for medical staff ITV Talon."
+	icon_state = "talon_medical"
+	item_state = "talon_medical"
 
 /obj/item/clothing/under/rank/talon/security
 	name = "Talon security jumpsuit"
 	desc = "A sleek, streamlined version of ITV Talon's standard jumpsuit that bares security markings."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	rolled_down_icon = 'icons/inventory/uniform/mob_vr_rolled_down.dmi'
-	icon_override = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "talon_security"
 	item_state = "talon_security"
-	rolled_sleeves = 0
-	rolled_down_icon_override = FALSE
-	rolled_sleeves_icon_override = FALSE
 
 /obj/item/clothing/under/rank/talon/pilot
 	name = "Talon pilot jumpsuit"
 	desc = "A sleek, streamlined version of ITV Talon's standard jumpsuit. Made from cushioned fabric to handle intense flight."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	rolled_down_icon = 'icons/inventory/uniform/mob_vr_rolled_down.dmi'
-	icon_override = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "talon_pilot"
 	item_state = "talon_pilot"
-	rolled_sleeves = 0
-	rolled_down_icon_override = FALSE
-	rolled_sleeves_icon_override = FALSE
+
+/obj/item/clothing/under/rank/talon/engineer
+	name = "Talon engineer jumpsuit"
+	desc = "A sleek, streamlined version of ITV Talon's standard jumpsuit that bares engineering markings."
+	icon_state = "talon_engineer"
+	item_state = "talon_engineer"
+
+/obj/item/clothing/under/rank/talon/atmos
+	name = "Talon Atmos Tech's jumpsuit"
+	desc = "A sleek, streamlined version of ITV Talon's standard jumpsuit that bares engineering atmos markings."
+	icon_state = "talon_atmos"
+	item_state = "talon_atmos"
+
+/obj/item/clothing/under/rank/talon/miner
+	name = "Talon miner jumpsuit"
+	desc = "A sleek, streamlined version of ITV Talon's standard jumpsuit that bares security markings."
+	icon_state = "talon_miner"
+	item_state = "talon_miner"
 
 /obj/item/clothing/under/rank/talon/command
 	name = "Talon command jumpsuit"
 	desc = "A commanding jumpsuit fit for a commanding officer."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	rolled_down_icon = 'icons/inventory/uniform/mob_vr_rolled_down.dmi'
-	icon_override = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "talon_captain"
 	item_state = "talon_captain"
-	rolled_sleeves = 0
-	rolled_down_icon_override = FALSE
-	rolled_sleeves_icon_override = FALSE
+
+// Talon Refreshed uniforms
+/obj/item/clothing/under/rank/talon/refreshed
+	name = "Talon jumpsuit"
+	desc = "A expertly made and stretchy jumpsuit that was made for manueverability in mind. It has a belt with a silver belt buckle on the uniform. There is also a ITV Talon patch on the right shoulder, and an empty velcro spot for another patch on the left shoulder. Snazzy and beneficial."
+	icon_state = "talon_basic_refreshed"
+	item_state = "talon_basic_refreshed"
+
+/obj/item/clothing/under/rank/talon/refreshed/medical
+	name = "Talon medical jumpsuit"
+	desc = "A expertly made and stretchy jumpsuit that was made for manueverability in mind. It has a belt with a silver belt buckle on the uniform. There is also a ITV Talon patch on the right shoulder, and a white medical ensignia patch on the left shoulder. Snazzy and beneficial."
+	icon_state = "talon_medical_refreshed"
+	item_state = "talon_medical_refreshed"
+
+/obj/item/clothing/under/rank/talon/refreshed/security
+	name = "Talon security jumpsuit"
+	desc = "A expertly made and stretchy jumpsuit that was made for manueverability in mind. It has a belt with a silver belt buckle on the uniform. There is also a ITV Talon patch on the right shoulder, and a red security ensignia patch on the left shoulder. Snazzy and beneficial."
+	icon_state = "talon_security_refreshed"
+	item_state = "talon_security_refreshed"
+
+/obj/item/clothing/under/rank/talon/refreshed/pilot
+	name = "Talon pilot uniform"
+	desc = "A formal uniform woven with luscious fabric to make a excellent uniform for the ITV Talon piloting personnel, it's comfortable for all occasions. It has a silver nametag on the chest."
+	icon_state = "talon_pilot_refreshed"
+	item_state = "talon_pilot_refreshed"
+
+/obj/item/clothing/under/rank/talon/refreshed/engineer
+	name = "Talon engineer jumpsuit"
+	desc = "A expertly made and stretchy jumpsuit that was made for manueverability in mind. It has a belt with a silver belt buckle on the uniform. There is also a ITV Talon patch on the right shoulder, and a orange engineering ensignia patch on the left shoulder. Snazzy and beneficial."
+	icon_state = "talon_engineer_refreshed"
+	item_state = "talon_engineer_refreshed"
+
+/obj/item/clothing/under/rank/talon/refreshed/atmos
+	name = "Talon Atmos Tech's jumpsuit"
+	desc = "A expertly made and stretchy jumpsuit that was made for manueverability in mind. It has a belt with a silver belt buckle on the uniform. There is also a ITV Talon patch on the right shoulder, and a cyan engineering ensignia patch on the left shoulder. Snazzy and beneficial."
+	icon_state = "talon_atmos_refreshed"
+	item_state = "talon_atmos_refreshed"
+
+/obj/item/clothing/under/rank/talon/refreshed/miner
+	name = "Talon miner uniform"
+	desc = "A formal uniform woven with practical fabric to make a excellent uniform for the ITV Talon cargo personnel, it's comfortable for all occasions. It has a silver nametag on the chest."
+	icon_state = "talon_miner_refreshed"
+	item_state = "talon_miner_refreshed"
+
+/obj/item/clothing/under/rank/talon/refreshed/command
+	name = "Talon command uniform"
+	desc = "A luxurious formal uniform woven with exotic fabric to make a excellent uniform for an ITV Talon commanding officer, it's comfortable for all occasions. It displays golden patterns and designs along the uniform to designate their stature, it has a golden nametag on the chest."
+	icon_state = "talon_captain_refreshed"
+	item_state = "talon_captain_refreshed"
 
 // Excelsior uniforms
 /obj/item/clothing/under/excelsior
 	name = "\improper Excelsior uniform"
 	desc = "A uniform from a particular spaceship: Excelsior."
-
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "excelsior_white"
 
 /obj/item/clothing/under/excelsior/mixed
 	icon_state = "excelsior_mixed"
+
 /obj/item/clothing/under/excelsior/orange
 	icon_state = "excelsior_orange"
 
@@ -305,102 +415,27 @@
 /obj/item/clothing/under/summerdress
 	name = "summer dress"
 	desc = "A nice summer dress."
-
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "summerdress"
 
 /obj/item/clothing/under/summerdress/red
 	icon_state = "summerdress3"
+
 /obj/item/clothing/under/summerdress/blue
 	icon_state = "summerdress2"
 
 /obj/item/clothing/under/dress/dress_cap/femformal // formal in the loosest sense. because it's going to be taken off. or something. funnier in my head i swear
 	name = "site manager's feminine formalwear"
 	desc = "Essentially a skimpy...dress? Leotard? Whatever it is, it has the coloration and markings suitable for a site manager or rough equivalent."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "lewdcap"
 	item_state = "lewdcap"
 	rolled_sleeves = -1
 	rolled_down = -1
 	body_parts_covered = UPPER_TORSO // frankly this thing's a fucking embarassment
 
-/obj/item/clothing/under/undersuit // undersuits! intended for wearing under hardsuits or for being too lazy to not wear anything other than it
-	name = "undersuit"
-	desc = "A nondescript undersuit, intended for wearing under a voidsuit or other EVA equipment. Breathable, yet sleek."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
-	rolled_down_icon = 'icons/inventory/uniform/mob_vr_rolled_down.dmi'
-	icon_state = "bodysuit"
-	item_state = "bodysuit"
-	rolled_sleeves = -1
-	rolled_down_icon_override = FALSE
-
-/obj/item/clothing/under/undersuit/eva
-	name = "EVA undersuit"
-	desc = "A nondescript undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for EVA usage, but differs little from the standard."
-	icon_state = "bodysuit_eva"
-	item_state = "bodysuit_eva"
-
-/obj/item/clothing/under/undersuit/command
-	name = "command undersuit"
-	desc = "A fancy undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for those in Command, and comes with a swanky gold trim and navy blue inlay."
-	icon_state = "bodysuit_com"
-	item_state = "bodysuit_com"
-
-/obj/item/clothing/under/undersuit/sec
-	name = "security undersuit"
-	desc = "A reinforced undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for those in Security, and has slight protective capabilities against simple melee attacks."
-	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
-	siemens_coefficient = 0.9
-	icon_state = "bodysuit_sec"
-	item_state = "bodysuit_sec"
-
-/obj/item/clothing/under/undersuit/sec/hos
-	name = "security command undersuit"
-	desc = "A reinforced undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for the Head of Security or equivalent, and has slight protective capabilities against simple melee attacks."
-	icon_state = "bodysuit_seccom"
-	item_state = "bodysuit_seccom"
-
-/obj/item/clothing/under/undersuit/hazard
-	name = "hazard undersuit"
-	desc = "An undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for Engineering crew, and comes with slight radiation absorption capabilities. Not a lot, but it's there."
-	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 10)
-	icon_state = "bodysuit_haz"
-	item_state = "bodysuit_haz"
-
-/obj/item/clothing/under/undersuit/mining
-	name = "mining undersuit"
-	desc = "An undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for Mining crew, and comes with an interestingly colored trim."
-	icon_state = "bodysuit_min"
-	item_state = "bodysuit_min"
-
-/obj/item/clothing/under/undersuit/emt
-	name = "medical technician undersuit"
-	desc = "An undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for Medical response crew, and comes with a distinctive coloring scheme."
-	icon_state = "bodysuit_emt"
-	item_state = "bodysuit_emt"
-
-/obj/item/clothing/under/undersuit/explo
-	name = "exploration undersuit"
-	desc = "An undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for Exploration crew, for hazardous environments."
-	icon_state = "bodysuit_exp"
-	item_state = "bodysuit_exp"
-
-/obj/item/clothing/under/undersuit/centcom
-	name = "Central Command undersuit"
-	desc = "A very descript undersuit, intended for wearing under a voidsuit or other EVA equipment. This one is specifically made for NanoTrasen Central Command officers, and comes with a swanky gold trim and other fancy markings."
-	icon_state = "bodysuit_cent"
-	item_state = "bodysuit_cent"
-
-
 //FEMININE JUMPSUITS.
 /obj/item/clothing/under/color/fjumpsuit //They won't see this so we can make it whatever we want.
 	name = "blue feminine jumpsuit"
 	desc = "It's very smart and in a ladies size!"
-	icon = 'icons/inventory/uniform/item.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "blue"	// In hand
 	worn_state = "bluef"	// On mob
 
@@ -408,66 +443,82 @@
 	name = "blue feminine jumpsuit"
 	icon_state = "blue"
 	worn_state = "bluef"
+
 /obj/item/clothing/under/color/fjumpsuit/aquaf
 	name = "aqua feminine jumpsuit"
 	icon_state = "aqua"
 	worn_state = "aquaf"
+
 /obj/item/clothing/under/color/fjumpsuit/brownf
 	name = "brown feminine jumpsuit"
 	icon_state = "brown"
 	worn_state = "brownf"
+
 /obj/item/clothing/under/color/fjumpsuit/darkbluef
 	name = "dark blue feminine jumpsuit"
 	icon_state = "darkblue"
 	worn_state = "darkbluef"
+
 /obj/item/clothing/under/color/fjumpsuit/darkredf
 	name = "dark red feminine jumpsuit"
 	icon_state = "darkred"
 	worn_state = "darkredf"
+
 /obj/item/clothing/under/color/fjumpsuit/greenf
 	name = "green feminine jumpsuit"
 	icon_state = "green"
 	worn_state = "greenf"
+
 /obj/item/clothing/under/color/fjumpsuit/lightbluef
 	name = "light blue feminine jumpsuit"
 	icon_state = "lightblue"
 	worn_state = "lightbluef"
+
 /obj/item/clothing/under/color/fjumpsuit/lightbrownf
 	name = "light brown feminine jumpsuit"
 	icon_state = "lightbrown"
 	worn_state = "lightbrownf"
+
 /obj/item/clothing/under/color/fjumpsuit/lightgreenf
 	name = "light green feminine jumpsuit"
 	icon_state = "lightgreen"
 	worn_state = "lightgreenf"
+
 /obj/item/clothing/under/color/fjumpsuit/lightpurplef
 	name = "light purple feminine jumpsuit"
 	icon_state = "lightpurple"
 	worn_state = "lightpurplef"
+
 /obj/item/clothing/under/color/fjumpsuit/lightredf
 	name = "light red feminine jumpsuit"
 	icon_state = "lightred"
 	worn_state = "lightredf"
+
 /obj/item/clothing/under/color/fjumpsuit/maroonf
 	name = "maroon feminine jumpsuit"
 	icon_state = "maroon"
 	worn_state = "maroonf"
+
 /obj/item/clothing/under/color/fjumpsuit/pinkf
 	name = "pink feminine jumpsuit"
 	icon_state = "pink"
 	worn_state = "pinkf"
+
 /obj/item/clothing/under/color/fjumpsuit/purplef
 	name = "purple feminine jumpsuit"
 	icon_state = "purple"
 	worn_state = "purplef"
+
 /obj/item/clothing/under/color/fjumpsuit/redf
 	name = "red feminine jumpsuit"
 	icon_state = "red"
 	worn_state = "redf"
+
 /obj/item/clothing/under/color/fjumpsuit/yellowf
 	name = "yellow feminine jumpsuit"
 	icon_state = "yellow"
 	worn_state = "yellowf"
+
 /obj/item/clothing/under/color/fjumpsuit/yellowgreenf
 	name = "yellow-green feminine jumpsuit"
 	icon_state = "yellowgreen"
@@ -476,32 +527,26 @@
 /obj/item/clothing/under/qipao_colorable
 	name = "qipao"
 	desc = "A traditional Chinese women's garment, typically made from silk."
-	icon = 'icons/inventory/uniform/item.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "qipao3"
 	item_state = "qipao3"
 	worn_state = "qipao3"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 
 /obj/item/clothing/under/qipao2_colorable
 	name = "slim qipao"
 	desc = "A traditional Chinese women's garment, typically made from silk. This one is fairly slim."
-	icon = 'icons/inventory/uniform/item.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "qipao2"
 	item_state = "qipao2"
 	worn_state = "qipao2"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 
 /obj/item/clothing/under/dress/antediluvian
 	name = "antediluvian corset"
 	desc = "A regal black and gold tight corset with silky sleeves. A sheer bodystocking accompanies it."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "antediluvian"
 	item_state = "antediluvian"
 	worn_state = "antediluvian"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 
 /obj/item/clothing/under/dress/antediluvian/sheerless
 	desc = "A regal black and gold tight corset with silky sleeves. This one is just the corset and sleeves, sans lace stockings and gloves."
@@ -511,8 +556,6 @@
 /obj/item/clothing/under/skirt/colorable
 	name = "skirt"
 	desc = "A rather plain looking skirt."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "skirt_casual"
 	item_state = "skirt_casual"
 	worn_state = "skirt_casual"
@@ -533,6 +576,11 @@
 	icon_state = "skirt_pleated"
 	item_state = "skirt_pleated"
 	worn_state = "skirt_pleated"
+
+/obj/item/clothing/under/skirt/colorable/pleated/alt
+	icon_state = "skirt_pleated_alt"
+	item_state = "skirt_pleated_alt"
+	worn_state = "skirt_pleated_alt"
 
 /obj/item/clothing/under/skirt/colorable/pencil
 	name = "pencil skirt"
@@ -588,33 +636,40 @@
 	item_state = "skirt_jumperdress"
 	worn_state = "skirt_jumperdress"
 
+/obj/item/clothing/under/skirt/colorable/short
+	name = "short skirt"
+	desc = "A far too short pleated skirt."
+	icon_state = "skirt_short"
+	item_state = "skirt_short"
+	worn_state = "skirt_short"
+
+/obj/item/clothing/under/skirt/colorable/short_split
+	name = "short skirt (split)"
+	desc = "A far too short pleated skirt with an open split down one side."
+	icon_state = "skirt_short_split"
+	item_state = "skirt_short_split"
+	worn_state = "skirt_short_split"
+
 // Gwen Beedell's clown outfit
 
 /obj/item/clothing/under/stripeddungarees
 	name = "striped dungarees"
 	desc = "A colourful set of striped dungarees, pretty funny lookin'."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "striped_clown_uniform"
 
 /obj/item/clothing/under/dress/cdress_fire
 	name = "flame dress"
 	desc = "A small black dress with a flames print on it. Perfect for recoloring!"
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
-	icon_state = "cdress_fire"
+	icon_state = "cflame_dress"
 
 /obj/item/clothing/under/dress/cbridesmaid
 	name = "fancy dress"
 	desc = "A cute, flirty dress. Good for weddings and fancy parties, or if you just want to look fashionable. Perfect for recoloring!"
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "cbridesmaid"
 
 /obj/item/clothing/under/dress/cswoopdress
 	name = "swoop dress"
 	desc = "A fancy gown for those who like to show leg. Perfect for recoloring!"
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "cswoopdress"
 
 //Replikant uniforms
@@ -623,13 +678,11 @@
 	name = "generic"
 	desc = "generic"
 	description_fluff = "These purpose-made interfacing bodysuits are designed and produced by the Singheim Bureau of Biosynthetic Development for their long-running second generation of Biosynthetics, commonly known by the term Replikant. Although anyone could wear these, their overall cut and metallic ports along the spine make it rather uncomfortable to most."
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "arar"
 	item_state = "arar"
 	rolled_sleeves = -1
 	rolled_down = -1
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS
+	body_parts_covered = CHEST|ARMS
 
 /obj/item/clothing/under/replika/arar
 	name = "repair-worker replikant bodysuit"
@@ -637,7 +690,6 @@
 	description_fluff = "These purpose-made interfacing bodysuits are designed and produced by the Singheim Bureau of Biosynthetic Development for their long-running second generation of Biosynthetics, commonly known by the term Replikant. Although anyone could wear these, their overall cut and metallic ports along the spine make it rather uncomfortable to most."
 	icon_state = "arar"
 	item_state = "arar"
-
 
 /obj/item/clothing/under/replika/lstr
 	name = "land-survey replikant bodysuit"
@@ -693,13 +745,11 @@
 /obj/item/clothing/under/gestalt
 	name = "generic"
 	desc = "generic"
-	icon = 'icons/inventory/uniform/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/uniform/mob_vr.dmi'
 	icon_state = "gestalt_skirt"
 	item_state = "gestalt_skirt"
 	rolled_sleeves = -1
 	rolled_down = -1
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS|LEGS
+	body_parts_covered = CHEST|ARMS|LEGS
 
 /obj/item/clothing/under/gestalt/sleek_skirt
 	name = "sleek crew skirt"
@@ -707,13 +757,11 @@
 	icon_state = "gestalt_skirt"
 	item_state = "gestalt_skirt"
 
-
 /obj/item/clothing/under/gestalt/sleek
 	name = "sleek crew uniform"
 	desc = "A tight-fitting black uniform with striking crimson trim."
 	icon_state = "gestalt"
 	item_state = "gestalt"
-
 
 /obj/item/clothing/under/gestalt/sleek_fem
 	name = "sleek female crew uniform"
@@ -721,10 +769,9 @@
 	icon_state = "gestalt_fem"
 	item_state = "gestalt_fem"
 
-
 /obj/item/clothing/under/gestalt/sleeveless
 	name = "sleeveless sleek crew uniform"
 	desc = "A tight-fitting, sleeveless single-piece black uniform with striking crimson trim."
 	icon_state = "gestalt_sleeveless"
 	item_state = "gestalt_sleeveless"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS
+	body_parts_covered = CHEST|LEGS

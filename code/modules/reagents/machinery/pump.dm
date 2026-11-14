@@ -4,52 +4,53 @@
 
 	description_info = "A machine that can pump fluid from certain turfs.<br>\
 	Water can be pumped from any body of water. Certain locations or environmental\
-	conditions  can cause different byproducts to be produced.<br>\
-	Magma or Lava can be pumped to produce mineralized fluid."
+	conditions can cause different byproducts to be produced.<br>\
+	Magma or Lava can be pumped to produce mineralized fluid.<br>\
+	Deep bore mining drills can create boreholes that can be fracked for fluids."
 
-	anchored = 0
-	density = 1
+	anchored = TRUE
+	density = TRUE
 
 	icon = 'icons/obj/machines/reagent.dmi'
 	icon_state = "pump"
 
-	circuit = /obj/item/weapon/circuitboard/fluidpump
+	circuit = /obj/item/circuitboard/fluidpump
 	active_power_usage = 200 * CELLRATE
 
-	var/obj/item/weapon/cell/cell = null
-	var/obj/item/hose_connector/output/Output = null
-	var/reagents_per_cycle = 40
+	var/obj/item/cell/cell = null
+	var/reagents_per_cycle = 5
 	var/on = 0
 	var/unlocked = 0
 	var/open = 0
 
-/obj/machinery/pump/Initialize()
+/obj/machinery/pump/Initialize(mapload)
 	create_reagents(200)
 	. = ..()
 	default_apply_parts()
 	cell = default_use_hicell()
 
-	Output = new(src)
+	AddComponent(/datum/component/hose_connector/output)
 
 	RefreshParts()
 	update_icon()
 
+	AddElement(/datum/element/climbable)
+
 /obj/machinery/pump/Destroy()
 	QDEL_NULL(cell)
-	QDEL_NULL(Output)
 	. = ..()
 
 /obj/machinery/pump/RefreshParts()
-	var/obj/item/weapon/stock_parts/manipulator/SM = locate() in component_parts
+	var/obj/item/stock_parts/manipulator/SM = locate() in component_parts
 	active_power_usage = initial(active_power_usage) / SM.rating
 
-	var/motor_power = 0
-	for(var/obj/item/weapon/stock_parts/motor/M in component_parts)
-		motor_power += M.rating
-	reagents_per_cycle = initial(reagents_per_cycle) * motor_power / 2
+	var/pump_power = 0
+	for(var/obj/item/stock_parts/manipulator/M in component_parts) // scaling off the manipulator and not motor because motors have no upgrades
+		pump_power += M.rating
+	reagents_per_cycle = initial(reagents_per_cycle) * pump_power
 
 	var/bin_size = 0
-	for(var/obj/item/weapon/stock_parts/matter_bin/SB in component_parts)
+	for(var/obj/item/stock_parts/matter_bin/SB in component_parts)
 		bin_size += SB.rating
 
 	// New holder might have different volume. Transfer everything to a new holder to account for this.
@@ -57,6 +58,8 @@
 	src.reagents.trans_to_holder(R, src.reagents.total_volume)
 	qdel(src.reagents)
 	src.reagents = R
+
+	cell = locate(/obj/item/cell) in src
 
 /obj/machinery/pump/update_icon()
 	..()
@@ -92,17 +95,13 @@
 	T.pump_reagents(reagents, reagents_per_cycle)
 	update_icon()
 
-	if(Output.get_pairing())
-		reagents.trans_to_holder(Output.reagents, Output.reagents.maximum_volume)
-		if(prob(5))
-			visible_message("<span class='notice'>\The [src] gurgles as it pumps fluid.</span>")
-
+	SEND_SIGNAL(src, COMSIG_HOSE_FORCEPUMP)
 
 // Sets the power state, if possible.
 // Returns TRUE/FALSE on power state changing
 // var/target = target power state
 // var/message = TRUE/FALSE whether to make a message about state change
-/obj/machinery/pump/proc/set_state(var/target, var/message = TRUE)
+/obj/machinery/pump/proc/set_state(target, message = TRUE)
 	if(target == on)
 		return FALSE
 
@@ -113,9 +112,9 @@
 	update_icon()
 	if(message)
 		if(on)
-			message = SPAN_NOTICE("\The [src] turns on.")
+			message = span_notice("\The [src] turns on.")
 		else
-			message = SPAN_NOTICE("\The [src] shuts down.")
+			message = span_notice("\The [src] shuts down.")
 		visible_message(message)
 	return TRUE
 
@@ -124,7 +123,7 @@
 
 /obj/machinery/pump/attack_ai(mob/user)
 	if(!set_state(!on))
-		to_chat(user, "<span class='notice'>You try to toggle \the [src] but it does not respond.</span>")
+		to_chat(user, span_notice("You try to toggle \the [src] but it does not respond."))
 
 /obj/machinery/pump/attack_hand(mob/user)
 	if(open && istype(cell))
@@ -133,73 +132,103 @@
 		cell.update_icon()
 		cell = null
 		set_state(FALSE)
-		to_chat(user, "<span class='notice'>You remove the power cell.</span>")
+		to_chat(user, span_notice("You remove the power cell."))
 		return
 
 	if(!set_state(!on))
-		to_chat(user, "<span class='notice'>You try to toggle \the [src] but it does not respond.</span>")
+		to_chat(user, span_notice("You try to toggle \the [src] but it does not respond."))
 
-/obj/machinery/pump/attackby(obj/item/weapon/W, mob/user)
+/obj/machinery/pump/attackby(obj/item/W, mob/user)
 	. = TRUE
 	if(W.has_tool_quality(TOOL_SCREWDRIVER) && !open)
-		to_chat(user, SPAN_NOTICE("You [unlocked ? "screw" : "unscrew"] the battery panel."))
+		to_chat(user, span_notice("You [unlocked ? "screw" : "unscrew"] the battery panel."))
 		unlocked = !unlocked
 
 	else if(W.has_tool_quality(TOOL_CROWBAR) && unlocked)
 		to_chat(user, open ? \
-			"<span class='notice'>You crowbar the battery panel in place.</span>" : \
-			"<span class='notice'>You remove the battery panel.</span>" \
+			span_notice("You crowbar the battery panel in place.") : \
+			span_notice("You remove the battery panel.") \
 		)
 		open = !open
 
 	else if(W.has_tool_quality(TOOL_WRENCH))
 		if(on)
-			to_chat(user, "<span class='notice'>\The [src] is active. Turn it off before trying to move it!</span>")
+			to_chat(user, span_notice("\The [src] is active. Turn it off before trying to move it!"))
 			return FALSE
 		default_unfasten_wrench(user, W, 2 SECONDS)
 
-	else if(istype(W, /obj/item/weapon/cell) && open)
+	else if(istype(W, /obj/item/cell))
+		if(!open)
+			if(unlocked)
+				to_chat(user, span_notice("The battery panel is screwed shut."))
+			else
+				to_chat(user, span_notice("The battery panel is watertight and cannot be opened without a crowbar."))
+			return FALSE
 		if(istype(cell))
-			to_chat(user, "<span class='notice'>There is a power cell already installed.</span>")
+			to_chat(user, span_notice("There is a power cell already installed."))
 			return FALSE
 		user.drop_from_inventory(W, src)
-		to_chat(user, "<span class='notice'>You insert the power cell.</span>")
+		cell = W // Link the cell to us
+		to_chat(user, span_notice("You insert the power cell."))
 
 	else
 		. = ..()
 
-	RefreshParts()
+	RefreshParts() // Handles cell assignment
 	update_icon()
 
 
 /turf/proc/pump_reagents()
 	return
 
-/turf/simulated/floor/lava/pump_reagents(var/datum/reagents/R, var/volume)
+/turf/simulated/floor/lava/pump_reagents(datum/reagents/R, volume)
 	. = ..()
-	R.add_reagent("mineralizedfluid", round(volume / 2, 0.1))
+	R.add_reagent(REAGENT_ID_MINERALIZEDFLUID, round(volume / 2, 0.1))
 
 
-/turf/simulated/floor/water/pump_reagents(var/datum/reagents/R, var/volume)
+/turf/simulated/floor/water/pump_reagents(datum/reagents/R, volume)
 	. = ..()
-	R.add_reagent("water", round(volume, 0.1))
+	R.add_reagent(REAGENT_ID_WATER, round(volume, 0.1))
 
-	if(temperature <= T0C)
-		R.add_reagent("ice", round(volume / 2, 0.1))
+	var/datum/gas_mixture/air = return_air() // v
+	if(air.temperature <= T0C) // Uses the current air temp, instead of the turf starting temp
+		R.add_reagent(REAGENT_ID_ICE, round(volume / 2, 0.1))
 
-	for(var/turf/simulated/mineral/M in orange(5))
-		if(istype(M.mineral, /obj/effect/mineral))
-			var/obj/effect/mineral/ore = M.mineral
-			reagents.add_reagent(ore.ore_reagent, round(volume / 2, 0.1))
+	for(var/turf/simulated/mineral/M in orange(5,src))
+		if(M.mineral && prob(40) && M.mineral.reagent) // v
+			R.add_reagent(M.mineral.reagent, round(volume / 5, 0.1)) // Was the turf's reagents variable not the R argument, and changed ore_reagent to M.mineral.reagent because of above change. Also nerfed amount to 1/5 instead of 1/2
 
-/turf/simulated/floor/water/pool/pump_reagents(var/datum/reagents/R, var/volume)
+/turf/simulated/floor/water/pool/pump_reagents(datum/reagents/R, volume)
 	. = ..()
-	R.add_reagent("chlorine", round(volume / 10, 0.1))
+	R.add_reagent(REAGENT_ID_CHLORINE, round(volume / 10, 0.1))
 
-/turf/simulated/floor/water/deep/pool/pump_reagents(var/datum/reagents/R, var/volume)
+/turf/simulated/floor/water/deep/pool/pump_reagents(datum/reagents/R, volume)
 	. = ..()
-	R.add_reagent("chlorine", round(volume / 10, 0.1))
+	R.add_reagent(REAGENT_ID_CHLORINE, round(volume / 10, 0.1))
 
-/turf/simulated/floor/water/contaminated/pump_reagents(var/datum/reagents/R, var/volume)
+/turf/simulated/floor/water/contaminated/pump_reagents(datum/reagents/R, volume)
 	. = ..()
-	R.add_reagent("vatstabilizer", round(volume / 2, 0.1))
+	R.add_reagent(REAGENT_ID_VATSTABILIZER, round(volume / 2, 0.1))
+
+/turf/simulated/mineral/pump_reagents(datum/reagents/R, volume)
+	. = ..()
+	if(density)
+		return
+	if(!sand_dug)
+		return
+	var/turf/simulated/mineral/M = pick(orange(5,src))
+	if(!istype(M))
+		return
+	// Use nearby ores as well
+	if(M.mineral && M.mineral.reagent && prob(40))
+		R.add_reagent(M.mineral.reagent, rand(0,volume / 8))
+	// Pump deep reagents from deepdrill boreholes
+	for(var/metal in GLOB.deepore_fracking_reagents)
+		if(!LAZYACCESS(M.resources,metal))
+			continue
+		var/list/ore_list = GLOB.deepore_fracking_reagents[metal]
+		if(!LAZYLEN(ore_list))
+			continue
+		var/reagent_id = pick(ore_list)
+		if(reagent_id && prob(60))
+			R.add_reagent(reagent_id, rand(0,volume / 6))

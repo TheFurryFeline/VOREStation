@@ -1,5 +1,3 @@
-var/list/doppler_arrays = list()
-
 /obj/machinery/doppler_array
 	anchored = TRUE
 	name = "tachyon-doppler array"
@@ -8,40 +6,70 @@ var/list/doppler_arrays = list()
 	dir = NORTH
 
 	icon_state = "doppler"
+	circuit = /obj/item/circuitboard/doppler_array
 
-/obj/machinery/doppler_array/New()
-	..()
-	doppler_arrays += src
+	var/list/detected_explosions = list()
+
+/obj/machinery/doppler_array/Initialize(mapload)
+	//Explosive analysis
+	var/static/list/explosive_signals = list(
+		COMSIG_MACHINERY_EXPLOSION_DETECTED = TYPE_PROC_REF(/datum/component/experiment_handler, try_run_ordinance_experiment),
+	)
+	AddComponent(/datum/component/experiment_handler, \
+		config_mode = EXPERIMENT_CONFIG_ALTCLICK, \
+		allowed_experiments = list(/datum/experiment/ordnance),\
+		config_flags = EXPERIMENT_CONFIG_ALWAYS_ACTIVE|EXPERIMENT_CONFIG_SILENT_FAIL,\
+		experiment_signals = explosive_signals, \
+	)
+	. = ..()
+	RegisterSignal(SSdcs, COMSIG_GLOB_EXPLOSION, PROC_REF(sense_explosion))
+	ADD_TRAIT(src, TRAIT_ALT_CLICK_BLOCKER, ROUNDSTART_TRAIT)
 
 /obj/machinery/doppler_array/Destroy()
-	doppler_arrays -= src
-	..()
+	UnregisterSignal(SSdcs, COMSIG_GLOB_EXPLOSION)
+	. = ..()
 
-/obj/machinery/doppler_array/proc/sense_explosion(var/x0,var/y0,var/z0,var/devastation_range,var/heavy_impact_range,var/light_impact_range,var/took)
-	if(stat & NOPOWER)	return
-	if(z != z0)			return
+/obj/machinery/doppler_array/tgui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
+	if(!ui)
+		ui = new(user, src, "DopplerArray", name)
+		ui.open()
 
-	var/dx = abs(x0-x)
-	var/dy = abs(y0-y)
-	var/distance
-	var/direct
+/obj/machinery/doppler_array/tgui_static_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
+	var/list/data = list()
+	data["explosions"] = length(detected_explosions) ? detected_explosions : null;
+	return data
 
-	if(dx > dy)
-		distance = dx
-		if(x0 > x)	direct = EAST
-		else		direct = WEST
-	else
-		distance = dy
-		if(y0 > y)	direct = NORTH
-		else		direct = SOUTH
+/obj/machinery/doppler_array/proc/sense_explosion(datum/source, turf/epicenter, devastation_range, heavy_impact_range, light_impact_range, seconds_taken)
+	SIGNAL_HANDLER
 
-	if(distance > 100)		return
-	if(!(direct & dir))	return
+	if(stat & NOPOWER)
+		return
 
-	var/message = "Explosive disturbance detected - Epicenter at: grid ([x0],[y0]). Epicenter radius: [devastation_range]. Outer radius: [heavy_impact_range]. Shockwave radius: [light_impact_range]. Temporal displacement of tachyons: [took]seconds."
-
-	for(var/mob/O in hearers(src, null))
-		O.show_message("<span class='npcsay'><span class='name'>[src]</span> states coldly, \"[message]\"</span>",2)
+	var/x0 = epicenter.x
+	var/y0 = epicenter.y
+	var/z0 = epicenter.z
+	if(!(z0 in GetConnectedZlevels(z)))
+		return
+	var/turf/our_turf = get_turf(src)
+	if(our_turf.Distance(epicenter) > 100)
+		return
+	atom_say("Explosive disturbance detected - Epicenter at: grid ([x0],[y0],[z0]). Epicenter radius: [devastation_range]. Outer radius: [heavy_impact_range]. Shockwave radius: [light_impact_range]. Temporal displacement of tachyons: [seconds_taken] seconds.")
+	SEND_SIGNAL(src, COMSIG_MACHINERY_EXPLOSION_DETECTED, epicenter, devastation_range, heavy_impact_range, light_impact_range, seconds_taken)
+	detected_explosions += list(
+		list(
+			"index" = length(detected_explosions),
+			"time" = stationtime2text(),
+			"x" = x0,
+			"y" = y0,
+			"z" = z0,
+			"devastation_range" = devastation_range,
+			"heavy_impact_range" = heavy_impact_range,
+			"light_impact_range" = light_impact_range,
+			"seconds_taken" = seconds_taken,
+		)
+	)
+	update_static_data_for_all_viewers()
 
 /obj/machinery/doppler_array/power_change()
 	..()
@@ -49,3 +77,16 @@ var/list/doppler_arrays = list()
 		icon_state = initial(icon_state)
 	else
 		icon_state = "[initial(icon_state)]_off"
+
+/obj/machinery/doppler_array/attackby(obj/item/W, mob/user, attack_modifier, click_parameters)
+	add_fingerprint(user)
+	if(default_deconstruction_screwdriver(user, W))
+		return
+	if(default_deconstruction_crowbar(user, W))
+		return
+	if(default_part_replacement(user, W))
+		return
+
+/obj/machinery/doppler_array/attack_hand(mob/user)
+	. = ..()
+	tgui_interact(user)

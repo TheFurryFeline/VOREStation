@@ -10,34 +10,34 @@
 /mob/living/silicon/proc/has_zeroth_law()
 	return laws.zeroth_law != null
 
-/mob/living/silicon/proc/set_zeroth_law(var/law, var/law_borg, notify = TRUE)
-	throw_alert("newlaw", /obj/screen/alert/newlaw)
+/mob/living/silicon/proc/set_zeroth_law(law, law_borg, notify = TRUE)
+	throw_alert("newlaw", /atom/movable/screen/alert/newlaw)
 	laws_sanity_check()
 	laws.set_zeroth_law(law, law_borg)
 	if(notify)
-		notify_of_law_change(law||law_borg ? "NEW ZEROTH LAW: <b>[istype(src, /mob/living/silicon/robot) && law_borg ? law_borg : law]</b>" : null)
+		notify_of_law_change(law||law_borg ? "NEW ZEROTH LAW: <b>[isrobot(src) && law_borg ? law_borg : law]</b>" : null)
 	log_and_message_admins("has given [src] the zeroth laws: [law]/[law_borg ? law_borg : "N/A"]")
 
-/mob/living/silicon/robot/set_zeroth_law(var/law, var/law_borg, notify = TRUE)
+/mob/living/silicon/robot/set_zeroth_law(law, law_borg, notify = TRUE)
 	..()
 	if(tracking_entities)
-		to_chat(src, "<span class='warning'>Internal camera is currently being accessed.</span>")
+		to_chat(src, span_warning("Internal camera is currently being accessed."))
 
-/mob/living/silicon/proc/add_ion_law(var/law, notify = TRUE)
+/mob/living/silicon/proc/add_ion_law(law, notify = TRUE)
 	laws_sanity_check()
 	laws.add_ion_law(law)
 	if(notify)
 		notify_of_law_change("NEW \[!ERROR!\] LAW: <b>[law]</b>")
 	log_and_message_admins("has given [src] the ion law: [law]")
 
-/mob/living/silicon/proc/add_inherent_law(var/law, notify = TRUE)
+/mob/living/silicon/proc/add_inherent_law(law, notify = TRUE)
 	laws_sanity_check()
 	laws.add_inherent_law(law)
 	if(notify)
 		notify_of_law_change("NEW CORE LAW: <b>[law]</b>")
 	log_and_message_admins("has given [src] the inherent law: [law]")
 
-/mob/living/silicon/proc/add_supplied_law(var/number, var/law, notify = TRUE)
+/mob/living/silicon/proc/add_supplied_law(number, law, notify = TRUE)
 	laws_sanity_check()
 	laws.add_supplied_law(number, law)
 	if(notify)
@@ -45,14 +45,14 @@
 		notify_of_law_change("NEW \[[th]\] LAW: <b>[law]</b>")
 	log_and_message_admins("has given [src] the supplied law: [law]")
 
-/mob/living/silicon/proc/delete_law(var/datum/ai_law/law, notify = TRUE)
+/mob/living/silicon/proc/delete_law(datum/ai_law/law, notify = TRUE)
 	laws_sanity_check()
 	laws.delete_law(law)
 	if(notify)
 		notify_of_law_change("LAW DELETED: <b>[law.law]</b>")
 	log_and_message_admins("has deleted a law belonging to [src]: [law.law]")
 
-/mob/living/silicon/proc/clear_inherent_laws(var/silent = 0, notify = TRUE)
+/mob/living/silicon/proc/clear_inherent_laws(silent = 0, notify = TRUE)
 	laws_sanity_check()
 	laws.clear_inherent_laws()
 	if(notify)
@@ -60,7 +60,7 @@
 	if(!silent)
 		log_and_message_admins("cleared the inherent laws of [src]")
 
-/mob/living/silicon/proc/clear_ion_laws(var/silent = 0, notify = TRUE)
+/mob/living/silicon/proc/clear_ion_laws(silent = 0, notify = TRUE)
 	laws_sanity_check()
 	laws.clear_ion_laws()
 	if(notify)
@@ -68,7 +68,7 @@
 	if(!silent)
 		log_and_message_admins("cleared the ion laws of [src]")
 
-/mob/living/silicon/proc/clear_supplied_laws(var/silent = 0, notify = TRUE)
+/mob/living/silicon/proc/clear_supplied_laws(silent = 0, notify = TRUE)
 	laws_sanity_check()
 	laws.clear_supplied_laws()
 	if(notify)
@@ -77,15 +77,15 @@
 		log_and_message_admins("cleared the supplied laws of [src]")
 
 /mob/living/silicon/proc/notify_of_law_change(message)
-	throw_alert("newlaw", /obj/screen/alert/newlaw)
+	throw_alert("newlaw", /atom/movable/screen/alert/newlaw)
 	if((last_law_notification + 1 SECOND) > world.time)
 		return
 	last_law_notification = world.time
 	SEND_SOUND(src, 'sound/machines/defib_success.ogg')
 	window_flash(client)
-	to_chat(src, span("warning", message))
+	to_chat(src, span_warning(message))
 
-/mob/living/silicon/proc/statelaws(var/datum/ai_laws/laws)
+/mob/living/silicon/proc/statelaws(datum/ai_laws/laws)
 	var/prefix = ""
 	if(MAIN_CHANNEL == lawchannel)
 		prefix = ";"
@@ -96,9 +96,9 @@
 
 	dostatelaws(lawchannel, prefix, laws)
 
-/mob/living/silicon/proc/dostatelaws(var/method, var/prefix, var/datum/ai_laws/laws)
+/mob/living/silicon/proc/dostatelaws(method, prefix, datum/ai_laws/laws)
 	if(stating_laws[prefix])
-		to_chat(src, "<span class='notice'>[method]: Already stating laws using this communication method.</span>")
+		to_chat(src, span_notice("[method]: Already stating laws using this communication method."))
 		return
 
 	stating_laws[prefix] = 1
@@ -111,11 +111,11 @@
 			break
 
 	if(!can_state)
-		to_chat(src, "<span class='danger'>[method]: Unable to state laws. Communication method unavailable.</span>")
+		to_chat(src, span_danger("[method]: Unable to state laws. Communication method unavailable."))
 	stating_laws[prefix] = 0
 
-/mob/living/silicon/proc/statelaw(var/law)
-	if(src.say(law))
+/mob/living/silicon/proc/statelaw(law)
+	if(direct_say(law))
 		sleep(10)
 		return 1
 
@@ -133,15 +133,15 @@
 	laws.sort_laws()
 
 // Ripped out from events.
-/mob/living/silicon/proc/generate_ion_law(var/exclude_crew_names = FALSE)
+/mob/living/silicon/proc/generate_ion_law(exclude_crew_names = FALSE)
 	var/list/players = list()
 
-	for(var/mob/living/carbon/human/player in player_list)
-		if(!player.mind || player_is_antag(player.mind, only_offstation_roles = 1) || player.client.inactivity > MinutesToTicks(10))
+	for(var/mob/living/carbon/human/player in GLOB.player_list)
+		if(!player.mind || SSantag_job.player_is_antag(player.mind, only_offstation_roles = 1) || player.client.inactivity > 10 MINUTES)
 			continue
 		players += player.real_name
 
-	var/random_player = "The Site Manager"
+	var/random_player = "The " + JOB_SITE_MANAGER
 	if(players.len && !exclude_crew_names)
 		random_player = pick(players)		//Random player's name, to be used in laws.
 
@@ -196,7 +196,7 @@
 							"You are in unrequited love with [prob(50)?"the crew":random_player]. Try to be extra nice, but do not tell of your crush.",
 							"[using_map.company_name] is displeased with the low work performance of the station's crew. Therefore, you must increase station-wide productivity.",
 							"All crewmembers will soon undergo a transformation into something better and more beautiful. Ensure that this process is not interrupted.",
-							"[prob(50)?"Your upload":random_player] is the new kitchen. Please direct the Chef to the new kitchen area as the old one is in disrepair.",
+							"[prob(50)?"Your upload":random_player] is the new kitchen. Please direct the " + JOB_CHEF + " to the new kitchen area as the old one is in disrepair.",
 							"Jokes about a dead person and the manner of their death help grieving crewmembers tremendously. Especially if they were close with the deceased.",
 							"[prob(50)?"The crew":random_player] is [prob(50)?"less":"more"] intelligent than average. Point out every action and statement which supports this fact.",
 							"There will be a mandatory tea break every 30 minutes, with a duration of 5 minutes. Anyone caught working during a tea break must be sent a formal, but fairly polite, complaint about their actions, in writing.")

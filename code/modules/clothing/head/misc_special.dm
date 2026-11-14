@@ -18,21 +18,25 @@
 	desc = "A head-mounted face cover designed to protect the wearer completely from space-arc eye."
 	icon_state = "welding"
 	item_state_slots = list(slot_r_hand_str = "welding", slot_l_hand_str = "welding")
-	matter = list(MAT_STEEL = 3000, MAT_GLASS = 1000)
+	matter = list(MAT_STEEL = MATERIAL_COST(1.5), MAT_GLASS = MATERIAL_COST(0.5))
 	var/up = 0
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags_inv = (HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE)
 	body_parts_covered = HEAD|FACE|EYES
-	action_button_name = "Flip Welding Mask"
+	actions_types = list(/datum/action/item_action/flip_welding_mask)
 	siemens_coefficient = 0.9
 	w_class = ITEMSIZE_NORMAL
 	var/base_state
 	flash_protection = FLASH_PROTECTION_MAJOR
-	tint = TINT_HEAVY
 	drop_sound = 'sound/items/drop/helm.ogg'
 	pickup_sound = 'sound/items/pickup/helm.ogg'
+	special_handling = TRUE
+	resistance_flags = FIRE_PROOF
 
-/obj/item/clothing/head/welding/attack_self()
+/obj/item/clothing/head/welding/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	toggle()
 
 
@@ -51,7 +55,6 @@
 			flags_inv |= (HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE)
 			icon_state = base_state
 			flash_protection = FLASH_PROTECTION_MAJOR
-			tint = initial(tint)
 			to_chat(usr, "You flip the [src] down to protect your eyes.")
 		else
 			src.up = !src.up
@@ -59,13 +62,12 @@
 			flags_inv &= ~(HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE)
 			icon_state = "[base_state]up"
 			flash_protection = FLASH_PROTECTION_NONE
-			tint = TINT_NONE
 			to_chat(usr, "You push the [src] up out of your face.")
 		update_clothing_icon()	//so our mob-overlays
 		if (ismob(src.loc)) //should allow masks to update when it is opened/closed
 			var/mob/M = src.loc
 			M.update_inv_wear_mask()
-		usr.update_action_buttons()
+		usr.update_mob_action_buttons()
 
 /obj/item/clothing/head/welding/demon
 	name = "demonic welding helmet"
@@ -108,8 +110,6 @@
 /obj/item/clothing/head/welding/arar
 	name = "replikant welding helmet"
 	desc = "A protective welding mask designed for repair-technician biosynthetic crew, the visor slits are particularly difficult to see out of."
-	icon = 'icons/inventory/head/item_vr.dmi'
-	icon_override = 'icons/inventory/head/mob_vr.dmi'
 	icon_state = "ararwelding"
 	item_state_slots = list(
 		SLOT_ID_LEFT_HAND = "ararwelding",
@@ -128,6 +128,7 @@
 	icon_state = "cake0"
 	var/onfire = 0
 	body_parts_covered = HEAD
+	special_handling = TRUE
 
 /obj/item/clothing/head/cakehat/process()
 	if(!onfire)
@@ -143,16 +144,19 @@
 	if (istype(location, /turf))
 		location.hotspot_expose(700, 1)
 
-/obj/item/clothing/head/cakehat/attack_self(mob/user as mob)
+/obj/item/clothing/head/cakehat/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	onfire = !(onfire)
 	if (onfire)
 		force = 3
-		damtype = "fire"
+		damtype = BURN
 		icon_state = "cake1"
 		START_PROCESSING(SSobj, src)
 	else
 		force = null
-		damtype = "brute"
+		damtype = BRUTE
 		icon_state = "cake0"
 	return
 
@@ -165,8 +169,12 @@
 	desc = "Perfect for those cold winter nights."
 	icon_state = "ushankadown"
 	flags_inv = HIDEEARS
+	special_handling = TRUE
 
-/obj/item/clothing/head/ushanka/attack_self(mob/user as mob)
+/obj/item/clothing/head/ushanka/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(src.icon_state == initial(icon_state))
 		src.icon_state = "[icon_state]up"
 		to_chat(user, "You raise the ear flaps on the ushanka.")
@@ -213,7 +221,7 @@
 	siemens_coefficient = 1.5
 	item_icons = null
 
-/obj/item/clothing/head/kitty/update_icon(var/mob/living/carbon/human/user)
+/obj/item/clothing/head/kitty/update_icon(mob/living/carbon/human/user)
 	if(!istype(user)) return
 	var/icon/ears = new/icon("icon" = 'icons/inventory/head/mob.dmi', "icon_state" = "kitty")
 	ears.Blend(rgb(user.r_hair, user.g_hair, user.b_hair), ICON_ADD)
@@ -250,7 +258,7 @@
 // Triggers an effect when the wearer is 'in grave danger'.
 // Causes brainloss when it happens.
 /obj/item/clothing/head/psy_crown
-	name = "broken crown"
+	name = DEVELOPER_WARNING_NAME
 	desc = "A crown-of-thorns with a missing gem."
 	var/tension_threshold = 125
 	var/cooldown = null // world.time of when this was last triggered.
@@ -261,26 +269,32 @@
 	var/flavor_activate = null // Ditto, for but activating.
 	var/brainloss_cost = 3 // Whenever it activates, inflict this much brainloss on the wearer, as its not good for the mind to wear things that manipulate it.
 
-/obj/item/clothing/head/psy_crown/proc/activate_ability(var/mob/living/wearer)
+/obj/item/clothing/head/psy_crown/proc/activate_ability(mob/living/wearer)
 	cooldown = world.time + cooldown_duration
-	to_chat(wearer, flavor_activate)
-	to_chat(wearer, "<span class='danger'>The inside of your head hurts...</span>")
+	if(flavor_activate)
+		to_chat(wearer, flavor_activate)
+	to_chat(wearer, span_danger("The inside of your head hurts..."))
 	wearer.adjustBrainLoss(brainloss_cost)
 
-/obj/item/clothing/head/psy_crown/equipped(var/mob/living/carbon/human/H)
+/obj/item/clothing/head/psy_crown/equipped(mob/living/carbon/human/user)
 	..()
-	if(istype(H) && H.head == src && H.is_sentient())
+	if(istype(user) && user.head == src && user.is_sentient())
 		START_PROCESSING(SSobj, src)
-		to_chat(H, flavor_equip)
+		if(flavor_equip)
+			to_chat(user, flavor_equip)
 
-/obj/item/clothing/head/psy_crown/dropped(var/mob/living/carbon/human/H)
+/obj/item/clothing/head/psy_crown/dropped(mob/living/carbon/human/user, equipping, slot)
+	if(equipping || loc == user)
+		return ..()
 	..()
 	STOP_PROCESSING(SSobj, src)
-	if(H.is_sentient())
-		if(loc == H) // Still inhand.
-			to_chat(H, flavor_unequip)
-		else
-			to_chat(H, flavor_drop)
+	if(user.is_sentient())
+		if(loc == user) // Still inhand.
+			if(flavor_unequip)
+				to_chat(user, flavor_unequip)
+				return
+		if(flavor_drop)
+			to_chat(user, flavor_drop)
 
 /obj/item/clothing/head/psy_crown/Destroy()
 	STOP_PROCESSING(SSobj, src)
@@ -298,12 +312,12 @@
 	desc = "A crown-of-thorns set with a red gemstone that seems to glow unnaturally. It feels rather disturbing to touch."
 	description_info = "This has a chance to cause the wearer to become extremely angry when in extreme danger."
 	icon_state = "wrathcrown"
-	flavor_equip = "<span class='warning'>You feel a bit angrier after putting on this crown.</span>"
-	flavor_unequip = "<span class='notice'>You feel calmer after removing the crown.</span>"
-	flavor_drop = "<span class='notice'>You feel much calmer after letting go of the crown.</span>"
-	flavor_activate = "<span class='danger'>An otherworldly feeling seems to enter your mind, and it ignites your mind in fury!</span>"
+	flavor_equip = span_warning("You feel a bit angrier after putting on this crown.")
+	flavor_unequip = span_notice("You feel calmer after removing the crown.")
+	flavor_drop = span_notice("You feel much calmer after letting go of the crown.")
+	flavor_activate = span_danger("An otherworldly feeling seems to enter your mind, and it ignites your mind in fury!")
 
-/obj/item/clothing/head/psy_crown/wrath/activate_ability(var/mob/living/wearer)
+/obj/item/clothing/head/psy_crown/wrath/activate_ability(mob/living/wearer)
 	..()
 	wearer.add_modifier(/datum/modifier/berserk, 30 SECONDS)
 
@@ -312,12 +326,12 @@
 	desc = "A crown-of-thorns set with a green gemstone that seems to glow unnaturally. It feels rather disturbing to touch."
 	description_info = "This has a chance to cause the wearer to become extremely durable, but hungry when in extreme danger."
 	icon_state = "gluttonycrown"
-	flavor_equip = "<span class='warning'>You feel a bit hungrier after putting on this crown.</span>"
-	flavor_unequip = "<span class='notice'>You feel sated after removing the crown.</span>"
-	flavor_drop = "<span class='notice'>You feel much more sated after letting go of the crown.</span>"
-	flavor_activate = "<span class='danger'>An otherworldly feeling seems to enter your mind, and it drives your mind into gluttony!</span>"
+	flavor_equip = span_warning("You feel a bit hungrier after putting on this crown.")
+	flavor_unequip = span_notice("You feel sated after removing the crown.")
+	flavor_drop = span_notice("You feel much more sated after letting go of the crown.")
+	flavor_activate = span_danger("An otherworldly feeling seems to enter your mind, and it drives your mind into gluttony!")
 
-/obj/item/clothing/head/psy_crown/gluttony/activate_ability(var/mob/living/wearer)
+/obj/item/clothing/head/psy_crown/gluttony/activate_ability(mob/living/wearer)
 	..()
 	wearer.add_modifier(/datum/modifier/gluttonyregeneration, 45 SECONDS)
 
@@ -332,7 +346,7 @@
 	throwforce = 3
 	throw_speed = 2
 	throw_range = 5
-	w_class = 2
+	w_class = ITEMSIZE_SMALL
 	body_parts_covered = HEAD
 	attack_verb = list("warned", "cautioned", "smashed")
 	armor = list("melee" = 5, "bullet" = 0, "laser" = 0,"energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0)

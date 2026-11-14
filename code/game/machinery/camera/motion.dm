@@ -1,5 +1,5 @@
 /obj/machinery/camera
-	var/list/motionTargets = list()
+	var/list/motionTargets = null
 	var/detectTime = 0
 	var/area/ai_monitored/area_motion = null
 	var/alarm_delay = 100 // Don't forget, there's another 10 seconds in queueAlarm()
@@ -24,25 +24,25 @@
 					// If they aren't in range, lose the target.
 					lostTarget(target)
 
-/obj/machinery/camera/proc/newTarget(var/mob/target)
-	if (istype(target, /mob/living/silicon/ai)) return 0
+/obj/machinery/camera/proc/newTarget(mob/target)
+	if (isAI(target)) return 0
 	if (detectTime == 0)
 		detectTime = world.time // start the clock
 	if (!(target in motionTargets))
-		motionTargets += target
+		LAZYADD(motionTargets, target)
 	return 1
 
-/obj/machinery/camera/proc/lostTarget(var/mob/target)
+/obj/machinery/camera/proc/lostTarget(mob/target)
 	if (target in motionTargets)
-		motionTargets -= target
-	if (motionTargets.len == 0)
+		LAZYREMOVE(motionTargets, target)
+	if (LAZYLEN(motionTargets) == 0)
 		cancelAlarm()
 
 /obj/machinery/camera/proc/cancelAlarm()
 	if (!status || (stat & NOPOWER))
 		return 0
 	if (detectTime == -1)
-		motion_alarm.clearAlarm(loc, src)
+		GLOB.motion_alarm.clearAlarm(loc, src)
 	detectTime = 0
 	return 1
 
@@ -50,13 +50,18 @@
 	if (!status || (stat & NOPOWER))
 		return 0
 	if (!detectTime) return 0
-	motion_alarm.triggerAlarm(loc, src)
+	GLOB.motion_alarm.triggerAlarm(loc, src)
 	detectTime = -1
 	return 1
 
-/obj/machinery/camera/HasProximity(turf/T, atom/movable/AM, old_loc)
+/obj/machinery/camera/HasProximity(turf/T, datum/weakref/WF, old_loc)
+	if(isnull(WF))
+		return
+	var/atom/movable/AM = WF.resolve()
+	if(isnull(AM))
+		log_runtime("DEBUG: HasProximity called without reference on [src].")
+		return
 	// Motion cameras outside of an "ai monitored" area will use this to detect stuff.
 	if (!area_motion)
 		if(isliving(AM))
 			newTarget(AM)
-

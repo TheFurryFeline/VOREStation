@@ -39,15 +39,16 @@
 
 		else
 			L = holder
-
-		L.mind.changeling.chem_charges = between(0, L.mind.changeling.chem_charges - chem_maintenance, L.mind.changeling.chem_storage)
+		if(L)
+			var/datum/component/antag/changeling/comp = L.GetComponent(/datum/component/antag/changeling)
+			comp.chem_charges = between(0, comp.chem_charges - chem_maintenance, comp.chem_storage)
 
 /datum/modifier/changeling/thermal_sight
 	name = "Thermal Adaptation"
 	desc = "Our eyes are capable of seeing into the infrared spectrum to accurately identify prey through walls."
 	vision_flags = SEE_MOBS
 
-	on_expired_text = "<span class='alien'>Your sight returns to what it once was.</span>"
+	on_expired_text = span_alien("Your sight returns to what it once was.")
 	stacks = MODIFIER_STACK_EXTEND
 
 /datum/modifier/changeling/thermal_sight/check_if_valid()
@@ -63,7 +64,7 @@
 		expire()
 		return
 
-	var/datum/changeling/changeling = L.changeling_power(0,0,100,CONSCIOUS)
+	var/datum/component/antag/changeling/changeling = L.changeling_power(0,0,100,CONSCIOUS)
 
 	if(!changeling)
 		expire()
@@ -85,7 +86,7 @@
 		L = holder
 
 	if(L)
-		var/datum/changeling/changeling = L.changeling_power(0,0,100,CONSCIOUS)
+		var/datum/component/antag/changeling/changeling = L.changeling_power(0,0,100,CONSCIOUS)
 
 		if(changeling)
 			changeling.thermal_sight = FALSE

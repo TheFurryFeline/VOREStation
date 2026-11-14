@@ -34,8 +34,24 @@
 	path = /obj/item/clothing/shoes/boots/jackboots/knee
 
 /datum/gear/shoes/thighboots
-	display_name = "jackboots. thigh-length"
+	display_name = "jackboots, thigh-length"
 	path = /obj/item/clothing/shoes/boots/jackboots/thigh
+
+/datum/gear/shoes/colorboots
+	display_name = "jackboots, recolorable"
+	path = /obj/item/clothing/shoes/boots/jackboots/recolorable
+
+/datum/gear/shoes/colorboots/New()
+	..()
+	gear_tweaks += GLOB.gear_tweak_free_color_choice
+
+/datum/gear/shoes/jackboots_white
+	display_name = "jackboots, white"
+	path = /obj/item/clothing/shoes/boots/jackboots/white
+
+/datum/gear/shoes/jackboots_silver
+	display_name = "jackboots, silver"
+	path = /obj/item/clothing/shoes/boots/jackboots/silver
 
 /datum/gear/shoes/workboots
 	display_name = "workboots"
@@ -62,12 +78,12 @@
 	path = /obj/item/clothing/shoes/laceup
 
 /datum/gear/shoes/lacey/New()
-    ..()
-    var/list/laces = list()
-    for(var/lace in typesof(/obj/item/clothing/shoes/laceup))
-        var/obj/item/clothing/shoes/laceup/lace_type = lace
-        laces[initial(lace_type.name)] = lace_type
-    gear_tweaks += new/datum/gear_tweak/path(sortAssoc(laces))
+	..()
+	var/list/laces = list()
+	for(var/lace in typesof(/obj/item/clothing/shoes/laceup))
+		var/obj/item/clothing/shoes/laceup/lace_type = lace
+		laces[initial(lace_type.name)] = lace_type
+	gear_tweaks += new/datum/gear_tweak/path(sortAssoc(laces))
 
 /datum/gear/shoes/green
 	display_name = "shoes, green"
@@ -102,12 +118,12 @@
 	path = /obj/item/clothing/shoes/hitops/
 
 /datum/gear/shoes/hitops/New()
-    ..()
-    var/list/hitops = list()
-    for(var/hitop in typesof(/obj/item/clothing/shoes/hitops))
-        var/obj/item/clothing/shoes/hitops/hitop_type = hitop
-        hitops[initial(hitop_type.name)] = hitop_type
-    gear_tweaks += new/datum/gear_tweak/path(sortAssoc(hitops))
+	..()
+	var/list/hitops = list()
+	for(var/hitop in typesof(/obj/item/clothing/shoes/hitops))
+		var/obj/item/clothing/shoes/hitops/hitop_type = hitop
+		hitops[initial(hitop_type.name)] = hitop_type
+	gear_tweaks += new/datum/gear_tweak/path(sortAssoc(hitops))
 
 /datum/gear/shoes/flipflops
 	display_name = "flip flops"
@@ -115,7 +131,7 @@
 
 /datum/gear/shoes/flipflops/New()
 	..()
-	gear_tweaks += gear_tweak_free_color_choice
+	gear_tweaks += GLOB.gear_tweak_free_color_choice
 
 /datum/gear/shoes/athletic
 	display_name = "athletic shoes"
@@ -123,7 +139,7 @@
 
 /datum/gear/shoes/athletic/New()
 	..()
-	gear_tweaks += gear_tweak_free_color_choice
+	gear_tweaks += GLOB.gear_tweak_free_color_choice
 
 /datum/gear/shoes/skater
 	display_name = "skater shoes"
@@ -131,7 +147,7 @@
 
 /datum/gear/shoes/skater/New()
 	..()
-	gear_tweaks += gear_tweak_free_color_choice
+	gear_tweaks += GLOB.gear_tweak_free_color_choice
 
 /datum/gear/shoes/flats
 	display_name = "flats"
@@ -139,43 +155,27 @@
 
 /datum/gear/shoes/flats/New()
 	..()
-	gear_tweaks += gear_tweak_free_color_choice
+	gear_tweaks += GLOB.gear_tweak_free_color_choice
 
 /datum/gear/shoes/cowboy
-	display_name = "cowboy boots"
+	display_name = "cowboy boots selection"
+	description = "Pick from a (free) range of rootin' tootin' cowboy boot(in'). Yee-haw!"
 	path = /obj/item/clothing/shoes/boots/cowboy
 
-/datum/gear/shoes/cowboy/classic
-	display_name = "cowboy boots, classic"
-	path = /obj/item/clothing/shoes/boots/cowboy/classic
-
-/datum/gear/shoes/cowboy/brown
-	display_name = "cowboy boots, brown"
-	path = /obj/item/clothing/shoes/boots/cowboy/brown
-
-/datum/gear/shoes/cowboy/black
-	display_name = "cowboy boots, black"
-	path = /obj/item/clothing/shoes/boots/cowboy/black
-
-/datum/gear/shoes/cowboy/white
-	display_name = "cowboy boots, white"
-	path = /obj/item/clothing/shoes/boots/cowboy/white
-
-/datum/gear/shoes/cowboy/fancy
-	display_name = "cowboy boots, fancy"
-	path = /obj/item/clothing/shoes/boots/cowboy/fancy
-
-/datum/gear/shoes/cowboy/snakeskin
-	display_name = "cowboy boots, snake skin"
-	path = /obj/item/clothing/shoes/boots/cowboy/snakeskin
-
-/datum/gear/shoes/cowboy/green
-	display_name = "cowboy boots, green"
-	path = /obj/item/clothing/shoes/boots/cowboy/green
-
-/datum/gear/shoes/cowboy/blue
-	display_name = "cowboy boots, blue"
-	path = /obj/item/clothing/shoes/boots/cowboy/blue
+/datum/gear/shoes/cowboy/New()
+	..()
+	var/list/selector_uniforms = list(
+		"cowboy boots"=/obj/item/clothing/shoes/boots/cowboy,
+		"cowboy boots, classic"=/obj/item/clothing/shoes/boots/cowboy/classic,
+		"cowboy boots, brown"=/obj/item/clothing/shoes/boots/cowboy/brown,
+		"cowboy boots, black"=/obj/item/clothing/shoes/boots/cowboy/black,
+		"cowboy boots, white"=/obj/item/clothing/shoes/boots/cowboy/white,
+		"cowboy boots, fancy"=/obj/item/clothing/shoes/boots/cowboy/fancy,
+		"cowboy boots, snakeskin"=/obj/item/clothing/shoes/boots/cowboy/snakeskin
+		//"cowboy boots, green"=/obj/item/clothing/shoes/boots/cowboy/green,
+		//"cowboy boots, blue"=/obj/item/clothing/shoes/boots/cowboy/blue
+	)
+	gear_tweaks += new/datum/gear_tweak/path(sortAssoc(selector_uniforms))
 
 /datum/gear/shoes/jungle
 	display_name = "jungle boots"
@@ -201,7 +201,7 @@
 
 /datum/gear/shoes/heels/New()
 	..()
-	gear_tweaks += gear_tweak_free_color_choice
+	gear_tweaks += GLOB.gear_tweak_free_color_choice
 
 /datum/gear/shoes/slippers
 	display_name = "bunny slippers"
@@ -214,7 +214,7 @@
 /datum/gear/shoes/boots/winter/security
 	display_name = "security winter boots"
 	path = /obj/item/clothing/shoes/boots/winter/security
-	allowed_roles = list("Security Officer", "Head of Security", "Warden", "Detective")
+	allowed_roles = list(JOB_SECURITY_OFFICER, JOB_HEAD_OF_SECURITY, JOB_WARDEN, JOB_DETECTIVE)
 
 /datum/gear/shoes/boots/winter/science
 	display_name = "science winter boots"
@@ -223,7 +223,7 @@
 /datum/gear/shoes/boots/winter/command
 	display_name = "site manager's winter boots"
 	path = /obj/item/clothing/shoes/boots/winter/command
-	allowed_roles = list("Site Manager")
+	allowed_roles = list(JOB_SITE_MANAGER)
 
 /datum/gear/shoes/boots/winter/engineering
 	display_name = "engineering winter boots"
@@ -236,6 +236,7 @@
 /datum/gear/shoes/boots/winter/medical
 	display_name = "medical winter boots"
 	path = /obj/item/clothing/shoes/boots/winter/medical
+	allowed_roles = list(JOB_MEDICAL_DOCTOR,JOB_CHIEF_MEDICAL_OFFICER,JOB_CHEMIST,JOB_PARAMEDIC,JOB_GENETICIST, JOB_PSYCHIATRIST)
 
 /datum/gear/shoes/boots/winter/mining
 	display_name = "mining winter boots"
@@ -259,8 +260,60 @@
 
 /datum/gear/shoes/ballet/New()
 	..()
-	gear_tweaks += gear_tweak_free_color_choice
+	gear_tweaks += GLOB.gear_tweak_free_color_choice
 
 /datum/gear/shoes/halfmoon
 	display_name = "half moon boots"
 	path = /obj/item/clothing/shoes/boots/half_moon
+
+/datum/gear/shoes/sandals
+	display_name = "sandals, colorable"
+	path = /obj/item/clothing/shoes/sandals
+
+/datum/gear/shoes/sandals/New()
+	..()
+	gear_tweaks += GLOB.gear_tweak_free_color_choice
+
+/datum/gear/shoes/black/cuffs
+	display_name = "legwraps, black"
+	path = /obj/item/clothing/shoes/black/cuffs
+
+/datum/gear/shoes/black/cuffs/blue
+	display_name = "legwraps, blue"
+	path = /obj/item/clothing/shoes/black/cuffs/blue
+
+/datum/gear/shoes/black/cuffs/red
+	display_name = "legwraps, red"
+	path = /obj/item/clothing/shoes/black/cuffs/red
+
+/datum/gear/shoes/siren
+	display_name = "boots, Siren"
+	path = /obj/item/clothing/shoes/boots/fluff/siren
+
+/datum/gear/shoes/toeless
+	display_name = "toe-less jackboots"
+	path = /obj/item/clothing/shoes/boots/jackboots/toeless
+
+/datum/gear/shoes/singer_blue
+	display_name = "blue performer's boots"
+	path = /obj/item/clothing/shoes/boots/singer
+
+/datum/gear/shoes/singer_yellow
+	display_name = "yellow performer's boots"
+	path = /obj/item/clothing/shoes/boots/singer/yellow
+
+/datum/gear/shoes/antediluvian
+	display_name = "legwraps, antediluvian"
+	path = /obj/item/clothing/shoes/antediluvian
+
+/datum/gear/shoes/flats/alt
+	display_name = "flats, alt"
+	path = /obj/item/clothing/shoes/flats/white/color/alt
+
+/datum/gear/shoes/sandals_elegant
+	display_name = "sandals, elegant"
+	path = /obj/item/clothing/shoes/sandals_elegant
+
+/datum/gear/shoes/sandals_elegant/New()
+	..()
+	gear_tweaks += GLOB.gear_tweak_free_color_choice

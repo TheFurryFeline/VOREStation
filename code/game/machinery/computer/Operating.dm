@@ -7,7 +7,7 @@
 	anchored = TRUE
 	icon_keyboard = "med_key"
 	icon_screen = "crew"
-	circuit = /obj/item/weapon/circuitboard/operating
+	circuit = /obj/item/circuitboard/operating
 	var/obj/machinery/optable/table = null
 	var/mob/living/carbon/human/victim = null
 	var/verbose = 1 //general speaker toggle
@@ -20,8 +20,8 @@
 	var/healthAlarm = 50
 	var/oxy = 1 //oxygen beeping toggle
 
-/obj/machinery/computer/operating/New()
-	..()
+/obj/machinery/computer/operating/Initialize(mapload)
+	. = ..()
 	for(var/direction in list(NORTH,EAST,SOUTH,WEST))
 		table = locate(/obj/machinery/optable, get_step(src, direction))
 		if(table)
@@ -67,8 +67,8 @@
 		occupantData["name"] = occupant.name
 		occupantData["stat"] = occupant.stat
 		occupantData["health"] = occupant.health
-		occupantData["maxHealth"] = occupant.maxHealth
-		occupantData["minHealth"] = config.health_threshold_dead
+		occupantData["maxHealth"] = occupant.getMaxHealth()
+		occupantData["minHealth"] = -(occupant.getMaxHealth())
 		occupantData["bruteLoss"] = occupant.getBruteLoss()
 		occupantData["oxyLoss"] = occupant.getOxyLoss()
 		occupantData["toxLoss"] = occupant.getToxLoss()
@@ -108,10 +108,10 @@
 		if(ishuman(occupant) && !(NO_BLOOD in occupant.species.flags) && occupant.vessel)
 			occupantData["pulse"] = occupant.get_pulse(GETPULSE_TOOL)
 			occupantData["hasBlood"] = 1
-			var/blood_volume = round(occupant.vessel.get_reagent_amount("blood"))
+			var/blood_volume = round(occupant.vessel.get_reagent_amount(REAGENT_ID_BLOOD))
 			occupantData["bloodLevel"] = blood_volume
 			occupantData["bloodMax"] = occupant.species.blood_volume
-			occupantData["bloodPercent"] = round(100*(blood_volume/occupant.species.blood_volume), 0.01) //copy pasta ends here
+			occupantData["bloodPercent"] = occupant.species.blood_volume ? round(100*(blood_volume/occupant.species.blood_volume), 0.01) : 0 //copy pasta ends here, some species have no blood volume
 
 			occupantData["bloodType"] = occupant.dna.b_type
 			occupantData["surgery"] = build_surgery_list(user)
@@ -127,11 +127,11 @@
 
 	return data
 
-/obj/machinery/computer/operating/tgui_act(action, params)
+/obj/machinery/computer/operating/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
-	if((usr.contents.Find(src) || (in_range(src, usr) && istype(src.loc, /turf))) || (istype(usr, /mob/living/silicon)))
-		usr.set_machine(src)
+	if((ui.user.contents.Find(src) || (in_range(src, ui.user) && istype(src.loc, /turf))) || (istype(ui.user, /mob/living/silicon)))
+		ui.user.set_machine(src)
 
 	. = TRUE
 	switch(action)
@@ -177,8 +177,8 @@
 					playsound(src.loc, 'sound/machines/defib_success.ogg', 50, 0)
 				if(oxy && victim.getOxyLoss()>oxyAlarm)
 					playsound(src.loc, 'sound/machines/defib_safetyOff.ogg', 50, 0)
-				if(healthAnnounce && ((victim.health / victim.maxHealth) * 100) <= healthAlarm)
-					atom_say("[round(((victim.health / victim.maxHealth) * 100))]% health.")
+				if(healthAnnounce && ((victim.health / victim.getMaxHealth()) * 100) <= healthAlarm)
+					atom_say("[round(((victim.health / victim.getMaxHealth()) * 100))]% health.")
 
 // Surgery Helpers
 /obj/machinery/computer/operating/proc/build_surgery_list(mob/user)
@@ -223,7 +223,7 @@
  * I have no idea why you would ever perform these surgeries, given that Bicaradine and Kelotane exist.
  * So I'm not even going to bother trying to represent them here. Fuck it.
  */
-/obj/machinery/computer/operating/proc/find_stage(var/obj/item/organ/external/E)
+/obj/machinery/computer/operating/proc/find_stage(obj/item/organ/external/E)
 	. = "None."
 	switch(E.open)
 		if(1)
@@ -263,7 +263,7 @@
  * This converts a typepath into a pretty name.
  * As best as it can, anyways.
  */
-/proc/pretty_type(var/datum/A)
+/proc/pretty_type(datum/A)
 	var/typeStr = "[A.type]"
 	. = copytext(typeStr, findlasttext(typeStr, "/") + 1, length(typeStr) + 1)
 	. = capitalize(replacetext(., "_", " "))
@@ -283,7 +283,7 @@
 			/datum/surgery_step/brainstem,
 			/datum/surgery_step/generic/ripper,
 		)
-	good_surgeries = surgery_steps
+	good_surgeries = GLOB.surgery_steps
 	for(var/datum/surgery_step/S in good_surgeries)
 		if(S.type in banned_surgery_steps)
 			good_surgeries -= S
@@ -310,3 +310,5 @@
 			// Please for the love of all that is holy, someone make surgery steps
 			// have names so I don't have to do this stupid pretty_type shit.
 			. += "[pretty_type(S)]: [english_list(allowed_tools_by_name)]"
+
+#undef OP_COMPUTER_COOLDOWN

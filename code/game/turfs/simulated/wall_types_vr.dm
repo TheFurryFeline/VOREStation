@@ -39,24 +39,24 @@
 	. = ..()
 	update_icon(1)
 
-var/list/flesh_overlay_cache = list()
+GLOBAL_LIST_EMPTY(flesh_overlay_cache)
 
-/turf/simulated/flesh/update_icon(var/update_neighbors)
+/turf/simulated/flesh/update_icon(update_neighbors)
 	cut_overlays()
 
 	if(density)
 		icon = 'icons/turf/stomach_vr.dmi'
 		icon_state = "flesh"
-		for(var/direction in cardinal)
+		for(var/direction in GLOB.cardinal)
 			var/turf/T = get_step(src,direction)
 			if(istype(T) && !T.density)
 				var/place_dir = turn(direction, 180)
-				if(!flesh_overlay_cache["flesh_side_[place_dir]"])
-					flesh_overlay_cache["flesh_side_[place_dir]"] = image('icons/turf/stomach_vr.dmi', "flesh_side", dir = place_dir)
-				add_overlay(flesh_overlay_cache["flesh_side_[place_dir]"])
+				if(!GLOB.flesh_overlay_cache["flesh_side_[place_dir]"])
+					GLOB.flesh_overlay_cache["flesh_side_[place_dir]"] = image('icons/turf/stomach_vr.dmi', "flesh_side", dir = place_dir)
+				add_overlay(GLOB.flesh_overlay_cache["flesh_side_[place_dir]"])
 
 	if(update_neighbors)
-		for(var/direction in alldirs)
+		for(var/direction in GLOB.alldirs)
 			if(istype(get_step(src, direction), /turf/simulated/flesh))
 				var/turf/simulated/flesh/F = get_step(src, direction)
 				F.update_icon()
@@ -86,7 +86,7 @@ var/list/flesh_overlay_cache = list()
 	hard_corner = 1 //They're all HC
 	true_name = "wall"
 
-/turf/simulated/shuttle/wall/flock/Initialize()
+/turf/simulated/shuttle/wall/flock/Initialize(mapload)
 	. = ..()
 	set_light(3,3,"#26c5a9")
 
@@ -215,6 +215,33 @@ var/list/flesh_overlay_cache = list()
 /turf/simulated/wall/uranium
 	icon_state = "uranium"
 	icon = 'icons/turf/wall_masks_vr.dmi'
+	var/last_event = 0
+
+/turf/simulated/wall/uranium/Initialize(mapload)
+	. = ..()
+	RegisterSignal(src, COMSIG_ATOM_PROPAGATE_RAD_PULSE, PROC_REF(radiate))
+
+/turf/simulated/wall/uranium/Destroy()
+	UnregisterSignal(src, COMSIG_ATOM_PROPAGATE_RAD_PULSE)
+	. = ..()
+
+/turf/simulated/wall/uranium/radiate()
+	if(active)
+		return
+	if(world.time <= last_event + 1.5 SECONDS)
+		return
+	active = TRUE
+	radiation_pulse(
+		src,
+		max_range = 3,
+		threshold = RAD_LIGHT_INSULATION,
+		chance = URANIUM_IRRADIATION_CHANCE,
+		minimum_exposure_time = URANIUM_RADIATION_MINIMUM_EXPOSURE_TIME,
+		strength = 5
+	)
+	propagate_radiation_pulse()
+	last_event = world.time
+	active = FALSE
 
 /turf/simulated/wall/virgo2
 	icon_state = "virgo2"
@@ -224,16 +251,48 @@ var/list/flesh_overlay_cache = list()
 	icon_state = "wood"
 	icon = 'icons/turf/wall_masks_vr.dmi'
 
+/turf/simulated/wall/acaciawood
+	icon_state = "acaciawood"
+	icon = 'icons/turf/wall_masks_vr.dmi'
+
+/turf/simulated/wall/birchwood
+	icon_state = "birchwood"
+	icon = 'icons/turf/wall_masks_vr.dmi'
+
+/turf/simulated/wall/hardwood
+	icon_state = "hardwood"
+	icon = 'icons/turf/wall_masks_vr.dmi'
+
+/turf/simulated/wall/oakwood
+	icon_state = "oakwood"
+	icon = 'icons/turf/wall_masks_vr.dmi'
+
+/turf/simulated/wall/pinewood
+	icon_state = "pinewood"
+	icon = 'icons/turf/wall_masks_vr.dmi'
+
+/turf/simulated/wall/redwood
+	icon_state = "redwood"
+	icon = 'icons/turf/wall_masks_vr.dmi'
+
 /turf/simulated/wall/stonebricks
 	icon_state = "stonebrick"
 	icon = 'icons/turf/wall_masks_vr.dmi'
 
 /turf/simulated/wall/stonebricks/Initialize(mapload)
-		. = ..(mapload, "concrete")
+		. = ..(mapload, MAT_CONCRETE)
 
 /turf/simulated/wall/stonelogs
 	icon_state = "stonelogs"
 	icon = 'icons/turf/wall_masks_vr.dmi'
 
 /turf/simulated/wall/stonelogs/Initialize(mapload)
-			. = ..(mapload, "concrete",MAT_LOG)
+			. = ..(mapload, MAT_CONCRETE,MAT_LOG)
+
+/turf/simulated/wall/glass
+	icon = 'icons/obj/structures_vr.dmi'
+	icon_state = "window-full"
+	opacity = 0
+
+/turf/simulated/wall/glass/Initialize(mapload)
+	. = ..(mapload, MAT_GLASS)

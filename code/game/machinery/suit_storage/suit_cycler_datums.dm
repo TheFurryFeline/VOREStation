@@ -113,9 +113,9 @@ GLOBAL_LIST_EMPTY(suit_cycler_emagged)
 	helmet_becomes = /obj/item/clothing/head/helmet/space/void/medical
 	suit_becomes = /obj/item/clothing/suit/space/void/medical
 /datum/suit_cycler_choice/department/med/streamlined
-	name = "Vey-Medical Streamlined"
-	helmet_becomes = /obj/item/clothing/head/helmet/space/void/medical/alt
-	suit_becomes = /obj/item/clothing/suit/space/void/medical/alt
+	name = "Vey-Medical Lightweight"
+	helmet_becomes = /obj/item/clothing/head/helmet/space/void/medical/veymed_static
+	suit_becomes = /obj/item/clothing/suit/space/void/medical/veymed_static
 /datum/suit_cycler_choice/department/med/commonwealth
 	name = "Commonwealth Medical"
 	helmet_becomes = /obj/item/clothing/head/helmet/space/void/medical/alt2
@@ -314,7 +314,7 @@ GLOBAL_LIST_EMPTY(suit_cycler_emagged)
 /datum/suit_cycler_choice/species/proc/can_refit_to(...)
 	for(var/obj/item/clothing/C in args)
 		if(LAZYACCESS(C.sprite_sheets_obj, name))
-			if(!(C.icon_state in cached_icon_states(C.sprite_sheets_obj[name])))
+			if(!icon_exists(C.sprite_sheets_obj[name], C.icon_state))
 				return FALSE // Species was in sprite_sheets_obj, but had no sprite for this object in particular
 
 	return TRUE
@@ -337,7 +337,7 @@ GLOBAL_LIST_EMPTY(suit_cycler_emagged)
 /datum/suit_cycler_choice/species/unathi
 	name = SPECIES_UNATHI
 /datum/suit_cycler_choice/species/tajaran
-	name = SPECIES_TAJ
+	name = SPECIES_TAJARAN
 /datum/suit_cycler_choice/species/teshari
 	name = SPECIES_TESHARI
 /datum/suit_cycler_choice/species/akula
@@ -348,3 +348,5 @@ GLOBAL_LIST_EMPTY(suit_cycler_emagged)
 	name = SPECIES_VULPKANIN
 /datum/suit_cycler_choice/species/altevian
 	name = SPECIES_ALTEVIAN
+/datum/suit_cycler_choice/species/metamorphic
+	name = "Metamorphic"

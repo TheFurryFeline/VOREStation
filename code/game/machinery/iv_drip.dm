@@ -8,7 +8,7 @@
 
 /obj/machinery/iv_drip/var/mob/living/carbon/human/attached = null
 /obj/machinery/iv_drip/var/mode = 1 // 1 is injecting, 0 is taking blood.
-/obj/machinery/iv_drip/var/obj/item/weapon/reagent_containers/beaker = null
+/obj/machinery/iv_drip/var/obj/item/reagent_containers/beaker = null
 
 /obj/machinery/iv_drip/update_icon()
 	if(attached)
@@ -40,6 +40,8 @@
 	..()
 	if(!isliving(usr))
 		return
+	if(usr.is_incorporeal())
+		return
 
 	if(attached)
 		visible_message("[attached] is detached from \the [src]")
@@ -53,8 +55,8 @@
 		update_icon()
 
 
-/obj/machinery/iv_drip/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W, /obj/item/weapon/reagent_containers))
+/obj/machinery/iv_drip/attackby(obj/item/W as obj, mob/user as mob)
+	if(istype(W, /obj/item/reagent_containers))
 		if(!isnull(beaker))
 			to_chat(user, "There is already a reagent container loaded!")
 			return
@@ -68,17 +70,17 @@
 
 	if(W.has_tool_quality(TOOL_SCREWDRIVER))
 		playsound(src, W.usesound, 50, 1)
-		to_chat(user, "<span class='notice'>You start to dismantle the IV drip.</span>")
-		if(do_after(user, 15))
-			to_chat(user, "<span class='notice'>You dismantle the IV drip.</span>")
+		to_chat(user, span_notice("You start to dismantle the IV drip."))
+		if(do_after(user, 15, target = src))
+			to_chat(user, span_notice("You dismantle the IV drip."))
 			new /obj/item/stack/rods(src.loc, 6)
 			if(beaker)
 				beaker.loc = get_turf(src)
 				beaker = null
 			qdel(src)
 		return
-	else
-		return ..()
+
+	. = ..()
 
 
 /obj/machinery/iv_drip/process()
@@ -88,7 +90,7 @@
 
 		if(!(get_dist(src, attached) <= 1 && isturf(attached.loc)))
 			visible_message("The needle is ripped out of [attached], doesn't that hurt?")
-			attached:apply_damage(3, BRUTE, pick("r_arm", "l_arm"))
+			attached:apply_damage(3, BRUTE, pick(BP_R_ARM, BP_L_ARM))
 			attached = null
 			update_icon()
 			return
@@ -98,7 +100,7 @@
 		if(mode)
 			if(beaker.volume > 0)
 				var/transfer_amount = REM
-				if(istype(beaker, /obj/item/weapon/reagent_containers/blood))
+				if(istype(beaker, /obj/item/reagent_containers/blood))
 					// speed up transfer on blood packs
 					transfer_amount = 4
 				beaker.reagents.trans_to_mob(attached, transfer_amount, CHEM_BLOOD)
@@ -127,10 +129,11 @@
 				return
 
 			// If the human is losing too much blood, beep.
-			if(T.vessel.get_reagent_amount("blood") < T.species.blood_volume*T.species.blood_level_safe)
+			if(T.vessel.get_reagent_amount(REAGENT_ID_BLOOD) < T.species.blood_volume*T.species.blood_level_safe)
 				visible_message("\The [src] beeps loudly.")
 
 			var/datum/reagent/B = T.take_blood(beaker,amount)
+			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_DONATE_BLOOD, amount)
 
 			if(B)
 				beaker.reagents.reagent_list |= B
@@ -140,6 +143,9 @@
 				update_icon()
 
 /obj/machinery/iv_drip/attack_hand(mob/user as mob)
+	if(user.is_incorporeal())
+		return
+
 	if(beaker)
 		beaker.loc = get_turf(src)
 		beaker = null
@@ -153,11 +159,13 @@
 	set name = "Toggle Mode"
 	set src in view(1)
 
-	if(!istype(usr, /mob/living))
-		to_chat(usr, "<span class='warning'>You can't do that.</span>")
+	if(!isliving(usr))
+		to_chat(usr, span_warning("You can't do that."))
 		return
 
 	if(usr.stat)
+		return
+	if(usr.is_incorporeal())
 		return
 
 	mode = !mode
@@ -171,13 +179,13 @@
 
 		if(beaker)
 			if(beaker.reagents?.reagent_list?.len)
-				. += "<span class='notice'>Attached is \a [beaker] with [beaker.reagents.total_volume] units of liquid.</span>"
+				. += span_notice("Attached is \a [beaker] with [beaker.reagents.total_volume] units of liquid.")
 			else
-				. += "<span class='notice'>Attached is an empty [beaker].</span>"
+				. += span_notice("Attached is an empty [beaker].")
 		else
-			. += "<span class='notice'>No chemicals are attached.</span>"
+			. += span_notice("No chemicals are attached.")
 
-		. += "<span class='notice'>[attached ? attached : "No one"] is attached.</span>"
+		. += span_notice("[attached ? attached : "No one"] is attached.")
 
 /obj/machinery/iv_drip/CanPass(atom/movable/mover, turf/target)
 	if(istype(mover) && mover.checkpass(PASSTABLE)) //allow bullets, beams, thrown objects, mice, drones, and the like through.

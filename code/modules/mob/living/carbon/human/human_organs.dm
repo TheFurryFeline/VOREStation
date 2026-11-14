@@ -5,17 +5,6 @@
 		update_icons_body() //Body handles eyes
 		update_eyes() //For floating eyes only
 
-/*
-/mob/living/carbon/var/list/internal_organs = list()
-/mob/living/carbon/human/var/list/organs = list()
-/mob/living/carbon/human/var/list/organs_by_name = list() // map organ names to organs
-/mob/living/carbon/human/var/list/internal_organs_by_name = list() // so internal organs have less ickiness too
-
-/mob/living/carbon/human/proc/get_bodypart_name(var/zone)
-	var/obj/item/organ/external/E = get_organ(zone)
-	if(E) . = E.name
-*/
-
 /mob/living/carbon/human/proc/recheck_bad_external_organs()
 	var/damage_this_tick = getToxLoss()
 	for(var/obj/item/organ/external/O in organs)
@@ -28,11 +17,11 @@
 	last_dam = damage_this_tick
 
 // Takes care of organ related updates, such as broken and missing limbs
-/mob/living/carbon/human/proc/handle_organs()
+/mob/living/carbon/human/proc/handle_organs(force = FALSE)
 
 	var/force_process = recheck_bad_external_organs()
 
-	if(force_process)
+	if(force_process || force)
 		bad_external_organs.Cut()
 		for(var/obj/item/organ/external/Ex in organs)
 			bad_external_organs += Ex //VOREStation Edit - Silly and slow to |= this
@@ -47,7 +36,7 @@
 	if(!force_process && !bad_external_organs.len)
 		return
 
-	number_wounds = 0 //VOREStation Add - You have to reduce this at some point...
+	number_wounds = 0
 	for(var/obj/item/organ/external/E in bad_external_organs)
 		if(!E)
 			continue
@@ -62,6 +51,7 @@
 			//Moving around with fractured ribs won't do you any good
 				if (prob(10) && !stat && can_feel_pain() && chem_effects[CE_PAINKILLER] < 50 && E.is_broken() && E.internal_organs.len)
 					custom_pain("Pain jolts through your broken [E.encased ? E.encased : E.name], staggering you!", 50)
+					emote("scream")
 					drop_item(loc)
 					Stun(2)
 
@@ -83,8 +73,11 @@
 	if (istype(buckled, /obj/structure/bed))
 		return
 
-	var/limb_pain
-	for(var/limb_tag in list("l_leg","r_leg","l_foot","r_foot"))
+	if(SEND_SIGNAL(src, COMSIG_EXTERNAL_ORGAN_STANCE_DAMAGE_APPLICATION) & COMPONENT_CANCEL_EXTERNAL_ORGAN_DAMAGE)
+		return
+
+	var/limb_pain = FALSE
+	for(var/limb_tag in list(BP_L_LEG,BP_R_LEG,BP_L_FOOT,BP_R_FOOT))
 		var/obj/item/organ/external/E = organs_by_name[limb_tag]
 		if(!E || !E.is_usable())
 			stance_damage += 2 // let it fail even if just foot&leg
@@ -97,34 +90,42 @@
 				spark_system.set_up(5, 0, src)
 				spark_system.attach(src)
 				spark_system.start()
-				spawn(10)
-					qdel(spark_system)
+				QDEL_IN(spark_system, 1 SECOND)
 		else if (E.is_broken())
 			stance_damage += 1
 		else if (E.is_dislocated())
 			stance_damage += 0.5
 
-		if(E && (!E.is_usable() || E.is_broken() || E.is_dislocated())) //VOREStation Edit
+		if(E && (!E.is_usable() || E.is_broken() || E.is_dislocated()))
 			limb_pain = E.organ_can_feel_pain()
 
 	// Canes and crutches help you stand (if the latter is ever added)
 	// One cane mitigates a broken leg+foot, or a missing foot.
 	// Two canes are needed for a lost leg. If you are missing both legs, canes aren't gonna help you.
-	if (l_hand && istype(l_hand, /obj/item/weapon/cane))
+	if (l_hand && istype(l_hand, /obj/item/cane))
 		stance_damage -= 2
-	if (r_hand && istype(r_hand, /obj/item/weapon/cane))
+	if (r_hand && istype(r_hand, /obj/item/cane))
 		stance_damage -= 2
+
+	// Jetpacks in zeroG count for holding you up
+	var/obj/item/tank/jetpack/thrust = get_jetpack()
+	if (lastarea?.get_gravity() == FALSE && thrust?.stabilization_on)
+		stance_damage -= 4
 
 	// standing is poor
 	if(stance_damage >= 4 || (stance_damage >= 2 && prob(5)))
-		if(!(lying || resting) && !isbelly(loc)) //VOREStation Edit
+		if(!(lying || resting) && !isbelly(loc))
 			if(limb_pain)
 				emote("scream")
-			custom_emote(1, "collapses!")
-		Weaken(5) //can't emote while weakened, apparently.
+			automatic_custom_emote(VISIBLE_MESSAGE, "collapses!", check_stat = TRUE)
+		if(!(lying || resting)) // stops permastun with SPINE sdisability
+			Weaken(5)
 
 /mob/living/carbon/human/proc/handle_grasp()
 	if(!l_hand && !r_hand)
+		return
+
+	if(SEND_SIGNAL(src, COMSIG_EXTERNAL_ORGAN_GRASP_DAMAGE_APPLICATION) & COMPONENT_CANCEL_EXTERNAL_ORGAN_DAMAGE)
 		return
 
 	// You should not be able to pick anything up, but stranger things have happened.
@@ -132,7 +133,7 @@
 		for(var/limb_tag in list(BP_L_HAND, BP_L_ARM))
 			var/obj/item/organ/external/E = get_organ(limb_tag)
 			if(!E)
-				visible_message("<span class='danger'>Lacking a functioning left hand, \the [src] drops \the [l_hand].</span>")
+				visible_message(span_danger("Lacking a functioning left hand, \the [src] drops \the [l_hand]."))
 				drop_from_inventory(l_hand)
 				break
 
@@ -140,14 +141,13 @@
 		for(var/limb_tag in list(BP_R_HAND, BP_R_ARM))
 			var/obj/item/organ/external/E = get_organ(limb_tag)
 			if(!E)
-				visible_message("<span class='danger'>Lacking a functioning right hand, \the [src] drops \the [r_hand].</span>")
+				visible_message(span_danger("Lacking a functioning right hand, \the [src] drops \the [r_hand]."))
 				drop_from_inventory(r_hand)
 				break
 
 	// Check again...
 	if(!l_hand && !r_hand)
 		return
-
 	for (var/obj/item/organ/external/E in organs)
 		if(!E || !E.can_grasp)
 			continue
@@ -163,9 +163,11 @@
 						continue
 					drop_from_inventory(r_hand)
 
-			if(!isbelly(loc)) //VOREStation Add
+			if(!isbelly(loc))
 				var/emote_scream = pick("screams in pain and ", "lets out a sharp cry and ", "cries out and ")
-				custom_emote(VISIBLE_MESSAGE, "[(can_feel_pain()) ? "" : emote_scream ]drops what they were holding in their [E.name]!")
+				automatic_custom_emote(VISIBLE_MESSAGE, "[(can_feel_pain()) ? "" : emote_scream ]drops what they were holding in their [E.name]!", check_stat = TRUE)
+				if(can_feel_pain())
+					emote("pain")
 
 		else if(E.is_malfunctioning())
 			switch(E.body_part)
@@ -178,8 +180,8 @@
 						continue
 					drop_from_inventory(r_hand)
 
-			if(!isbelly(loc)) //VOREStation Add
-				custom_emote(VISIBLE_MESSAGE, "drops what they were holding, their [E.name] malfunctioning!")
+			if(!isbelly(loc))
+				automatic_custom_emote(VISIBLE_MESSAGE, "drops what they were holding, their [E.name] malfunctioning!", check_stat = TRUE)
 
 				var/datum/effect/effect/system/spark_spread/spark_system = new /datum/effect/effect/system/spark_spread()
 				spark_system.set_up(5, 0, src)
@@ -195,15 +197,41 @@
 		var/obj/item/organ/O = pick(organs)
 		O.trace_chemicals[A.name] = 100
 
+// Traitgenes Init genes based on the traits currently active
+/mob/living/carbon/human/proc/sync_dna_traits(refresh_traits, hide_message = TRUE)
+	SHOULD_NOT_OVERRIDE(TRUE) //Don't. Even. /Think/. About. It.
+	if(!dna || !species)
+		return
+	// Traitgenes NO_DNA and Synthetics cannot be mutated
+	if(isSynthetic())
+		return
+	if(species.flags & NO_DNA)
+		return
+	if(refresh_traits && species.traits)
+		for(var/TR in species.traits)
+			var/datum/trait/T = GLOB.all_traits[TR]
+			if(!T)
+				continue
+			if(!T.linked_gene)
+				continue
+			var/datum/gene/trait/gene = T.linked_gene
+			dna.SetSEState(gene.block, TRUE, TRUE)
+			// testing("[gene.name] Setup activated!")
+		dna.UpdateSE()
+	var/flgs = MUTCHK_FORCED
+	if(hide_message)
+		flgs |= MUTCHK_HIDEMSG
+	domutcheck( src, null, flgs)
+
 /mob/living/carbon/human/proc/sync_organ_dna()
 	var/list/all_bits = internal_organs|organs
 	for(var/obj/item/organ/O in all_bits)
 		O.set_dna(dna)
 
-/mob/living/carbon/human/proc/set_gender(var/g)
+/mob/living/carbon/human/proc/set_gender(g)
 	if(g != gender)
 		gender = g
-	
+
 	if(dna.GetUIState(DNA_UI_GENDER) ^ gender == FEMALE) // XOR will catch both cases where they do not match
 		dna.SetUIState(DNA_UI_GENDER, gender == FEMALE)
 		sync_organ_dna(dna)

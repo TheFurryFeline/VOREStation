@@ -6,11 +6,8 @@
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "dirt"
 
-/obj/effect/decal/cleanable/chemcoating/New()
-	..()
+/obj/effect/decal/cleanable/chemcoating/Initialize(mapload)
 	create_reagents(100)
-
-/obj/effect/decal/cleanable/chemcoating/Initialize()
 	. = ..()
 	var/turf/T = get_turf(src)
 	if(T)
@@ -29,8 +26,11 @@
 	return ..()
 
 /obj/effect/decal/cleanable/chemcoating/Crossed(AM as mob|obj)
+	. = ..()
 	Bumped(AM)
 
 /obj/effect/decal/cleanable/chemcoating/update_icon()
 	..()
 	color = reagents.get_color()
+	cut_overlays()
+	add_janitor_hud_overlay()

@@ -34,21 +34,41 @@
 
 	has_langs = list(LANGUAGE_MOUSE)
 
-	holder_type = /obj/item/weapon/holder/mouse
+	holder_type = /obj/item/holder/mouse
 	meat_amount = 1
 	butchery_loot = list()
 
 	say_list_type = /datum/say_list/mouse
 
+	hasthermals = FALSE
+
 	var/body_color //brown, gray, white and black, leave blank for random
 
-/mob/living/simple_mob/animal/passive/mouse/New()
-	..()
+	var/list/datum/disease/rat_diseases
 
-	verbs += /mob/living/proc/ventcrawl
-	verbs += /mob/living/proc/hide
+	can_be_drop_prey = TRUE
+	can_be_drop_pred = FALSE
+	species_sounds = "Mouse"
 
-	if(name == initial(name))
+	pain_emote_1p = list("squeak", "squik")
+	pain_emote_1p = list("squeaks", "squiks")
+
+/mob/living/simple_mob/animal/passive/mouse/Destroy()
+	GLOB.active_ghost_pods -= src
+	return ..()
+
+/mob/living/simple_mob/animal/passive/mouse/Initialize(mapload, keep_parent_data)
+	. = ..()
+	ghostjoin = TRUE
+	ghostjoin_icon()
+	GLOB.active_ghost_pods += src
+
+	add_verb(src, /mob/living/proc/ventcrawl)
+	add_verb(src, /mob/living/proc/hide)
+
+	ADD_TRAIT(src, TRAIT_AMBIENT_PEST_MOB, ROUNDSTART_TRAIT)
+
+	if(!keep_parent_data && name == initial(name))
 		name = "[name] ([rand(1, 1000)])"
 	real_name = name
 
@@ -59,29 +79,37 @@
 	icon_living = "mouse_[body_color]"
 	icon_dead = "mouse_[body_color]_dead"
 	icon_rest = "mouse_[body_color]_sleep"
-	if (body_color != "rat")
+	if (!keep_parent_data && body_color != "rat")
 		desc = "A small [body_color] rodent, often seen hiding in maintenance areas and making a nuisance of itself."
-		holder_type = /obj/item/weapon/holder/mouse/rat
+		holder_type = /obj/item/holder/mouse/rat
 	if (body_color == "operative")
-		holder_type = /obj/item/weapon/holder/mouse/operative
+		holder_type = /obj/item/holder/mouse/operative
 	if (body_color == "brown")
-		holder_type = /obj/item/weapon/holder/mouse/brown
+		holder_type = /obj/item/holder/mouse/brown
 	if (body_color == "gray")
-		holder_type = /obj/item/weapon/holder/mouse/gray
+		holder_type = /obj/item/holder/mouse/gray
 	if (body_color == "white")
-		holder_type = /obj/item/weapon/holder/mouse/white
+		holder_type = /obj/item/holder/mouse/white
 	if (body_color == "black")
-		holder_type = /obj/item/weapon/holder/mouse/black
+		holder_type = /obj/item/holder/mouse/black
+
+	if(prob(40))
+		LAZYINITLIST(rat_diseases)
+		rat_diseases += new /datum/disease/advance/random(rand(1, 5), 9, 1, infected = src)
+
+/mob/living/simple_mob/animal/passive/mouse/extrapolator_act(mob/living/user, obj/item/extrapolator/extrapolator, dry_run = FALSE)
+	. = ..()
+	EXTRAPOLATOR_ACT_ADD_DISEASES(., rat_diseases)
 
 /mob/living/simple_mob/animal/passive/mouse/Crossed(atom/movable/AM as mob|obj)
+	. = ..()
 	if(AM.is_incorporeal())
 		return
 	if( ishuman(AM) )
 		if(!stat)
 			var/mob/M = AM
-			M.visible_message(span_blue("\icon[src][bicon(src)] Squeek!"))
+			M.visible_message(span_blue("[icon2html(src,viewers(src))] Squeek!"))
 			playsound(src, 'sound/effects/mouse_squeak.ogg', 35, 1)
-	..()
 
 /mob/living/simple_mob/animal/passive/mouse/death()
 	layer = MOB_LAYER
@@ -110,35 +138,33 @@
 	body_color = "white"
 	icon_state = "mouse_white"
 	icon_rest = "mouse_white_sleep"
-	holder_type = /obj/item/weapon/holder/mouse/white
+	holder_type = /obj/item/holder/mouse/white
 
 /mob/living/simple_mob/animal/passive/mouse/gray
 	body_color = "gray"
 	icon_state = "mouse_gray"
 	icon_rest = "mouse_gray_sleep"
-	holder_type = /obj/item/weapon/holder/mouse/gray
+	holder_type = /obj/item/holder/mouse/gray
 
 /mob/living/simple_mob/animal/passive/mouse/brown
 	body_color = "brown"
 	icon_state = "mouse_brown"
 	icon_rest = "mouse_brown_sleep"
-	holder_type = /obj/item/weapon/holder/mouse/brown
+	holder_type = /obj/item/holder/mouse/brown
 
 //TOM IS ALIVE! SQUEEEEEEEE~K :)
 /mob/living/simple_mob/animal/passive/mouse/brown/Tom
 	name = "Tom"
 	desc = "Jerry the cat is not amused."
 
-/mob/living/simple_mob/animal/passive/mouse/brown/Tom/New()
-	..()
-	// Change my name back, don't want to be named Tom (666)
-	name = initial(name)
+/mob/living/simple_mob/animal/passive/mouse/brown/Tom/Initialize(mapload)
+	. = ..(mapload, TRUE)
 
 /mob/living/simple_mob/animal/passive/mouse/black
 	body_color = "black"
 	icon_state = "mouse_black"
 	icon_rest = "mouse_black_sleep"
-	holder_type = /obj/item/weapon/holder/mouse/black
+	holder_type = /obj/item/holder/mouse/black
 
 /mob/living/simple_mob/animal/passive/mouse/rat
 	name = "rat"
@@ -147,11 +173,12 @@
 	body_color = "rat"
 	icon_state = "mouse_rat"
 	icon_rest = "mouse_rat_sleep"
-	holder_type = /obj/item/weapon/holder/mouse/rat
+	holder_type = /obj/item/holder/mouse/rat
+	ai_holder_type = /datum/ai_holder/simple_mob/melee/evasive
+
+/mob/living/simple_mob/animal/passive/mouse/rat/strong // In case you still want to be a jerk to your players for some reason.
 	maxHealth = 20
 	health = 20
-
-	ai_holder_type = /datum/ai_holder/simple_mob/melee/evasive
 
 /mob/living/simple_mob/animal/passive/mouse/operative
 	name = "mouse operative"
@@ -159,7 +186,7 @@
 	body_color = "operative"
 	icon_state = "mouse_operative"
 	icon_rest = "mouse_operative_sleep"
-	holder_type = /obj/item/weapon/holder/mouse/operative
+	holder_type = /obj/item/holder/mouse/operative
 	maxHealth = 35
 
 	//It's wearing a void suit, it don't care about atmos
@@ -181,13 +208,44 @@
 	name = "Agent Cheese"
 	desc = "I like my cheese Swiss... not American."
 
-/mob/living/simple_mob/animal/passive/mouse/operative/agent_cheese/New()
-	..()
-	// Change my name back, don't want to be named agent_cheese (666)
-	name = initial(name)
+/mob/living/simple_mob/animal/passive/mouse/operative/agent_cheese/Initialize(mapload)
+	. = ..(mapload, TRUE)
 
 // Mouse noises
 /datum/say_list/mouse
 	speak = list("Squeek!","SQUEEK!","Squeek?")
 	emote_hear = list("squeeks","squeaks","squiks")
 	emote_see = list("runs in a circle", "shakes", "scritches at something")
+
+/mob/living/simple_mob/animal/passive/mouse/verb/set_mouse_colour()
+	set name = "Set Mouse Colour"
+	set category = "Abilities.Mouse"
+	set desc = "Set the colour of your mouse."
+	var/new_mouse_colour = tgui_input_list(usr, "Set Mouse Colour", "Pick a colour", list("brown","gray","white","black"))
+	if(!new_mouse_colour) return
+	icon_state = resting ? "mouse_[new_mouse_colour]_sleep" : "mouse_[new_mouse_colour]"
+	item_state = "mouse_[new_mouse_colour]"
+	icon_living = "mouse_[new_mouse_colour]"
+	icon_dead = "mouse_[new_mouse_colour]_dead"
+	icon_rest = "mouse_[new_mouse_colour]_sleep"
+	desc = "A small [new_mouse_colour] rodent, often seen hiding in maintenance areas and making a nuisance of itself."
+	holder_type = text2path("/obj/item/holder/mouse/[new_mouse_colour]")
+	to_chat(src, span_notice("You are now a [new_mouse_colour] mouse!"))
+	remove_verb(src,/mob/living/simple_mob/animal/passive/mouse/verb/set_mouse_colour)
+
+/mob/living/simple_mob/animal/passive/mouse/white/virology
+	name = "Fleming"
+	desc = "A small white rodent, often found in Virology. This one isn't quite the nuisance!"
+
+/mob/living/simple_mob/animal/passive/mouse/white/virology/Initialize(mapload)
+	. = ..()
+	name = initial(name)
+	desc = initial(desc)
+	rat_diseases += new /datum/disease/advance/random(2, 2, 1, infected = src)
+
+/mob/living/simple_mob/animal/passive/mouse/white/virology/Crossed(atom/movable/AM)
+	. = ..()
+
+	if(isliving(AM) && !isnull(rat_diseases) && prob(20))
+		var/mob/living/L = AM
+		L.ContractDisease(pick(rat_diseases), BP_R_FOOT)

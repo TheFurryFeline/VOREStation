@@ -16,7 +16,7 @@
 			T.pinned_target = null
 			T.density = TRUE
 			break
-	..() // delete target
+	. = ..() // delete target
 
 /obj/item/target/Moved(atom/old_loc, direction, forced = FALSE)
 	. = ..()
@@ -34,10 +34,10 @@
 
 /obj/item/target/attackby(obj/item/W as obj, mob/user as mob)
 	if (W.has_tool_quality(TOOL_WELDER))
-		var/obj/item/weapon/weldingtool/WT = W.get_welder()
+		var/obj/item/weldingtool/WT = W.get_welder()
 		if(WT.remove_fuel(0, user))
 			cut_overlays()
-			to_chat(usr, "You slice off [src]'s uneven chunks of aluminum and scorch marks.")
+			to_chat(user, "You slice off [src]'s uneven chunks of aluminum and scorch marks.")
 			return
 
 
@@ -79,7 +79,7 @@
 	desc = "A shooting target with a threatening silhouette."
 	hp = 2350 // alium onest too kinda
 
-/obj/item/target/bullet_act(var/obj/item/projectile/Proj)
+/obj/item/target/bullet_act(obj/item/projectile/Proj)
 	var/p_x = Proj.p_x + pick(0,0,0,0,0,-1,1) // really ugly way of coding "sometimes offset Proj.p_x!"
 	var/p_y = Proj.p_y + pick(0,0,0,0,0,-1,1)
 	var/decaltype = 1 // 1 - scorch, 2 - bullet
@@ -96,7 +96,7 @@
 		if(hp <= 0)
 			for(var/mob/O in oviewers())
 				if ((O.client && !( O.blinded )))
-					to_chat(O, "<span class='warning'>\The [src] breaks into tiny pieces and collapses!</span>")
+					to_chat(O, span_warning("\The [src] breaks into tiny pieces and collapses!"))
 			qdel(src)
 
 		// Create a temporary object to represent the damage
@@ -160,7 +160,7 @@
 	var/b2y1 = 0
 	var/b2y2 = 0
 
-/datum/bullethole/New(var/obj/item/target/Target, var/pixel_x = 0, var/pixel_y = 0)
+/datum/bullethole/New(obj/item/target/Target, pixel_x = 0, pixel_y = 0)
 	if(!Target) return
 
 	// Randomize the first box

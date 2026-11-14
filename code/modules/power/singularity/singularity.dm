@@ -31,14 +31,13 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 
 	var/chained = 0//Adminbus chain-grab
 
-/obj/singularity/New(loc, var/starting_energy = 50)
+/obj/singularity/Initialize(mapload, starting_energy = 50)
 	//CARN: admin-alert for chuckle-fuckery.
 	admin_investigate_setup()
+	. = ..()
 	energy = starting_energy
-
-	..()
 	START_PROCESSING(SSobj, src)
-	for(var/obj/machinery/power/singularity_beacon/singubeacon in machines)
+	for(var/obj/machinery/power/singularity_beacon/singubeacon in GLOB.machines)
 		if(singubeacon.active)
 			target = singubeacon
 			break
@@ -95,9 +94,9 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 	var/count = locate(/obj/machinery/containment_field) in orange(30, src)
 
 	if (!count)
-		message_admins("A singulo has been created without containment fields active ([x], [y], [z] - <A HREF='?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>).")
+		message_admins("A singulo has been created without containment fields active ([x], [y], [z] - <A href='byond://?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>).")
 
-	investigate_log("was created. [count ? "" : "<font color='red'>No containment fields were active.</font>"]", I_SINGULO)
+	investigate_log("was created. [count ? "" : span_red("No containment fields were active.")]", I_SINGULO)
 
 /obj/singularity/proc/dissipate()
 	if (!dissipate)
@@ -109,7 +108,7 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 	else
 		dissipate_track++
 
-/obj/singularity/proc/expand(var/force_size = 0, var/growing = 1)
+/obj/singularity/proc/expand(force_size = 0, growing = 1)
 	if(current_size == STAGE_SUPER)//if this is happening, this is an error
 		message_admins("expand() was called on a super singulo. This should not happen. Contact a coder immediately!")
 		return
@@ -135,7 +134,7 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 			overlays = 0
 			if(chained)
 				overlays = "chain_s1"
-			visible_message("<span class='notice'>The singularity has shrunk to a rather pitiful size.</span>")
+			visible_message(span_notice("The singularity has shrunk to a rather pitiful size."))
 		if (STAGE_TWO) //1 to 3 does not check for the turfs if you put the gens right next to a 1x1 then its going to eat them.
 			name = "gravitational singularity"
 			desc = "A gravitational singularity."
@@ -153,9 +152,9 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 			if(chained)
 				overlays = "chain_s3"
 			if(growing)
-				visible_message("<span class='notice'>The singularity noticeably grows in size.</span>")
+				visible_message(span_notice("The singularity noticeably grows in size."))
 			else
-				visible_message("<span class='notice'>The singularity has shrunk to a less powerful size.</span>")
+				visible_message(span_notice("The singularity has shrunk to a less powerful size."))
 		if (STAGE_THREE)
 			if ((check_turfs_in(1, 2)) && (check_turfs_in(2, 2)) && (check_turfs_in(4, 2)) && (check_turfs_in(8, 2)))
 				name = "gravitational singularity"
@@ -174,9 +173,9 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 				if(chained)
 					overlays = "chain_s5"
 				if(growing)
-					visible_message("<span class='notice'>The singularity expands to a reasonable size.</span>")
+					visible_message(span_notice("The singularity expands to a reasonable size."))
 				else
-					visible_message("<span class='notice'>The singularity has returned to a safe size.</span>")
+					visible_message(span_notice("The singularity has returned to a safe size."))
 		if(STAGE_FOUR)
 			if ((check_turfs_in(1, 3)) && (check_turfs_in(2, 3)) && (check_turfs_in(4, 3)) && (check_turfs_in(8, 3)))
 				name = "gravitational singularity"
@@ -195,9 +194,9 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 				if(chained)
 					overlays = "chain_s7"
 				if(growing)
-					visible_message("<span class='warning'>The singularity expands to a dangerous size.</span>")
+					visible_message(span_warning("The singularity expands to a dangerous size."))
 				else
-					visible_message("<span class='notice'>Miraculously, the singularity reduces in size, and can be contained.</span>")
+					visible_message(span_notice("Miraculously, the singularity reduces in size, and can be contained."))
 		if(STAGE_FIVE) //This one also lacks a check for gens because it eats everything.
 			name = "gravitational singularity"
 			desc = "A gravitational singularity."
@@ -213,9 +212,9 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 			if(chained)
 				overlays = "chain_s9"
 			if(growing)
-				visible_message("<span class='danger'><font size='2'>The singularity has grown out of control!</font></span>")
+				visible_message(span_danger(span_normal("The singularity has grown out of control!")))
 			else
-				visible_message("<span class='warning'>The singularity miraculously reduces in size and loses its supermatter properties.</span>")
+				visible_message(span_warning("The singularity miraculously reduces in size and loses its supermatter properties."))
 		if(STAGE_SUPER)//SUPERSINGULO
 			name = "super gravitational singularity"
 			desc = "A gravitational singularity with the properties of supermatter. <b>It has the power to destroy worlds.</b>"
@@ -230,10 +229,10 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 			event_chance = 25 //Events will fire off more often.
 			if(chained)
 				overlays = "chain_s9"
-			visible_message("<span class='sinister'><font size='3'>You witness the creation of a destructive force that cannot possibly be stopped by human hands.</font></span>")
+			visible_message(span_sinister(span_large("You witness the creation of a destructive force that cannot possibly be stopped by human hands.")))
 
 	if (current_size == allowed_size)
-		investigate_log("<font color='red'>grew to size [current_size].</font>", I_SINGULO)
+		investigate_log(span_red("grew to size [current_size]."), I_SINGULO)
 		return 1
 	else if (current_size < (--temp_allowed_size) && current_size != STAGE_SUPER)
 		expand(temp_allowed_size)
@@ -279,11 +278,11 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 	src.energy += A.singularity_act(src, current_size)
 	return
 
-/obj/singularity/proc/move(var/force_move = 0)
+/obj/singularity/proc/move(force_move = 0)
 	if(!move_self)
 		return 0
 
-	var/movement_dir = pick(alldirs - last_failed_movement)
+	var/movement_dir = pick(GLOB.alldirs - last_failed_movement)
 
 	if(force_move)
 		movement_dir = force_move
@@ -306,7 +305,7 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 		last_failed_movement = movement_dir
 	return 0
 
-/obj/singularity/proc/check_turfs_in(var/direction = 0, var/step = 0)
+/obj/singularity/proc/check_turfs_in(direction = 0, step = 0)
 	if(!direction)
 		return 0
 	var/steps = 0
@@ -366,7 +365,7 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 
 	// VOREStation Edit Start
 	var/area/A = get_area(T)
-	if(A.forbid_singulo) //No going to dorms
+	if(A.flag_check(AREA_FORBID_SINGULO)) //No going to dorms
 		return 0
 	// VOREStation Edit End
 
@@ -402,16 +401,23 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 
 
 /obj/singularity/proc/toxmob()
-	var/toxrange = 10
+	var/toxrange = 7
 	var/toxdamage = 4
 	var/radiation = 15
 	if (src.energy>200)
 		toxdamage = round(((src.energy-150)/50)*4,1)
-		radiation = round(((src.energy-150)/50)*5,1)
-	SSradiation.radiate(src, radiation) //Always radiate at max, so a decent dose of radiation is applied
+		radiation =	round(((energy-150) / 50) * 5,1)
+	radiation_pulse(
+		src,
+		max_range = 7,
+		threshold = RAD_EXTREME_INSULATION - 0.1,
+		chance = 100, // We want to guarentee this
+		minimum_exposure_time = 1 SECOND,
+		strength = radiation
+	)
 	for(var/mob/living/M in view(toxrange, src.loc))
-		if(M.status_flags & GODMODE)
-			continue
+		if(SEND_SIGNAL(M, COMSIG_CHECK_FOR_GODMODE) & COMSIG_GODMODE_CANCEL)
+			return 0	// Cancelled by a component
 		toxdamage = (toxdamage - (toxdamage*M.getarmor(null, "rad")))
 		M.apply_effect(toxdamage, TOX)
 	return
@@ -421,20 +427,20 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 	for(var/mob/living/carbon/M in oviewers(8, src))
 		if(istype(M, /mob/living/carbon/brain)) //Ignore brains
 			continue
-		if(M.status_flags & GODMODE)
-			continue
+		if(SEND_SIGNAL(M, COMSIG_CHECK_FOR_GODMODE) & COMSIG_GODMODE_CANCEL)
+			return 0	// Cancelled by a component
 		if(M.stat == CONSCIOUS)
-			if (istype(M,/mob/living/carbon/human))
+			if (ishuman(M))
 				var/mob/living/carbon/human/H = M
 				if(istype(H.glasses,/obj/item/clothing/glasses/meson) && current_size != STAGE_SUPER)
-					to_chat(H, "<span class=\"notice\">You look directly into The [src.name], good thing you had your protective eyewear on!</span>")
+					to_chat(H, span_notice("You look directly into The [src.name], good thing you had your protective eyewear on!"))
 					return
 				else
-					to_chat(H, "<span class=\"warning\">You look directly into The [src.name], but your eyewear does absolutely nothing to protect you from it!</span>")
-		to_chat(M, "<span class='danger'>You look directly into The [src.name] and feel [current_size == STAGE_SUPER ? "helpless" : "weak"].</span>")
+					to_chat(H, span_warning("You look directly into The [src.name], but your eyewear does absolutely nothing to protect you from it!"))
+		to_chat(M, span_danger("You look directly into The [src.name] and feel [current_size == STAGE_SUPER ? "helpless" : "weak"]."))
 		M.apply_effect(3, STUN)
 		for(var/mob/O in viewers(M, null))
-			O.show_message(text("<span class='danger'>[] stares blankly at The []!</span>", M, src), 1)
+			O.show_message(span_danger("[M] stares blankly at The [src]!"), 1)
 
 /obj/singularity/proc/emp_area()
 	if(current_size != STAGE_SUPER)
@@ -445,19 +451,36 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 /obj/singularity/proc/smwave()
 	for(var/mob/living/M in view(10, src.loc))
 		if(prob(67))
-			to_chat(M, "<span class=\"warning\">You hear an uneartly ringing, then what sounds like a shrilling kettle as you are washed with a wave of heat.</span>")
-			to_chat(M, "<span class=\"notice\">Miraculously, it fails to kill you.</span>")
+			to_chat(M, span_warning("You hear an unearthly ringing, then what sounds like a shrilling kettle as you are washed with a wave of heat."))
+			to_chat(M, span_notice("Miraculously, it fails to kill you."))
 		else
-			to_chat(M, "<span class=\"danger\">You hear an uneartly ringing, then what sounds like a shrilling kettle as you are washed with a wave of heat.</span>")
-			to_chat(M, "<span class=\"danger\">You don't even have a moment to react as you are reduced to ashes by the intense radiation.</span>")
+			to_chat(M, span_danger("You hear an unearthly ringing, then what sounds like a shrilling kettle as you are washed with a wave of heat."))
+			to_chat(M, span_danger("You don't even have a moment to react as you are reduced to ashes by the intense radiation."))
 			M.dust()
-	SSradiation.radiate(src, rand(energy))
+
+	var/rand_pulse_strength = rand(energy)
+	radiation_pulse(
+		src,
+		max_range = BAYRAD_RADIATION_RANGE(rand_pulse_strength),
+		threshold = RAD_EXTREME_INSULATION,
+		chance = 100,
+		strength = rand_pulse_strength
+	)
 	return
 
 /obj/singularity/proc/pulse()
-	for(var/obj/machinery/power/rad_collector/R in rad_collectors)
+	for(var/obj/machinery/power/rad_collector/R in GLOB.rad_collectors)
 		if (get_dist(R, src) <= 15) //Better than using orange() every process.
 			R.receive_pulse(energy)
+	//Yes, this means rad collectors can double dip on the singulo, but you could always use the safer SM or tesla, so it gets a small buff.
+	var/rad_pulse = energy * 0.25
+	radiation_pulse(
+		src,
+		max_range = BAYRAD_RADIATION_RANGE(rad_pulse),
+		threshold = RAD_EXTREME_INSULATION,
+		chance = 80,
+		strength = rad_pulse
+	)
 
 /obj/singularity/proc/on_capture()
 	chained = 1
@@ -481,10 +504,10 @@ GLOBAL_LIST_BOILERPLATE(all_singularities, /obj/singularity)
 	move_self = 1
 
 /obj/singularity/singularity_act(S, size)
-    if(current_size <= size)
-        var/gain = (energy/2)
-        var/dist = max((current_size - 2), 1)
-        explosion(src.loc,(dist),(dist*2),(dist*4))
-        spawn(0)
-            qdel(src)
-        return gain
+	if(current_size <= size)
+		var/gain = (energy/2)
+		var/dist = max((current_size - 2), 1)
+		explosion(src.loc,(dist),(dist*2),(dist*4))
+		spawn(0)
+			qdel(src)
+		return gain

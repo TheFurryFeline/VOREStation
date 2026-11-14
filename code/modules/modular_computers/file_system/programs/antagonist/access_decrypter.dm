@@ -16,9 +16,9 @@
 	var/progress = 0
 	var/target_progress = 300
 	var/datum/access/target_access = null
-	var/list/restricted_access_codes = list(access_change_ids, access_network) // access codes that are not hackable due to balance reasons
+	var/list/restricted_access_codes = list(ACCESS_CHANGE_IDS, ACCESS_NETWORK) // access codes that are not hackable due to balance reasons
 
-/datum/computer_file/program/access_decrypter/kill_program(var/forced)
+/datum/computer_file/program/access_decrypter/kill_program(forced)
 	reset()
 	..(forced)
 
@@ -31,8 +31,8 @@
 	. = ..()
 	if(!running)
 		return
-	var/obj/item/weapon/computer_hardware/processor_unit/CPU = computer.processor_unit
-	var/obj/item/weapon/computer_hardware/card_slot/RFID = computer.card_slot
+	var/obj/item/computer_hardware/processor_unit/CPU = computer.processor_unit
+	var/obj/item/computer_hardware/card_slot/RFID = computer.card_slot
 	if(!istype(CPU) || !CPU.check_functionality() || !istype(RFID) || !RFID.check_functionality())
 		message = "A fatal hardware error has been detected."
 		return
@@ -44,9 +44,9 @@
 	if(progress >= target_progress)
 		reset()
 		RFID.stored_card.access |= target_access.id
-		if(ntnet_global.intrusion_detection_enabled)
-			ntnet_global.add_log("IDS WARNING - Unauthorised access to primary keycode database from device: [computer.network_card.get_network_tag()]  - downloaded access codes for: [target_access.desc].")
-			ntnet_global.intrusion_detection_alarm = 1
+		if(GLOB.ntnet_global.intrusion_detection_enabled)
+			GLOB.ntnet_global.add_log("IDS WARNING - Unauthorised access to primary keycode database from device: [computer.network_card.get_network_tag()]  - downloaded access codes for: [target_access.desc].")
+			GLOB.ntnet_global.intrusion_detection_alarm = 1
 		message = "Successfully decrypted and saved operational key codes. Downloaded access codes for: [target_access.desc]"
 		target_access = null
 
@@ -62,8 +62,8 @@
 				return TRUE
 			if(text2num(params["allowed"]))
 				return TRUE
-			var/obj/item/weapon/computer_hardware/processor_unit/CPU = computer.processor_unit
-			var/obj/item/weapon/computer_hardware/card_slot/RFID = computer.card_slot
+			var/obj/item/computer_hardware/processor_unit/CPU = computer.processor_unit
+			var/obj/item/computer_hardware/card_slot/RFID = computer.card_slot
 			if(!istype(CPU) || !CPU.check_functionality() || !istype(RFID) || !RFID.check_functionality())
 				message = "A fatal hardware error has been detected."
 				return
@@ -71,14 +71,14 @@
 				message = "RFID card is not present in the device. Operation aborted."
 				return
 			running = TRUE
-			target_access = get_access_by_id("[params["access_target"]]")
-			if(ntnet_global.intrusion_detection_enabled)
-				ntnet_global.add_log("IDS WARNING - Unauthorised access attempt to primary keycode database from device: [computer.network_card.get_network_tag()]")
-				ntnet_global.intrusion_detection_alarm = TRUE
+			target_access = SSaccess.get_access_by_id("[params["access_target"]]")
+			if(GLOB.ntnet_global.intrusion_detection_enabled)
+				GLOB.ntnet_global.add_log("IDS WARNING - Unauthorised access attempt to primary keycode database from device: [computer.network_card.get_network_tag()]")
+				GLOB.ntnet_global.intrusion_detection_alarm = TRUE
 			return TRUE
 
 /datum/computer_file/program/access_decrypter/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
-	if(!ntnet_global)
+	if(!GLOB.ntnet_global)
 		return
 	var/list/data = get_header_data()
 
@@ -92,19 +92,19 @@
 		data["rate"] = computer.processor_unit.max_idle_programs
 		data["factor"] = (progress / target_progress)
 	else if(computer?.card_slot?.stored_card)
-		var/obj/item/weapon/card/id/id_card = computer.card_slot.stored_card
+		var/obj/item/card/id/id_card = computer.card_slot.stored_card
 		for(var/i = 1; i <= 7; i++)
 			var/list/accesses = list()
-			for(var/access in get_region_accesses(i))
-				if(get_access_desc(access) && !(access in restricted_access_codes))
+			for(var/access in SSaccess.get_region_accesses(i))
+				if(SSaccess.get_access_desc(access) && !(access in restricted_access_codes))
 					accesses.Add(list(list(
-						"desc" = replacetext(get_access_desc(access), " ", "&nbsp;"),
+						"desc" = replacetext(SSaccess.get_access_desc(access), " ", "&nbsp;"),
 						"ref" = access,
-						"allowed" = (access in id_card.access) ? 1 : 0
+						"allowed" = (access in id_card.GetAccess()) ? 1 : 0
 					)))
 
 			regions.Add(list(list(
-				"name" = get_region_accesses_name(i),
+				"name" = SSaccess.get_region_accesses_name(i),
 				"accesses" = accesses
 			)))
 	data["regions"] = regions

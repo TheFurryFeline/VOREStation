@@ -9,7 +9,7 @@
 	<br><br>\
 	In this book, there are two different types of rules.  Corporate Regulations, and Laws.  They each cover specific situations, and are both enforced \
 	by the Security team.  Despite this, however, the punishments vary considerably for the two types.  It should also be noted that no one is above \
-	these rules, not even the Station Director.\
+	these rules, not even the " + JOB_SITE_MANAGER + ".\
 	<br><br>\
 	Also contained inside are our Standard Operating Procedures, that all employees of NanoTrasen are expected to follow, and for the local facility's \
 	Command team and Internal Affairs to enforce.\
@@ -89,7 +89,7 @@
 					HTML += "		<td>[L.definition]</td>"
 					HTML += "		<td>[L.suggested_punishments]</td>"
 					HTML += "		<td>[L.notes]</td>"
-					HTML += "		<td>[L.mandated ? "<font color='red'>Yes</font>" : "<font color='green'>No</font>"]</td>"
+					HTML += "		<td>[L.mandated ? span_red("Yes") : span_green("No")]</td>"
 					HTML += "	</tr>"
 					j++
 

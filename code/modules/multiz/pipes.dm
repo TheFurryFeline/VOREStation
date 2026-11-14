@@ -28,8 +28,8 @@
 
 	level = 1
 
-/obj/machinery/atmospherics/pipe/zpipe/New()
-	..()
+/obj/machinery/atmospherics/pipe/zpipe/Initialize(mapload)
+	. = ..()
 	init_dir()
 
 /obj/machinery/atmospherics/pipe/zpipe/init_dir()
@@ -51,9 +51,9 @@
 		if(SOUTHWEST)
 			initialize_directions = SOUTH
 
-/obj/machinery/atmospherics/pipe/zpipe/hide(var/i)
+/obj/machinery/atmospherics/pipe/zpipe/hide(i)
 	if(istype(loc, /turf/simulated))
-		invisibility = i ? 101 : 0
+		invisibility = i ? INVISIBILITY_ABSTRACT : INVISIBILITY_NONE
 	update_icon()
 
 /obj/machinery/atmospherics/pipe/zpipe/process()
@@ -78,7 +78,7 @@
 	else return 1
 
 /obj/machinery/atmospherics/pipe/zpipe/proc/burst()
-	src.visible_message("<span class='warning'>\The [src] bursts!</span>");
+	src.visible_message(span_warning("\The [src] bursts!"));
 	playsound(src, 'sound/effects/bang.ogg', 25, 1)
 	var/datum/effect/effect/system/smoke_spread/smoke = new
 	smoke.set_up(1,0, src.loc, 0)
@@ -131,12 +131,12 @@
 	normalize_dir()
 	var/node1_dir
 
-	for(var/direction in cardinal)
+	for(var/direction in GLOB.cardinal)
 		if(direction&initialize_directions)
 			if (!node1_dir)
 				node1_dir = direction
 
-	for(var/obj/machinery/atmospherics/target in get_step(src,node1_dir))
+	for(var/obj/machinery/atmospherics/target in get_prioritized_nodes(get_step(src,node1_dir)))
 		if(can_be_node(target, 1))
 			node1 = target
 			break
@@ -168,12 +168,12 @@
 	normalize_dir()
 	var/node1_dir
 
-	for(var/direction in cardinal)
+	for(var/direction in GLOB.cardinal)
 		if(direction&initialize_directions)
 			if (!node1_dir)
 				node1_dir = direction
 
-	for(var/obj/machinery/atmospherics/target in get_step(src,node1_dir))
+	for(var/obj/machinery/atmospherics/target in get_prioritized_nodes(get_step(src,node1_dir)))
 		if(can_be_node(target, 1))
 			node1 = target
 			break

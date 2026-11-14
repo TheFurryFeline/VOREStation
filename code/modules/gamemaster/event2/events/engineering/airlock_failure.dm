@@ -23,15 +23,15 @@
 
 
 /datum/event2/meta/airlock_failure/get_weight()
-	var/engineering = metric.count_people_in_department(DEPARTMENT_ENGINEERING)
+	var/engineering = GLOB.metric.count_people_in_department(DEPARTMENT_ENGINEERING)
 
 	// Synths are good both for fixing the doors and getting blamed for the doors zapping people.
-	var/synths = metric.count_people_in_department(DEPARTMENT_SYNTHETIC)
+	var/synths = GLOB.metric.count_people_in_department(DEPARTMENT_SYNTHETIC)
 	if(!engineering && !synths) // Nobody's around to fix the door.
 		return 0
 
 	// Medical might be needed for some of the more violent airlock failures.
-	var/medical = metric.count_people_in_department(DEPARTMENT_MEDICAL)
+	var/medical = GLOB.metric.count_people_in_department(DEPARTMENT_MEDICAL)
 	if(!medical && needs_medical)
 		return 0
 
@@ -60,7 +60,7 @@
 /datum/event2/event/airlock_failure/start()
 	var/list/areas = find_random_areas()
 	if(!LAZYLEN(areas))
-		log_debug("Airlock Failure event could not find any areas. Aborting.")
+		log_game("Airlock Failure event could not find any areas. Aborting.")
 		abort()
 		return
 
@@ -71,9 +71,9 @@
 		for(var/obj/machinery/door/airlock/door in area.contents)
 			if(can_break_door(door))
 				addtimer(CALLBACK(src, PROC_REF(break_door), door), 1) // Emagging proc is actually a blocking proc and that's bad for the ticker.
-				door.visible_message(span("danger", "\The [door]'s panel sparks!"))
+				door.visible_message(span_danger("\The [door]'s panel sparks!"))
 				playsound(door, "sparks", 50, 1)
-				log_debug("Airlock Failure event has broken \the [door] airlock in [area].")
+				log_game("Airlock Failure event has broken \the [door] airlock in [area].")
 				affected_areas |= area
 				doors_to_break--
 
@@ -82,7 +82,7 @@
 
 /datum/event2/event/airlock_failure/announce()
 	if(prob(announce_odds))
-		command_announcement.Announce("An electrical issue has been detected in the airlock grid at [english_list(affected_areas)]. \
+		GLOB.command_announcement.Announce("An electrical issue has been detected in the airlock grid at [english_list(affected_areas)]. \
 		Some airlocks may require servicing by a qualified technician.", "Electrical Alert")
 
 

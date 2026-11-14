@@ -94,7 +94,12 @@
 #define ATMOSTANK_CO2           25000 // CO2 and PH are not critically important for station, only for toxins and alternative coolants, no need to store a lot of those.
 #define ATMOSTANK_PHORON        25000
 #define ATMOSTANK_NITROUSOXIDE  10000 // N2O doesn't have a real useful use, i guess it's on station just to allow refilling of sec's riot control canisters?
+#define ATMOSTANK_METHANE 		5000 // Methane! Lowest tank pressure, because it's not really useful anyway except as a dump tank
 
 // Used in various things like tanks and oxygen pumps.
 #define TANK_MAX_RELEASE_PRESSURE (3*ONE_ATMOSPHERE)
 #define TANK_DEFAULT_RELEASE_PRESSURE ONE_ATMOSPHERE
+#define MAX_ATMOS_TEMPERATURE 1e30 //Without having a max temp, you can get .inf temps
+
+///Minimum temperature for items on fire
+#define BURNING_ITEM_MINIMUM_TEMPERATURE (150+T0C)

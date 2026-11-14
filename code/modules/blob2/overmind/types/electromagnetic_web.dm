@@ -23,9 +23,9 @@
 	empulse(B.loc, 0, 1, 2)
 
 /datum/blob_type/electromagnetic_web/on_attack(obj/structure/blob/B, mob/living/victim)
-	victim.emp_act(2)
+	victim.emp_act(EMP_MEDIUM)
 
-/datum/blob_type/electromagnetic_web/on_chunk_tick(obj/item/weapon/blobcore_chunk/B)
+/datum/blob_type/electromagnetic_web/on_chunk_tick(obj/item/blobcore_chunk/B)
 	var/turf/T = get_turf(B)
 	if(!T)
 		return

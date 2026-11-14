@@ -5,6 +5,7 @@
 	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "mflash1"
 	layer = ABOVE_WINDOW_LAYER
+	flags = WALL_ITEM
 	var/id = null
 	var/range = 2 //this is roughly the size of brig cell
 	var/disable = 0
@@ -24,6 +25,16 @@
 	base_state = "pflash"
 	density = TRUE
 
+/obj/machinery/flasher/portable/Initialize(mapload)
+	..()
+	return INITIALIZE_HINT_LATELOAD
+
+/obj/machinery/flasher/portable/LateInitialize()
+	// Map start flashers enable proximity sensing
+	if(anchored)
+		add_overlay("[base_state]-s")
+		sense_proximity(callback = TYPE_PROC_REF(/atom,HasProximity))
+
 /obj/machinery/flasher/power_change()
 	..()
 	if(!(stat & NOPOWER))
@@ -34,14 +45,14 @@
 //		sd_SetLuminosity(0)
 
 //Don't want to render prison breaks impossible
-/obj/machinery/flasher/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/flasher/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_WIRECUTTER))
 		add_fingerprint(user)
 		disable = !disable
 		if(disable)
-			user.visible_message("<span class='warning'>[user] has disconnected the [src]'s flashbulb!</span>", "<span class='warning'>You disconnect the [src]'s flashbulb!</span>")
+			user.visible_message(span_warning("[user] has disconnected the [src]'s flashbulb!"), span_warning("You disconnect the [src]'s flashbulb!"))
 		if(!disable)
-			user.visible_message("<span class='warning'>[user] has connected the [src]'s flashbulb!</span>", "<span class='warning'>You connect the [src]'s flashbulb!</span>")
+			user.visible_message(span_warning("[user] has connected the [src]'s flashbulb!"), span_warning("You connect the [src]'s flashbulb!"))
 
 //Let the AI trigger them directly.
 /obj/machinery/flasher/attack_ai()
@@ -67,13 +78,13 @@
 			continue
 
 		var/flash_time = strength
-		if(istype(O, /mob/living/carbon/human))
+		if(ishuman(O))
 			var/mob/living/carbon/human/H = O
-			//VOREStation Edit Start
 			if(H.nif && H.nif.flag_check(NIF_V_FLASHPROT,NIF_FLAGS_VISION))
 				H.nif.notify("High intensity light detected, and blocked!",TRUE)
 				continue
-			//VOREStation Edit End
+			if(FLASHPROOF in H.mutations)
+				continue
 			if(!H.eyecheck() <= 0)
 				continue
 			flash_time *= H.species.flash_mod
@@ -89,35 +100,41 @@
 				L.flash_eyes()
 		O.Weaken(flash_time)
 
-/obj/machinery/flasher/emp_act(severity)
-	if(stat & (BROKEN|NOPOWER))
-		..(severity)
+/obj/machinery/flasher/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF || stat & (BROKEN|NOPOWER))
 		return
 	if(prob(75/severity))
 		flash()
-	..(severity)
 
-/obj/machinery/flasher/portable/HasProximity(turf/T, atom/movable/AM, oldloc)
+/obj/machinery/flasher/portable/HasProximity(turf/T, datum/weakref/WF, oldloc)
+	if(isnull(WF))
+		return
+
+	var/atom/movable/AM = WF.resolve()
+	if(isnull(AM))
+		log_runtime("DEBUG: HasProximity called without reference on [src].")
+		return
 	if(disable || !anchored || (last_flash && world.time < last_flash + 150))
 		return
 
 	if(iscarbon(AM))
 		var/mob/living/carbon/M = AM
-		if(M.m_intent != "walk")
+		if(M.m_intent != I_WALK)
 			flash()
 
-/obj/machinery/flasher/portable/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/flasher/portable/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_WRENCH))
 		add_fingerprint(user)
 		anchored = !anchored
 
 		if(!anchored)
-			user.show_message(text("<span class='warning'>[src] can now be moved.</span>"))
+			user.show_message(span_warning("[src] can now be moved."))
 			cut_overlays()
 			unsense_proximity(callback = /atom/proc/HasProximity)
 
 		else if(anchored)
-			user.show_message(text("<span class='warning'>[src] is now secured.</span>"))
+			user.show_message(span_warning("[src] is now secured."))
 			add_overlay("[base_state]-s")
 			sense_proximity(callback = /atom/proc/HasProximity)
 
@@ -132,17 +149,19 @@
 
 	use_power(5)
 
-	active = 1
+	if(active)
+		return
+
+	active = TRUE
 	icon_state = "launcheract"
 
-	for(var/obj/machinery/flasher/M in machines)
+	for(var/obj/machinery/flasher/M in GLOB.machines)
 		if(M.id == id)
-			spawn()
-				M.flash()
+			M.flash()
 
-	sleep(50)
+	addtimer(CALLBACK(src, PROC_REF(finish_trigger)), 5 SECONDS, TIMER_DELETE_ME|TIMER_UNIQUE)
 
+/obj/machinery/button/flasher/proc/finish_trigger()
+	PRIVATE_PROC(TRUE)
 	icon_state = "launcherbtt"
-	active = 0
-
-	return
+	active = FALSE

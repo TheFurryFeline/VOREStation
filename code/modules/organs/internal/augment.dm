@@ -30,7 +30,9 @@
 	var/aug_cooldown = 30 SECONDS
 	var/cooldown = null
 
-/obj/item/organ/internal/augment/Initialize()
+	description_fluff = "If attempting to implant a compatible augment into a synthetic limb, the limb must be screwdrivered open and then the augment port opened with a crowbar before insertion can begin."
+
+/obj/item/organ/internal/augment/Initialize(mapload)
 	. = ..()
 	setup_radial_icon()
 	if(integrated_object_type)
@@ -46,7 +48,7 @@
 		radial_state = icon_state
 	my_radial_icon = image(icon = radial_icon, icon_state = radial_state)
 
-/obj/item/organ/internal/augment/handle_organ_mod_special(var/removed = FALSE)
+/obj/item/organ/internal/augment/handle_organ_mod_special(removed = FALSE)
 	if(removed && integrated_object && integrated_object.loc != src)
 		if(isliving(integrated_object.loc))
 			var/mob/living/L = integrated_object.loc
@@ -65,7 +67,7 @@
 			return
 
 	if(robotic && owner.get_restraining_bolt())
-		to_chat(owner, "<span class='warning'>\The [src] doesn't respond.</span>")
+		to_chat(owner, span_warning("\The [src] doesn't respond."))
 		return
 
 	var/item_to_equip = integrated_object
@@ -73,28 +75,9 @@
 		item_to_equip = integrated_object_type
 
 	if(ispath(item_to_equip))
-		owner.equip_augment_item(target_slot, item_to_equip, silent_deploy, FALSE)
+		owner.equip_augment_item(target_slot, item_to_equip, silent_deploy)
 	else if(item_to_equip)
-		owner.equip_augment_item(target_slot, item_to_equip, silent_deploy, FALSE, src)
-
-/*
- * The delicate handling of augment-controlled items.
- */
-
-// Attaches to the end of dropped items' code.
-
-/obj/item
-	var/destroy_on_drop = FALSE	// Used by augments to determine if the item should destroy itself when dropped, or return to its master.
-	var/obj/item/organ/my_augment = null	// Used to reference the object's host organ.
-
-/obj/item/dropped(mob/user)
-	. = ..()
-	if(src)
-		if(destroy_on_drop && !QDELETED(src))
-			qdel(src)
-			return
-		if(my_augment)
-			forceMove(my_augment)
+		owner.equip_augment_item(target_slot, item_to_equip, silent_deploy, src)
 
 /*
  * Human-specific mob procs.
@@ -107,9 +90,9 @@
 	set desc = "Toggle your augment menu."
 	set category = "Augments"
 
-	enable_augments(usr)
+	enable_augments(src)
 
-/mob/living/carbon/human/proc/enable_augments(var/mob/living/user)
+/mob/living/carbon/human/proc/enable_augments(mob/living/user)
 	var/list/options = list()
 
 	var/list/present_augs = list()
@@ -137,11 +120,10 @@
  * Used to equip an organ's augment items when possible.
  * slot is the target equip slot, if it's not a generic either-hand deployable,
  * equipping is either the target object, or a path for the target object,
- * destroy_on_drop is the default value for the object to be deleted if it is removed from their person, if equipping is a path, however, this will be set to TRUE,
  * cling_to_organ is a reference to the organ object itself, so they can easily return to their organ when removed by any means.
  */
 
-/mob/living/carbon/human/proc/equip_augment_item(var/slot, var/obj/item/equipping = null, var/make_sound = TRUE, var/destroy_on_drop = FALSE, var/obj/item/organ/cling_to_organ = null)
+/mob/living/carbon/human/proc/equip_augment_item(slot, obj/item/equipping = null, make_sound = TRUE, obj/item/organ/cling_to_organ = null)
 	if(!ishuman(src))
 		return 0
 
@@ -153,15 +135,14 @@
 	if(buckled)
 		var/obj/Ob = buckled
 		if(Ob.buckle_lying)
-			to_chat(M, "<span class='notice'>You cannot use your augments when restrained.</span>")
+			to_chat(M, span_notice("You cannot use your augments when restrained."))
 			return 0
 
 	if((slot == slot_l_hand && l_hand) || (slot == slot_r_hand && r_hand))
-		to_chat(M,"<span class='warning'>Your hand is full.  Drop something first.</span>")
+		to_chat(M,span_warning("Your hand is full.  Drop something first."))
 		return 0
 
-	var/del_if_failure = destroy_on_drop
-
+	var/del_if_failure = FALSE
 	if(ispath(equipping))
 		del_if_failure = TRUE
 		equipping = new equipping(src)
@@ -172,7 +153,7 @@
 	else
 		if(slot_is_accessible(slot, equipping, src))
 			equip_to_slot(equipping, slot, 1, 1)
-		else if(destroy_on_drop || del_if_failure)
+		else if(del_if_failure)
 			qdel(equipping)
 			return 0
 
@@ -183,6 +164,6 @@
 		playsound(src, 'sound/items/change_jaws.ogg', 30, 1)
 
 	if(equipping.loc != src)
-		equipping.dropped()
+		equipping.dropped(src)
 
 	return 1

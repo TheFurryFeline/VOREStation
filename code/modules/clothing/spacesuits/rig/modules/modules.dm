@@ -13,10 +13,10 @@
 	desc = "It looks pretty sciency."
 	icon = 'icons/obj/rig_modules.dmi'
 	icon_state = "module"
-	matter = list(MAT_STEEL = 20000, MAT_PLASTIC = 30000, MAT_GLASS = 5000)
+	matter = list(MAT_STEEL = MATERIAL_COST(10), MAT_PLASTIC = MATERIAL_COST(15), MAT_GLASS = MATERIAL_COST(2.5))
 
 	var/damage = 0
-	var/obj/item/weapon/rig/holder
+	var/obj/item/rig/holder
 
 	var/module_cooldown = 10
 	var/next_use = 0
@@ -53,7 +53,7 @@
 	var/activate_string = "Activate"
 	var/deactivate_string = "Deactivate"
 
-	var/list/stat_rig_module/stat_modules = new()
+	var/list/stat_modules = new()
 
 /obj/item/rig_module/examine()
 	. = ..()
@@ -75,7 +75,7 @@
 
 		to_chat(user, "You start mending the damaged portions of \the [src]...")
 
-		if(!do_after(user,30) || !W || !src)
+		if(!do_after(user, 3 SECONDS, target = src) || !W || !src)
 			return
 
 		var/obj/item/stack/nanopaste/paste = W
@@ -100,7 +100,7 @@
 			return
 
 		to_chat(user, "You start mending the damaged portions of \the [src]...")
-		if(!do_after(user,30) || !W || !src)
+		if(!do_after(user, 3 SECONDS, target = src) || !W || !src)
 			return
 
 		damage = 1
@@ -109,8 +109,8 @@
 		return
 	..()
 
-/obj/item/rig_module/New()
-	..()
+/obj/item/rig_module/Initialize(mapload)
+	. = ..()
 	if(suit_overlay_inactive)
 		suit_overlay = suit_overlay_inactive
 
@@ -129,19 +129,21 @@
 
 		charges = processed_charges
 
-	stat_modules +=	new/stat_rig_module/activate(src)
-	stat_modules +=	new/stat_rig_module/deactivate(src)
-	stat_modules +=	new/stat_rig_module/engage(src)
-	stat_modules +=	new/stat_rig_module/select(src)
-	stat_modules +=	new/stat_rig_module/charge(src)
+	stat_modules +=	new/atom/movable/stat_rig_module/activate(src)
+	stat_modules +=	new/atom/movable/stat_rig_module/deactivate(src)
+	stat_modules +=	new/atom/movable/stat_rig_module/engage(src)
+	stat_modules +=	new/atom/movable/stat_rig_module/select(src)
+	stat_modules +=	new/atom/movable/stat_rig_module/charge(src)
 
-/obj/item/rig_module/Destroy(force, ...)
+/obj/item/rig_module/Destroy()
+	holder?.installed_modules -= src
+	holder = null
 	QDEL_NULL_LIST(stat_modules)
 	. = ..()
 
 
 // Called when the module is installed into a suit.
-/obj/item/rig_module/proc/installed(var/obj/item/weapon/rig/new_holder)
+/obj/item/rig_module/proc/installed(obj/item/rig/new_holder)
 	holder = new_holder
 	return
 
@@ -149,27 +151,27 @@
 /obj/item/rig_module/proc/engage()
 
 	if(damage >= 2)
-		to_chat(usr, "<span class='warning'>The [interface_name] is damaged beyond use!</span>")
+		to_chat(usr, span_warning("The [interface_name] is damaged beyond use!"))
 		return 0
 
 	if(world.time < next_use)
-		to_chat(usr, "<span class='warning'>You cannot use the [interface_name] again so soon.</span>")
+		to_chat(usr, span_warning("You cannot use the [interface_name] again so soon."))
 		return 0
 
 	if(!holder || holder.canremove)
-		to_chat(usr, "<span class='warning'>The suit is not initialized.</span>")
+		to_chat(usr, span_warning("The suit is not initialized."))
 		return 0
 
 	if(usr.lying || usr.stat || usr.stunned || usr.paralysis || usr.weakened)
-		to_chat(usr, "<span class='warning'>You cannot use the suit in this state.</span>")
+		to_chat(usr, span_warning("You cannot use the suit in this state."))
 		return 0
 
 	if(holder.wearer && holder.wearer.lying)
-		to_chat(usr, "<span class='warning'>The suit cannot function while the wearer is prone.</span>")
+		to_chat(usr, span_warning("The suit cannot function while the wearer is prone."))
 		return 0
 
 	if(holder.security_check_enabled && !holder.check_suit_access(usr))
-		to_chat(usr, "<span class='danger'>Access denied.</span>")
+		to_chat(usr, span_danger("Access denied."))
 		return 0
 
 	if(!holder.check_power_cost(usr, use_power_cost, 0, src, (istype(usr,/mob/living/silicon ? 1 : 0) ) ) )
@@ -180,7 +182,7 @@
 	return 1
 
 // Proc for toggling on active abilities.
-/obj/item/rig_module/proc/activate(var/skip_engage = 0) //VOREStation Edit - Allow us to skip the engage call.
+/obj/item/rig_module/proc/activate(skip_engage = 0) //VOREStation Edit - Allow us to skip the engage call.
 	//VOREStation Edit - Allow us to skip the engage call
 	if(active)
 		return 0
@@ -231,57 +233,40 @@
 
 // Called by holder rigsuit attackby()
 // Checks if an item is usable with this module and handles it if it is
-/obj/item/rig_module/proc/accepts_item(var/obj/item/input_device)
+/obj/item/rig_module/proc/accepts_item(obj/item/input_device)
 	return 0
 
-/mob/living/carbon/human/Stat()
-	. = ..()
-
-	if(. && istype(back,/obj/item/weapon/rig))
-		var/obj/item/weapon/rig/R = back
-		SetupStat(R)
-
-	else if(. && istype(belt,/obj/item/weapon/rig))
-		var/obj/item/weapon/rig/R = belt
-		SetupStat(R)
-
-/mob/proc/SetupStat(var/obj/item/weapon/rig/R)
-	if(R && !R.canremove && R.installed_modules.len && statpanel("Hardsuit Modules"))
-		var/cell_status = R.cell ? "[R.cell.charge]/[R.cell.maxcharge]" : "ERROR"
-		stat("Suit charge", cell_status)
-		for(var/obj/item/rig_module/module in R.installed_modules)
-		{
-			for(var/stat_rig_module/SRM in module.stat_modules)
-				if(SRM.CanUse())
-					stat(SRM.module.interface_name,SRM)
-		}
-
-/stat_rig_module
-	parent_type = /atom/movable
+/atom/movable/stat_rig_module
 	var/module_mode = ""
 	var/obj/item/rig_module/module
 
-/stat_rig_module/New(var/obj/item/rig_module/module)
-	..()
-	src.module = module
+/atom/movable/stat_rig_module/Initialize(mapload)
+	. = ..()
+	module = loc
+	if(!istype(module))
+		return INITIALIZE_HINT_QDEL
 
-/stat_rig_module/Destroy()
+/atom/movable/stat_rig_module/Destroy()
 	module = null
 	. = ..()
 
-/stat_rig_module/proc/AddHref(var/list/href_list)
+/atom/movable/stat_rig_module/proc/AddHref(list/href_list)
 	return
 
-/stat_rig_module/proc/CanUse()
+/atom/movable/stat_rig_module/proc/CanUse()
 	return 0
 
-/stat_rig_module/Click()
+/atom/movable/stat_rig_module/Click()
 	if(CanUse())
 		switch(module_mode)
 			if("select")
 				module.holder.selected_module = module
 			if("engage")
 				module.engage()
+			if("activate")
+				module.activate()
+			if("deactivate")
+				module.deactivate()
 			if("toggle")
 				if(module.active)
 					module.deactivate()
@@ -290,21 +275,25 @@
 			if("select_charge_type")
 				module.charge_selected = module.charges[module.charges.Find(module.charge_selected)]
 
-/stat_rig_module/DblClick()
+/atom/movable/stat_rig_module/DblClick()
 	return Click()
 
-/stat_rig_module/activate/New(var/obj/item/rig_module/module)
-	..()
+/atom/movable/stat_rig_module/activate/Initialize(mapload)
+	. = ..()
+	if(!istype(module))
+		return INITIALIZE_HINT_QDEL
 	name = module.activate_string
 	if(module.active_power_cost)
 		name += " ([module.active_power_cost*10]A)"
 	module_mode = "activate"
 
-/stat_rig_module/activate/CanUse()
+/atom/movable/stat_rig_module/activate/CanUse()
 	return module.toggleable && !module.active
 
-/stat_rig_module/deactivate/New(var/obj/item/rig_module/module)
-	..()
+/atom/movable/stat_rig_module/deactivate/Initialize(mapload)
+	. = ..()
+	if(!istype(module))
+		return INITIALIZE_HINT_QDEL
 	name = module.deactivate_string
 	// Show cost despite being 0, if it means changing from an active cost.
 	if(module.active_power_cost || module.passive_power_cost)
@@ -312,36 +301,38 @@
 
 	module_mode = "deactivate"
 
-/stat_rig_module/deactivate/CanUse()
+/atom/movable/stat_rig_module/deactivate/CanUse()
 	return module.toggleable && module.active
 
-/stat_rig_module/engage/New(var/obj/item/rig_module/module)
-	..()
+/atom/movable/stat_rig_module/engage/Initialize(mapload)
+	. = ..()
+	if(!istype(module))
+		return INITIALIZE_HINT_QDEL
 	name = module.engage_string
 	if(module.use_power_cost)
 		name += " ([module.use_power_cost*10]E)"
 	module_mode = "engage"
 
-/stat_rig_module/engage/CanUse()
+/atom/movable/stat_rig_module/engage/CanUse()
 	return module.usable
 
-/stat_rig_module/select/New()
-	..()
+/atom/movable/stat_rig_module/select/Initialize(mapload)
+	. = ..()
 	name = "Select"
 	module_mode = "select"
 
-/stat_rig_module/select/CanUse()
+/atom/movable/stat_rig_module/select/CanUse()
 	if(module.selectable)
 		name = module.holder.selected_module == module ? "Selected" : "Select"
 		return 1
 	return 0
 
-/stat_rig_module/charge/New()
-	..()
+/atom/movable/stat_rig_module/charge/Initialize(mapload)
+	. = ..()
 	name = "Change Charge"
 	module_mode = "select_charge_type"
 
-/stat_rig_module/charge/AddHref(var/list/href_list)
+/atom/movable/stat_rig_module/charge/AddHref(list/href_list)
 	var/charge_index = module.charges.Find(module.charge_selected)
 	if(!charge_index)
 		charge_index = 0
@@ -350,7 +341,7 @@
 
 	href_list["charge_type"] = module.charges[charge_index]
 
-/stat_rig_module/charge/CanUse()
+/atom/movable/stat_rig_module/charge/CanUse()
 	if(module.charges && module.charges.len)
 		var/datum/rig_charge/charge = module.charges[module.charge_selected]
 		name = "[charge.display_name] ([charge.charges]C) - Change"

@@ -26,12 +26,11 @@
 	else if(material.opacity < 0.5 && opacity)
 		set_light(0)
 
-	SSradiation.resistance_cache.Remove(src)
 	update_connections(1)
 	update_icon()
 
 
-/turf/simulated/wall/proc/set_material(var/datum/material/newmaterial, var/datum/material/newrmaterial, var/datum/material/newgmaterial)
+/turf/simulated/wall/proc/set_material(datum/material/newmaterial, datum/material/newrmaterial, datum/material/newgmaterial)
 	material = newmaterial
 	reinf_material = newrmaterial
 	if(!newgmaterial)
@@ -67,13 +66,13 @@
 			I.color = reinf_material.icon_colour
 			add_overlay(I)
 		else
-			if("[reinf_material.icon_reinf]0" in cached_icon_states(wall_masks))
+			if(icon_exists(wall_masks, "[reinf_material.icon_reinf]0"))
 				// Directional icon
 				for(var/i = 1 to 4)
 					I = image(wall_masks, "[reinf_material.icon_reinf][wall_connections[i]]", dir = 1<<(i-1))
 					I.color = reinf_material.icon_colour
 					add_overlay(I)
-			else if("[reinf_material.icon_reinf]" in cached_icon_states(wall_masks))
+			else if(icon_exists(wall_masks, "[reinf_material.icon_reinf]"))
 				I = image(wall_masks, reinf_material.icon_reinf)
 				I.color = reinf_material.icon_colour
 				add_overlay(I)
@@ -126,17 +125,17 @@
 /turf/simulated/wall/proc/special_wall_connections(list/dirs, list/inrange)
 	if(material.icon_base == "hull") // Could be improved...
 		var/additional_dirs = 0
-		for(var/direction in alldirs)
+		for(var/direction in GLOB.alldirs)
 			var/turf/T = get_step(src,direction)
 			if(T && (locate(/obj/structure/hull_corner) in T))
 				dirs += direction
 				additional_dirs |= direction
 		if(additional_dirs)
-			for(var/diag_dir in cornerdirs)
+			for(var/diag_dir in GLOB.cornerdirs)
 				if ((additional_dirs & diag_dir) == diag_dir)
 					dirs += diag_dir
 
-/turf/simulated/wall/proc/can_join_with_wall(var/turf/simulated/wall/W)
+/turf/simulated/wall/proc/can_join_with_wall(turf/simulated/wall/W)
 	//No blending if no material
 	if(!material || !W.material)
 		return 0
@@ -148,5 +147,5 @@
 		return 1
 	return 0
 
-/turf/simulated/wall/proc/can_join_with_low_wall(var/obj/structure/low_wall/WF)
+/turf/simulated/wall/proc/can_join_with_low_wall(obj/structure/low_wall/WF)
 	return FALSE

@@ -1,7 +1,7 @@
 
 /obj/mecha/combat/gorilla
 	name = "Gorilla"
-	desc = "<b>Blitzkrieg!</b>" //stop using all caps in item descs i will fight you. its redundant with the bold.
+	desc = span_bold("Blitzkrieg!") //stop using all caps in item descs i will fight you. its redundant with the bold.
 	icon = 'icons/mecha/mecha64x64.dmi'
 	icon_state = "pzrmech"
 	initial_icon = "pzrmech"
@@ -29,7 +29,7 @@
 	zoom_possible = 1
 	thrusters_possible = 1
 
-/obj/mecha/combat/gorilla/Initialize()
+/obj/mecha/combat/gorilla/Initialize(mapload)
 	. = ..()
 	var/obj/item/mecha_parts/mecha_equipment/ME = new /obj/item/mecha_parts/mecha_equipment/tesla_energy_relay(src) // This thing basically cannot function without an external power supply.
 	ME.attach(src)
@@ -95,7 +95,7 @@
 
 /obj/mecha/combat/gorilla/get_stats_part()
 	var/output = ..()
-	output += {"<b>Smoke:</b> [smoke_reserve]"}
+	output += span_bold("Smoke:") + {"[smoke_reserve]"}
 	return output
 
 
@@ -103,8 +103,8 @@
 	var/output = {"<div class='wr'>
 						<div class='header'>Special</div>
 						<div class='links'>
-						<a href='?src=\ref[src];toggle_zoom=1'>Toggle zoom mode</a><br>
-						<a href='?src=\ref[src];smoke=1'>Smoke</a>
+						<a href='byond://?src=\ref[src];toggle_zoom=1'>Toggle zoom mode</a><br>
+						<a href='byond://?src=\ref[src];smoke=1'>Smoke</a>
 						</div>
 						</div>
 						"}
@@ -113,11 +113,11 @@
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/cannon
 	name = "8.8cm KwK 47"
-	desc = "<i>Precision German engineering!</i>" // Why would you ever take this off the mech, anyway?
+	desc = span_italics("Precision German engineering!") // Why would you ever take this off the mech, anyway?
 	icon_state = "mecha_uac2"
 	equip_cooldown = 60 // 6 seconds
 	projectile = /obj/item/projectile/bullet/cannon
-	fire_sound = 'sound/weapons/Gunshot_cannon.ogg'
+	fire_sound = 'sound/weapons/gunshot_cannon.ogg'
 	projectiles = 1
 	projectile_energy_cost = 1000
 	salvageable = 0 // We don't want players ripping this off a dead mech. Could potentially be a prize for beating it if Devs bless me and someone offers a nerf idea.
@@ -128,7 +128,7 @@
 	icon_state = "shell"
 	damage = 1000 // In order to 1-hit any other mech and royally fuck anyone unfortunate enough to get in the way.
 
-/obj/item/projectile/bullet/cannon/on_hit(var/atom/target, var/blocked = 0)
+/obj/item/projectile/bullet/cannon/on_hit(atom/target, blocked = 0)
 	explosion(target, 0, 0, 2, 4)
 	return 1
 

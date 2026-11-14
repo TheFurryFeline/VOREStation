@@ -9,9 +9,9 @@
 	idle_power_usage = 100
 	active_power_usage = 1000
 
-	var/list/obj/machinery/am_shielding/linked_shielding
-	var/list/obj/machinery/am_shielding/linked_cores
-	var/obj/item/weapon/am_containment/fueljar
+	var/list/obj/machinery/am_shielding/linked_shielding = list()
+	var/list/obj/machinery/am_shielding/linked_cores = list()
+	var/obj/item/am_containment/fueljar
 	var/update_shield_icons = 0
 	var/stability = 100
 	var/exploding = 0
@@ -28,17 +28,10 @@
 
 	var/stored_power = 0//Power to deploy per tick
 
-
-/obj/machinery/power/am_control_unit/New()
-	..()
-	linked_shielding = list()
-	linked_cores = list()
-
-
 /obj/machinery/power/am_control_unit/Destroy()//Perhaps damage and run stability checks rather than just qdel on the others
 	for(var/obj/machinery/am_shielding/AMS in linked_shielding)
 		qdel(AMS)
-	..()
+	. = ..()
 
 
 /obj/machinery/power/am_control_unit/process()
@@ -89,23 +82,23 @@
 	return
 
 
-/obj/machinery/power/am_control_unit/emp_act(severity)
+/obj/machinery/power/am_control_unit/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
 	switch(severity)
-		if(1)
+		if(EMP_HEAVY)
 			if(active)	toggle_power()
 			stability -= rand(15,30)
-		if(2)
+		if(EMP_MEDIUM)
 			if(active)	toggle_power()
 			stability -= rand(10,20)
-		if(3)
+		if(EMP_LIGHT)
 			if(active)	toggle_power()
 			stability -= rand(8,15)
-		if(4)
+		if(EMP_HARMLESS)
 			if(active)	toggle_power()
 			stability -= rand(5,10)
-	..()
-	return 0
-
 
 /obj/machinery/power/am_control_unit/ex_act(severity)
 	switch(severity)
@@ -119,7 +112,7 @@
 	return
 
 
-/obj/machinery/power/am_control_unit/bullet_act(var/obj/item/projectile/Proj)
+/obj/machinery/power/am_control_unit/bullet_act(obj/item/projectile/Proj)
 	if(Proj.check_armour != "bullet")
 		stability -= Proj.force
 	return 0
@@ -159,7 +152,7 @@
 			to_chat(user, span_red("Once bolted and linked to a shielding unit it the [src.name] is unable to be moved!"))
 		return
 
-	if(istype(W, /obj/item/weapon/am_containment))
+	if(istype(W, /obj/item/am_containment))
 		if(fueljar)
 			to_chat(user, span_red("There is already a [fueljar] inside!"))
 			return
@@ -185,7 +178,7 @@
 	return
 
 
-/obj/machinery/power/am_control_unit/proc/add_shielding(var/obj/machinery/am_shielding/AMS, var/AMS_linking = 0)
+/obj/machinery/power/am_control_unit/proc/add_shielding(obj/machinery/am_shielding/AMS, AMS_linking = 0)
 	if(!istype(AMS)) return 0
 	if(!anchored) return 0
 	if(!AMS_linking && !AMS.link_control(src)) return 0
@@ -194,7 +187,7 @@
 	return 1
 
 
-/obj/machinery/power/am_control_unit/proc/remove_shielding(var/obj/machinery/am_shielding/AMS)
+/obj/machinery/power/am_control_unit/proc/remove_shielding(obj/machinery/am_shielding/AMS)
 	if(!istype(AMS)) return 0
 	linked_shielding.Remove(AMS)
 	update_shield_icons = 2
@@ -227,16 +220,13 @@
 		for(var/obj/machinery/am_shielding/AMS in linked_shielding)
 			if(AMS.processing)	AMS.shutdown_core()
 			AMS.control_unit = null
-			spawn(10)
-				AMS.controllerscan()
+			addtimer(CALLBACK(AMS, TYPE_PROC_REF(/obj/machinery/am_shielding, controllerscan)), 1 SECOND, TIMER_DELETE_ME)
 		linked_shielding = list()
 
 	else
 		for(var/obj/machinery/am_shielding/AMS in linked_shielding)
 			AMS.update_icon()
-	spawn(20)
-		shield_icon_delay = 0
-	return
+	VARSET_IN(src, shield_icon_delay, 0, 2 SECONDS)
 
 
 /obj/machinery/power/am_control_unit/proc/check_core_stability()
@@ -246,14 +236,13 @@
 	for(var/obj/machinery/am_shielding/AMS in linked_cores)
 		stored_core_stability += AMS.stability
 	stored_core_stability/=linked_cores.len
-	spawn(40)
-		stored_core_stability_delay = 0
+	VARSET_IN(src, stored_core_stability_delay, 0, 4 SECONDS)
 	return
 
 
 /obj/machinery/power/am_control_unit/interact(mob/user)
 	if((get_dist(src, user) > 1) || (stat & (BROKEN|NOPOWER)))
-		if(!istype(user, /mob/living/silicon/ai))
+		if(!isAI(user))
 			user.unset_machine()
 			user << browse(null, "window=AMcontrol")
 			return
@@ -261,31 +250,31 @@
 
 	var/dat = ""
 	dat += "AntiMatter Control Panel<BR>"
-	dat += "<A href='?src=\ref[src];close=1'>Close</A><BR>"
-	dat += "<A href='?src=\ref[src];refresh=1'>Refresh</A><BR>"
-	dat += "<A href='?src=\ref[src];refreshicons=1'>Force Shielding Update</A><BR><BR>"
+	dat += "<A href='byond://?src=\ref[src];close=1'>Close</A><BR>"
+	dat += "<A href='byond://?src=\ref[src];refresh=1'>Refresh</A><BR>"
+	dat += "<A href='byond://?src=\ref[src];refreshicons=1'>Force Shielding Update</A><BR><BR>"
 	dat += "Status: [(active?"Injecting":"Standby")] <BR>"
-	dat += "<A href='?src=\ref[src];togglestatus=1'>Toggle Status</A><BR>"
+	dat += "<A href='byond://?src=\ref[src];togglestatus=1'>Toggle Status</A><BR>"
 
 	dat += "Instability: [stability]%<BR>"
 	dat += "Reactor parts: [linked_shielding.len]<BR>"//TODO: perhaps add some sort of stability check
 	dat += "Cores: [linked_cores.len]<BR><BR>"
 	dat += "-Current Efficiency: [reported_core_efficiency]<BR>"
-	dat += "-Average Stability: [stored_core_stability] <A href='?src=\ref[src];refreshstability=1'>(update)</A><BR>"
+	dat += "-Average Stability: [stored_core_stability] <A href='byond://?src=\ref[src];refreshstability=1'>(update)</A><BR>"
 	dat += "Last Produced: [stored_power]<BR>"
 
 	dat += "Fuel: "
 	if(!fueljar)
 		dat += "<BR>No fuel receptacle detected."
 	else
-		dat += "<A href='?src=\ref[src];ejectjar=1'>Eject</A><BR>"
+		dat += "<A href='byond://?src=\ref[src];ejectjar=1'>Eject</A><BR>"
 		dat += "- [fueljar.fuel]/[fueljar.fuel_max] Units<BR>"
 
 		dat += "- Injecting: [fuel_injection] units<BR>"
-		dat += "- <A href='?src=\ref[src];strengthdown=1'>--</A>|<A href='?src=\ref[src];strengthup=1'>++</A><BR><BR>"
+		dat += "- <A href='byond://?src=\ref[src];strengthdown=1'>--</A>|<A href='byond://?src=\ref[src];strengthup=1'>++</A><BR><BR>"
 
 
-	user << browse(dat, "window=AMcontrol;size=420x500")
+	user << browse("<html>[dat]</html>", "window=AMcontrol;size=420x500")
 	onclose(user, "AMcontrol")
 	return
 
@@ -293,7 +282,7 @@
 /obj/machinery/power/am_control_unit/Topic(href, href_list)
 	..()
 	//Ignore input if we are broken or guy is not touching us, AI can control from a ways away
-	if(stat & (BROKEN|NOPOWER) || (get_dist(src, usr) > 1 && !istype(usr, /mob/living/silicon/ai)))
+	if(stat & (BROKEN|NOPOWER) || (get_dist(src, usr) > 1 && !isAI(usr)))
 		usr.unset_machine()
 		usr << browse(null, "window=AMcontrol")
 		return

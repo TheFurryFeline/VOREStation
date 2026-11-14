@@ -7,14 +7,14 @@
 	var/max_cable = 1000
 	required_type = list(/obj/mecha/working)
 
-/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/New()
+/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/Initialize(mapload)
+	. = ..()
 	cable = new(src, 0)
-	..()
 
 /obj/item/mecha_parts/mecha_equipment/tool/cable_layer/MoveAction()
 	layCable()
 
-/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/action(var/obj/item/stack/cable_coil/target)
+/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/action(obj/item/stack/cable_coil/target)
 	if(!action_checks(target))
 		return
 	var/result = load_cable(target)
@@ -34,11 +34,11 @@
 	if(href_list["toggle"])
 		set_ready_state(!equip_ready)
 		occupant_message("[src] [equip_ready?"dea":"a"]ctivated.")
-		log_message("[equip_ready?"Dea":"A"]ctivated.")
+		src.mecha_log_message("[equip_ready?"Dea":"A"]ctivated.")
 		return
 	if(href_list["cut"])
 		if(cable && cable.get_amount())
-			var/m = round(input(chassis.occupant, "Please specify the length of cable to cut", "Cut cable", min(cable.get_amount(), 30)) as num, 1)
+			var/m = tgui_input_number(chassis.occupant, "Please specify the length of cable to cut", "Cut cable", min(cable.get_amount(), 30))
 			m = min(m, cable.get_amount())
 			if(m)
 				use_cable(m)
@@ -50,10 +50,10 @@
 /obj/item/mecha_parts/mecha_equipment/tool/cable_layer/get_equip_info()
 	var/output = ..()
 	if(output)
-		return "[output] \[Cable: [cable ? cable.get_amount() : 0] m\][(cable && cable.get_amount()) ? "- <a href='?src=\ref[src];toggle=1'>[!equip_ready?"Dea":"A"]ctivate</a>|<a href='?src=\ref[src];cut=1'>Cut</a>" : null]"
+		return "[output] \[Cable: [cable ? cable.get_amount() : 0] m\][(cable && cable.get_amount()) ? "- <a href='byond://?src=\ref[src];toggle=1'>[!equip_ready?"Dea":"A"]ctivate</a>|<a href='byond://?src=\ref[src];cut=1'>Cut</a>" : null]"
 	return
 
-/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/proc/load_cable(var/obj/item/stack/cable_coil/CC)
+/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/proc/load_cable(obj/item/stack/cable_coil/CC)
 	if(istype(CC) && CC.get_amount())
 		var/cur_amount = cable? cable.get_amount() : 0
 		var/to_load = max(max_cable - cur_amount,0)
@@ -73,7 +73,7 @@
 	if(!cable || cable.get_amount() < 1)
 		set_ready_state(TRUE)
 		occupant_message("Cable depleted, [src] deactivated.")
-		log_message("Cable depleted, [src] deactivated.")
+		src.mecha_log_message("Cable depleted, [src] deactivated.")
 		return
 	if(cable.get_amount() < amount)
 		occupant_message("No enough cable to finish the task.")
@@ -85,7 +85,7 @@
 /obj/item/mecha_parts/mecha_equipment/tool/cable_layer/proc/reset()
 	last_piece = null
 
-/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/proc/dismantleFloor(var/turf/new_turf)
+/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/proc/dismantleFloor(turf/new_turf)
 	new_turf = get_turf(chassis)
 	if(istype(new_turf, /turf/simulated/floor))
 		var/turf/simulated/floor/T = new_turf
@@ -93,7 +93,7 @@
 			T.make_plating(!(T.broken || T.burnt))
 	return new_turf.is_plating()
 
-/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/proc/layCable(var/turf/new_turf)
+/obj/item/mecha_parts/mecha_equipment/tool/cable_layer/proc/layCable(turf/new_turf)
 	new_turf = get_turf(chassis)
 	if(equip_ready || !istype(new_turf, /turf/simulated/floor) || !dismantleFloor(new_turf))
 		return reset()

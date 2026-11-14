@@ -8,7 +8,7 @@
 	icon_dead = "merc-dead"
 	icon_gib = "merc_gib"
 
-	faction = "altevian"
+	faction = FACTION_ALTEVIAN
 	movement_cooldown = 1
 
 	status_flags = 0
@@ -27,7 +27,7 @@
 	armor = list(melee = 90, bullet = 90, laser = 90, energy = 90, bomb = 90, bio = 100, rad = 100)			//matches stats of suit they drop. Basically tank. Rat tank. Ratank.
 
 	corpse = /obj/effect/landmark/mobcorpse/altevian
-	loot_list = list(/obj/item/weapon/melee/energy/sword/altevian = 100)
+	loot_list = list(/obj/item/melee/energy/sword/altevian = 100)
 
 	ai_holder_type = /datum/ai_holder/simple_mob/merc
 	say_list_type = /datum/say_list/merc/altevian
@@ -46,8 +46,8 @@
 	say_stand_down = list("Thank you for listening! Please have a safe day!", "Carry along, and keep safe.", "You're cleared to depart, thank you for not causing problems.")
 	say_escalate = list("Team, we have mice attempting to steal our salvage!", "We've warned you! Please know this is just us following orders!", "Apologies, but we have to attack due to failing to listen to our order!")
 
-	threaten_sound = 'sound/weapons/TargetOn.ogg'
-	stand_down_sound = 'sound/weapons/TargetOff.ogg'
+	threaten_sound = 'sound/weapons/targeton.ogg'
+	stand_down_sound = 'sound/weapons/targetoff.ogg'
 
 /mob/living/simple_mob/humanoid/merc/altevian/sapper
 	desc = "An Altevian Naval Sapper, adorned in the top of the line Heartbreaker suit. Armed with a giant fokken wrench."
@@ -62,7 +62,7 @@
 	attacktext = list("whacked", "slammed", "bashed", "clonked", "bonked")
 	attack_sound = 'sound/weapons/smash.ogg'
 
-	loot_list = list(/obj/item/weapon/tool/transforming/altevian = 100)
+	loot_list = list(/obj/item/tool/transforming/altevian = 100)
 
 /mob/living/simple_mob/humanoid/merc/altevian/ranged
 	desc = "An Altevian Naval Salvage Guard, adorned in the top of the line Heartbreaker suit. Armed with a small energy gun."
@@ -75,7 +75,7 @@
 	attack_armor_pen = 20
 	base_attack_cooldown = 8
 
-	loot_list = list(/obj/item/weapon/gun/energy/altevian = 100)
+	loot_list = list(/obj/item/gun/energy/altevian = 100)
 
 	needs_reload = TRUE
 	reload_time = 1.5 SECONDS
@@ -92,7 +92,7 @@
 
 	base_attack_cooldown = 8
 
-	loot_list = list(/obj/item/weapon/gun/energy/altevian/large = 100)
+	loot_list = list(/obj/item/gun/energy/altevian/large = 100)
 
 	needs_reload = TRUE
 	reload_time = 3 SECONDS
@@ -107,25 +107,25 @@
 
 	base_attack_cooldown = 10
 
-	loot_list = list(/obj/item/weapon/storage/box/altevian_ammo = 100, /obj/item/weapon/gun/projectile/altevian = 100)
+	loot_list = list(/obj/item/storage/box/altevian_ammo = 100, /obj/item/gun/projectile/altevian = 100)
 
 	needs_reload = TRUE
 	reload_time = 5 SECONDS
 	reload_max = 5
 	projectiletype = /obj/item/projectile/bullet/sam48
-	projectilesound = 'sound/weapons/Gunshot_heavy.ogg'
+	projectilesound = 'sound/weapons/gunshot_heavy.ogg'
 
 /mob/living/simple_mob/humanoid/merc/altevian/neutral
-	faction = "neutral"
+	faction = FACTION_NEUTRAL
 
 /mob/living/simple_mob/humanoid/merc/altevian/sapper/neutral
-	faction = "neutral"
+	faction = FACTION_NEUTRAL
 
 /mob/living/simple_mob/humanoid/merc/altevian/ranged/neutral
-	faction = "neutral"
+	faction = FACTION_NEUTRAL
 
 /mob/living/simple_mob/humanoid/merc/altevian/ranged/strong/neutral
-	faction = "neutral"
+	faction = FACTION_NEUTRAL
 
 /mob/living/simple_mob/humanoid/merc/altevian/ranged/ballistic/neutral
-	faction = "neutral"
+	faction = FACTION_NEUTRAL

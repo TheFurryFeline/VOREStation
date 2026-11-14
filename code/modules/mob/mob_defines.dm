@@ -1,3 +1,11 @@
+/**
+ * The mob, usually meant to be a creature of some type
+ *
+ * Has a client attached that is a living person (most of the time), although I have to admit
+ * sometimes it's hard to tell they're sentient
+ *
+ * Has a lot of the creature game world logic, such as health etc
+ */
 /mob
 	density = TRUE
 	layer = MOB_LAYER
@@ -6,40 +14,60 @@
 	blocks_emissive = EMISSIVE_BLOCK_GENERIC
 	///when this be added to vis_contents of something it inherit something.plane, important for visualisation of mob in openspace.
 	vis_flags = VIS_INHERIT_PLANE
+	unacidable = FALSE
+
+	/// It's like a client, but persists! Persistent clients will stick to a mob until the client in question is logged into a different mob.
+	var/datum/persistent_client/persistent_client
+
 	var/datum/mind/mind
 
-	var/stat = 0 //Whether a mob is alive or dead. TODO: Move this to living - Nodrak
+	var/stat = CONSCIOUS //Whether a mob is alive or dead.
 	var/next_move = null // world.time when mob is next allowed to self-move.
+
+	/**
+	 * Whether and how a mob is incapacitated
+	 *
+	 * Normally being restrained, agressively grabbed, or in stasis counts as incapacitated
+	 * unless there is a flag being used to check if it's ignored
+	 *
+	 * * bitflags: (see code/__DEFINES/status_effects.dm)
+	 * * INCAPABLE_RESTRAINTS - if our mob is in a restraint (handcuffs)
+	 * * INCAPABLE_STASIS - if our mob is in stasis (stasis bed, etc.)
+	 * * INCAPABLE_GRAB - if our mob is being agressively grabbed
+	 *
+	**/
+	VAR_FINAL/incapacitated = NONE
 
 	//Not in use yet
 	var/obj/effect/organstructure/organStructure = null
 
-	var/obj/screen/hands = null
-	var/obj/screen/pullin = null
-	var/obj/screen/purged = null
-	var/obj/screen/internals = null
-	var/obj/screen/i_select = null
-	var/obj/screen/m_select = null
-	var/obj/screen/healths = null
-	var/obj/screen/throw_icon = null
-	var/obj/screen/pain = null
-	var/obj/screen/gun/item/item_use_icon = null
-	var/obj/screen/gun/radio/radio_use_icon = null
-	var/obj/screen/gun/move/gun_move_icon = null
-	var/obj/screen/gun/run/gun_run_icon = null
-	var/obj/screen/gun/mode/gun_setting_icon = null
-	var/obj/screen/ling/chems/ling_chem_display = null
-	var/obj/screen/wizard/energy/wiz_energy_display = null
-	var/obj/screen/wizard/instability/wiz_instability_display = null
-	var/obj/screen/autowhisper_display = null
+	var/atom/movable/screen/hands = null
+	var/atom/movable/screen/pullin = null
+	var/atom/movable/screen/purged = null
+	var/atom/movable/screen/internals = null
+	var/atom/movable/screen/i_select = null
+	var/atom/movable/screen/m_select = null
+	var/atom/movable/screen/healths = null
+	var/atom/movable/screen/throw_icon = null
+	var/atom/movable/screen/pain = null
+	var/atom/movable/screen/gun/item/item_use_icon = null
+	var/atom/movable/screen/gun/radio/radio_use_icon = null
+	var/atom/movable/screen/gun/move/gun_move_icon = null
+	var/atom/movable/screen/gun/run/gun_run_icon = null
+	var/atom/movable/screen/gun/mode/gun_setting_icon = null
+	var/atom/movable/screen/ling/chems/ling_chem_display = null
+	var/atom/movable/screen/borer/chems/borer_chem_display = null
+	var/atom/movable/screen/wizard/energy/wiz_energy_display = null
+	var/atom/movable/screen/wizard/instability/wiz_instability_display = null
+	var/atom/movable/screen/autowhisper_display = null
 
 	var/datum/plane_holder/plane_holder = null
 	var/list/vis_enabled = null		// List of vision planes that should be graphically visible (list of their VIS_ indexes).
 	var/list/planes_visible = null	// List of atom planes that are logically visible/interactable (list of actual plane numbers).
 
 	//spells hud icons - this interacts with add_spell and remove_spell
-	var/list/obj/screen/movable/spell_master/spell_masters = null
-	var/obj/screen/movable/ability_master/ability_master = null
+	var/list/atom/movable/screen/movable/spell_master/spell_masters = null
+	var/atom/movable/screen/movable/ability_master/ability_master = null
 
 	/*A bunch of this stuff really needs to go under their own defines instead of being globally attached to mob.
 	A variable should only be globally attached to turfs/objects/whatever, when it is in fact needed as such.
@@ -47,13 +75,15 @@
 	I'll make some notes on where certain variable defines should probably go.
 	Changing this around would probably require a good look-over the pre-existing code.
 	*/
-	var/obj/screen/zone_sel/zone_sel = null
+	var/atom/movable/screen/zone_sel/zone_sel = null
 
 	var/use_me = 1 //Allows all mobs to use the me verb by default, will have to manually specify they cannot
 	var/damageoverlaytemp = 0
+
 	var/computer_id = null
+	var/list/logging = list()
+
 	var/already_placed = 0.0
-	var/obj/machinery/machine = null
 	var/other_mobs = null
 	var/memory = ""
 	var/poll_answer = 0.0
@@ -87,11 +117,13 @@
 	var/resting = 0			//Carbon
 	var/lying = 0
 	var/lying_prev = 0
-	var/is_shifted = FALSE // VoreStation Edit; pixel shifting
+	var/is_shifted = FALSE // VoreStation Edit; pixel shifting + tilting
+	var/how_tilted = 0
+	var/maximum_tilt = 45
 	var/canmove = 1
+	var/allowtilttime = 0 //This is the waiting timer for getting up after falling, lying, buckling, or otherwise being animated.
 	//Allows mobs to move through dense areas without restriction. For instance, in space or out of holder objects.
 	var/incorporeal_move = 0 //0 is off, 1 is normal, 2 is for ninjas.
-	var/unacidable = FALSE
 	var/list/pinned = list()            // List of things pinning this creature to walls (see living_defense.dm)
 	var/list/embedded = list()          // Embedded items, since simple mobs don't have organs.
 	var/list/languages = list()         // For speaking/listening.
@@ -115,18 +147,18 @@
 	var/stunned = 0.0
 	var/weakened = 0.0
 	var/losebreath = 0.0//Carbon
-	var/shakecamera = 0
 	var/a_intent = I_HELP//Living
 	var/m_int = null//Living
-	var/m_intent = "run"//Living
+	var/m_intent = I_RUN//Living
 	var/lastKnownIP = null
 	var/obj/buckled = null//Living
+	var/no_pull_when_living = FALSE //Test for if it can be pulled when alive
 
 	var/seer = 0 //for cult//Carbon, probably Human
 
 	var/datum/hud/hud_used = null
 
-	var/list/grabbed_by = list(  )
+	var/list/grabbed_by = list()
 
 	var/list/mapobjs = list()
 
@@ -153,9 +185,13 @@
 
 	var/voice_name = "unidentifiable voice"
 
-	var/faction = "neutral" //Used for checking whether hostile simple animals will attack you, possibly more stuff later
+	var/list/ventcraw_item_admin_allow = null // If this is a list, it will be appended to the default list of items the mob is allowed to ventcrawl with
+
+	var/faction = FACTION_NEUTRAL //Used for checking whether hostile simple animals will attack you, possibly more stuff later
 
 	var/can_be_antagged = FALSE // To prevent pAIs/mice/etc from getting antag in autotraitor and future auto- modes. Uses inheritance instead of a bunch of typechecks.
+	var/away_from_keyboard = FALSE	//are we at, or away, from our keyboard?
+	var/manual_afk = FALSE			//did we set afk manually or was it automatic?
 
 //Generic list for proc holders. Only way I can see to enable certain verbs/procs. Should be modified if needed.
 	var/proc_holder_list[] = list()//Right now unused.
@@ -174,7 +210,7 @@
 	var/mob/living/carbon/LAssailant = null
 
 //Wizard mode, but can be used in other modes thanks to the brand new "Give Spell" badmin button
-	var/list/spell/spell_list = list()
+	var/list/datum/spell/spell_list = list()
 
 //Changlings, but can be used in other modes
 //	var/obj/effect/proc_holder/changpower/list/power_list = list()
@@ -206,7 +242,6 @@
 	//so don't treat them as being SSD even though their client var is null.
 	var/mob/teleop = null
 
-	var/turf/listed_turf = null  	//the current turf being examined in the stat panel
 	var/list/shouldnt_see = list(/mob/observer/eye)	//list of objects that this mob shouldn't see in the stat panel. this silliness is needed because of AI alt+click and cult blood runes
 
 	var/list/active_genes=list()
@@ -217,10 +252,6 @@
 
 	var/get_rig_stats = 0 //Moved from computer.dm
 
-	var/typing
-	var/obj/effect/decal/typing_indicator
-	var/obj/effect/decal/typing_indicator_active
-	var/cur_typing_indicator
 	var/custom_speech_bubble = "default"
 
 	var/low_priority = FALSE //Skip processing life() if there's just no players on this Z-level
@@ -235,6 +266,30 @@
 
 	var/in_enclosed_vehicle = 0	//For mechs and fighters ambiance. Can be used in other cases.
 
-	var/list/progressbars = null //VOREStation Edit
+	///List of progress bars this mob is currently seeing for actions
+	var/list/progressbars = null //for stacking do_after bars
+
+	///For storing what do_after's someone has, key = string, value = amount of interactions of that type happening.
+	var/list/do_afters
+
+	///Allows a datum to intercept all click calls this mob is the source of
+	var/datum/click_intercept
 
 	var/datum/focus //What receives our keyboard inputs. src by default
+
+	/// dict of custom stat tabs with data
+	var/list/list/misc_tabs = list()
+
+	var/list/datum/action/actions
+
+	VAR_PROTECTED/list/viruses
+	VAR_PROTECTED/list/resistances
+
+	var/custom_footstep = FOOTSTEP_MOB_SHOE
+	var/vent_crawl_time = 4.5 SECONDS // Time to animate entering a vent
+	VAR_PRIVATE/is_motion_tracking = FALSE // Prevent multiple unsubs and resubs, also used to check if the vis layer is enabled, use has_motiontracking() to get externally.
+	VAR_PRIVATE/wants_to_see_motion_echos = TRUE
+
+	var/slip_timer = null
+	var/slipping = FALSE
+	var/slip_protect = 1

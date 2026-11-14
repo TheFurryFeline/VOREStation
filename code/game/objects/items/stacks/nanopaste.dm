@@ -2,61 +2,64 @@
 	name = "nanopaste"
 	singular_name = "nanite swarm"
 	desc = "A tube of paste containing swarms of repair nanites. Very effective in repairing robotic machinery."
-	icon = 'icons/obj/stacks_vr.dmi' //VOREStation Edit
+	icon = 'icons/obj/stacks_vr.dmi'
 	icon_state = "nanopaste"
-	origin_tech = list(TECH_MATERIAL = 4, TECH_ENGINEERING = 3)
 	amount = 10
+	max_amount = 10
 	toolspeed = 0.75 //Used in surgery, shouldn't be the same speed as a normal screwdriver on mechanical organ repair.
 	w_class = ITEMSIZE_SMALL
 	no_variants = FALSE
 
-/obj/item/stack/nanopaste/attack(mob/living/M as mob, mob/user as mob)
-	if (!istype(M) || !istype(user))
-		return 0
-	if (istype(M,/mob/living/silicon/robot))	//Repairing cyborgs
+/obj/item/stack/nanopaste/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	if(!istype(M) || !istype(user))
+		return ITEM_INTERACT_FAILURE
+	if(istype(M,/mob/living/silicon/robot) && can_use(1))	//Repairing cyborgs
 		var/mob/living/silicon/robot/R = M
 		if (R.getBruteLoss() || R.getFireLoss())
-			if(do_after(user, 7 * toolspeed, R, exclusive = TASK_ALL_EXCLUSIVE))
+			if(do_after(user, 7 * toolspeed, target = R))
 				R.adjustBruteLoss(-15)
 				R.adjustFireLoss(-15)
 				R.updatehealth()
 				use(1)
-				user.visible_message("<span class='notice'>\The [user] applied some [src] on [R]'s damaged areas.</span>",\
-				"<span class='notice'>You apply some [src] at [R]'s damaged areas.</span>")
+				user.balloon_alert_visible("\the [user] applied some [src] on [R]'s damaged areas.",\
+				"you apply some [src] at [R]'s damaged areas.")
+				return ITEM_INTERACT_SUCCESS
 		else
-			to_chat(user, "<span class='notice'>All [R]'s systems are nominal.</span>")
+			balloon_alert(user, "all [R]'s systems are nominal.")
+			return ITEM_INTERACT_FAILURE
 
-	if (istype(M,/mob/living/carbon/human))		//Repairing robolimbs
+	if(ishuman(M))		//Repairing robolimbs
 		var/mob/living/carbon/human/H = M
 		var/obj/item/organ/external/S = H.get_organ(user.zone_sel.selecting)
 		if(!S)
-			to_chat(user, "<span class='warning'>No body part there to work on!</span>")
-			return 1
+			balloon_alert(user, "no body part there to work on!")
+			return ITEM_INTERACT_FAILURE
 
 		if(S.organ_tag == BP_HEAD)
 			if(H.head && istype(H.head,/obj/item/clothing/head/helmet/space))
-				to_chat(user, "<span class='warning'>You can't apply [src] through [H.head]!</span>")
-				return 1
+				balloon_alert(user, "you can't apply [src] through [H.head]!")
+				return ITEM_INTERACT_FAILURE
 		else
 			if(H.wear_suit && istype(H.wear_suit,/obj/item/clothing/suit/space))
-				to_chat(user, "<span class='warning'>You can't apply [src] through [H.wear_suit]!</span>")
-				return 1
+				balloon_alert(user, "you can't apply [src] through [H.wear_suit]!")
+				return ITEM_INTERACT_FAILURE
 
-		//VOREStation Edit Start
 		if (S && (S.robotic >= ORGAN_ROBOT))
 			if(!S.get_damage())
-				to_chat(user, "<span class='notice'>Nothing to fix here.</span>")
+				balloon_alert(user, "nothing to fix here.")
+				return ITEM_INTERACT_FAILURE
 			else if((S.open < 2) && (S.brute_dam + S.burn_dam >= S.min_broken_damage) && !repair_external)
-				to_chat(user, "<span class='notice'>The damage is too extensive for this nanite swarm to handle.</span>")
+				balloon_alert(user, "the damage is too extensive for this nanite swarm to handle.")
+				return ITEM_INTERACT_FAILURE
 			else if(can_use(1))
 				user.setClickCooldown(user.get_attack_speed(src))
 				if(S.open >= 2)
-					if(do_after(user, 5 * toolspeed, S, exclusive = TASK_ALL_EXCLUSIVE))
+					if(do_after(user, 5 * toolspeed, target = S))
 						S.heal_damage(restoration_internal, restoration_internal, robo_repair = 1)
-				else if(do_after(user, 5 * toolspeed, S, exclusive = TASK_ALL_EXCLUSIVE))
+				else if(do_after(user, 5 * toolspeed, target = S))
 					S.heal_damage(restoration_external,restoration_external, robo_repair =1)
 				H.updatehealth()
 				use(1)
-				user.visible_message("<span class='notice'>\The [user] applies some nanite paste on [user != M ? "[M]'s [S.name]" : "[S]"] with [src].</span>",\
-				"<span class='notice'>You apply some nanite paste on [user == M ? "your" : "[M]'s"] [S.name].</span>")
-		//VOREStation Edit End
+				user.balloon_alert_visible("\the [user] applies some nanite paste on [user != M ? "[M]'s [S.name]" : "[S]"] with [src].",\
+				"you apply some nanite paste on [user == M ? "your" : "[M]'s"] [S.name].")
+				return ITEM_INTERACT_SUCCESS

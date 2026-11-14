@@ -51,10 +51,10 @@
 
 /obj/item/organ/external/head/unbreakable/slime	//They don't need this anymore.
 	nonsolid = 1
-	cannot_gib = 0
-	vital = 0
+	cannot_gib = FALSE
+	vital = FALSE
 	max_damage = 30
-	encased = 0
+	encased = FALSE
 	spread_dam = 1
 
 /*
@@ -71,7 +71,7 @@
 /obj/item/organ/internal/heart/grey/colormatch/slime/process()
 	..()
 	if(!(QDELETED(src)) && src.loc != owner)
-		visible_message("<b>\The [src]</b> splatters!")
+		visible_message(span_infoplain(span_bold("\The [src]") + " splatters!"))
 		var/turf/T = get_turf(src)
 		var/obj/effect/decal/cleanable/blood/B = new (T)
 
@@ -91,15 +91,13 @@
 	var/last_strain_increase = 0	// World time of the last increase in strain.
 	var/strain_regen_cooldown = 5 MINUTES
 
-/obj/item/organ/internal/regennetwork/Initialize()
+/obj/item/organ/internal/regennetwork/Initialize(mapload)
 	. = ..()
-	var/mob/living/carbon/human/H = null
-	spawn(15)
-		if(ishuman(owner))
-			H = owner
-			color = H.species.get_blood_colour(H)
+	if(ishuman(loc))
+		var/mob/living/carbon/human/H = loc
+		color = H.species.get_blood_colour(H)
 
-/obj/item/organ/internal/regennetwork/proc/get_strain_percent(var/cost)
+/obj/item/organ/internal/regennetwork/proc/get_strain_percent(cost)
 	adjust_strain(cost)
 
 	if((status & ORGAN_CUT_AWAY) || (status & ORGAN_BROKEN) || (status & ORGAN_DEAD))
@@ -107,7 +105,7 @@
 
 	return round((strain / min_broken_damage) * 10) / 10
 
-/obj/item/organ/internal/regennetwork/proc/adjust_strain(var/amount)
+/obj/item/organ/internal/regennetwork/proc/adjust_strain(amount)
 	if(amount < 0 && world.time < (last_strain_increase + strain_regen_cooldown))
 		return
 
@@ -120,7 +118,7 @@
 	..()
 
 	if(!(QDELETED(src)) && src.loc != owner)
-		visible_message("<b>\The [src]</b> splatters!")
+		visible_message(span_infoplain(span_bold("\The [src]") + " splatters!"))
 		var/turf/T = get_turf(src)
 		var/obj/effect/decal/cleanable/blood/B = new (T)
 

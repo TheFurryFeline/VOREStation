@@ -11,22 +11,22 @@ GLOBAL_LIST_EMPTY(all_blobs)
 	layer = MOB_LAYER + 0.1
 	var/integrity = 0
 	var/point_return = 0 //How many points the blob gets back when it removes a blob of that type. If less than 0, blob cannot be removed.
-	var/max_integrity = 30
+	max_integrity = 30
 	var/health_regen = 2 //how much health this blob regens when pulsed
 	var/pulse_timestamp = 0 //we got pulsed when?
 	var/heal_timestamp = 0 //we got healed when?
 	var/mob/observer/blob/overmind = null
 	var/base_name = "blob" // The name that gets appended along with the blob_type's name.
-	var/faction = "blob"
+	var/faction = FACTION_BLOB
 
-/obj/structure/blob/Initialize(newloc, new_overmind)
+/obj/structure/blob/Initialize(mapload, new_overmind)
 	if(new_overmind)
 		overmind = new_overmind
 		faction = overmind.blob_type.faction
 	update_icon()
 	if(!integrity)
 		integrity = max_integrity
-	set_dir(pick(cardinal))
+	set_dir(pick(GLOB.cardinal))
 	GLOB.all_blobs += src
 	consume_tile()
 	return ..()
@@ -57,7 +57,7 @@ GLOBAL_LIST_EMPTY(all_blobs)
 /obj/structure/blob/CanPass(atom/movable/mover, turf/target)
 	if(istype(mover) && mover.checkpass(PASSBLOB))
 		return TRUE
-	else if(istype(mover, /mob/living))
+	else if(isliving(mover))
 		var/mob/living/L = mover
 		if(L.faction == faction)
 			return TRUE
@@ -76,14 +76,16 @@ GLOBAL_LIST_EMPTY(all_blobs)
 	else
 		. += overmind.blob_type.desc
 
-/obj/structure/blob/get_description_info()
+/obj/structure/blob/get_description_info(list/additional_information)
 	if(overmind)
 		return overmind.blob_type.effect_desc
 	return ..()
 
-/obj/structure/blob/emp_act(severity)
-	if(overmind)
-		overmind.blob_type.on_emp(src, severity)
+/obj/structure/blob/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF || !overmind)
+		return
+	overmind.blob_type.on_emp(src, severity)
 
 /obj/structure/blob/proc/pulsed()
 	if(pulse_timestamp <= world.time)
@@ -142,7 +144,7 @@ GLOBAL_LIST_EMPTY(all_blobs)
 
 /obj/structure/blob/proc/expand(turf/T = null, controller = null, expand_reaction = 1)
 	if(!T)
-		var/list/dirs = cardinal.Copy()
+		var/list/dirs = GLOB.cardinal.Copy()
 		for(var/i = 1 to 4)
 			var/dirn = pick(dirs)
 			dirs.Remove(dirn)
@@ -232,8 +234,8 @@ GLOBAL_LIST_EMPTY(all_blobs)
 	qdel(src)
 	return B
 
-/obj/structure/blob/attack_generic(var/mob/user, var/damage, var/attack_verb)
-	visible_message("<span class='danger'>[user] [attack_verb] the [src]!</span>")
+/obj/structure/blob/attack_generic(mob/user, damage, attack_verb)
+	visible_message(span_danger("[user] [attack_verb] the [src]!"))
 	playsound(src, 'sound/effects/attackblob.ogg', 100, 1)
 	user.do_attack_animation(src)
 	if(overmind)
@@ -260,7 +262,7 @@ GLOBAL_LIST_EMPTY(all_blobs)
 			return FALSE
 
 		H.do_attack_animation(src)
-		H.visible_message("<span class='danger'>[H] strikes \the [src]!</span>")
+		H.visible_message(span_danger("[H] strikes \the [src]!"))
 
 		var/real_damage = rand(3,6)
 		var/hit_dam_type = attack.damage_type
@@ -316,10 +318,10 @@ GLOBAL_LIST_EMPTY(all_blobs)
 	else
 		attack_generic(M, rand(1,10), "bashed")
 
-/obj/structure/blob/attackby(var/obj/item/weapon/W, var/mob/user)
+/obj/structure/blob/attackby(obj/item/W, mob/user)
 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 	playsound(src, 'sound/effects/attackblob.ogg', 50, 1)
-	visible_message("<span class='danger'>\The [src] has been attacked with \the [W][(user ? " by [user]." : ".")]</span>")
+	visible_message(span_danger("\The [src] has been attacked with \the [W][(user ? " by [user]." : ".")]"))
 	var/damage = W.force
 	switch(W.damtype)
 		if(BURN, BIOACID, ELECTROCUTE, OXY)
@@ -347,7 +349,7 @@ GLOBAL_LIST_EMPTY(all_blobs)
 	adjust_integrity(-damage)
 	return
 
-/obj/structure/blob/bullet_act(var/obj/item/projectile/P)
+/obj/structure/blob/bullet_act(obj/item/projectile/P)
 	if(!P)
 		return
 
@@ -377,7 +379,7 @@ GLOBAL_LIST_EMPTY(all_blobs)
 	if(overmind)
 		overmind.blob_type.on_water(src, amount)
 
-/obj/structure/blob/blob_act(var/obj/structure/blob/B)
+/obj/structure/blob/blob_act(obj/structure/blob/B)
 	. = ..()
 
 	if(B)

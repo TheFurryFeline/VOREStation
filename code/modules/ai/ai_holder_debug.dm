@@ -12,7 +12,7 @@
 
 	var/stance_coloring = FALSE						// Colors the mob depending on its stance.
 
-	var/debug_ai = AI_LOG_OFF						// The level of debugging information to display to people who can see log_debug().
+	var/debug_ai = AI_LOG_OFF						// The level of debugging information to display to people who can see log_world().
 
 /datum/ai_holder/New()
 	..()
@@ -25,7 +25,7 @@
 	return ..()
 
 //For debug purposes!
-/datum/ai_holder/proc/ai_log_output(var/msg = "missing message", var/ver = AI_LOG_INFO)
+/datum/ai_holder/proc/ai_log_output(msg = "missing message", ver = AI_LOG_INFO)
 	var/span_type
 	switch(ver)
 		if(AI_LOG_OFF)
@@ -41,7 +41,7 @@
 		if(AI_LOG_TRACE)
 			span_type = "debug_trace"
 	if(ver <= debug_ai)
-		log_debug("<span class='[span_type]'>AI: ([holder]:\ref[holder] | [holder.x],[holder.y],[holder.z])(@[world.time]): [msg] </span>")
+		log_world("<span class='[span_type]'>AI: ([holder]:\ref[holder] | [holder.x],[holder.y],[holder.z])(@[world.time]): [msg] </span>")
 
 // Colors the mob based on stance, to visually tell what stance it is for debugging.
 // Probably not something you want for regular use.
@@ -86,4 +86,3 @@
 	path_display = TRUE
 	last_turf_display = TRUE
 	debug_ai = AI_LOG_INFO
-

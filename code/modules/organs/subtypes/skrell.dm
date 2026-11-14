@@ -15,7 +15,7 @@
 	icon_state = "brain_skrell"
 
 /obj/item/organ/internal/stomach/skrell
-	icon_state = "skrell_stomach"
+	icon_state = "skrell_intestine" //Skrell have no stomach sprite so this is the best we can do
 
 /obj/item/organ/internal/kidneys/skrell
 	icon_state = "skrell_kidney"
@@ -36,6 +36,6 @@
 	parent_organ = BP_HEAD
 	spleen_efficiency = 0.5
 
-/obj/item/organ/internal/spleen/skrell/Initialize()
+/obj/item/organ/internal/spleen/skrell/Initialize(mapload)
 	. = ..()
 	adjust_scale(0.8,0.7)

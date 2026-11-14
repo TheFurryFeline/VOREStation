@@ -1,4 +1,4 @@
-var/datum/antagonist/renegade/renegades
+GLOBAL_DATUM(renegades, /datum/antagonist/renegade)
 
 /datum/antagonist/renegade
 	id = MODE_RENEGADE
@@ -26,47 +26,47 @@ var/datum/antagonist/renegade/renegades
 	initial_spawn_target = 4
 
 	var/list/spawn_guns = list(
-		/obj/item/weapon/gun/energy/laser,
-		/obj/item/weapon/gun/energy/captain,
-		/obj/item/weapon/gun/energy/lasercannon,
-		/obj/item/weapon/gun/energy/xray,
-		/obj/item/weapon/gun/energy/gun,
-		/obj/item/weapon/gun/energy/gun/burst,
-		/obj/item/weapon/gun/energy/gun/nuclear,
-		/obj/item/weapon/gun/energy/crossbow,
-		/obj/item/weapon/gun/energy/crossbow/largecrossbow,
-		/obj/item/weapon/gun/projectile/automatic,
-		/obj/item/weapon/gun/projectile/automatic/mini_uzi,
-		/obj/item/weapon/gun/projectile/automatic/c20r,
-		/obj/item/weapon/gun/projectile/automatic/sts35,
-		/obj/item/weapon/gun/projectile/automatic/bullpup,
-		/obj/item/weapon/gun/projectile/automatic/wt550,
-		/obj/item/weapon/gun/projectile/automatic/z8,
-		/obj/item/weapon/gun/projectile/automatic/tommygun,
-		/obj/item/weapon/gun/projectile/colt/detective,
-		/obj/item/weapon/gun/projectile/sec/wood,
-		/obj/item/weapon/gun/projectile/silenced,
-		/obj/item/weapon/gun/projectile/pistol,
-		/obj/item/weapon/gun/projectile/p92x,
-		/obj/item/weapon/gun/projectile/revolver,
-		/obj/item/weapon/gun/projectile/derringer,
-		/obj/item/weapon/gun/projectile/shotgun/pump,
-		/obj/item/weapon/gun/projectile/shotgun/pump/rifle,
-		/obj/item/weapon/gun/projectile/shotgun/pump/combat,
-		/obj/item/weapon/gun/projectile/shotgun/doublebarrel,
-		/obj/item/weapon/gun/projectile/revolver/judge,
-		/obj/item/weapon/gun/projectile/revolver/lemat,
-		list(/obj/item/weapon/gun/projectile/shotgun/doublebarrel/pellet, /obj/item/weapon/gun/projectile/shotgun/doublebarrel/sawn),
-		list(/obj/item/weapon/gun/projectile/deagle, /obj/item/weapon/gun/projectile/deagle/gold, /obj/item/weapon/gun/projectile/deagle/camo),
-		list(/obj/item/weapon/gun/projectile/revolver/detective, /obj/item/weapon/gun/projectile/revolver/deckard),
-		list(/obj/item/weapon/gun/projectile/luger,/obj/item/weapon/gun/projectile/luger/brown)
+		/obj/item/gun/energy/laser,
+		/obj/item/gun/energy/captain,
+		/obj/item/gun/energy/lasercannon,
+		/obj/item/gun/energy/xray,
+		/obj/item/gun/energy/gun,
+		/obj/item/gun/energy/gun/burst,
+		/obj/item/gun/energy/gun/nuclear,
+		/obj/item/gun/energy/crossbow,
+		/obj/item/gun/energy/crossbow/largecrossbow,
+		/obj/item/gun/projectile/automatic,
+		/obj/item/gun/projectile/automatic/mini_uzi,
+		/obj/item/gun/projectile/automatic/c20r,
+		/obj/item/gun/projectile/automatic/sts35,
+		/obj/item/gun/projectile/automatic/bullpup,
+		/obj/item/gun/projectile/automatic/wt550,
+		/obj/item/gun/projectile/automatic/z8,
+		/obj/item/gun/projectile/automatic/tommygun,
+		/obj/item/gun/projectile/colt/detective,
+		/obj/item/gun/projectile/sec/wood,
+		/obj/item/gun/projectile/silenced,
+		/obj/item/gun/projectile/pistol,
+		/obj/item/gun/projectile/p92x,
+		/obj/item/gun/projectile/revolver,
+		/obj/item/gun/projectile/derringer,
+		/obj/item/gun/projectile/shotgun/pump,
+		/obj/item/gun/projectile/shotgun/pump/rifle,
+		/obj/item/gun/projectile/shotgun/pump/combat,
+		/obj/item/gun/projectile/shotgun/doublebarrel,
+		/obj/item/gun/projectile/revolver/judge,
+		/obj/item/gun/projectile/revolver/lemat,
+		list(/obj/item/gun/projectile/shotgun/doublebarrel/pellet, /obj/item/gun/projectile/shotgun/doublebarrel/sawn),
+		list(/obj/item/gun/projectile/deagle, /obj/item/gun/projectile/deagle/gold, /obj/item/gun/projectile/deagle/camo),
+		list(/obj/item/gun/projectile/revolver/detective, /obj/item/gun/projectile/revolver/deckard),
+		list(/obj/item/gun/projectile/luger,/obj/item/gun/projectile/luger/brown)
 		)
 
 /datum/antagonist/renegade/New()
 	..()
-	renegades = src
+	GLOB.renegades = src
 
-/datum/antagonist/renegade/create_objectives(var/datum/mind/player)
+/datum/antagonist/renegade/create_objectives(datum/mind/player)
 
 	if(!..())
 		return
@@ -75,7 +75,7 @@ var/datum/antagonist/renegade/renegades
 	survive.owner = player
 	player.objectives |= survive
 
-/datum/antagonist/renegade/equip(var/mob/living/carbon/human/player)
+/datum/antagonist/renegade/equip(mob/living/carbon/human/player)
 
 	if(!..())
 		return
@@ -98,9 +98,9 @@ var/datum/antagonist/renegade/renegades
 
 
 /proc/rightandwrong()
-	to_chat(usr, "<B>You summoned guns!</B>")
+	to_chat(usr, span_infoplain(span_bold("You summoned guns!")))
 	message_admins("[key_name_admin(usr, 1)] summoned guns!")
-	for(var/mob/living/carbon/human/H in player_list)
+	for(var/mob/living/carbon/human/H in GLOB.player_list)
 		if(H.stat == 2 || !(H.client)) continue
 		if(is_special_character(H)) continue
-		renegades.add_antagonist(H.mind)
+		GLOB.renegades.add_antagonist(H.mind)

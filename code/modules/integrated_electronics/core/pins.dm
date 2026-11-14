@@ -12,8 +12,8 @@ A [2]\      /[8] result
 B [1]-\|++|/
 C [4]-/|++|
 D [1]/  ||
-        ||
-     Activator
+		||
+	Activator
 
 
 
@@ -25,7 +25,7 @@ D [1]/  ||
 	var/list/linked = list()
 	var/io_type = DATA_CHANNEL
 
-/datum/integrated_io/New(var/newloc, var/name, var/new_data)
+/datum/integrated_io/New(newloc, name, new_data)
 	..()
 	src.name = name
 	if(!isnull(new_data))
@@ -44,14 +44,14 @@ D [1]/  ||
 	return holder.tgui_host()
 
 
-/datum/integrated_io/proc/data_as_type(var/as_type)
+/datum/integrated_io/proc/data_as_type(as_type)
 	if(!isweakref(data))
 		return
 	var/datum/weakref/w = data
 	var/output = w.resolve()
 	return istype(output, as_type) ? output : null
 
-/datum/integrated_io/proc/display_data(var/input)
+/datum/integrated_io/proc/display_data(input)
 	if(isnull(input))
 		return "(null)" // Empty data means nothing to show.
 
@@ -110,7 +110,7 @@ list[](
 /datum/integrated_io/activate/scramble()
 	push_data()
 
-/datum/integrated_io/proc/write_data_to_pin(var/new_data)
+/datum/integrated_io/proc/write_data_to_pin(new_data)
 	if(isnull(new_data) || isnum(new_data) || istext(new_data) || isweakref(new_data)) // Anything else is a type we don't want.
 		if(istext(new_data))
 			new_data = sanitizeSafe(new_data, MAX_MESSAGE_LEN, 0, 0)
@@ -146,27 +146,26 @@ list[](
 		//Now that we're removed from them, we gotta remove them from us.
 		src.linked.Remove(their_io)
 
-/datum/integrated_io/proc/ask_for_data_type(mob/user, var/default, var/list/allowed_data_types = list("string","number","null"))
-	var/type_to_use = tgui_input_list(usr, "Please choose a type to use.","[src] type setting", allowed_data_types)
+/datum/integrated_io/proc/ask_for_data_type(mob/user, default, list/allowed_data_types = list("string","number","null"))
+	var/type_to_use = tgui_input_list(user, "Please choose a type to use.","[src] type setting", allowed_data_types)
 	if(!holder.check_interactivity(user))
 		return
 
 	var/new_data = null
 	switch(type_to_use)
 		if("string")
-			new_data = tgui_input_text(usr, "Now type in a string.","[src] string writing", istext(default) ? default : null, MAX_NAME_LEN)
-			new_data = sanitize(new_data,MAX_NAME_LEN)
+			new_data = sanitizeSafe(tgui_input_text(user, "Now type in a string.","[src] string writing", istext(default) ? default : null, MAX_NAME_LEN, encode = FALSE), MAX_NAME_LEN, 0, 0)
 			if(istext(new_data) && holder.check_interactivity(user) )
-				to_chat(user, "<span class='notice'>You input [new_data] into the pin.</span>")
+				to_chat(user, span_notice("You input [new_data] into the pin."))
 				return new_data
 		if("number")
-			new_data = tgui_input_number(usr, "Now type in a number.","[src] number writing", isnum(default) ? default : null, MAX_NAME_LEN)
+			new_data = tgui_input_number(user, "Now type in a number.","[src] number writing", isnum(default) ? default : 0, INFINITY, -INFINITY, 0, FALSE)
 			if(isnum(new_data) && holder.check_interactivity(user) )
-				to_chat(user, "<span class='notice'>You input [new_data] into the pin.</span>")
+				to_chat(user, span_notice("You input [new_data] into the pin."))
 				return new_data
 		if("null")
 			if(holder.check_interactivity(user))
-				to_chat(user, "<span class='notice'>You clear the pin's memory.</span>")
+				to_chat(user, span_notice("You clear the pin's memory."))
 				return new_data
 
 // Basically a null check
@@ -180,7 +179,7 @@ list[](
 
 /datum/integrated_io/activate/ask_for_pin_data(mob/user) // This just pulses the pin.
 	holder.check_then_do_work(ignore_power = TRUE)
-	to_chat(user, "<span class='notice'>You pulse \the [holder]'s [src] pin.</span>")
+	to_chat(user, span_notice("You pulse \the [holder]'s [src] pin."))
 
 /datum/integrated_io/activate
 	name = "activation pin"

@@ -6,20 +6,33 @@
 	bantype = "changeling"
 	feedback_tag = "changeling_objective"
 	avoid_silicons = TRUE
-	protected_jobs = list("Security Officer", "Warden", "Detective", "Head of Security", "Site Manager")
+	protected_jobs = list(JOB_SECURITY_OFFICER, JOB_WARDEN, JOB_DETECTIVE, JOB_HEAD_OF_SECURITY, JOB_SITE_MANAGER)
 	welcome_text = "Use say \"#g message\" to communicate with your fellow changelings. Remember: you get all of their absorbed DNA if you absorb them."
 	antag_sound = 'sound/effects/antag_notice/ling_alert.ogg'
 	flags = ANTAG_SUSPICIOUS | ANTAG_RANDSPAWN | ANTAG_VOTABLE
 	antaghud_indicator = "hudchangeling"
 
-/datum/antagonist/changeling/get_special_objective_text(var/datum/mind/player)
-	return "<br><b>Changeling ID:</b> [player.changeling.changelingID].<br><b>Genomes Absorbed:</b> [player.changeling.absorbedcount]"
+/datum/antagonist/changeling/get_special_objective_text(datum/mind/player)
+	if(player.current)
+		var/datum/component/antag/changeling/comp = player.current.GetComponent(/datum/component/antag/changeling)
+		if(comp)
+			return "<br><b>Changeling ID:</b> [comp.changelingID].<br><b>Genomes Absorbed:</b> [comp.absorbedcount]"
 
-/datum/antagonist/changeling/update_antag_mob(var/datum/mind/player)
+/datum/antagonist/changeling/update_antag_mob(datum/mind/player)
 	..()
 	player.current.make_changeling()
 
-/datum/antagonist/changeling/create_objectives(var/datum/mind/changeling)
+/datum/antagonist/changeling/remove_antagonist(datum/mind/player, show_message, implanted)
+	. = ..()
+	var/datum/component/antag/changeling/comp = player.current.GetComponent(/datum/component/antag/changeling)
+	if(comp)
+		comp.owner.remove_changeling_powers()
+		remove_verb(comp.owner, /mob/proc/EvolutionMenu)
+		comp.RemoveComponent()
+		if(comp.owner.mind)
+			comp.owner.mind.antag_holder.changeling = null
+
+/datum/antagonist/changeling/create_objectives(datum/mind/changeling)
 	if(!..())
 		return
 
@@ -56,7 +69,7 @@
 				changeling.objectives += survive_objective
 	return
 
-/datum/antagonist/changeling/can_become_antag(var/datum/mind/player, var/ignore_role)
+/datum/antagonist/changeling/can_become_antag(datum/mind/player, ignore_role)
 	if(!..())
 		return 0
 	if(player.current)
@@ -64,25 +77,26 @@
 			var/mob/living/carbon/human/H = player.current
 			if(H.isSynthetic())
 				return 0
-			if(H.species.flags & NO_SCAN)
+			if(H.species.flags & (NO_SLEEVE|NO_DNA))
 				return 0
 			return 1
 		else if(isnewplayer(player.current))
 			if(player.current.client && player.current.client.prefs)
-				var/datum/species/S = GLOB.all_species[player.current.client.prefs.species]
-				if(S && (S.flags & NO_SCAN))
+				var/datum/species/S = GLOB.all_species[player.current.client.prefs.read_preference(/datum/preference/choiced/species)]
+				if(S && (S.flags & (NO_SLEEVE|NO_DNA)))
 					return 0
-				if(player.current.client.prefs.organ_data["torso"] == "cyborg") // Full synthetic.
+				var/list/organ_data = player.current.client.prefs.read_preference(/datum/preference/organ_data)
+				if(organ_data && organ_data[BP_TORSO] == "cyborg") // Full synthetic. // TODO, this to issynthetic()?
 					return 0
 				return 1
 	return 0
 
-/datum/antagonist/changeling/print_player_full(var/datum/mind/ply)
-	var/text = print_player_lite(ply)
+/datum/antagonist/changeling/print_player_full(datum/mind/player)
+	var/text = print_player_lite(player)
 
-	if(ply.changeling)
-		var/datum/changeling/ling_datum = ply.changeling
-		text += " (had [ling_datum.max_geneticpoints] genomes)"
-		text += "<br>Bought [english_list(ling_datum.purchased_powers_history)]."
+	var/datum/component/antag/changeling/comp = player.current.GetComponent(/datum/component/antag/changeling)
+	if(comp)
+		text += " (had [comp.max_geneticpoints] genomes)"
+		text += "<br>Bought [english_list(comp.purchased_powers_history)]."
 
 	return text

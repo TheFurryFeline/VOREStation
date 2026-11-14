@@ -8,7 +8,7 @@
 	icon_dead = "bat_dead"
 	icon_gib = "bat_dead"
 
-	faction = "scarybat"
+	faction = FACTION_SCARYBAT
 
 	maxHealth = 20
 	health = 20
@@ -20,7 +20,7 @@
 	response_disarm = "gently pushes aside the"
 	response_harm = "hits the"
 
-	organ_names = /decl/mob_organ_names/smallflying
+	organ_names = /datum/decl/mob_organ_names/smallflying
 
 	harm_intent_damage = 10
 
@@ -32,23 +32,25 @@
 
 	has_langs = list(LANGUAGE_MOUSE, LANGUAGE_ECHOSONG)		// Haha squeak
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
+	meat_type = /obj/item/reagent_containers/food/snacks/meat
 	meat_amount = 2
 
 	say_list_type = /datum/say_list/mouse	// Close enough
 
 	var/scare_chance = 15
 
-/mob/living/simple_mob/animal/space/bats/apply_melee_effects(var/atom/A)
+	can_be_drop_prey = FALSE
+
+/mob/living/simple_mob/animal/space/bats/apply_melee_effects(atom/A)
 	if(isliving(A))
 		var/mob/living/L = A
 		if(prob(scare_chance))
 			L.Stun(1)
-			L.visible_message("<span class='danger'>\The [src] scares \the [L]!</span>")
+			L.visible_message(span_danger("\The [src] scares \the [L]!"))
 
 // Spookiest of bats
 /mob/living/simple_mob/animal/space/bats/cult
-	faction = "cult"
+	faction = FACTION_CULT
 	supernatural = TRUE
 
 /mob/living/simple_mob/animal/space/bats/cult/cultify()

@@ -1,4 +1,4 @@
-//var/global/list/event_viruses = list() // so that event viruses are kept around for admin logs, rather than being GCed
+GLOBAL_LIST_EMPTY(event_viruses) // so that event viruses are kept around for admin logs, rather than being GCed
 
 /datum/event/viral_infection
 	var/list/viruses = list()
@@ -20,21 +20,24 @@
 
 /datum/event/viral_infection/announce()
 	var/level
+	var/virus_msg
 	if (severity == EVENT_LEVEL_MUNDANE)
 		return
 	else if (severity == EVENT_LEVEL_MODERATE)
 		level = pick("one", "two", "three", "four")
+		virus_msg = ANNOUNCER_MSG_BIOHAZARD_LOW
 	else
 		level = "five"
+		virus_msg = ANNOUNCER_MSG_BIOHAZARD_FIVE
 
 	if (severity == EVENT_LEVEL_MAJOR || prob(60))
-		command_announcement.Announce("Confirmed outbreak of level [level] biohazard aboard \the [station_name()]. All personnel must contain the outbreak.", "Biohazard Alert", new_sound = 'sound/AI/outbreak5.ogg')
+		command_announcement.Announce("Confirmed outbreak of level [level] biohazard aboard \the [station_name()]. All personnel must contain the outbreak.", "Biohazard Alert", new_sound = virus_msg)
 
 /datum/event/viral_infection/start()
 	if(!viruses.len) return
 
 	var/list/candidates = list()	//list of candidate keys
-	for(var/mob/living/carbon/human/G in player_list)
+	for(var/mob/living/carbon/human/G in GLOB.player_list)
 		if(G.mind && G.stat != DEAD && G.is_client_active(5) && !player_is_antag(G.mind))
 			var/turf/T = get_turf(G)
 			if(T.z in using_map.station_levels)
@@ -54,11 +57,11 @@
 		actual_severity--
 		used_viruses |= D
 
-	event_viruses |= used_viruses
+	GLOB.event_viruses |= used_viruses
 	var/list/used_viruses_links = list()
 	var/list/used_viruses_text = list()
 	for(var/datum/disease2/disease/D in used_viruses)
-		used_viruses_links += "<a href='?src=\ref[D];[HrefToken()];info=1'>[D.name()]</a>"
+		used_viruses_links += "<a href='byond://?src=\ref[D];[HrefToken()];info=1'>[D.name()]</a>"
 		used_viruses_text += D.name()
 
 	var/list/used_candidates_links = list()

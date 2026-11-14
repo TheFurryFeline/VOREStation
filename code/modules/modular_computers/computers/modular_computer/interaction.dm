@@ -12,12 +12,12 @@
 	set category = "Object"
 	set src in view(1)
 
-	if(usr.incapacitated() || !istype(usr, /mob/living))
-		to_chat(usr, "<span class='warning'>You can't do that.</span>")
+	if(usr.incapacitated() || !isliving(usr))
+		to_chat(usr, span_warning("You can't do that."))
 		return
 
 	if(!Adjacent(usr))
-		to_chat(usr, "<span class='warning'>You can't reach it.</span>")
+		to_chat(usr, span_warning("You can't reach it."))
 		return
 
 	if(enabled)
@@ -36,12 +36,12 @@
 	set category = "Object"
 	set src in view(1)
 
-	if(usr.incapacitated() || !istype(usr, /mob/living))
-		to_chat(usr, "<span class='warning'>You can't do that.</span>")
+	if(usr.incapacitated() || !isliving(usr))
+		to_chat(usr, span_warning("You can't do that."))
 		return
 
 	if(!Adjacent(usr))
-		to_chat(usr, "<span class='warning'>You can't reach it.</span>")
+		to_chat(usr, span_warning("You can't reach it."))
 		return
 
 	proc_eject_id(usr)
@@ -52,12 +52,12 @@
 	set category = "Object"
 	set src in view(1)
 
-	if(usr.incapacitated() || !istype(usr, /mob/living))
-		to_chat(usr, "<span class='warning'>You can't do that.</span>")
+	if(usr.incapacitated() || !isliving(usr))
+		to_chat(usr, span_warning("You can't do that."))
 		return
 
 	if(!Adjacent(usr))
-		to_chat(usr, "<span class='warning'>You can't reach it.</span>")
+		to_chat(usr, span_warning("You can't reach it."))
 		return
 
 	proc_eject_usb(usr)
@@ -97,32 +97,46 @@
 	uninstall_component(user, portable_drive)
 	update_uis()
 
-/obj/item/modular_computer/attack_ghost(var/mob/observer/dead/user)
+/obj/item/modular_computer/attack_ghost(mob/observer/dead/user)
 	if(enabled)
 		tgui_interact(user)
-	else if(check_rights(R_ADMIN|R_EVENT, 0, user))
+	else if(check_rights_for(user.client, R_ADMIN|R_EVENT|R_DEBUG))
 		var/response = tgui_alert(user, "This computer is turned off. Would you like to turn it on?", "Admin Override", list("Yes", "No"))
 		if(response == "Yes")
 			turn_on(user)
 
-/obj/item/modular_computer/attack_ai(var/mob/user)
+/obj/item/modular_computer/attack_ai(mob/user)
 	return attack_self(user)
 
-/obj/item/modular_computer/attack_hand(var/mob/user)
-	if(anchored)
+/obj/item/modular_computer/attack_hand(mob/user)
+	if(anchored || ispAI(user))
 		return attack_self(user)
 	return ..()
 
 // On-click handling. Turns on the computer if it's off and opens the GUI.
-/obj/item/modular_computer/attack_self(var/mob/user)
+/obj/item/modular_computer/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(enabled && screen_on)
+		if(isliving(user) && HAS_TRAIT(user, TRAIT_UNLUCKY) && prob(5))
+			var/mob/living/unlucky_soul = user
+			to_chat(user, span_danger("You interact with \the [src] and are met with a sudden shock!"))
+			var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
+			s.set_up(5, 1, src)
+			s.start()
+			unlucky_soul.electrocute_act(5, src, 1)
+			return
 		tgui_interact(user)
 	else if(!enabled && screen_on)
+		if(HAS_TRAIT(user, TRAIT_UNLUCKY) && prob(25))
+			to_chat(user, "You try to turn on \the [src] but it doesn't respond.")
+			return
 		turn_on(user)
 
-/obj/item/modular_computer/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
-	if(istype(W, /obj/item/weapon/card/id)) // ID Card, try to insert it.
-		var/obj/item/weapon/card/id/I = W
+/obj/item/modular_computer/attackby(obj/item/W, mob/user)
+	if(istype(W, /obj/item/card/id)) // ID Card, try to insert it.
+		var/obj/item/card/id/I = W
 		if(!card_slot)
 			to_chat(user, "You try to insert \the [I] into \the [src], but it does not have an ID card slot installed.")
 			return
@@ -136,12 +150,12 @@
 		update_uis()
 		to_chat(user, "You insert \the [I] into \the [src].")
 		return
-	if(istype(W, /obj/item/weapon/paper) || istype(W, /obj/item/weapon/paper_bundle))
+	if(istype(W, /obj/item/paper) || istype(W, /obj/item/paper_bundle))
 		if(!nano_printer)
 			return
 		nano_printer.attackby(W, user)
-	if(istype(W, /obj/item/weapon/computer_hardware))
-		var/obj/item/weapon/computer_hardware/C = W
+	if(istype(W, /obj/item/computer_hardware))
+		var/obj/item/computer_hardware/C = W
 		if(C.hardware_size <= max_hardware_size)
 			try_install_component(user, C)
 		else
@@ -156,7 +170,7 @@
 		qdel(src)
 		return
 	if(W.has_tool_quality(TOOL_WELDER))
-		var/obj/item/weapon/weldingtool/WT = W.get_welder()
+		var/obj/item/weldingtool/WT = W.get_welder()
 		if(!WT.isOn())
 			to_chat(user, "\The [W] is off.")
 			return
@@ -166,7 +180,7 @@
 			return
 
 		to_chat(user, "You begin repairing damage to \the [src]...")
-		if(WT.remove_fuel(round(damage/75)) && do_after(usr, damage/10))
+		if(WT.remove_fuel(round(damage/75)) && do_after(user, damage/10, target = src))
 			damage = 0
 			to_chat(user, "You repair \the [src].")
 		return
@@ -177,18 +191,18 @@
 			to_chat(user, "This device doesn't have any components installed.")
 			return
 		var/list/component_names = list()
-		for(var/obj/item/weapon/computer_hardware/H in all_components)
+		for(var/obj/item/computer_hardware/H in all_components)
 			component_names.Add(H.name)
 
-		var/choice = tgui_input_list(usr, "Which component do you want to uninstall?", "Computer maintenance", component_names)
+		var/choice = tgui_input_list(user, "Which component do you want to uninstall?", "Computer maintenance", component_names)
 
 		if(!choice)
 			return
 
-		if(!Adjacent(usr))
+		if(!Adjacent(user))
 			return
 
-		var/obj/item/weapon/computer_hardware/H = find_hardware_by_name(choice)
+		var/obj/item/computer_hardware/H = find_hardware_by_name(choice)
 
 		if(!H)
 			return
@@ -198,3 +212,10 @@
 		return
 
 	..()
+
+/obj/item/modular_computer/allow_pai_interaction(mob/living/silicon/pai/user, proximity_flag)
+	if(!card_slot?.stored_card?.dna_hash || !user.master_dna)
+		return FALSE
+	if(card_slot.stored_card.dna_hash != user.master_dna)
+		return FALSE
+	return proximity_flag

@@ -13,7 +13,7 @@
 
 /* TEMPLATE
 //ckey:Character Name
-/obj/item/weapon/fluff/charactername
+/obj/item/fluff/charactername
 	name = ""
 	desc = ""
 
@@ -26,7 +26,7 @@
 */
 
 //For general use
-/obj/item/device/modkit_conversion
+/obj/item/modkit_conversion
 	name = "modification kit"
 	desc = "A kit containing all the needed tools and parts to modify a suit and helmet."
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -51,7 +51,7 @@
 	var/delete_on_empty = FALSE	//do we self-delete when emptied?
 
 	//Conversion proc
-/obj/item/device/modkit_conversion/afterattack(obj/O, mob/user as mob)
+/obj/item/modkit_conversion/afterattack(obj/O, mob/user as mob)
 	var/cost
 	var/to_type
 	var/keycheck
@@ -61,10 +61,10 @@
 	if(istype(O,/obj/item/clothing/suit/space/void/) && !can_repair) //check if we're a voidsuit and if we're allowed to repair
 		var/obj/item/clothing/suit/space/void/SS = O
 		if(LAZYLEN(SS.breaches))
-			to_chat(user, "<span class='warning'>You should probably repair that before you start tinkering with it.</span>")
+			to_chat(user, span_warning("You should probably repair that before you start tinkering with it."))
 			return
-	if(O.blood_DNA || O.contaminated) //check if we're bloody or gooey or whatever, so modkits can't be used to hide crimes easily.
-		to_chat(user, "<span class='warning'>You should probably clean that up before you start tinkering with it.</span>")
+	if(O.forensic_data?.has_blooddna() || O.contaminated) //check if we're bloody or gooey or whatever, so modkits can't be used to hide crimes easily.
+		to_chat(user, span_warning("You should probably clean that up before you start tinkering with it."))
 		return
 	//we have to check that it's not the original type first, because otherwise it might convert wrong based on pathing; the subtype can still count as the basetype
 	if(istype(O,to_helmet) && can_revert)
@@ -74,7 +74,7 @@
 		cost = to_suit_cost
 		to_type = from_suit
 	else if(!can_revert && (istype(O,to_helmet) || istype (O,to_suit)))
-		to_chat(user, "<span class='warning'>This kit doesn't seem to have the tools necessary to revert changes to modified items.</span>")
+		to_chat(user, span_warning("This kit doesn't seem to have the tools necessary to revert changes to modified items."))
 		return
 	else if(istype(O,from_helmet))
 		cost = from_helmet_cost
@@ -87,50 +87,48 @@
 	else
 		return
 	if(!isturf(O.loc))
-		to_chat(user, "<span class='warning'>You need to put \the [O] on the ground, a table, or other worksurface before modifying it.</span>")
+		to_chat(user, span_warning("You need to put \the [O] on the ground, a table, or other worksurface before modifying it."))
 		return
 	if(!skip_content_check && O.contents.len) //check if we're loaded/modified, in the event of gun/suit kits, to avoid purging stuff like ammo, badges, armbands, or suit helmets
-		to_chat(user, "<span class='warning'>You should probably remove any attached items or loaded ammunition before trying to modify that!</span>")
+		to_chat(user, span_warning("You should probably remove any attached items or loaded ammunition before trying to modify that!"))
 		return
 	if(cost > parts)
-		to_chat(user, "<span class='warning'>The kit doesn't have enough parts left to modify that.</span>")
+		to_chat(user, span_warning("The kit doesn't have enough parts left to modify that."))
 		if(can_revert && ((to_helmet_cost || to_suit_cost) < 0))
-			to_chat(user, "<span class='notice'> You can recover parts by using the kit on an already-modified item.</span>")
+			to_chat(user, span_notice(" You can recover parts by using the kit on an already-modified item."))
 		return
 	if(keycheck && owner_ckey) //check if we're supposed to care
 		if(user.ckey != owner_ckey) //ERROR: UNAUTHORIZED USER
-			to_chat(user, "<span class='warning'>You probably shouldn't mess with all these strange tools and parts...</span>") //give them a slightly fluffy explanation as to why it didn't work
+			to_chat(user, span_warning("You probably shouldn't mess with all these strange tools and parts...")) //give them a slightly fluffy explanation as to why it didn't work
 			return
 	playsound(src, 'sound/items/Screwdriver.ogg', 100, 1)
 	var/obj/N = new to_type(O.loc)
-	user.visible_message("<span class='notice'>[user] opens \the [src] and modifies \the [O] into \the [N].</span>","<span class='notice'>You open \the [src] and modify \the [O] into \the [N].</span>")
+	user.visible_message(span_notice("[user] opens \the [src] and modifies \the [O] into \the [N]."),span_notice("You open \the [src] and modify \the [O] into \the [N]."))
 
-	//crude, but transfer prints and fibers to avoid forensics abuse, same as the bloody/gooey check above
-	N.fingerprints = O.fingerprints
-	N.fingerprintshidden = O.fingerprintshidden
-	N.fingerprintslast = O.fingerprintslast
-	N.suit_fibers = O.suit_fibers
+	// Transfer forensics to, lets avoid CRIME exploits
+	O.transfer_fingerprints_to(N)
+	O.transfer_fibres_to(N)
 
 	//transfer logic could technically be made more thorough and handle stuff like helmet/boots/tank vars for suits, but in those cases you should be removing the items first anyway
 	if(skip_content_check && transfer_contents)
 		N.contents = O.contents
-		if(istype(N,/obj/item/weapon/gun/projectile/))
-			var/obj/item/weapon/gun/projectile/NN = N
-			var/obj/item/weapon/gun/projectile/OO = O
+		if(istype(N,/obj/item/gun/projectile/))
+			var/obj/item/gun/projectile/NN = N
+			var/obj/item/gun/projectile/OO = O
 			NN.magazine_type = OO.magazine_type
 			NN.ammo_magazine = OO.ammo_magazine
-		if(istype(N,/obj/item/weapon/gun/energy/))
-			var/obj/item/weapon/gun/energy/NE = N
-			var/obj/item/weapon/gun/energy/OE = O
+		if(istype(N,/obj/item/gun/energy/))
+			var/obj/item/gun/energy/NE = N
+			var/obj/item/gun/energy/OE = O
 			NE.cell_type = OE.cell_type
 	else
-		if(istype(N,/obj/item/weapon/gun/projectile/))
-			var/obj/item/weapon/gun/projectile/NM = N
+		if(istype(N,/obj/item/gun/projectile/))
+			var/obj/item/gun/projectile/NM = N
 			NM.contents = list()
 			NM.magazine_type = null
 			NM.ammo_magazine = null
-		if(istype(N,/obj/item/weapon/gun/energy/))
-			var/obj/item/weapon/gun/energy/NO = N
+		if(istype(N,/obj/item/gun/energy/))
+			var/obj/item/gun/energy/NO = N
 			NO.contents = list()
 			NO.cell_type = null
 
@@ -140,7 +138,7 @@
 		qdel(src)
 
 //DEBUG ITEM
-/obj/item/device/modkit_conversion/fluff/debug_gunkit
+/obj/item/modkit_conversion/fluff/debug_gunkit
 	name = "Gun Transformation Kit"
 	desc = "A kit containing all the needed tools and fabric to modify one sidearm to another."
 	skip_content_check = FALSE
@@ -149,101 +147,101 @@
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "harmony_kit"
 
-	from_helmet = /obj/item/weapon/gun/energy/laser
-	to_helmet = /obj/item/weapon/gun/energy/retro
+	from_helmet = /obj/item/gun/energy/laser
+	to_helmet = /obj/item/gun/energy/retro
 //DEBUG ITEM ENDS
 
 //JoanRisu:Joan Risu
-/obj/item/weapon/flame/lighter/zippo/fluff/joan
+/obj/item/flame/lighter/zippo/fluff/joan
 	name = "Federation Zippo Lighter"
 	desc = "A red zippo lighter with the United Federation Logo on it."
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "joanzip"
 
 //JoanRisu:Joan Risu
-/obj/item/weapon/sword/fluff/joanaria
+/obj/item/sword/fluff/joanaria
 	name = "Aria"
 	desc = "A beautifully crafted rapier owned by Joan Risu. It has a thin blade and is used for quick attacks."
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "joanaria"
 	icon_override = 'icons/vore/custom_items_vr.dmi'
 	item_state = "joanariamob"
-	origin_tech = "materials=7"
 	force = 15
 	sharp = TRUE
 	edge = TRUE
 	hitsound = 'sound/weapons/bladeslice.ogg'
 
 
-/obj/item/weapon/sword/fluff/joanaria/handle_shield(mob/user, var/damage, atom/damage_source = null, mob/attacker = null, var/def_zone = null, var/attack_text = "the attack")
+/obj/item/sword/fluff/joanaria/handle_shield(mob/user, damage, atom/damage_source = null, mob/attacker = null, def_zone = null, attack_text = "the attack")
 
 	if(default_parry_check(user, attacker, damage_source) && prob(75))
-		user.visible_message("<span class='danger'>\The [user] parries [attack_text] with \the [src]!</span>")
+		user.visible_message(span_danger("\The [user] parries [attack_text] with \the [src]!"))
 		playsound(src, 'sound/weapons/punchmiss.ogg', 50, 1)
 		return 1
 	return 0
 
 //joanrisu:Katarina Eine
-/obj/item/weapon/material/knife/tacknife/combatknife/fluff/katarina
+/obj/item/material/knife/tacknife/combatknife/fluff/katarina
 	name = "tactical Knife"
 	desc = "A tactical knife with a small butterly engraved on the blade."
 
-/obj/item/weapon/material/knife/tacknife/combatknife/fluff/katarina/handle_shield(mob/user, var/damage, atom/damage_source = null, mob/attacker = null, var/def_zone = null, var/attack_text = "the attack")
+/obj/item/material/knife/tacknife/combatknife/fluff/katarina/handle_shield(mob/user, damage, atom/damage_source = null, mob/attacker = null, def_zone = null, attack_text = "the attack")
 
 	if(default_parry_check(user, attacker, damage_source) && prob(75))
-		user.visible_message("<span class='danger'>\The [user] parries [attack_text] with \the [src]!</span>")
+		user.visible_message(span_danger("\The [user] parries [attack_text] with \the [src]!"))
 		playsound(src, 'sound/weapons/punchmiss.ogg', 50, 1)
 		return 1
 	return 0
 
 //For General use
-/obj/item/weapon/sword/fluff/joanaria/scisword
+/obj/item/sword/fluff/joanaria/scisword
 	name = "Scissor Blade"
 	desc = "A sword that can not only cut down your enemies, it can also cut fabric really neatly"
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "scisword"
-	origin_tech = "materials=7"
-
 
 //john.wayne9392:Harmony Prechtl
-/obj/item/weapon/twohanded/fireaxe/fluff/mjollnir
+/obj/item/twohanded/fireaxe/fluff/mjollnir
 	name = "Mjollnir"
 	desc = "Large hammer that looks like it can do a great deal of damage if properly used."
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "harmonymjollnir"
-	origin_tech = "materials=7"
 	attack_verb = list("attacked", "hammered", "smashed", "slammed", "crushed")
 
 //JoanRisu:Joan Risu
-/obj/item/weapon/card/id/centcom/station/fluff/joanbadge
+/obj/item/card/id/centcom/station/fluff/joanbadge
 	name = "Faded Badge"
 	desc = "A faded badge, backed with leather, that reads 'NT Security Force' across the front."
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "joanbadge"
 	registered_name = "Joan Risu"
 	assignment = "Centcom Officer"
+	special_handling = TRUE
 
 
-/obj/item/weapon/card/id/centcom/station/fluff/joanbadge/attack_self(mob/user as mob)
+/obj/item/card/id/centcom/station/fluff/joanbadge/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(isliving(user))
-		user.visible_message("<span class='warning'>[user] flashes their golden security badge.\nIt reads:NT Security.</span>","<span class='warning'>You display the faded badge.\nIt reads: NT Security.</span>")
+		user.visible_message(span_warning("[user] flashes their golden security badge.\nIt reads:NT Security."),span_warning("You display the faded badge.\nIt reads: NT Security."))
 
-/obj/item/weapon/card/id/centcom/station/fluff/joanbadge/attack(mob/living/carbon/human/M, mob/living/user)
-	if(isliving(user))
-		user.visible_message("<span class='warning'>[user] invades [M]'s personal space, thrusting [src] into their face insistently.</span>","<span class='warning'>You invade [M]'s personal space, thrusting [src] into their face insistently.</span>")
+/obj/item/card/id/centcom/station/fluff/joanbadge/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	user.visible_message(span_warning("[user] invades [M]'s personal space, thrusting [src] into their face insistently."),span_warning("You invade [M]'s personal space, thrusting [src] into their face insistently."))
+	return ITEM_INTERACT_SUCCESS
 
 //JoanRisu:Joan Risu
-/obj/item/device/pda/heads/hos/joanpda
+/obj/item/pda/heads/hos/joanpda
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "pda-joan"
 
 //Vorrarkul:Lucina Dakarim
-/obj/item/device/pda/heads/cmo/fluff/lucinapda
+/obj/item/pda/heads/cmo/fluff/lucinapda
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "pda-lucina"
 
 //john.wayne9392:Harmony Prechtl
-/obj/item/device/modkit_conversion/fluff/harmonyspace
+/obj/item/modkit_conversion/fluff/harmonyspace
 	name = "Harmony's captain space suit modkit"
 	desc = "A kit containing all the needed tools and parts to modify a Captain's hardsuit. It has green and yellow parts inside."
 
@@ -256,7 +254,7 @@
 	to_suit = /obj/item/clothing/suit/armor/captain/fluff/harmsuit
 
 //john.wayne9392:Harmony Prechtl
-/obj/item/device/modkit_conversion/fluff/harmonysuit
+/obj/item/modkit_conversion/fluff/harmonysuit
 	name = "Harmony's captain suit modkit"
 	desc = "A sewing kit containing all the needed tools and fabric to modify a Captain's suit and hat. It has green and yellow fabrics inside."
 
@@ -269,7 +267,7 @@
 	to_suit = /obj/item/clothing/under/rank/captain/fluff/harmuniform
 
 //scree:Scree
-/obj/item/device/modkit_conversion/fluff/screekit
+/obj/item/modkit_conversion/fluff/screekit
 	name = "Scree's hardsuit modification kit"
 	desc = "A kit containing all the needed tools and parts to modify a hardsuit for a specific user. This one looks like it's fitted for a winged creature."
 
@@ -282,7 +280,7 @@
 	to_suit = /obj/item/clothing/suit/space/void/engineering/hazmat/fluff/screespess
 
 //General Use
-/obj/item/weapon/flag
+/obj/item/flag
 	name = "Nanotrasen Banner"
 	desc = "I pledge allegiance to the flag of a megacorporation in space."
 
@@ -292,16 +290,18 @@
 	icon_override = 'icons/vore/custom_items_vr.dmi'
 	item_state = "Flag_Nanotrasen_mob"
 
-/obj/item/weapon/flag/attack_self(mob/user as mob)
+/obj/item/flag/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(isliving(user))
-		user.visible_message("<span class='warning'>[user] waves their Banner around!</span>","<span class='warning'>You wave your Banner around.</span>")
+		user.visible_message(span_warning("[user] waves their Banner around!"),span_warning("You wave your Banner around."))
 
-/obj/item/weapon/flag/attack(mob/living/carbon/human/M, mob/living/user)
-	if(isliving(user))
-		user.visible_message("<span class='warning'>[user] invades [M]'s personal space, thrusting [src] into their face insistently.</span>","<span class='warning'>You invade [M]'s personal space, thrusting [src] into their face insistently.</span>")
+/obj/item/flag/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	user.visible_message(span_warning("[user] invades [M]'s personal space, thrusting [src] into their face insistently."),span_warning("You invade [M]'s personal space, thrusting [src] into their face insistently."))
+	return ITEM_INTERACT_SUCCESS
 
-
-/obj/item/weapon/flag/federation
+/obj/item/flag/federation
 	name = "Federation Banner"
 	desc = "Space, The Final Frontier. Sorta. Just go with it and say the damn oath."
 
@@ -311,7 +311,7 @@
 	icon_override = 'icons/vore/custom_items_vr.dmi'
 	item_state = "flag_federation_mob"
 
-/obj/item/weapon/flag/xcom
+/obj/item/flag/xcom
 	name = "Alien Combat Command Banner"
 	desc = "A banner bearing the symbol of a task force fighting an unknown alien power."
 
@@ -321,7 +321,7 @@
 	icon_override = 'icons/vore/custom_items_vr.dmi'
 	item_state = "flag_xcom_mob"
 
-/obj/item/weapon/flag/advent
+/obj/item/flag/advent
 	name = "ALIEN Coalition Banner"
 	desc = "A banner belonging to traitors who work for an unknown alien power."
 
@@ -343,14 +343,14 @@
 	icon_override = 'icons/vore/custom_items_vr.dmi'
 
 //zodiacshadow: Nehi Maximus
-/obj/item/device/radio/headset/fluff/zodiacshadow
+/obj/item/radio/headset/fluff/zodiacshadow
 	name = "Nehi's 'phones"
 	desc = "A pair of old-fashioned purple headphones for listening to music that also double as an NT-approved headset; they connect nicely to any standard PDA. One side is engraved with the letters NEHI, the other having an elaborate inscription of the words \"My voice is my weapon of choice\" in a fancy font. A modern polymer allows switching between modes to either allow one to hear one's surroundings or to completely block them out."
 
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "nehiphones"
 
-	icon_override = 'icons/vore/custom_onmob_vr.dmi'
+	default_worn_icon = 'icons/vore/custom_clothes_mob.dmi'
 	item_state = "nehiphones"
 
 //zodiacshadow: Nehi Maximus
@@ -362,7 +362,7 @@
 	icon_state = "silver"
 
 // OrbisA: Richard D'angelo
-/obj/item/weapon/melee/fluff/holochain
+/obj/item/melee/fluff/holochain
 	name = "Holographic Chain"
 	desc = "A High Tech solution to simple perversions. It has a red leather handle and the initials R.D. on the silver base."
 
@@ -381,52 +381,55 @@
 	attack_verb = list("flogged", "whipped", "lashed", "disciplined", "chastised", "flayed")
 
 //General use
-/obj/item/weapon/melee/fluff/holochain/mass
+/obj/item/melee/fluff/holochain/mass
 	desc = "A mass produced version of the original. It has faux leather and an aluminium base, but still stings like the original."
 	force = 8
 	attack_verb = list("flogged", "whipped", "lashed", "flayed")
 
 
 // joey4298:Emoticon
-/obj/item/device/fluff/id_kit_mime
+/obj/item/fluff/id_kit_mime
 	name = "Mime ID reprinter"
 	desc = "Stick your ID in one end and it'll print a new ID out the other!"
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "labeler1"
 
-/obj/item/device/fluff/id_kit_mime/afterattack(obj/O, mob/user as mob)
+/obj/item/fluff/id_kit_mime/afterattack(obj/O, mob/user as mob)
 	var/new_icon = "mime"
-	if(istype(O,/obj/item/weapon/card/id) && O.icon_state != new_icon)
+	if(istype(O,/obj/item/card/id) && O.icon_state != new_icon)
 		//O.icon = icon // just in case we're using custom sprite paths with fluff items.
 		O.icon_state = new_icon // Changes the icon without changing the access.
 		playsound(src, 'sound/items/polaroid2.ogg', 100, 1)
-		user.visible_message("<span class='warning'> [user] reprints their ID.</span>")
+		user.visible_message(span_warning(" [user] reprints their ID."))
 		qdel(src)
 	else if(O.icon_state == new_icon)
-		to_chat(user, "<span class='notice'>[O] already has been reprinted.</span>")
+		to_chat(user, span_notice("[O] already has been reprinted."))
 		return
 	else
-		to_chat(user, "<span class='warning'>This isn't even an ID card you idiot.</span>")
+		to_chat(user, span_warning("This isn't even an ID card you idiot."))
 		return
 
 //arokha:Aronai Sieyes - Centcom ID (Medical dept)
-/obj/item/weapon/card/id/centcom/station/fluff/aronai
+/obj/item/card/id/centcom/station/fluff/aronai
 	registered_name = "CONFIGURE ME"
 	assignment = "CC Medical"
-	var/configured = 0
+	can_configure = TRUE
 
-/obj/item/weapon/card/id/centcom/station/fluff/aronai/attack_self(mob/user as mob)
+/obj/item/card/id/centcom/station/fluff/aronai/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(configured)
-		return ..()
+		return
 
 	user.set_id_info(src)
 	if(user.mind && user.mind.initial_account)
 		associated_account_number = user.mind.initial_account.account_number
-	configured = 1
-	to_chat(user, "<span class='notice'>Card settings set.</span>")
+	configured = TRUE
+	to_chat(user, span_notice("Card settings set."))
 
 //Swat43:Fortune Bloise
-/obj/item/weapon/storage/backpack/satchel/fluff/swat43bag
+/obj/item/storage/backpack/satchel/fluff/swat43bag
 	name = "Coloured Satchel"
 	desc = "That's a coloured satchel with red stripes, with a heart and ripley logo on each side."
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -449,16 +452,16 @@
 	name = "custom security cuirass"
 	desc = "An armored vest that protects against some damage. It appears to be created for a wolfhound. The name 'Serdykov L. Antoz' is written on a tag inside one of the haunchplates."
 	species_restricted = null //Species restricted since all it cares about is a taur half
-	icon = 'icons/mob/taursuits_wolf_vr.dmi'
+	icon = 'icons/mob/taursuits_wolf.dmi'
 	icon_state = "serdy_armor"
 	item_state = "serdy_armor"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|ARMS //It's a full body suit, minus hands and feet. Arms and legs should be protected, not just the torso. Retains normal security armor values still.
+	body_parts_covered = CHEST|LEGS|ARMS //It's a full body suit, minus hands and feet. Arms and legs should be protected, not just the torso. Retains normal security armor values still.
 
-/obj/item/clothing/suit/armor/vest/wolftaur/serdy/mob_can_equip(var/mob/living/carbon/human/H, slot, disable_warning = 0)
+/obj/item/clothing/suit/armor/vest/wolftaur/serdy/mob_can_equip(mob/living/carbon/human/H, slot, disable_warning = FALSE, ignore_obstruction, go_over_slot = FALSE)
 	if(istype(H) && istype(H.tail_style, /datum/sprite_accessory/tail/taur/wolf))
 		return ..()
 	else
-		to_chat(H, "<span class='warning'>You need to have a wolf-taur half to wear this.</span>")
+		to_chat(H, span_warning("You need to have a wolf-taur half to wear this."))
 		return 0
 
 /obj/item/clothing/head/serdyhelmet //SilencedMP5A5's specialty helmet.
@@ -471,10 +474,7 @@
 	flags = THICKMATERIAL
 	armor = list(melee = 40, bullet = 30, laser = 30, energy = 10, bomb = 10, bio = 0, rad = 0)
 	icon_override = 'icons/vore/custom_clothes_vr.dmi'
-	item_state = "serdyhelm_mob"
-	cold_protection = HEAD
 	min_cold_protection_temperature = HELMET_MIN_COLD_PROTECTION_TEMPERATURE
-	heat_protection = HEAD
 	max_heat_protection_temperature = HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
 	siemens_coefficient = 0.7
 	w_class = ITEMSIZE_NORMAL
@@ -483,7 +483,7 @@
 
 
 //SilencedMP5A5:Serdykov Antoz
-/obj/item/device/modkit_conversion/fluff/serdykit
+/obj/item/modkit_conversion/fluff/serdykit
 	name = "Serdykov's armor modification kit"
 	desc = "A kit containing all the needed tools and parts to modify a armor vest and helmet for a specific user. This one looks like it's fitted for a wolf-taur."
 
@@ -502,9 +502,29 @@
 	desc = "Heavy, royal purple robes threaded with silver lining."
 	icon_state = "psyamp"
 	flags_inv = HIDEJUMPSUIT|HIDETIE|HIDEHOLSTER
+	var/unbuttoned = 0
+
+/obj/item/clothing/suit/fluff/purp_robes/verb/toggle()
+	set name = "Toggle coat buttons"
+	set category = "Object"
+	set src in usr
+
+	if(!usr.canmove || usr.stat || usr.restrained())
+		return 0
+
+	switch(unbuttoned)
+		if(0)
+			icon_state = "[initial(icon_state)]_open"
+			unbuttoned = TRUE
+			to_chat(usr, "You unbutton the coat.")
+		if(1)
+			icon_state = "[initial(icon_state)]"
+			unbuttoned = FALSE
+			to_chat(usr, "You button up the coat.")
+	usr.update_inv_wear_suit()
 
 /obj/item/clothing/head/fluff/pink_tiara
-	name = "Pink Tourmaline Tiara"
+	name = "pink tourmaline tiara"
 	desc = "A small, steel tiara with a large, pink tourmaline gem in the center."
 	icon_state = "amp"
 	body_parts_covered = 0
@@ -528,9 +548,10 @@
 	var/mob/owner = null
 	var/client/owner_c = null //They'll be dead when we message them probably.
 	var/state = 0 //0 - New, 1 - Paired, 2 - Breaking, 3 - Broken (same as iconstates)
+	special_collar = TRUE
 
-/obj/item/clothing/accessory/collar/khcrystal/New()
-	..()
+/obj/item/clothing/accessory/collar/khcrystal/Initialize(mapload)
+	. = ..()
 	update_state(0)
 
 /obj/item/clothing/accessory/collar/khcrystal/Destroy() //Waitwaitwait
@@ -543,38 +564,45 @@
 	if((state > 1) || !owner)
 		STOP_PROCESSING(SSobj, src)
 
-/obj/item/clothing/accessory/collar/khcrystal/attack_self(mob/user as mob)
+/obj/item/clothing/accessory/collar/khcrystal/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(state > 0) //Can't re-pair, one time only, for security reasons.
-		to_chat(user, "<span class='notice'>The [name] doesn't do anything.</span>")
+		to_chat(user, span_notice("The [name] doesn't do anything."))
 		return 0
 
 	owner = user	//We're paired to this guy
 	owner_c = user.client	//This is his client
 	update_state(1)
-	to_chat(user, "<span class='notice'>The [name] glows pleasantly blue.</span>")
+	to_chat(user, span_notice("The [name] glows pleasantly blue."))
 	START_PROCESSING(SSobj, src)
 
 /obj/item/clothing/accessory/collar/khcrystal/proc/check_owner()
 	//He's dead, jim
 	if((state == 1) && owner && (owner.stat == DEAD))
 		update_state(2)
-		visible_message("<span class='warning'>The [name] begins flashing red.</span>")
-		sleep(30)
-		visible_message("<span class='warning'>The [name] shatters into dust!</span>")
-		if(owner_c)
-			to_chat(owner_c, "<span class='notice'>The HAVENS system is notified of your demise via \the [name].</span>")
-		update_state(3)
-		name = "broken [initial(name)]"
-		desc = "This seems like a necklace, but the actual pendant is missing."
+		visible_message(span_warning("The [name] begins flashing red."))
+		addtimer(CALLBACK(src, PROC_REF(shatter_into_dust)), 3 SECONDS, TIMER_DELETE_ME)
 
-/obj/item/clothing/accessory/collar/khcrystal/proc/update_state(var/tostate)
+/obj/item/clothing/accessory/collar/khcrystal/proc/shatter_into_dust()
+	SHOULD_NOT_OVERRIDE(TRUE)
+	PRIVATE_PROC(TRUE)
+	visible_message(span_warning("The [name] shatters into dust!"))
+	if(owner_c)
+		to_chat(owner_c, span_notice("The HAVENS system is notified of your demise via \the [name]."))
+	update_state(3)
+	name = "broken [initial(name)]"
+	desc = "This seems like a necklace, but the actual pendant is missing."
+
+/obj/item/clothing/accessory/collar/khcrystal/proc/update_state(tostate)
 	state = tostate
 	icon_state = "[initial(icon_state)][tostate]"
 	update_icon()
 
-/obj/item/weapon/paper/khcrystal_manual
-	name = "KH-LC91-1 manual"
-	info = {"<h4>KH-LC91-1 Life Crystal</h4>
+/obj/item/paper/khcrystal_manual
+	name = "VM-LC91-1 manual"
+	info = {"<h4>VM-LC91-1 Life Crystal</h4>
 	<h5>Usage</h5>
 	<ol>
 		<li>Hold new crystal in hand.</li>
@@ -583,8 +611,8 @@
 	</ol>
 	<br />
 	<h5>Purpose</h5>
-	<p>The Kitsuhana Life Crystal is a small device typically worn around the neck for the purpose of reporting your status to the HAVENS (Kitsuhana's High-AVailability ENgram Storage) system, so that appropriate measures can be taken in the case of your body's demise. The whole device is housed inside a pleasing-to-the-eye elongated diamond.</p>
-	<p>Upon your body's desmise, the crystal will send a transmission to HAVENS. Depending on your membership level, the appropriate actions can be taken to ensure that you are back up and enjoying existence as soon as possible.</p>
+	<p>The Vey-Medical Life Crystal is a small device typically worn around the neck for the purpose of reporting your status to the HAVENS (High-AVailability ENgram Storage) system, so that appropriate measures can be taken in the case of your body's demise. The whole device is housed inside a pleasing-to-the-eye elongated diamond.</p>
+	<p>Upon your body's demise, the crystal will send a transmission to HAVENS. Depending on your membership level, the appropriate actions can be taken to ensure that you are back up and enjoying existence as soon as possible.</p>
 
 	<p>Nanotrasen has negotiated a <i>FREE</i> Star membership for you in the HAVENS system, though an upgrade can be obtained depending on your citizenship and reputation level.</p>
 
@@ -611,66 +639,66 @@
 	<i>\[AM WARNING\]</i>
 	<p>This device contains antimatter. Please consult all local regulations when travelling to ensure compliance with local laws.</p>"}
 
-/obj/item/weapon/storage/box/khcrystal
+/obj/item/storage/box/khcrystal
 	name = "life crystal case"
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "khlifebox"
-	desc = "This case can only hold the KH-LC91-1 and a manual."
+	desc = "This case can only hold the VM-LC91-1 and a manual."
 	item_state_slots = list(slot_r_hand_str = "syringe_kit", slot_l_hand_str = "syringe_kit")
 	storage_slots = 2
-	can_hold = list(/obj/item/weapon/paper/khcrystal_manual, /obj/item/clothing/accessory/collar/khcrystal)
+	can_hold = list(/obj/item/paper/khcrystal_manual, /obj/item/clothing/accessory/collar/khcrystal)
 	max_storage_space = ITEMSIZE_COST_SMALL * 2
 	w_class = ITEMSIZE_SMALL
 
-/obj/item/weapon/storage/box/khcrystal/New()
-	..()
-	new /obj/item/weapon/paper/khcrystal_manual(src)
+/obj/item/storage/box/khcrystal/Initialize(mapload)
+	. = ..()
+	new /obj/item/paper/khcrystal_manual(src)
 	new /obj/item/clothing/accessory/collar/khcrystal(src)
 
-/obj/item/weapon/cane/fluff
+/obj/item/cane/fluff
 	name = "cane"
 	desc = "A cane used by a true gentlemen. Or a clown."
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "browncane"
 	item_icons = list (slot_r_hand_str = 'icons/vore/custom_items_vr.dmi', slot_l_hand_str = 'icons/vore/custom_items_vr.dmi')
-	item_state_slots = list(slot_r_hand_str = "browncanemob_r", slot_l_hand_str = "browncanemob_l")
+	item_state_slots = list(slot_r_hand_str = "browncane_r", slot_l_hand_str = "browncane_l")
 	force = 5.0
 	throwforce = 7.0
 	w_class = ITEMSIZE_SMALL
-	matter = list(MAT_STEEL = 50)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.025))
 	attack_verb = list("bludgeoned", "whacked", "disciplined", "thrashed")
 
-/obj/item/weapon/cane/fluff/tasald
+/obj/item/cane/fluff/tasald
 	name = "Ornate Walking Cane"
 	desc = "An elaborately made custom walking stick with a dark wooding core, a crimson red gemstone on its head and a steel cover around the bottom. you'd probably hear someone using this down the hall."
 	icon = 'icons/vore/custom_items_vr.dmi'
 
-/obj/item/device/fluff/id_kit_ivy
+/obj/item/fluff/id_kit_ivy
 	name = "Holo-ID reprinter"
 	desc = "Stick your ID in one end and it'll print a new ID out the other!"
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "labeler1"
 
-/obj/item/device/fluff/id_kit_ivy/afterattack(obj/O, mob/user as mob)
+/obj/item/fluff/id_kit_ivy/afterattack(obj/O, mob/user as mob)
 	var/new_icon_state = "ivyholoid"
 	var/new_icon = 'icons/vore/custom_items_vr.dmi'
 	var/new_desc = "Its a thin screen showing ID information, but it seems to be flickering."
-	if(istype(O,/obj/item/weapon/card/id) && O.icon_state != new_icon)
+	if(istype(O,/obj/item/card/id) && O.icon_state != new_icon)
 		O.icon = new_icon
 		O.icon_state = new_icon_state // Changes the icon without changing the access.
 		O.desc = new_desc
 		playsound(src, 'sound/items/polaroid2.ogg', 100, 1)
-		user.visible_message("<span class='warning'> [user] reprints their ID.</span>")
+		user.visible_message(span_warning(" [user] reprints their ID."))
 		qdel(src)
 	else if(O.icon_state == new_icon)
-		to_chat(user, "<span class='notice'>[O] already has been reprinted.</span>")
+		to_chat(user, span_notice("[O] already has been reprinted."))
 		return
 	else
-		to_chat(user, "<span class='warning'>This isn't even an ID card you idiot.</span>")
+		to_chat(user, span_warning("This isn't even an ID card you idiot."))
 		return
 
 //WickedTempest: Chakat Tempest
-/obj/item/weapon/reagent_containers/hypospray/vial/tempest
+/obj/item/reagent_containers/hypospray/vial/tempest
 	name = "Tempest's Hypospray"
 	desc = "A custom-made MKII hypospray belonging to Chakat Tempest. There's small print engraved on the handle: A medicine-cat has no time for doubt. Act now, act swiftly."
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -678,7 +706,7 @@
 	icon_state = "temphypo"
 
 //WickedTempest: Chakat Tempest
-/obj/item/weapon/storage/backpack/saddlebag/tempest
+/obj/item/storage/backpack/saddlebag/tempest
 	name = "Tempest's Saddlebags"
 	desc = "A custom-made set of saddlebags, tailored to Chakat Tempest's exact dimensions, and taste in color! One one side, there's small print stitched in: ...to carry the weight of any responsibility, burden or task."
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -689,21 +717,21 @@
 	slowdown = 0
 	taurtype = /datum/sprite_accessory/tail/taur/feline/tempest
 	no_message = "These saddlebags seem to be fitted for someone else, and keep slipping off!"
-	action_button_name = "Toggle Mlembulance Mode"
+	actions_types = list(/datum/action/item_action/toggle_mlembulance)
 	var/ambulance = FALSE
 	var/datum/looping_sound/ambulance/soundloop
 	var/ambulance_state = FALSE
 	var/ambulance_last_switch = 0
 
-/obj/item/weapon/storage/backpack/saddlebag/tempest/Initialize()
+/obj/item/storage/backpack/saddlebag/tempest/Initialize(mapload)
 	soundloop = new(list(src), FALSE)
 	return ..()
 
-/obj/item/weapon/storage/backpack/saddlebag/tempest/Destroy()
+/obj/item/storage/backpack/saddlebag/tempest/Destroy()
 	QDEL_NULL(soundloop)
 	return ..()
 
-/obj/item/weapon/storage/backpack/saddlebag/tempest/ui_action_click()
+/obj/item/storage/backpack/saddlebag/tempest/ui_action_click(mob/user, actiontype)
 	ambulance = !(ambulance)
 	if(ambulance)
 		START_PROCESSING(SSobj, src)
@@ -724,7 +752,7 @@
 		set_light(0)
 		soundloop.stop()
 
-/obj/item/weapon/storage/backpack/saddlebag/tempest/process()
+/obj/item/storage/backpack/saddlebag/tempest/process()
 	if(!ambulance)
 		STOP_PROCESSING(SSobj, src)
 		return
@@ -745,32 +773,35 @@
 	volume = 25
 
 //PontifexMinimus: Lucius/Lucia Null
-/obj/item/weapon/fluff/dragor_dot
+/obj/item/fluff/dragor_dot
 	name = "supplemental battery"
 	desc = "A tiny supplemental battery for powering something or someone synthetic."
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "dragor_dot"
 	w_class = ITEMSIZE_SMALL
 
-/obj/item/weapon/fluff/dragor_dot/attack_self(mob/user as mob)
+/obj/item/fluff/dragor_dot/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(user.ckey == "pontifexminimus")
-		user.verbs |= /mob/living/carbon/human/proc/shapeshifter_select_gender
+		add_verb(user, /mob/living/carbon/human/proc/shapeshifter_select_gender)
 	else
 		return
 
 //LuminescentRing: Briana Moore
-/obj/item/weapon/storage/backpack/messenger/black/fluff/briana
+/obj/item/storage/backpack/messenger/black/fluff/briana
 	name = "2561 graduation bag"
 	desc = "A black leather bag with names scattered around in red embroidery, it says 'Pride State Academy' on the top. "
 
 //DeepIndigo: Amina Dae-Kouri
-/obj/item/weapon/storage/bible/fluff/amina
+/obj/item/storage/bible/fluff/amina
 	name = "New Space Pioneer's Bible"
 	desc = "A New Space Pioneer's Bible. This one says it was printed in 2492. The name 'Eric Hayvers' is written on the inside of the cover, crossed out. \
 	Under it is written 'Kouri, Amina, Marine Unit 14, Fifth Echelon. Service number NTN-5528928522372'"
 
 //arokha:Amaya Rahl - Custom ID (Medical dept)
-/obj/item/weapon/card/id/event/fluff/amaya
+/obj/item/card/id/event/fluff/amaya
 	registered_name = "CONFIGURE ME"
 	assignment = "CONFIGURE ME"
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -779,6 +810,9 @@
 	desc = "A primarily blue ID with a holographic 'WAH' etched onto its back. The letters do not obscure anything important on the card. It is shiny and it feels very bumpy."
 	title_strings = list("Amaya Rahl's Wah-identification card", "Amaya Rahl's Wah-ID card")
 
+/obj/item/clothing/glasses/fluff
+	name = DEVELOPER_WARNING_NAME
+
 //General use, Verk felt like sharing.
 /obj/item/clothing/glasses/fluff/science_proper
 	name = "Aesthetic Science Goggles"
@@ -786,6 +820,7 @@
 	icon_state = "purple"
 	item_state_slots = list(slot_r_hand_str = "glasses", slot_l_hand_str = "glasses")
 	item_flags = AIRTIGHT
+	body_parts_covered = EYES
 
 //General use, Verk felt like sharing.
 /obj/item/clothing/glasses/fluff/spiffygogs
@@ -798,6 +833,8 @@
 	item_state_slots = list(slot_r_hand_str = "glasses", slot_l_hand_str = "glasses")
 	toggleable = 1
 	off_state = "spiffygogsup"
+	item_flags = AIRTIGHT
+	body_parts_covered = EYES
 
 //General use
 /obj/item/clothing/accessory/tronket
@@ -829,15 +866,18 @@
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "hisstective_badge"
 	//slot_flags = SLOT_TIE | SLOT_BELT
+	fluff_badge = TRUE
 
-/obj/item/clothing/accessory/badge/holo/detective/ruda/attack(mob/living/carbon/human/M, mob/living/user)
-	if(isliving(user))
-		user.visible_message("<span class='danger'>[user] invades [M]'s personal space, thrusting [src] into their face with an insistent huff.</span>","<span class='danger'>You invade [M]'s personal space, thrusting [src] into their face with an insistent huff.</span>")
-		user.do_attack_animation(M)
-		user.setClickCooldown(DEFAULT_QUICK_COOLDOWN) //to prevent spam
+/obj/item/clothing/accessory/badge/holo/detective/ruda/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	user.visible_message(span_danger("[user] invades [M]'s personal space, thrusting [src] into their face with an insistent huff."),span_danger("You invade [M]'s personal space, thrusting [src] into their face with an insistent huff."))
+	user.do_attack_animation(M)
+	user.setClickCooldown(DEFAULT_QUICK_COOLDOWN) //to prevent spam
+	return ITEM_INTERACT_SUCCESS
 
-/obj/item/clothing/accessory/badge/holo/detective/ruda/attack_self(mob/user as mob)
-
+/obj/item/clothing/accessory/badge/holo/detective/ruda/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(!stored_name)
 		to_chat(user, "You huff along the front of your badge, then rub your sleeve on it to polish it up.")
 		set_name(user.real_name)
@@ -845,57 +885,61 @@
 
 	if(isliving(user))
 		if(stored_name)
-			user.visible_message("<span class='notice'>[user] displays their [src].\nIt reads: [stored_name], [badge_string].</span>","<span class='notice'>You display your [src].\nIt reads: [stored_name], [badge_string].</span>")
+			user.visible_message(span_notice("[user] displays their [src].\nIt reads: [stored_name], [badge_string]."),span_notice("You display your [src].\nIt reads: [stored_name], [badge_string]."))
 		else
-			user.visible_message("<span class='notice'>[user] displays their [src].\nIt reads: [badge_string].</span>","<span class='notice'>You display your [src]. It reads: [badge_string].</span>")
+			user.visible_message(span_notice("[user] displays their [src].\nIt reads: [badge_string]."),span_notice("You display your [src]. It reads: [badge_string]."))
 
-/obj/item/weapon/card/id/fluff/xennith
+/obj/item/card/id/fluff/xennith
 	name = "\improper Amy Lessen's Central Command ID (Xenobiology Director)"
 	desc = "This ID card identifies Dr. Amelie Lessen as the founder and director of the NanoTrasen Xenobiology Research Department, circa 2553."
 	icon_state = "centcom"
 	registered_name = "Amy Lessen"
 	assignment = "Xenobiology Director"
-	access = list(access_cent_general,access_cent_thunder,access_cent_medical,access_cent_living,access_cent_storage,access_cent_teleporter,access_research,access_xenobiology,access_maint_tunnels,access_xenoarch,access_robotics,access_tox_storage,access_tox) //Yes, this looks awful. I tried calling both central and resarch access but it didn't work.
+	access = list(ACCESS_CENT_GENERAL,ACCESS_CENT_THUNDER,ACCESS_CENT_MEDICAL,ACCESS_CENT_LIVING,ACCESS_CENT_STORAGE,ACCESS_CENT_TELEPORTER,ACCESS_RESEARCH,ACCESS_XENOBIOLOGY,ACCESS_MAINT_TUNNELS,ACCESS_XENOARCH,ACCESS_ROBOTICS,ACCESS_TOX_STORAGE,ACCESS_TOX) //Yes, this looks awful. I tried calling both central and resarch access but it didn't work.
 	age = 39
 	blood_type = "O-"
 	sex = "Female"
 
-/obj/item/weapon/fluff/injector //Injectors. Custom item used to explain wild changes in a mob's body or chemistry.
+/obj/item/fluff/injector //Injectors. Custom item used to explain wild changes in a mob's body or chemistry.
 	name = "Injector"
 	desc = "Some type of injector."
 	icon = 'icons/obj/items.dmi'
 	icon_state = "dnainjector"
 
-/obj/item/weapon/fluff/injector/monkey
+/obj/item/fluff/injector/monkey
 	name = "Lesser Form Injector"
 	desc = "Turn the user into their lesser, more primal form."
 
-/obj/item/weapon/fluff/injector/monkey/attack(mob/living/M, mob/living/user)
+/obj/item/fluff/injector/monkey/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
 
-	if(usr == M) //Is the person using it on theirself?
+	if(user == M) //Is the person using it on theirself?
 		if(ishuman(M)) //If so, monkify them.
 			var/mob/living/carbon/human/H = user
 			H.monkeyize()
 			qdel(src) //One time use.
+			return ITEM_INTERACT_SUCCESS
 	else //If not, do nothing.
-		to_chat(user, "<span class='warning'>You are unable to inject other people.</span>")
+		to_chat(user, span_warning("You are unable to inject other people."))
+		return ITEM_INTERACT_FAILURE
 
-/obj/item/weapon/fluff/injector/numb_bite
+/obj/item/fluff/injector/numb_bite
 	name = "Numbing Venom Injector"
 	desc = "Injects the user with a high dose of some type of chemical, causing any chemical glands they have to kick into overdrive and create the production of a numbing enzyme that is injected via bites.."
 
-/obj/item/weapon/fluff/injector/numb_bite/attack(mob/living/M, mob/living/user)
+/obj/item/fluff/injector/numb_bite/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
 
-	if(usr == M) //Is the person using it on theirself?
+	if(user == M) //Is the person using it on theirself?
 		if(ishuman(M)) //Give them numbing bites.
 			var/mob/living/carbon/human/H = user
 			H.species.give_numbing_bite() //This was annoying, but this is the easiest way of performing it.
 			qdel(src) //One time use.
+			return ITEM_INTERACT_SUCCESS
 	else //If not, do nothing.
-		to_chat(user, "<span class='warning'>You are unable to inject other people.</span>")
+		to_chat(user, span_warning("You are unable to inject other people."))
+		return ITEM_INTERACT_FAILURE
 
 //For 2 handed fluff weapons.
-/obj/item/weapon/material/twohanded/fluff //Twohanded fluff items.
+/obj/item/material/twohanded/fluff //Twohanded fluff items.
 	name = "fluff."
 	desc = "This object is so fluffy. Just from the sight of it, you know that either something went wrong or someone spawned the incorrect item."
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -904,11 +948,11 @@
 				slot_r_hand_str = 'icons/vore/custom_items_right_hand_vr.dmi',
 				)
 
-/obj/item/weapon/material/twohanded/fluff/New(var/newloc)
-	..(newloc," ") //See materials_vr_dmi for more information as to why this is a blank space.
+/obj/item/material/twohanded/fluff/Initialize(mapload)
+	. = ..(mapload," ") //See materials_vr_dmi for more information as to why this is a blank space.
 
 //jacknoir413:Areax Third
-/obj/item/weapon/melee/baton/fluff/stunstaff
+/obj/item/melee/baton/fluff/stunstaff
 	name = "Electrostaff"
 	desc = "Six-foot long staff from dull, rugged metal, with two thin spikes protruding from each end. Small etching near to the middle of it reads 'Children Of Nyx Facilities: Product No. 12'."
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -920,21 +964,20 @@
 	edge = FALSE
 	throwforce = 7
 	w_class = ITEMSIZE_HUGE
-	origin_tech = list(TECH_COMBAT = 2)
 	attack_verb = list("beaten")
 	lightcolor = "#CC33FF"
 
 	//Two Handed
 	var/wielded = 0
 	var/base_name = "stunstaff"
+	special_handling = TRUE
 
-/obj/item/weapon/melee/baton/fluff/stunstaff/New()
-	..()
-	bcell = new/obj/item/weapon/cell/device/weapon(src)
+/obj/item/melee/baton/fluff/stunstaff/Initialize(mapload)
+	. = ..()
+	bcell = new/obj/item/cell/device/weapon(src)
 	update_icon()
-	return
 
-/obj/item/weapon/melee/baton/fluff/stunstaff/update_held_icon()
+/obj/item/melee/baton/fluff/stunstaff/update_held_icon()
 	var/mob/living/M = loc
 	if(istype(M) && !issmall(M) && M.item_is_in_hands(src) && !M.hands_are_full())
 		wielded = 1
@@ -948,14 +991,14 @@
 	update_icon()
 	..()
 
-/obj/item/weapon/melee/baton/fluff/stunstaff/handle_shield(mob/user, var/damage, atom/damage_source = null, mob/attacker = null, var/def_zone = null, var/attack_text = "the attack")
+/obj/item/melee/baton/fluff/stunstaff/handle_shield(mob/user, damage, atom/damage_source = null, mob/attacker = null, def_zone = null, attack_text = "the attack")
 	if(wielded && default_parry_check(user, attacker, damage_source) && prob(30))
-		user.visible_message("<span class='danger'>\The [user] parries [attack_text] with \the [src]!</span>")
+		user.visible_message(span_danger("\The [user] parries [attack_text] with \the [src]!"))
 		playsound(src, 'sound/weapons/punchmiss.ogg', 50, 1)
 		return 1
 	return 0
 
-/obj/item/weapon/melee/baton/fluff/stunstaff/update_icon()
+/obj/item/melee/baton/fluff/stunstaff/update_icon()
 	icon_state = "[base_icon][wielded][status]"
 	item_state = icon_state
 	if(status==1)
@@ -963,50 +1006,52 @@
 	else
 		set_light(0)
 
-/obj/item/weapon/melee/baton/fluff/stunstaff/dropped()
+/obj/item/melee/baton/fluff/stunstaff/dropped(mob/user, equipping, slot)
 	..()
 	if(wielded)
-		wielded = 0
-		spawn(0)
-			update_held_icon()
+		wielded = FALSE
+		update_held_icon()
 
-/obj/item/weapon/melee/baton/fluff/stunstaff/attack_self(mob/user)
+/obj/item/melee/baton/fluff/stunstaff/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(bcell && bcell.charge > hitcost)
 		status = !status
-		to_chat(user, "<span class='notice'>[src] is now [status ? "on" : "off"].</span>")
+		to_chat(user, span_notice("[src] is now [status ? "on" : "off"]."))
 		if(status == 0)
 			playsound(src, 'sound/weapons/saberoff.ogg', 50, 1)
 		else
 			playsound(src, 'sound/weapons/saberon.ogg', 50, 1)
 	else
 		status = 0
-		to_chat(user, "<span class='warning'>[src] is out of charge.</span>")
+		to_chat(user, span_warning("[src] is out of charge."))
 	update_held_icon()
 	add_fingerprint(user)
 
-/obj/item/weapon/storage/backpack/fluff/stunstaff
+/obj/item/storage/backpack/fluff/stunstaff
 	name = "Electrostaff sheath"
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "holster_stunstaff"
 	desc = "A sturdy synthetic leather sheath with matching belt and rubberized interior."
 	slot_flags = SLOT_BACK
-	item_icons = list(slot_back_str = 'icons/vore/custom_onmob_vr.dmi', slot_l_hand_str = 'icons/vore/custom_items_left_hand_vr.dmi', slot_r_hand_str = 'icons/vore/custom_items_right_hand_vr.dmi')
+	item_icons = list(slot_back_str = 'icons/vore/custom_clothes_mob.dmi', slot_l_hand_str = 'icons/vore/custom_items_left_hand_vr.dmi', slot_r_hand_str = 'icons/vore/custom_items_right_hand_vr.dmi')
 
-	can_hold = list(/obj/item/weapon/melee/baton/fluff/stunstaff)
+	can_hold = list(/obj/item/melee/baton/fluff/stunstaff)
 
 	w_class = ITEMSIZE_HUGE
 	max_w_class = ITEMSIZE_HUGE
 	max_storage_space = 16
 
-/obj/item/weapon/storage/backpack/fluff/stunstaff/New()
-	..()
-	new /obj/item/weapon/melee/baton/fluff/stunstaff(src)
+/obj/item/storage/backpack/fluff/stunstaff/Initialize(mapload)
+	. = ..()
+	new /obj/item/melee/baton/fluff/stunstaff(src)
 
 
 /*
  * Awoo Sword
  */
-/obj/item/weapon/melee/fluffstuff
+/obj/item/melee/fluffstuff
 	var/active = 0
 	var/active_force
 	var/active_throwforce
@@ -1015,7 +1060,7 @@
 	sharp = FALSE
 	edge = FALSE
 
-/obj/item/weapon/melee/fluffstuff/proc/activate(mob/living/user)
+/obj/item/melee/fluffstuff/proc/activate(mob/living/user)
 	if(active)
 		return
 	active = 1
@@ -1027,7 +1072,7 @@
 	w_class = active_w_class
 	playsound(src, 'sound/weapons/sparkle.ogg', 50, 1)
 
-/obj/item/weapon/melee/fluffstuff/proc/deactivate(mob/living/user)
+/obj/item/melee/fluffstuff/proc/deactivate(mob/living/user)
 	if(!active)
 		return
 	playsound(src, 'sound/weapons/sparkle.ogg', 50, 1)
@@ -1039,17 +1084,20 @@
 	edge = initial(edge)
 	w_class = initial(w_class)
 
-/obj/item/weapon/melee/fluffstuff/attack_self(mob/living/user as mob)
+/obj/item/melee/fluffstuff/attack_self(mob/living/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if (active)
-		if ((CLUMSY in user.mutations) && prob(50))
-			user.visible_message("<span class='danger'>\The [user] accidentally cuts \himself with \the [src].</span>",\
-			"<span class='danger'>You accidentally cut yourself with \the [src].</span>")
+		if (CLUMSY_HARM_CHANCE(user))
+			user.visible_message(span_danger("\The [user] accidentally cuts \himself with \the [src]."),\
+			span_danger("You accidentally cut yourself with \the [src]."))
 			user.take_organ_damage(5,5)
 		deactivate(user)
 	else
 		activate(user)
 
-	if(istype(user,/mob/living/carbon/human))
+	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		H.update_inv_l_hand()
 		H.update_inv_r_hand()
@@ -1057,7 +1105,7 @@
 	add_fingerprint(user)
 	return
 
-/obj/item/weapon/melee/fluffstuff/wolfgirlsword
+/obj/item/melee/fluffstuff/wolfgirlsword
 	name = "Wolfgirl Sword Replica"
 	desc = "A replica of a large, scimitar-like sword with a dull edge. Ceremonial... until it isn't."
 	icon = 'icons/obj/weapons_vr.dmi'
@@ -1071,20 +1119,19 @@
 	throw_speed = 1
 	throw_range = 5
 	w_class = ITEMSIZE_SMALL
-	origin_tech = list(TECH_MATERIAL = 2, TECH_COMBAT = 1)
 	item_icons = list(slot_l_hand_str = 'icons/mob/items/lefthand_melee_vr.dmi', slot_r_hand_str = 'icons/mob/items/righthand_melee_vr.dmi', slot_back_str = 'icons/vore/custom_items_vr.dmi', slot_wear_suit_str = 'icons/vore/custom_items_vr.dmi')
 	var/active_state = "wolfgirlsword"
-	allowed = list(/obj/item/weapon/shield/fluff/wolfgirlshield)
+	allowed = list(/obj/item/shield/fluff/wolfgirlshield)
 	damtype = HALLOSS
 
-/obj/item/weapon/melee/fluffstuff/wolfgirlsword/dropped(var/mob/user)
+/obj/item/melee/fluffstuff/wolfgirlsword/dropped(mob/user, equipping, slot)
 	..()
 	if(!istype(loc,/mob))
 		deactivate(user)
 
-/obj/item/weapon/melee/fluffstuff/wolfgirlsword/activate(mob/living/user)
+/obj/item/melee/fluffstuff/wolfgirlsword/activate(mob/living/user)
 	if(!active)
-		to_chat(user, "<span class='notice'>The [src] is now sharpened. It will cut!</span>")
+		to_chat(user, span_notice("The [src] is now sharpened. It will cut!"))
 
 	..()
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
@@ -1094,15 +1141,15 @@
 	damtype = BRUTE
 
 
-/obj/item/weapon/melee/fluffstuff/wolfgirlsword/deactivate(mob/living/user)
+/obj/item/melee/fluffstuff/wolfgirlsword/deactivate(mob/living/user)
 	if(active)
-		to_chat(user, "<span class='notice'>The [src] grows dull!</span>")
+		to_chat(user, span_notice("The [src] grows dull!"))
 	..()
 	attack_verb = list("bapped", "thwapped", "bonked", "whacked")
 	icon_state = initial(icon_state)
 
 //SilencedMP5A5 - Serdykov Antoz
-/obj/item/device/modkit_conversion/hasd
+/obj/item/modkit_conversion/hasd
 	name = "HASD EVA modification kit"
 	desc = "A kit containing all the needed tools and parts to modify a suit and helmet into something a HASD unit can use for EVA operations."
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -1124,17 +1171,17 @@
 	var/chassis_desc = "A self recharging, ranged mining tool that does increased damage in low temperature. Capable of holding up to six slots worth of mod kits. It seems to have been painted an ugly green, and has a small image of a bird scratched crudely into the stock."
 	var/chassis_icon_file = 'icons/vore/custom_guns_vr.dmi'
 
-/obj/item/borg/upgrade/modkit/chassis_mod/kai/install(obj/item/weapon/gun/energy/kinetic_accelerator/KA, mob/user)
+/obj/item/borg/upgrade/modkit/chassis_mod/kai/install(obj/item/gun/energy/kinetic_accelerator/KA, mob/user)
 	KA.desc = chassis_desc
 	KA.icon = chassis_icon_file
 	..()
-/obj/item/borg/upgrade/modkit/chassis_mod/kai/uninstall(obj/item/weapon/gun/energy/kinetic_accelerator/KA)
+/obj/item/borg/upgrade/modkit/chassis_mod/kai/uninstall(obj/item/gun/energy/kinetic_accelerator/KA)
 	KA.desc = initial(KA.desc)
 	KA.icon = initial(KA.icon)
 	..()
 
 //ArgobargSoup:Lynn Shady
-/obj/item/device/flashlight/pen/fluff/lynn
+/obj/item/flashlight/pen/fluff/lynn
 	name = "Lynn's penlight"
 	desc = "A personalized penlight, a bit bulkier than the standard model.  Blue, with a medical cross on it, and the name Lynn Shady engraved in gold."
 
@@ -1147,46 +1194,45 @@
 	desc = "A bronze medal which represents significant contributions to the field of science or engineering, this one has Ashley Kifer engraved on it."
 
 //lm40 - Kenzie Houser
-/obj/item/weapon/reagent_containers/hypospray/vial/kenzie
+/obj/item/reagent_containers/hypospray/vial/kenzie
 	name = "gold-trimmed hypospray"
 	desc = "A gold-trimmed MKII hypospray. The name 'Kenzie Houser' is engraved on the side."
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "kenziehypo"
 
 //Semaun - Viktor Solothurn
-/obj/item/weapon/reagent_containers/food/drinks/flask/vacuumflask/fluff/viktor
+/obj/item/reagent_containers/food/drinks/flask/vacuumflask/fluff/viktor
 	name = "flask of expensive alcohol"
 	desc = "A standard vacuum-flask filled with good and expensive drink."
 
-/obj/item/weapon/reagent_containers/food/drinks/flask/vacuumflask/fluff/viktor/Initialize()
+/obj/item/reagent_containers/food/drinks/flask/vacuumflask/fluff/viktor/Initialize(mapload)
 	. = ..()
-	reagents.add_reagent("pwine", 60)
+	reagents.add_reagent(REAGENT_ID_PWINE, 60)
 
 //RadiantAurora: Tiemli Kroto
 /obj/item/clothing/glasses/welding/tiemgogs
-   name = "custom-fitted welding goggles"
-   desc = "A pair of thick, custom-fitted goggles with LEDs above the lenses. Ruggedly engraved below the lenses is the name 'Tiemli Kroto'."
+	name = "custom-fitted welding goggles"
+	desc = "A pair of thick, custom-fitted goggles with LEDs above the lenses. Ruggedly engraved below the lenses is the name 'Tiemli Kroto'."
 
-   icon = 'icons/vore/custom_items_vr.dmi'
-   icon_state = "tiemgogs"
+	icon = 'icons/vore/custom_items_vr.dmi'
+	icon_state = "tiemgogs"
 
-   icon_override = 'icons/vore/custom_clothes_vr.dmi'
-   icon_state = "tiemgogs"
+	icon_override = 'icons/vore/custom_clothes_vr.dmi'
+	icon_state = "tiemgogs"
 
-/obj/item/clothing/glasses/welding/tiemgogs/mob_can_equip(var/mob/living/carbon/human/H, slot, disable_warning = 0)
-   if(..())
-      if(H.ckey != "radiantaurora")
-         to_chat(H, "<span class='warning'>These don't look like they were made to fit you...</span>")
-         return 0
-      else
-         return 1
+/obj/item/clothing/glasses/welding/tiemgogs/mob_can_equip(mob/living/carbon/human/H, slot, disable_warning = FALSE, ignore_obstruction, go_over_slot = FALSE)
+	if(..())
+		if(H.ckey != "radiantaurora")
+			to_chat(H, span_warning("These don't look like they were made to fit you..."))
+			return 0
+		return 1
 
 //Ryumi - Nikki Yumeno
-/obj/item/weapon/rig/nikki
+/obj/item/rig/nikki
 	name = "weird necklace"
 	desc = "A necklace with a brilliantly blue crystal encased in protective glass."
 	icon = 'icons/vore/custom_clothes_vr.dmi'
-	icon_override = 'icons/vore/custom_onmob_vr.dmi'
+	default_worn_icon = 'icons/vore/custom_clothes_mob.dmi'
 	suit_type = "probably not magical"
 	icon_state = "nikkicape"
 	w_class = ITEMSIZE_SMALL // It is after all only a necklace
@@ -1205,35 +1251,30 @@
 	glove_type = null
 	boot_type = null
 
-	allowed = list(
-		/obj/item/device/flashlight,
-		/obj/item/weapon/tank,
-		/obj/item/device/suit_cooling_unit,
-		/obj/item/weapon/storage,
-		)
+	allowed = list(POCKET_GENERIC, POCKET_EMERGENCY, POCKET_SUIT_REGULATORS, POCKET_STORAGE)
 
-/obj/item/weapon/rig/nikki/attackby(obj/item/W, mob/living/user)
+/obj/item/rig/nikki/attackby(obj/item/W, mob/living/user)
 	//This thing accepts ONLY mounted sizeguns. That's IT. Nothing else!
 	if(open && istype(W,/obj/item/rig_module) && !istype(W,/obj/item/rig_module/mounted/sizegun))
-		to_chat(user, "<span class='danger'>\The [src] only accepts mounted size gun modules.</span>")
+		to_chat(user, span_danger("\The [src] only accepts mounted size gun modules."))
 		return
 	..()
 
-/obj/item/weapon/rig/nikki/mob_can_equip(var/mob/living/carbon/human/M, slot, disable_warning = 0) // Feel free to (try to) put Nikki's hat on! The necklace though is a flat-out no-go.
+/obj/item/rig/nikki/mob_can_equip(mob/living/carbon/human/H, slot, disable_warning = FALSE, ignore_obstruction, go_over_slot = FALSE) // Feel free to (try to) put Nikki's hat on! The necklace though is a flat-out no-go.
 	if(..())
-		if (M.ckey == "ryumi")
+		if(H.ckey == "ryumi")
 			return 1
-		else if (M.get_active_hand() == src)
-			to_chat(M, "<span class='warning'>For some reason, the necklace seems to never quite get past your head when you try to put it on... Weird, it looked like it would fit.</span>")
+		else if (H.get_active_hand() == src)
+			to_chat(H, span_warning("For some reason, the necklace seems to never quite get past your head when you try to put it on... Weird, it looked like it would fit."))
 			return 0
 
 //Nickcrazy - Damon Bones Xrim
 /obj/item/clothing/suit/storage/toggle/bomber/bombersec
-    name = "Security Bomber Jacket"
-    desc = "A black bomber jacket with the security emblem sewn onto it."
-    icon = 'icons/vore/custom_items_vr.dmi'
-    icon_override = 'icons/vore/custom_items_vr.dmi'
-    icon_state = "bombersec"
+	name = "Security Bomber Jacket"
+	desc = "A black bomber jacket with the security emblem sewn onto it."
+	icon = 'icons/vore/custom_items_vr.dmi'
+	icon_override = 'icons/vore/custom_items_vr.dmi'
+	icon_state = "bombersec"
 
 
 //pimientopyro - Scylla Casmus
@@ -1245,7 +1286,6 @@
 	icon_state = "blindshades"
 
 	icon_override = 'icons/vore/custom_clothes_vr.dmi'
-	item_state = "blindshades_mob"
 
 //Storesund97 - Aurora
 /obj/item/clothing/accessory/solgov/department/security/aurora
@@ -1262,29 +1302,30 @@
 	icon_state = "shadowlaptop-open"
 	icon_state_closed = "shadowlaptop-closed"
 
-//Rboys2 - Clara Mali
-/obj/item/weapon/reagent_containers/food/drinks/glass2/fluff/claraflask
+//claracow - Clara Mali
+/obj/item/reagent_containers/food/drinks/glass2/fluff/claraflask
 	name = "Clara's Vacuum Flask"
 	desc = "A rose gold vacuum flask."
 	base_name = "Clara's Vacuum Flask"
 	base_icon = "claraflask"
 	icon = 'icons/vore/custom_items_vr.dmi'
-	center_of_mass = list("x" = 15,"y" = 4)
+	center_of_mass_x = 15
+	center_of_mass_y = 4
 	filling_states = list(15, 30, 50, 60, 80, 100)
 	volume = 60
 
-/obj/item/weapon/reagent_containers/food/drinks/glass2/fluff/claraflask/Initialize()
+/obj/item/reagent_containers/food/drinks/glass2/fluff/claraflask/Initialize(mapload)
 	. = ..()
-	reagents.add_reagent("tea", 40)
-	reagents.add_reagent("milk", 20)
+	reagents.add_reagent(REAGENT_ID_TEA, 40)
+	reagents.add_reagent(REAGENT_ID_MILK, 20)
 
-/obj/item/weapon/reagent_containers/food/drinks/glass2/fluff/claraflask/update_icon()
+/obj/item/reagent_containers/food/drinks/glass2/fluff/claraflask/update_icon()
 	..()
 	name = initial(name)
 	desc = initial(desc)
 
 //Vitoras: Verie
-/obj/item/weapon/fluff/verie
+/obj/item/fluff/verie
 	name = "glowy hairbrush"
 	desc = "A pulse of light periodically zips across the top of this blue brush. This... is not an ordinary hair care tool. \
 	A small inscription can be seen in one side of the brush: \"THIS DEVICE IS ONLY COMPATIBLE WITH MODEL <b>RI</b> \
@@ -1295,12 +1336,15 @@
 
 	var/owner = "vitoras"
 
-/obj/item/weapon/fluff/verie/attack_self(mob/living/carbon/human/user)
+/obj/item/fluff/verie/attack_self(mob/living/carbon/human/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if (istype(user))
 		// It's only made for Verie's chassis silly!
 		if (user.ckey != owner)
-			to_chat(user, "<span class='warning'>The brush's teeth are far too rough to even comb your hair. Apparently, \
-			this device was not made for people like you.</span>")
+			to_chat(user, span_warning("The brush's teeth are far too rough to even comb your hair. Apparently, \
+			this device was not made for people like you."))
 			return
 
 		if (!user.hair_accessory_style)
@@ -1309,52 +1353,52 @@
 			user.update_hair()
 			user.visible_message("[user] combs her hair. \The [src] leaves behind glowing cyan highlights as it passes through \
 			her black strands.", \
-			"<span class='notice'>You brush your hair. \The [src]'s teeth begin to vibrate and glow as they react to your nanites. \
+			span_notice("You brush your hair. \The [src]'s teeth begin to vibrate and glow as they react to your nanites. \
 			The teeth stimulate the nanites in your hair strands until your hair give off a brilliant, faintly pulsing \
-			cyan glow!</span>")
+			cyan glow!"))
 
 		else
 			user.visible_message("[user] combs her hair. \The [src] brushes away her glowing cyan highlights. Neat!", \
-			"<span class='notice'>You brush your hair. \The [src]'s teeth wipe away the glowing streaks in your hair \
-			like a sponge scrubbing away a stain.</span>")
+			span_notice("You brush your hair. \The [src]'s teeth wipe away the glowing streaks in your hair \
+			like a sponge scrubbing away a stain."))
 			user.hair_accessory_style = null
 			for(var/datum/sprite_accessory/hair_accessory/verie_hair_glow/V in user)
-				to_chat(user, "<span class='warning'>found a V to delete!</span>")
+				to_chat(user, span_warning("found a V to delete!"))
 				qdel(V)
 			user.update_hair()
 
 
 	else
-		to_chat(user, "<span class='warning'>\The [src] isn't compatible with your body as it is now.</span>")
+		to_chat(user, span_warning("\The [src] isn't compatible with your body as it is now."))
 
 // Astra - // Astra
-/obj/item/weapon/material/knife/ritual/fluff/astra
+/obj/item/material/knife/ritual/fluff/astra
 	name = "Polished Ritual Knife"
 	desc = "A well kept strange ritual knife, There is a small tag with the name 'Astra Ether' on it. They are probably looking for this."
 	icon = 'icons/obj/wizard.dmi'
 	icon_state = "render"
 
 //AlFalah - Charlotte Graves
-/obj/item/weapon/storage/fancy/fluff/charlotte
+/obj/item/storage/fancy/fluff/charlotte
 	name = "inconspicuous cigarette case"
 	desc = "A SkyTron 3000 cigarette case with no additional functions. The buttons and CRT monitor are completely for show and have no functions. Seriously. "
 	icon_state = "charlotte"
 	icon = 'icons/vore/custom_items_vr.dmi'
 	storage_slots = 7
-	can_hold = list(/obj/item/clothing/mask/smokable/cigarette, /obj/item/weapon/flame/lighter, /obj/item/trash/cigbutt)
+	can_hold = list(/obj/item/clothing/mask/smokable/cigarette, /obj/item/flame/lighter, /obj/item/trash/cigbutt)
 	icon_type = "charlotte"
 	//brand = "\improper Professional 120"
 	w_class = ITEMSIZE_TINY
 	starts_with = list(/obj/item/clothing/mask/smokable/cigarette = 7)
 
-/obj/item/weapon/storage/fancy/fluff/charlotte/New()
+/obj/item/storage/fancy/fluff/charlotte/Initialize(mapload)
 	if(!open_state)
 		open_state = "[initial(icon_state)]0"
 	if(!closed_state)
 		closed_state = "[initial(icon_state)]"
-	..()
+	. = ..()
 
-/obj/item/weapon/storage/fancy/fluff/charlotte/update_icon()
+/obj/item/storage/fancy/fluff/charlotte/update_icon()
 	cut_overlays()
 	if(open)
 		icon_state = open_state
@@ -1363,25 +1407,25 @@
 	else
 		icon_state = closed_state
 
-/obj/item/weapon/storage/fancy/fluff/charlotte/open(mob/user as mob)
+/obj/item/storage/fancy/fluff/charlotte/open(mob/user as mob)
 	if(open)
 		return
 	open = TRUE
 	update_icon()
 	..()
 
-/obj/item/weapon/storage/fancy/fluff/charlotte/close(mob/user as mob)
+/obj/item/storage/fancy/fluff/charlotte/close(mob/user as mob)
 	open = FALSE
 	update_icon()
 	..()
 
 //Ashling - Antoinette deKaultieste
-/obj/item/weapon/material/knife/machete/hatchet/unathiknife/fluff/antoinette
+/obj/item/material/knife/machete/hatchet/unathiknife/fluff/antoinette
 	name = "sawtooth ritual knife"
 	desc = "A mostly decorative knife made from thin ceramic and toothed with large black fangs. Printed on the flat is an eight-armed cross, like an asterisk with an extra stroke, ringed by a calligraphy-style crescent."
 	attack_verb = list("mauled", "bit", "sawed", "butchered")
 	dulled = 1
-	default_material = "glass"
+	default_material = MAT_GLASS
 
 
 //Ashling - Antoinette deKaultieste
@@ -1391,48 +1435,47 @@
 	icon_state = "unathiharness1"
 	slots = 2
 
-/obj/item/weapon/reagent_containers/glass/bottle/poppy
+/obj/item/reagent_containers/glass/bottle/poppy
 	name = "poppy flour bottle"
 	desc = "A small bottle of finely ground poppyseed and mixed dried berries."
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "bottle3"
-	prefill = list("bicaridine" = 30, "nutriment" = 30)
+	prefill = list(REAGENT_ID_BICARIDINE = 30, REAGENT_ID_NUTRIMENT = 30)
 
-/obj/item/clothing/accessory/storage/ritualharness/fluff/antoinette/Initialize()
+/obj/item/clothing/accessory/storage/ritualharness/fluff/antoinette/Initialize(mapload)
 	. = ..()
 	hold.max_storage_space = ITEMSIZE_COST_SMALL * 2
-	hold.can_hold = list(/obj/item/weapon/material/knife, /obj/item/weapon/reagent_containers/glass/bottle)
+	hold.can_hold = list(/obj/item/material/knife, /obj/item/reagent_containers/glass/bottle)
 
-	new /obj/item/weapon/material/knife/machete/hatchet/unathiknife/fluff/antoinette(hold)
-	new /obj/item/weapon/reagent_containers/glass/bottle/poppy(hold)
+	new /obj/item/material/knife/machete/hatchet/unathiknife/fluff/antoinette(hold)
+	new /obj/item/reagent_containers/glass/bottle/poppy(hold)
 
 
 //Hunterbirk - Amaryll
 //This is a 'technical item' which basically is meant to represent rippiing things up with bare claws.
-/obj/item/weapon/surgical/scalpel/amaryll_claws
+/obj/item/surgical/scalpel/amaryll_claws
 	name = "Amaryll's Claws"
 	desc = "This doesn't quite look like what it really is."
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "claws"
 	drop_sound = null
 	pickup_sound = null
-	origin_tech = null
 	matter = null
 
 //Coolcrow420 - Jade Davis
-/obj/item/weapon/stamp/fluff/jade_horror
+/obj/item/stamp/fluff/jade_horror
 	name = "Council of Mid Horror rubber stamp"
 	icon = 'icons/vore/custom_items_vr.dmi'
 	icon_state = "stamp-midhorror"
 	stamptext = "This paper has been certified by The Council of Mid Horror"
 
 //Coolcrow420 - M41l
-/obj/item/weapon/implant/language/fluff/m41l
+/obj/item/implant/language/fluff/m41l
 	name = "dusty hard drive"
 	desc = "A hard drive containing knowledge of various languages."
 
-/obj/item/weapon/implant/language/fluff/m41l/post_implant(mob/M)
-	to_chat(M,"<span class='notice'>LANGUAGES - LOADING</span>")
+/obj/item/implant/language/fluff/m41l/post_implant(mob/M)
+	to_chat(M,span_notice("LANGUAGES - LOADING"))
 	M.add_language(LANGUAGE_SKRELLIAN)
 	M.add_language(LANGUAGE_UNATHI)
 	M.add_language(LANGUAGE_SIIK)
@@ -1449,7 +1492,7 @@
 	M.add_language(LANGUAGE_SPACER)
 	M.add_language(LANGUAGE_TAVAN)
 	M.add_language(LANGUAGE_ECHOSONG)
-	to_chat(M,"<span class='notice'>LANGUAGES - INITIALISED</span>")
+	to_chat(M,span_notice("LANGUAGES - INITIALISED"))
 
 //thedavestdave - Lucky
 /obj/item/clothing/suit/armor/combat/crusader_costume/lucky
@@ -1462,7 +1505,7 @@
 
 
 //RevolverEloise - Revolver Eloise
-/obj/item/weapon/sword/fluff/revolver
+/obj/item/sword/fluff/revolver
 	name = "Catnip"
 	desc = "A steel claymore with what appears to be a teppi engraved into the hilt and a finely forged metal cuboid for a pommel. The blade is honed and balanced to an unusually high degree and has clearly been meticulously cared for."
 	icon = 'icons/vore/custom_items_vr.dmi'
@@ -1472,16 +1515,6 @@
 	force = 1
 	sharp = TRUE
 	edge = TRUE
-
-//PastelPrinceDan - Kiyoshi/Masumi Maki
-/obj/item/toy/plushie/fluff/slimeowshi
-	name = "Slime-Cat Research Director plushie"
-	desc = "An adorable stuffed toy that resembles a slime. It's pink, and has little cat ears, as well as a tail! Atop its head is a small beret with a Research Director's insignia."
-	icon = 'icons/vore/custom_items_vr.dmi'
-	icon_state = "kimeowshi"
-	attack_verb = list("blorbled", "slimed", "absorbed", "glomped")
-	gender = PLURAL // this seems like a good idea but probably prone to changing. todo: ask dan
-	// the only reason this thought is relevant because the base slimeplush has its gender set to female
 
 //YeCrowbarMan - Lemon Yellow
 /obj/item/toy/plushie/fluff/lemonplush
@@ -1493,21 +1526,21 @@
 
 //Bricker98:Nettie Stough
 /obj/item/modular_computer/tablet/preset/custom_loadout/nettie
-  name = "Remodeled Tablet"
-  desc = "A tablet computer, looks quite high-tech and has some emblems on the back."
-  icon = 'icons/obj/modular_tablet.dmi'
-  icon_state = "elite"
-  icon_state_unpowered = "elite"
+	name = "Remodeled Tablet"
+	desc = "A tablet computer, looks quite high-tech and has some emblems on the back."
+	icon = 'icons/obj/modular_tablet.dmi'
+	icon_state = "elite"
+	icon_state_unpowered = "elite"
 
 /obj/item/modular_computer/tablet/preset/custom_loadout/nettie/install_default_hardware()
-  ..()
-  processor_unit = new/obj/item/weapon/computer_hardware/processor_unit/small(src)
-  tesla_link = new/obj/item/weapon/computer_hardware/tesla_link(src)
-  hard_drive = new/obj/item/weapon/computer_hardware/hard_drive/(src)
-  network_card = new/obj/item/weapon/computer_hardware/network_card/advanced(src)
-  nano_printer = new/obj/item/weapon/computer_hardware/nano_printer(src)
-  battery_module = new/obj/item/weapon/computer_hardware/battery_module(src)
-  battery_module.charge_to_full()
+	..()
+	processor_unit = new/obj/item/computer_hardware/processor_unit/small(src)
+	tesla_link = new/obj/item/computer_hardware/tesla_link(src)
+	hard_drive = new/obj/item/computer_hardware/hard_drive/(src)
+	network_card = new/obj/item/computer_hardware/network_card/advanced(src)
+	nano_printer = new/obj/item/computer_hardware/nano_printer(src)
+	battery_module = new/obj/item/computer_hardware/battery_module(src)
+	battery_module.charge_to_full()
 
 
 //Stobarico - Kyu Comet
@@ -1526,12 +1559,16 @@
 	icon_state = "pandorba"
 	pokephrase = "Gecker!"
 	attack_verb = list("fluffed", "fwomped", "fuwa'd", "squirmshed")
+	special_handling = TRUE
 
-/obj/item/toy/plushie/fluff/seona_mofuorb/attack_self(mob/user as mob)
+/obj/item/toy/plushie/fluff/seona_mofuorb/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(stored_item && opened && !searching)
 		searching = TRUE
-		if(do_after(user, 10))
-			to_chat(user, "You find \icon[stored_item] [stored_item] in [src]!")
+		if(do_after(user, 1 SECOND, target = src))
+			to_chat(user, "You find [icon2html(stored_item, user.client)] [stored_item] in [src]!")
 			stored_item.forceMove(get_turf(src))
 			stored_item = null
 			searching = FALSE
@@ -1542,16 +1579,16 @@
 	if(world.time - last_message <= 5 SECONDS)
 		return
 	if(user.a_intent == I_HELP)
-		user.visible_message("<span class='notice'><b>\The [user]</b> hugs [src]!</span>","<span class='notice'>You hug [src]!</span>")
+		user.visible_message(span_notice(span_bold("\The [user]") + " hugs [src]!"),span_notice("You hug [src]!"))
 		icon_state = "pandorba"
 	else if (user.a_intent == I_HURT)
-		user.visible_message("<span class='warning'><b>\The [user]</b> punches [src]!</span>","<span class='warning'>You punch [src]!</span>")
+		user.visible_message(span_warning(span_bold("\The [user]") + " punches [src]!"),span_warning("You punch [src]!"))
 		icon_state = "pandorba_h"
 	else if (user.a_intent == I_GRAB)
-		user.visible_message("<span class='warning'><b>\The [user]</b> attempts to strangle [src]!</span>","<span class='warning'>You attempt to strangle [src]!</span>")
+		user.visible_message(span_warning(span_bold("\The [user]") + " attempts to strangle [src]!"),span_warning("You attempt to strangle [src]!"))
 		icon_state = "pandorba_g"
 	else
-		user.visible_message("<span class='notice'><b>\The [user]</b> pokes [src].</span>","<span class='notice'>You poke [src].</span>")
+		user.visible_message(span_notice(span_bold("\The [user]") + " pokes [src]."),span_notice("You poke [src]."))
 		icon_state = "pandorba_d"
 		playsound(src, 'sound/items/drop/plushie.ogg', 25, 0)
 		visible_message("[src] says, \"[pokephrase]\"")
@@ -1559,16 +1596,17 @@
 
 //Yeehawguvnah - Cephyra
 
-/obj/item/weapon/dice/loaded/ceph
+/obj/item/dice/loaded/ceph
 	name = "engraved d6"
 	desc = "A die with six sides. It's fairly well-made, made of an unclear black material with silver pips. If you were to touch it, your hands tingle slightly as though from static. On closer inspection, it's finely engraved with curving, fractal patterns."
 	icon_state = "ceph_d66"
 
-/obj/item/weapon/dice/loaded/ceph/rollDice(mob/user, silent)
+/obj/item/dice/loaded/ceph/rollDice(mob/user, silent)
 	..()
 	icon_state = "ceph_d6[result]"
 
-/obj/item/weapon/dice/loaded/ceph/New()
+/obj/item/dice/loaded/ceph/Initialize(mapload)
+	. = ..()
 	icon_state = "ceph_d6[rand(1,sides)]"
 
 
@@ -1579,3 +1617,49 @@
 
 	icon = 'icons/inventory/accessory/item.dmi'
 	icon_state = "silver"
+
+//beeholddrbeesphb: Evelynn
+/obj/item/laser_pointer/evelynn_fluff
+	name = "Evelynn's Laser Pointer"
+	desc = "A small, furry, and fluffy toy that looks like a bee. It has laser eyes. Upon firing, the lasers make a buzzing noise."
+	icon = 'icons/vore/custom_items_vr.dmi'
+	icon_state = "evelynn"
+	pointer_icon_state = "purple_laser"
+
+//sixberry: Thistle
+/obj/item/clothing/glasses/fluff/kintacts_aquamarine
+	name = "Aquamarine KINtacts"
+	desc = "A blueish-green pair of borosilicate glass contact lenses, designed solely for Shadekin. They seem to have some degree of iridescence to them."
+	icon = 'icons/vore/custom_clothes_vr.dmi'
+	icon_override = 'icons/vore/custom_clothes_vr.dmi'
+	icon_state = "kintacts"
+
+//Bricker98: Talenya Lapushkina
+/obj/item/remote_scene_tool/tally_necklace  //A reskinned sticker for the collar, using a modified golden collar sprite
+	name = "link bell collar"
+	desc = "A collar with a seemingly simple golden bell that contains advanced bluespace tech inside, allowing it to link to, and even recall, a matching doll."
+	icon = 'icons/vore/custom_remote_scene_tools.dmi'
+	icon_override = 'icons/vore/custom_remote_scene_tools.dmi'
+	icon_state = "collar_inactive"
+	icon_root = "collar"
+	item_state = "on_mob_collar"
+	slot_flags = SLOT_MASK | SLOT_OCLOTHING
+	replacementType = /obj/item/remote_scene_tool/tally_doll
+
+/obj/item/remote_scene_tool/tally_necklace/mob_can_equip(mob/living/carbon/human/H, slot, disable_warning = FALSE, ignore_obstruction, go_over_slot = FALSE)
+	if(..())
+		if(H.ckey != "bricker98")
+			if(!disable_warning)
+				to_chat(H, span_warning("The collar doesn't fit you!"))
+			return FALSE
+		return TRUE
+
+/obj/item/remote_scene_tool/tally_doll  //A reskinned sticker for the doll, using a custom sprite
+	name = "Talenya's voodoo doll"
+	desc = "A cute custom plushie made to look like Talenya! With her bell and glassy beads for eyes, all the clothing articles are removable, it is incredibly detailed!"
+	icon = 'icons/vore/custom_remote_scene_tools.dmi'
+	icon_state = "doll_inactive"
+	icon_root = "doll"
+	slot_flags = NONE
+	can_summon = FALSE
+	can_replace = FALSE

@@ -1,5 +1,5 @@
-/mob/living/carbon/proc/ingest(var/datum/reagents/from, var/datum/reagents/target, var/amount = 1, var/multiplier = 1, var/copy = 0) //we kind of 'sneak' a proc in here for ingesting stuff so we can play with it.
-	/* VOREStation Removal - Synths should be able to taste because... reasons
+/mob/living/carbon/proc/ingest(datum/reagents/from, datum/reagents/target, amount = 1, multiplier = 1, copy = 0) //we kind of 'sneak' a proc in here for ingesting stuff so we can play with it.
+	/* Synths should be able to taste because... reasons
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
 		var/braintype = H.get_FBP_type()
@@ -15,7 +15,8 @@
 			text_output = "nothing"
 
 		if(text_output != last_taste_text || last_taste_time + 100 < world.time) //We dont want to spam the same message over and over again at the person. Give it a bit of a buffer.
-			to_chat(src, "<span class='notice'>You can taste [text_output].</span>")//no taste means there are too many tastes and not enough flavor.
+			to_chat(src, span_notice("You can taste [text_output].")) //no taste means there are too many tastes and not enough flavor.
+			balloon_alert(src, "you taste [text_output]...")
 
 			last_taste_time = world.time
 			last_taste_text = text_output
@@ -37,7 +38,7 @@ calculate text size per text.
 		for(var/datum/reagent/R in reagent_list)
 			if(!R.taste_mult)
 				continue
-			if(R.id == "nutriment") //this is ugly but apparently only nutriment (not subtypes) has taste data TODO figure out why
+			if(R.id == REAGENT_ID_NUTRIMENT || R.id == REAGENT_ID_NUTRIPASTE) //this is ugly but apparently only nutriment (not subtypes) has taste data TODO figure out why
 				var/list/taste_data = R.get_data()
 				for(var/taste in taste_data)
 					if(taste in tastes)

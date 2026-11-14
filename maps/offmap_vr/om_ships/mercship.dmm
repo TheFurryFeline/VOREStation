@@ -96,8 +96,6 @@
 /area/ship/mercenary/northairlock)
 "al" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
@@ -110,8 +108,6 @@
 /area/ship/mercenary/engine1)
 "am" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /obj/machinery/atmospherics/pipe/manifold/hidden/fuel{
@@ -135,7 +131,6 @@
 /obj/machinery/alarm{
 	breach_detection = 0;
 	dir = 8;
-	icon_state = "alarm0";
 	pixel_x = 25;
 	rcon_setting = 3;
 	report_danger_level = 0
@@ -161,9 +156,7 @@
 	},
 /obj/machinery/airlock_sensor{
 	frequency = 1313;
-	id_tag = "northchambersensor";
-	pixel_w = 28;
-	pixel_z = 0
+	id_tag = "northchambersensor"
 	},
 /turf/simulated/floor,
 /area/ship/mercenary/northairlock)
@@ -218,7 +211,6 @@
 	frequency = 1313;
 	id_tag = "northairlock";
 	name = "North Airlock Controller";
-	pixel_w = 27;
 	tag_airpump = "northpump";
 	tag_chamber_sensor = "northchambersensor";
 	tag_exterior_door = "northexteriordoor";
@@ -357,7 +349,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 4;
 	icon_state = "0-4"
 	},
 /turf/simulated/floor,
@@ -373,8 +364,6 @@
 	icon_state = "tube1"
 	},
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /turf/simulated/floor,
@@ -421,10 +410,10 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 1
 	},
-/obj/item/device/flashlight/maglight,
-/obj/item/weapon/storage/belt/security/tactical,
-/obj/item/weapon/storage/backpack/dufflebag/syndie,
-/obj/item/weapon/gun/projectile/silenced,
+/obj/item/flashlight/maglight,
+/obj/item/storage/belt/security/tactical,
+/obj/item/storage/backpack/dufflebag/syndie,
+/obj/item/gun/projectile/silenced,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/barracks)
 "aT" = (
@@ -482,7 +471,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -506,8 +494,7 @@
 /obj/machinery/airlock_sensor/airlock_interior{
 	frequency = 1313;
 	id_tag = "northinteriorsensor";
-	master_tag = "northairlock";
-	pixel_w = -25
+	master_tag = "northairlock"
 	},
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 8
@@ -666,8 +653,6 @@
 /area/ship/mercenary/bridge)
 "bs" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /turf/simulated/floor/tiled/dark,
@@ -745,7 +730,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 9
 	},
-/obj/item/weapon/storage/toolbox/syndicate,
+/obj/item/storage/toolbox/syndicate,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/med1)
 "bB" = (
@@ -842,10 +827,10 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 1
 	},
-/obj/item/device/flashlight/maglight,
-/obj/item/weapon/storage/belt/security/tactical,
-/obj/item/weapon/storage/backpack/dufflebag/syndie,
-/obj/item/weapon/gun/projectile/silenced,
+/obj/item/flashlight/maglight,
+/obj/item/storage/belt/security/tactical,
+/obj/item/storage/backpack/dufflebag/syndie,
+/obj/item/gun/projectile/silenced,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/barracks)
 "bJ" = (
@@ -941,10 +926,10 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 5
 	},
-/obj/item/device/flashlight/maglight,
-/obj/item/weapon/storage/belt/security/tactical,
-/obj/item/weapon/storage/backpack/dufflebag/syndie,
-/obj/item/weapon/gun/projectile/silenced,
+/obj/item/flashlight/maglight,
+/obj/item/storage/belt/security/tactical,
+/obj/item/storage/backpack/dufflebag/syndie,
+/obj/item/gun/projectile/silenced,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/barracks)
 "bR" = (
@@ -970,7 +955,6 @@
 	pixel_y = 24
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -996,10 +980,7 @@
 	dir = 4;
 	icon_state = "onestar_chair_red"
 	},
-/obj/machinery/recharger/wallcharger{
-	pixel_w = -23;
-	pixel_z = -2
-	},
+/obj/machinery/recharger/wallcharger,
 /turf/simulated/floor/tiled/dark,
 /area/shuttle/mercboat)
 "bV" = (
@@ -1023,7 +1004,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 1
 	},
-/obj/item/weapon/storage/secure/briefcase,
+/obj/item/storage/secure/briefcase,
 /obj/machinery/alarm{
 	pixel_y = 30
 	},
@@ -1041,13 +1022,9 @@
 /area/ship/mercenary/barracks)
 "bZ" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/machinery/atmospherics/pipe/manifold/hidden/scrubbers{
@@ -1104,8 +1081,6 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /obj/effect/floor_decal/borderfloorblack{
@@ -1118,9 +1093,9 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 1
 	},
-/obj/item/weapon/storage/belt/utility,
-/obj/item/weapon/storage/belt/utility,
-/obj/item/weapon/storage/belt/utility,
+/obj/item/storage/belt/utility,
+/obj/item/storage/belt/utility,
+/obj/item/storage/belt/utility,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/med1)
 "cf" = (
@@ -1194,7 +1169,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -1254,7 +1228,6 @@
 	pixel_y = 24
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -1286,7 +1259,6 @@
 	dir = 8
 	},
 /obj/structure/cable{
-	d2 = 4;
 	icon_state = "0-4"
 	},
 /obj/effect/floor_decal/borderfloorblack{
@@ -1323,10 +1295,7 @@
 	dir = 4;
 	icon_state = "map_vent_out"
 	},
-/obj/machinery/recharger/wallcharger{
-	pixel_w = -25;
-	pixel_z = 0
-	},
+/obj/machinery/recharger/wallcharger,
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 8
 	},
@@ -1358,8 +1327,6 @@
 "cy" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/aux,
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /obj/effect/floor_decal/borderfloorblack{
@@ -1412,7 +1379,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 5
 	},
-/obj/item/weapon/storage/secure/briefcase,
+/obj/item/storage/secure/briefcase,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/med1)
 "cE" = (
@@ -1425,7 +1392,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 8
 	},
-/obj/item/weapon/storage/toolbox/syndicate,
+/obj/item/storage/toolbox/syndicate,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/med1)
 "cF" = (
@@ -1441,8 +1408,6 @@
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/aux,
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/effect/floor_decal/borderfloorblack/corner,
@@ -1546,10 +1511,7 @@
 	dir = 8;
 	icon_state = "onestar_chair_red"
 	},
-/obj/machinery/recharger/wallcharger{
-	pixel_w = 32;
-	pixel_z = 0
-	},
+/obj/machinery/recharger/wallcharger,
 /turf/simulated/floor/tiled/dark,
 /area/shuttle/mercboat)
 "cP" = (
@@ -1569,8 +1531,6 @@
 /area/ship/mercenary/med)
 "cQ" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/structure/cable{
@@ -1674,7 +1634,6 @@
 	dir = 8
 	},
 /obj/structure/cable{
-	d2 = 4;
 	icon_state = "0-4"
 	},
 /obj/effect/floor_decal/borderfloorblack{
@@ -1684,8 +1643,6 @@
 /area/ship/mercenary/hall1)
 "cY" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/aux,
@@ -1721,7 +1678,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -1769,10 +1725,7 @@
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/bridge)
 "de" = (
-/obj/machinery/recharger/wallcharger{
-	pixel_w = -25;
-	pixel_z = 0
-	},
+/obj/machinery/recharger/wallcharger,
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 8
 	},
@@ -2022,7 +1975,6 @@
 	pixel_x = -32
 	},
 /obj/structure/cable{
-	d2 = 4;
 	icon_state = "0-4"
 	},
 /obj/effect/floor_decal/borderfloorblack{
@@ -2035,8 +1987,6 @@
 	dir = 6
 	},
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/effect/floor_decal/borderfloorblack{
@@ -2053,9 +2003,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 5
 	},
-/obj/structure/sign/department/bridge{
-	pixel_z = 31
-	},
+/obj/structure/sign/department/bridge,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/hall2)
 "dE" = (
@@ -2115,9 +2063,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 6
 	},
-/obj/structure/sign/department/bridge{
-	pixel_z = -32
-	},
+/obj/structure/sign/department/bridge,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/hall2)
 "dJ" = (
@@ -2152,7 +2098,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -2183,8 +2128,6 @@
 /area/ship/mercenary/atmos)
 "dO" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/effect/floor_decal/borderfloorblack{
@@ -2272,7 +2215,7 @@
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/hall1)
 "dY" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "merc_pd"
 	},
 /obj/effect/decal/warning_stripes,
@@ -2329,7 +2272,6 @@
 	dir = 8
 	},
 /obj/structure/cable{
-	d2 = 4;
 	icon_state = "0-4"
 	},
 /obj/structure/table/reinforced,
@@ -2340,8 +2282,6 @@
 /area/ship/mercenary/engineering)
 "ef" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /obj/structure/table/reinforced,
@@ -2402,7 +2342,6 @@
 	dir = 4
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -2554,9 +2493,9 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 5
 	},
-/obj/item/weapon/storage/firstaid/combat,
-/obj/item/weapon/storage/firstaid/combat,
-/obj/item/weapon/storage/firstaid/combat,
+/obj/item/storage/firstaid/combat,
+/obj/item/storage/firstaid/combat,
+/obj/item/storage/firstaid/combat,
 /turf/simulated/floor/tiled/white,
 /area/ship/mercenary/armoury)
 "eH" = (
@@ -2580,7 +2519,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -2598,7 +2536,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 4
 	},
-/obj/item/weapon/storage/secure/briefcase,
+/obj/item/storage/secure/briefcase,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/med1)
 "eL" = (
@@ -2723,8 +2661,6 @@
 	icon_state = "4-8"
 	},
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/structure/cable{
@@ -2752,13 +2688,9 @@
 /area/ship/mercenary/hall2)
 "eV" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /obj/structure/cable{
@@ -2841,8 +2773,8 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 8
 	},
-/obj/item/weapon/storage/belt/medical,
-/obj/item/weapon/storage/belt/medical,
+/obj/item/storage/belt/medical,
+/obj/item/storage/belt/medical,
 /turf/simulated/floor/tiled/white,
 /area/ship/mercenary/fighter)
 "fc" = (
@@ -2859,10 +2791,9 @@
 /area/ship/mercenary/armoury)
 "fd" = (
 /obj/machinery/airlock_sensor/airlock_interior{
-	frequency = 1414;
+	frequency = 1415;
 	id_tag = "southinteriorsensor";
-	master_tag = "southairlock";
-	pixel_w = -25
+	master_tag = "southairlock"
 	},
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 8
@@ -2906,7 +2837,7 @@
 /turf/simulated/floor/plating,
 /area/ship/mercenary/engine)
 "fj" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "merc_pd"
 	},
 /obj/effect/decal/warning_stripes,
@@ -2936,7 +2867,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -2953,7 +2883,7 @@
 "fn" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume/aux{
 	dir = 4;
-	frequency = 1414;
+	frequency = 1415;
 	icon_state = "map_vent_aux";
 	id_tag = "southpump"
 	},
@@ -2965,10 +2895,9 @@
 	icon_state = "map-aux"
 	},
 /obj/machinery/embedded_controller/radio/airlock/advanced_airlock_controller{
-	frequency = 1414;
+	frequency = 1415;
 	id_tag = "southairlock";
 	name = "South Airlock Controller";
-	pixel_w = 22;
 	tag_airpump = "southpump";
 	tag_chamber_sensor = "southchambersensor";
 	tag_exterior_door = "southexteriordoor";
@@ -3015,7 +2944,6 @@
 /obj/machinery/alarm{
 	breach_detection = 0;
 	dir = 8;
-	icon_state = "alarm0";
 	pixel_x = 25;
 	rcon_setting = 3;
 	report_danger_level = 0
@@ -3028,10 +2956,8 @@
 	icon_state = "intact-aux"
 	},
 /obj/machinery/airlock_sensor{
-	frequency = 1414;
-	id_tag = "southchambersensor";
-	pixel_w = 28;
-	pixel_z = 0
+	frequency = 1415;
+	id_tag = "southchambersensor"
 	},
 /turf/simulated/floor,
 /area/ship/mercenary/southairlock)
@@ -3165,8 +3091,7 @@
 /obj/machinery/airlock_sensor/airlock_exterior{
 	frequency = 1313;
 	id_tag = "northairlock";
-	master_tag = "northexteriorsensor";
-	pixel_z = -25
+	master_tag = "northexteriorsensor"
 	},
 /turf/space,
 /area/space)
@@ -3315,7 +3240,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -3330,8 +3254,6 @@
 /area/ship/mercenary/hangar)
 "fV" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
@@ -3386,7 +3308,7 @@
 /area/ship/mercenary/northairlock)
 "fZ" = (
 /obj/machinery/door/airlock/glass_external{
-	frequency = 1414;
+	frequency = 1415;
 	id_tag = "southexteriordoor";
 	name = "Modified External Airlock";
 	req_one_access = list(150)
@@ -3395,10 +3317,9 @@
 /area/ship/mercenary/southairlock)
 "ga" = (
 /obj/machinery/airlock_sensor/airlock_exterior{
-	frequency = 1414;
+	frequency = 1415;
 	id_tag = "southairlock";
-	master_tag = "southexteriorsensor";
-	pixel_z = 24
+	master_tag = "southexteriorsensor"
 	},
 /turf/space,
 /area/space)
@@ -3417,8 +3338,6 @@
 	dir = 4
 	},
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /turf/simulated/floor/tiled/dark,
@@ -3426,7 +3345,7 @@
 "gc" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume/aux{
 	dir = 4;
-	frequency = 1414;
+	frequency = 1415;
 	icon_state = "map_vent_aux";
 	id_tag = "southpump"
 	},
@@ -3462,8 +3381,6 @@
 /area/ship/mercenary/armoury)
 "gf" = (
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 8;
 	icon_state = "2-8"
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
@@ -3509,7 +3426,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -3534,28 +3450,28 @@
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/engineering)
 "gk" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "merc_pd"
 	},
 /obj/effect/decal/warning_stripes,
 /turf/simulated/floor/plating/external,
 /area/ship/mercenary/bridge)
 "gl" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "merc_pd"
 	},
 /obj/effect/decal/warning_stripes,
 /turf/simulated/floor/plating/external,
 /area/ship/mercenary/engineeringcntrl)
 "gm" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "merc_pd"
 	},
 /obj/effect/decal/warning_stripes,
 /turf/simulated/floor/plating/external,
 /area/ship/mercenary/armoury)
 "gn" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "merc_pd"
 	},
 /obj/effect/decal/warning_stripes,
@@ -3646,7 +3562,6 @@
 	icon_state = "term"
 	},
 /obj/structure/cable{
-	d2 = 2;
 	icon_state = "0-2";
 	pixel_y = 0
 	},
@@ -3683,7 +3598,6 @@
 	alarm_id = "pen_nine";
 	breach_detection = 0;
 	dir = 1;
-	icon_state = "alarm0";
 	pixel_y = -22
 	},
 /turf/simulated/floor/tiled/dark,
@@ -3707,7 +3621,6 @@
 	alarm_id = "pen_nine";
 	breach_detection = 0;
 	dir = 1;
-	icon_state = "alarm0";
 	pixel_y = -22
 	},
 /turf/simulated/floor/tiled/dark,
@@ -3724,7 +3637,6 @@
 	alarm_id = "pen_nine";
 	breach_detection = 0;
 	dir = 1;
-	icon_state = "alarm0";
 	pixel_y = -22
 	},
 /turf/simulated/floor/tiled/dark,
@@ -3756,8 +3668,6 @@
 	icon_state = "tube1"
 	},
 /obj/structure/cable{
-	d1 = 2;
-	d2 = 4;
 	icon_state = "2-4"
 	},
 /obj/effect/floor_decal/borderfloorblack{
@@ -3770,10 +3680,7 @@
 	dir = 4;
 	icon_state = "onestar_chair_red"
 	},
-/obj/machinery/recharger/wallcharger{
-	pixel_w = -23;
-	pixel_z = -2
-	},
+/obj/machinery/recharger/wallcharger,
 /turf/simulated/floor/tiled/dark,
 /area/shuttle/mercboat)
 "gE" = (
@@ -3781,10 +3688,7 @@
 	dir = 8;
 	icon_state = "onestar_chair_red"
 	},
-/obj/machinery/recharger/wallcharger{
-	pixel_w = 32;
-	pixel_z = 0
-	},
+/obj/machinery/recharger/wallcharger,
 /turf/simulated/floor/tiled/dark,
 /area/shuttle/mercboat)
 "gF" = (
@@ -3835,7 +3739,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 10
 	},
-/obj/item/weapon/storage/toolbox/syndicate,
+/obj/item/storage/toolbox/syndicate,
 /turf/simulated/floor/tiled/dark,
 /area/ship/mercenary/med1)
 "gL" = (
@@ -4086,7 +3990,7 @@
 /area/ship/mercenary/barracks)
 "hh" = (
 /obj/machinery/door/airlock/glass_external{
-	frequency = 1414;
+	frequency = 1415;
 	id_tag = "southinteriordoor";
 	name = "Modified External Airlock";
 	req_one_access = list(150)
@@ -4097,7 +4001,7 @@
 "hi" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/aux,
 /obj/machinery/door/airlock/glass_external{
-	frequency = 1414;
+	frequency = 1415;
 	id_tag = "southinteriordoor";
 	name = "Modified External Airlock";
 	req_one_access = list(150)
@@ -4114,7 +4018,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 4
 	},
-/obj/item/weapon/storage/box/freezer,
+/obj/item/storage/box/freezer,
 /turf/simulated/floor/tiled/white,
 /area/ship/mercenary/fighter)
 "hk" = (
@@ -4228,7 +4132,6 @@
 	alarm_id = "pen_nine";
 	breach_detection = 0;
 	dir = 1;
-	icon_state = "alarm0";
 	pixel_y = -22
 	},
 /turf/simulated/floor/tiled/dark,
@@ -4332,7 +4235,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 6
 	},
-/obj/item/weapon/storage/firstaid/surgery,
+/obj/item/storage/firstaid/surgery,
 /turf/simulated/floor/tiled/white,
 /area/ship/mercenary/fighter)
 "hH" = (
@@ -4340,7 +4243,7 @@
 /obj/effect/floor_decal/borderfloorblack{
 	dir = 10
 	},
-/obj/item/weapon/storage/box/bodybags,
+/obj/item/storage/box/bodybags,
 /turf/simulated/floor/tiled/white,
 /area/ship/mercenary/fighter)
 "hI" = (

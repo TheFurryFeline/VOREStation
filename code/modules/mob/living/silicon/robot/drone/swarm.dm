@@ -4,7 +4,7 @@
 	icon = 'icons/mob/swarmbot.dmi'
 	icon_state = "swarmer"
 	item_state = "repairbot"
-	faction = "swarmer"
+	faction = FACTION_SWARMER
 	maxHealth = 35
 	health = 35
 	cell_emp_mult = 0.5
@@ -13,18 +13,15 @@
 	gender = NEUTER
 	pass_flags = PASSTABLE
 	braintype = "Drone"
-	lawupdate = 0
+	lawupdate = FALSE
 	density = TRUE
-	idcard_type = /obj/item/weapon/card/id/syndicate
 	req_access = list(999)
 	integrated_light_power = 3
 	local_transmit = 0
+	can_pick_shell = FALSE
 
 	can_pull_size = ITEMSIZE_NO_CONTAINER
 	can_pull_mobs = MOB_PULL_SMALLER
-	can_enter_vent_with = list(
-		/obj,
-		/atom/movable/emissive_blocker)
 
 	mob_always_swap = 1
 
@@ -35,7 +32,7 @@
 	mob_size = MOB_LARGE
 
 	law_type = /datum/ai_laws/swarm_drone
-	module_type = /obj/item/weapon/robot_module/drone/swarm
+	module_type = /obj/item/robot_module/drone/swarm
 
 	hat_x_offset = 0
 	hat_y_offset = -10
@@ -43,27 +40,27 @@
 	foreign_droid = TRUE
 	scrambledcodes = TRUE
 
-	holder_type = /obj/item/weapon/holder/drone
+	holder_type = /obj/item/holder/drone
 
 	can_be_antagged = TRUE
 
 	var/spell_setup = list(
-		/spell/aoe_turf/conjure/swarmer,
-		/spell/aoe_turf/conjure/forcewall/swarm,
-		/spell/aoe_turf/conjure/zeropointwell,
-		/spell/aoe_turf/conjure/zeropointbarricade,
-		/spell/aoe_turf/blink/swarm,
-		/spell/aoe_turf/conjure/swarmer/gunner,
-		/spell/aoe_turf/conjure/swarmer/melee
+		/datum/spell/aoe_turf/conjure/swarmer,
+		/datum/spell/aoe_turf/conjure/forcewall/swarm,
+		/datum/spell/aoe_turf/conjure/zeropointwell,
+		/datum/spell/aoe_turf/conjure/zeropointbarricade,
+		/datum/spell/aoe_turf/blink/swarm,
+		/datum/spell/aoe_turf/conjure/swarmer/gunner,
+		/datum/spell/aoe_turf/conjure/swarmer/melee
 		)
 
-/mob/living/silicon/robot/drone/swarm/Initialize()
+/mob/living/silicon/robot/drone/swarm/Initialize(mapload)
 	. = ..()
 
 	add_language(LANGUAGE_SWARMBOT, 1)
 
 	for(var/spell in spell_setup)
-		src.add_spell(new spell, "nano_spell_ready", /obj/screen/movable/spell_master/swarm)
+		src.add_spell(new spell, "nano_spell_ready", /atom/movable/screen/movable/spell_master/swarm)
 
 /mob/living/silicon/robot/drone/swarm/init()
 	..()
@@ -75,7 +72,7 @@
 	real_name = "drone"
 	icon = 'icons/mob/swarmbot.dmi'
 	icon_state = "swarmer_ranged"
-	faction = "swarmer"
+	faction = FACTION_SWARMER
 
 	maxHealth = 50
 	health = 50
@@ -83,12 +80,12 @@
 	speed = 4
 
 	law_type = /datum/ai_laws/swarm_drone/soldier
-	module_type = /obj/item/weapon/robot_module/drone/swarm/ranged
+	module_type = /obj/item/robot_module/drone/swarm/ranged
 
 	spell_setup = list(
-		/spell/aoe_turf/conjure/swarmer,
-		/spell/aoe_turf/conjure/forcewall/swarm,
-		/spell/aoe_turf/blink/swarm
+		/datum/spell/aoe_turf/conjure/swarmer,
+		/datum/spell/aoe_turf/conjure/forcewall/swarm,
+		/datum/spell/aoe_turf/blink/swarm
 		)
 
 /mob/living/silicon/robot/drone/swarm/melee
@@ -96,7 +93,7 @@
 	real_name = "drone"
 	icon = 'icons/mob/swarmbot.dmi'
 	icon_state = "swarmer_melee"
-	faction = "swarmer"
+	faction = FACTION_SWARMER
 
 	maxHealth = 70
 	health = 70
@@ -104,11 +101,10 @@
 	speed = 2
 
 	law_type = /datum/ai_laws/swarm_drone/soldier
-	module_type = /obj/item/weapon/robot_module/drone/swarm/melee
+	module_type = /obj/item/robot_module/drone/swarm/melee
 
 	spell_setup = list(
-		/spell/aoe_turf/conjure/swarmer,
-		/spell/aoe_turf/conjure/forcewall/swarm,
-		/spell/aoe_turf/blink/swarm
+		/datum/spell/aoe_turf/conjure/swarmer,
+		/datum/spell/aoe_turf/conjure/forcewall/swarm,
+		/datum/spell/aoe_turf/blink/swarm
 		)
-

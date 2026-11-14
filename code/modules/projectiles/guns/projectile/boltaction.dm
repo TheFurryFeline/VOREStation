@@ -1,7 +1,7 @@
 /*
  * Bolt-Action Rifle
  */
-/obj/item/weapon/gun/projectile/shotgun/pump/rifle
+/obj/item/gun/projectile/shotgun/pump/rifle
 	name = "bolt-action rifle"
 	desc = "The Weissen Company Type-19 is a modern interpretation of an almost ancient weapon design. \
 	The model is popular among hunters and collectors due to its reliability. Uses 7.62mm rounds."
@@ -15,10 +15,9 @@
 	the rural communities that dot this infinite frontier."
 	icon_state = "boltaction"
 	item_state = "boltaction"
-	fire_sound = 'sound/weapons/Gunshot_generic_rifle.ogg'
+	fire_sound = 'sound/weapons/gunshot_generic_rifle.ogg'
 	max_shells = 5
-	caliber = "7.62mm"
-	origin_tech = list(TECH_COMBAT = 1)// Old as shit rifle doesn't have very good tech.
+	caliber = "7.62mm"// Old as shit rifle doesn't have very good tech.
 	ammo_type = /obj/item/ammo_casing/a762
 	load_method = SINGLE_CASING|SPEEDLOADER
 	action_sound = 'sound/weapons/riflebolt.ogg'
@@ -27,7 +26,7 @@
 /*
  * Practice Rifle
  */
-/obj/item/weapon/gun/projectile/shotgun/pump/rifle/practice // For target practice
+/obj/item/gun/projectile/shotgun/pump/rifle/practice // For target practice
 	name = "practice bolt-action rifle"
 	icon_state = "boltaction_practice"
 	desc = "A bolt-action rifle with a lightweight synthetic wood stock, designed for competitive shooting. \
@@ -39,7 +38,7 @@
 /*
  * Moist Nugget
  */
-/obj/item/weapon/gun/projectile/shotgun/pump/rifle/moistnugget
+/obj/item/gun/projectile/shotgun/pump/rifle/moistnugget
 	name = "mosin-nagant"
 	icon_state = "moistnugget"
 	item_state = "rifle"
@@ -55,7 +54,7 @@
 /*
  * Ceremonial Rifle
  */
-/obj/item/weapon/gun/projectile/shotgun/pump/rifle/ceremonial
+/obj/item/gun/projectile/shotgun/pump/rifle/ceremonial
 	name = "ceremonial bolt-action rifle"
 	desc = "A bolt-action rifle with a heavy, high-quality wood stock that has a beautiful finish. \
 	Clearly not intended to be used in combat. Uses 7.62mm rounds."
@@ -67,18 +66,18 @@
 
 	var/sawn_off = FALSE
 
-/obj/item/weapon/gun/projectile/shotgun/pump/rifle/ceremonial/attackby(var/obj/item/A as obj, mob/user as mob)
-	if(sawn_off)
-		to_chat(user, "<span class='warning'>The [src] is already shortened!</span>")
-		return
-	if(istype(A, /obj/item/weapon/surgical/circular_saw) || istype(A, /obj/item/weapon/melee/energy) || istype(A, /obj/item/weapon/pickaxe/plasmacutter) && w_class != ITEMSIZE_NORMAL)
-		to_chat(user, "<span class='notice'>You begin to shorten the barrel and stock of \the [src].</span>")
+/obj/item/gun/projectile/shotgun/pump/rifle/ceremonial/attackby(obj/item/A as obj, mob/user as mob)
+	if(istype(A, /obj/item/surgical/circular_saw) || istype(A, /obj/item/melee/energy) || istype(A, /obj/item/pickaxe/plasmacutter) && w_class != ITEMSIZE_NORMAL)
+		if(sawn_off)
+			to_chat(user, span_warning("The [src] is already shortened!"))
+			return
+		to_chat(user, span_notice("You begin to shorten the barrel and stock of \the [src]."))
 		if(loaded.len)
 			afterattack(user, user)
 			playsound(src, fire_sound, 50, 1)
-			user.visible_message("<span class='danger'>[src] goes off!</span>", "<span class='danger'>The rifle goes off in your face!</span>")
+			user.visible_message(span_danger("[src] goes off!"), span_danger("The rifle goes off in your face!"))
 			return
-		if(do_after(user, 30))
+		if(do_after(user, 3 SECONDS, target = src))
 			if(sawn_off)
 				return
 			icon_state = "sawn_rifle"
@@ -91,7 +90,7 @@
 			name = "sawn-off rifle"
 			desc = "The firepower of a rifle, now the size of a pistol, with an effective combat range of about three feet. Uses 7.62mm rounds."
 			pump_animation = "sawn_rifle-cycling"
-			to_chat(user, "<span class='warning'>You shorten the barrel and stock of \the [src]!</span>")
+			to_chat(user, span_warning("You shorten the barrel and stock of \the [src]!"))
 			sawn_off = TRUE
 	else
 		..()
@@ -99,17 +98,16 @@
 /*
  * Surplus Rifle
  */
-/obj/item/weapon/gun/projectile/shotgun/pump/surplus
+/obj/item/gun/projectile/shotgun/pump/surplus
 	name = "surplus rifle"
 	desc = "An ancient weapon from an era long past, crude in design, but still just as effective \
 	as any modern interpretation. Uses 7.62mm rounds."
 	icon_state = "surplus"
 	item_state = "rifle"
-	fire_sound = 'sound/weapons/Gunshot_generic_rifle.ogg'
+	fire_sound = 'sound/weapons/gunshot_generic_rifle.ogg'
 	max_shells = 4
 	slot_flags = null
-	caliber = "7.62mm"
-	origin_tech = list(TECH_COMBAT = 1) // Old(er) as shit rifle doesn't have very good tech.
+	caliber = "7.62mm" // Old(er) as shit rifle doesn't have very good tech.
 	ammo_type = /obj/item/ammo_casing/a762
 	load_method = SINGLE_CASING|SPEEDLOADER
 	action_sound = 'sound/weapons/riflebolt.ogg'
@@ -118,7 +116,7 @@
 /*
  * Scoped Rifle
  */
-/obj/item/weapon/gun/projectile/shotgun/pump/rifle/scoped
+/obj/item/gun/projectile/shotgun/pump/rifle/scoped
 	name = "scoped bolt-action rifle"
 	desc = "The Weissen Company Type-19 is a modern interpretation of an almost ancient weapon design. \
 	The model is popular among hunters and collectors due to its reliability. Uses 7.62mm rounds."
@@ -132,19 +130,18 @@
 	the rural communities that dot this infinite frontier."
 	icon_state = "scoped-boltaction"
 	item_state = "boltaction_scoped"
-	fire_sound = 'sound/weapons/Gunshot_generic_rifle.ogg'
+	fire_sound = 'sound/weapons/gunshot_generic_rifle.ogg'
 	max_shells = 5
-	caliber = "7.62mm"
-	origin_tech = list(TECH_COMBAT = 2)// Old as shit rifle doesn't have very good tech, but it does have a scope.
+	caliber = "7.62mm"// Old as shit rifle doesn't have very good tech, but it does have a scope.
 	ammo_type = /obj/item/ammo_casing/a762
 	load_method = SINGLE_CASING|SPEEDLOADER
 	action_sound = 'sound/weapons/riflebolt.ogg'
 	pump_animation = "scoped-boltaction-cycling"
 
-/obj/item/weapon/gun/projectile/shotgun/pump/rifle/ui_action_click()
+/obj/item/gun/projectile/shotgun/pump/rifle/ui_action_click(mob/user, actiontype)
 	scope()
 
-/obj/item/weapon/gun/projectile/shotgun/pump/rifle/verb/scope()
+/obj/item/gun/projectile/shotgun/pump/rifle/verb/scope()
 	set category = "Object"
 	set name = "Use Scope"
 	set popup_menu = 1

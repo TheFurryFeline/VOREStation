@@ -15,6 +15,7 @@
 	var/mob_wander_distance = 3
 	var/mob_hostile = 0
 	var/mob_retaliate = 0
+	var/mob_ghostjoin = 0 //Should be a number between 0 and 100, dictates the probability of that mob being ghost joinable.
 
 /obj/random/mob/item_to_spawn()
 	return pick(prob(10);/mob/living/simple_mob/animal/passive/lizard,
@@ -30,6 +31,7 @@
 				prob(6);/mob/living/simple_mob/animal/goat,
 				prob(10);/mob/living/simple_mob/animal/passive/penguin,
 				prob(10);/mob/living/simple_mob/animal/passive/mouse,
+				prob(10);/mob/living/simple_mob/animal/passive/mothroach,
 				prob(10);/mob/living/simple_mob/animal/passive/yithian,
 				prob(10);/mob/living/simple_mob/animal/passive/tindalos,
 				prob(10);/mob/living/simple_mob/animal/passive/pillbug,
@@ -62,7 +64,9 @@
 	if(mob_faction)
 		M.faction = mob_faction
 
-
+	if(mob_ghostjoin)
+		if(prob(mob_ghostjoin))
+			M.ghostjoin = 1
 
 /obj/random/mob/sif
 	name = "Random Sif Animal"
@@ -171,7 +175,7 @@
 
 	overwrite_hostility = 1
 
-	mob_faction = "malf_drone"
+	mob_faction = FACTION_MALF_DRONE
 	mob_returns_home = 1
 	mob_wander = 1
 	mob_wander_distance = 5
@@ -200,7 +204,7 @@
 
 	overwrite_hostility = 1
 
-	mob_faction = "malf_drone"
+	mob_faction = FACTION_MALF_DRONE
 	mob_returns_home = 1
 	mob_wander = 1
 	mob_wander_distance = 5
@@ -217,7 +221,7 @@
 	desc = "This is a random hivebot."
 	icon_state = "robot"
 
-	mob_faction = "hivebot"
+	mob_faction = FACTION_HIVEBOT
 
 /obj/random/mob/robotic/hivebot/item_to_spawn()
 	return pick(prob(10);/mob/living/simple_mob/mechanical/hivebot,
@@ -234,7 +238,7 @@
 /obj/random/mob/mouse
 	name = "Random Mouse"
 	desc = "This is a random boring maus."
-	icon_state = "mouse_gray"
+	icon_state = "animal"
 	spawn_nothing_percentage = 15
 
 /obj/random/mob/mouse/item_to_spawn()
@@ -289,7 +293,7 @@
 	desc = "This is a random PoI mercenary."
 	icon_state = "humanoid"
 
-	mob_faction = "syndicate"
+	mob_faction = FACTION_SYNDICATE
 	mob_returns_home = 1
 	mob_wander_distance = 7	// People like to wander, and these people probably have a lot of stuff to guard.
 
@@ -415,3 +419,21 @@
 				/mob/living/simple_mob/animal/sif/sakimm
 			)
 		)
+
+/obj/random/mob/vermin
+	name = "Random Vermin"
+	desc = "Often found in trash."
+	icon_state = "animal"
+	spawn_nothing_percentage = 15
+
+/obj/random/mob/vermin/item_to_spawn()
+	return pick(prob(15);/mob/living/simple_mob/animal/passive/mouse/white,
+				prob(15);/mob/living/simple_mob/animal/passive/mouse/black,
+				prob(30);/mob/living/simple_mob/animal/passive/mouse/brown,
+				prob(30);/mob/living/simple_mob/animal/passive/mouse/gray,
+				prob(30);/mob/living/simple_mob/animal/passive/mouse/rat,
+				prob(30);/obj/effect/spider/spiderling/non_growing,
+				prob(30);/mob/living/simple_mob/animal/passive/raccoon,
+				prob(30);/mob/living/simple_mob/animal/passive/opossum,
+				prob(40);/mob/living/simple_mob/animal/passive/cockroach,
+				)

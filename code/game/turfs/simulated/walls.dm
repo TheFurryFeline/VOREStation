@@ -23,6 +23,7 @@
 
 	// There's basically always going to be wall connections, making this lazy doesn't seem like it'd help much unless you wanted to make it bitflags instead.
 	var/list/wall_connections = list("0", "0", "0", "0")
+	rad_insulation = RAD_MEDIUM_INSULATION
 
 // Walls always hide the stuff below them.
 /turf/simulated/wall/levelupdate()
@@ -58,7 +59,7 @@
 /turf/simulated/wall/proc/get_material()
 	return material
 
-/turf/simulated/wall/bullet_act(var/obj/item/projectile/Proj)
+/turf/simulated/wall/bullet_act(obj/item/projectile/Proj)
 	if(istype(Proj,/obj/item/projectile/beam))
 		burn(2500)
 	else if(istype(Proj,/obj/item/projectile/ion))
@@ -80,7 +81,7 @@
 			damage = new_damage
 			Proj.damage = outgoing_damage
 
-			visible_message("<span class='danger'>\The [src] reflects \the [Proj]!</span>")
+			visible_message(span_danger("\The [src] reflects \the [Proj]!"))
 
 			// Find a turf near or on the original location to bounce to
 			var/new_x = Proj.starting.x + pick(0, 0, 0, -1, 1, -2, 2)
@@ -96,13 +97,20 @@
 	take_damage(damage)
 	return
 
-/turf/simulated/wall/hitby(AM as mob|obj, var/speed=THROWFORCE_SPEED_DIVISOR)
+/turf/simulated/wall/hitby(atom/movable/source, datum/thrownthing/throwingdatum)
 	..()
-	if(ismob(AM))
+	if(ismob(source))
 		return
-
-	var/tforce = AM:throwforce * (speed/THROWFORCE_SPEED_DIVISOR)
-	if (tforce < 15)
+	var/tforce = 0
+	if(isobj(source))
+		var/obj/object = source
+		var/speed = throwingdatum?.speed || THROWFORCE_SPEED_DIVISOR
+		if(isitem(object))
+			var/obj/item/our_item = object
+			tforce = our_item.throwforce * (speed/THROWFORCE_SPEED_DIVISOR)
+		else
+			tforce = object.w_class * (speed/THROWFORCE_SPEED_DIVISOR)
+	if(tforce < 15)
 		return
 
 	take_damage(tforce)
@@ -118,27 +126,27 @@
 			plant.pixel_y = 0
 		plant.update_neighbors()
 
-/turf/simulated/wall/ChangeTurf(var/turf/N, var/tell_universe, var/force_lighting_update, var/preserve_outdoors)
+/turf/simulated/wall/ChangeTurf(turf/N, tell_universe, force_lighting_update, preserve_outdoors)
 	clear_plants()
-	..(N, tell_universe, force_lighting_update, preserve_outdoors)
+	. = ..(N, tell_universe, force_lighting_update, preserve_outdoors)
 
 //Appearance
 /turf/simulated/wall/examine(mob/user)
 	. = ..()
 
 	if(!damage)
-		. += "<span class='notice'>It looks fully intact.</span>"
+		. += span_notice("It looks fully intact.")
 	else
 		var/dam = damage / material.integrity
 		if(dam <= 0.3)
-			. += "<span class='warning'>It looks slightly damaged.</span>"
+			. += span_warning("It looks slightly damaged.")
 		else if(dam <= 0.6)
-			. += "<span class='warning'>It looks moderately damaged.</span>"
+			. += span_warning("It looks moderately damaged.")
 		else
-			. += "<span class='danger'>It looks heavily damaged.</span>"
+			. += span_danger("It looks heavily damaged.")
 
 	if(locate(/obj/effect/overlay/wallrot) in src)
-		. += "<span class='warning'>There is fungus growing on [src].</span>"
+		. += span_warning("There is fungus growing on [src].")
 
 //Damage
 
@@ -154,7 +162,7 @@
 		return
 	F.burn_tile()
 	F.icon_state = "wall_thermite"
-	visible_message("<span class='danger'>\The [src] spontaneously combusts!.</span>") //!!OH SHIT!!
+	visible_message(span_danger("\The [src] spontaneously combusts!.")) //!!OH SHIT!!
 	return
 
 /turf/simulated/wall/take_damage(dam)
@@ -188,7 +196,7 @@
 
 	return ..()
 
-/turf/simulated/wall/proc/dismantle_wall(var/devastated, var/explode, var/no_product)
+/turf/simulated/wall/proc/dismantle_wall(devastated, explode, no_product)
 
 	playsound(src, 'sound/items/Welder.ogg', 100, 1)
 	if(!no_product)
@@ -197,9 +205,10 @@
 		else
 			material.place_dismantled_girder(src, null, girder_material)
 		if(!devastated)
-			material.place_dismantled_product(src)
-			if (!reinf_material)
+			if (reinf_material)
 				material.place_dismantled_product(src)
+			else
+				material.place_dismantled_product(src, 2)
 
 	for(var/obj/O in src.contents) //Eject contents!
 		if(istype(O,/obj/structure/sign/poster))
@@ -237,7 +246,7 @@
 	if(locate(/obj/effect/overlay/wallrot) in src)
 		return FALSE
 
-	// Wall-rot can't go onto walls that are surrounded in all four cardinal directions.
+	// Wall-rot can't go onto walls that are surrounded in all four GLOB.cardinal directions.
 	// Because of spores, or something. It's actually to avoid the pain that is removing wallrot surrounded by
 	// four r-walls.
 	var/at_least_one_open_turf = FALSE
@@ -280,7 +289,7 @@
 	var/turf/simulated/floor/F = src
 	F.burn_tile()
 	F.icon_state = "dmg[rand(1,4)]"
-	to_chat(user, "<span class='warning'>The thermite starts melting through the wall.</span>")
+	to_chat(user, span_warning("The thermite starts melting through the wall."))
 
 	spawn(100)
 		if(O)
@@ -289,11 +298,19 @@
 	return
 
 /turf/simulated/wall/proc/radiate()
+	SIGNAL_HANDLER
 	var/total_radiation = material.radioactivity + (reinf_material ? reinf_material.radioactivity / 2 : 0) + (girder_material ? girder_material.radioactivity / 2 : 0)
 	if(!total_radiation)
 		return
 
-	SSradiation.radiate(src, total_radiation)
+	radiation_pulse(
+		src,
+		max_range = 5,
+		threshold = RAD_MEDIUM_INSULATION,
+		chance = total_radiation,
+		minimum_exposure_time = URANIUM_RADIATION_MINIMUM_EXPOSURE_TIME,
+		strength = total_radiation
+	)
 	return total_radiation
 
 /turf/simulated/wall/proc/burn(temperature)
@@ -309,7 +326,7 @@
 /turf/simulated/wall/can_engrave()
 	return (material && material.hardness >= 10 && material.hardness <= 100)
 
-/turf/simulated/wall/rcd_values(mob/living/user, obj/item/weapon/rcd/the_rcd, passed_mode)
+/turf/simulated/wall/rcd_values(mob/living/user, obj/item/rcd/the_rcd, passed_mode)
 	if(material.integrity > 1000) // Don't decon things like elevatorium.
 		return FALSE
 	if(reinf_material && !the_rcd.can_remove_rwalls) // Gotta do it the old fashioned way if your RCD can't.
@@ -326,14 +343,19 @@
 			)
 	return FALSE
 
-/turf/simulated/wall/rcd_act(mob/living/user, obj/item/weapon/rcd/the_rcd, passed_mode)
+/turf/simulated/wall/rcd_act(mob/living/user, obj/item/rcd/the_rcd, passed_mode)
 	if(passed_mode == RCD_DECONSTRUCT)
-		to_chat(user, span("notice", "You deconstruct \the [src]."))
+		to_chat(user, span_notice("You deconstruct \the [src]."))
 		ChangeTurf(/turf/simulated/floor/airless, preserve_outdoors = TRUE)
 		return TRUE
 	return FALSE
 
-/turf/simulated/wall/AltClick(mob/user)
+/turf/simulated/wall/occult_act(mob/living/user)
+	to_chat(user, span_cult("You consecrate the wall."))
+	ChangeTurf(/turf/simulated/wall/cult, preserve_outdoors = TRUE)
+	return TRUE
+
+/turf/simulated/wall/click_alt(mob/user)
 	if(isliving(user))
 		var/mob/living/livingUser = user
 		if(try_graffiti(livingUser, livingUser.get_active_hand()))

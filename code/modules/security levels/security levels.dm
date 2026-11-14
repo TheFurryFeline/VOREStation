@@ -1,4 +1,4 @@
-/var/security_level = 0
+GLOBAL_VAR_INIT(security_level, 0)
 //0 = code green
 //1 = code yellow
 //2 = code violet
@@ -8,10 +8,10 @@
 //6 = code delta
 
 //config.alert_desc_blue_downto
-/var/datum/announcement/priority/security/security_announcement_up = new(do_log = 0, do_newscast = 1, new_sound = sound('sound/effects/alert_levels/alert_raise.ogg'))
-/var/datum/announcement/priority/security/security_announcement_down = new(do_log = 0, do_newscast = 1)
+GLOBAL_DATUM_INIT(security_announcement_up, /datum/announcement/priority/security, new(do_log = 0, do_newscast = 1, new_sound = sound('sound/effects/alert_levels/alert_raise.ogg')))
+GLOBAL_DATUM_INIT(security_announcement_down, /datum/announcement/priority/security, new(do_log = 0, do_newscast = 1))
 
-/proc/set_security_level(var/level)
+/proc/set_security_level(level)
 	switch(level)
 		if("green")
 			level = SEC_LEVEL_GREEN
@@ -29,50 +29,50 @@
 			level = SEC_LEVEL_DELTA
 
 	//Will not be announced if you try to set to the same level as it already is
-	if(level >= SEC_LEVEL_GREEN && level <= SEC_LEVEL_DELTA && level != security_level)
+	if(level >= SEC_LEVEL_GREEN && level <= SEC_LEVEL_DELTA && level != GLOB.security_level)
 		switch(level)
 			if(SEC_LEVEL_GREEN)
-				security_announcement_down.Announce("[config.alert_desc_green]", "Attention! Alert level lowered to code green.")
-				security_level = SEC_LEVEL_GREEN
+				GLOB.security_announcement_down.Announce("[CONFIG_GET(string/alert_desc_green)]", "Attention! Alert level lowered to code green.")
+				GLOB.security_level = SEC_LEVEL_GREEN
 			if(SEC_LEVEL_YELLOW)
-				if(security_level < SEC_LEVEL_YELLOW)
-					security_announcement_up.Announce("[config.alert_desc_yellow_upto]", "Attention! Alert level elevated to yellow")
+				if(GLOB.security_level < SEC_LEVEL_YELLOW)
+					GLOB.security_announcement_up.Announce("[CONFIG_GET(string/alert_desc_yellow_upto)]", "Attention! Alert level elevated to yellow")
 				else
-					security_announcement_down.Announce("[config.alert_desc_yellow_downto]", "Attention! Alert level lowered to yellow")
-				security_level = SEC_LEVEL_YELLOW
+					GLOB.security_announcement_down.Announce("[CONFIG_GET(string/alert_desc_yellow_downto)]", "Attention! Alert level lowered to yellow")
+				GLOB.security_level = SEC_LEVEL_YELLOW
 			if(SEC_LEVEL_VIOLET)
-				if(security_level < SEC_LEVEL_VIOLET)
-					security_announcement_up.Announce("[config.alert_desc_violet_upto]", "Attention! Alert level elevated to violet")
+				if(GLOB.security_level < SEC_LEVEL_VIOLET)
+					GLOB.security_announcement_up.Announce("[CONFIG_GET(string/alert_desc_violet_upto)]", "Attention! Alert level elevated to violet")
 				else
-					security_announcement_down.Announce("[config.alert_desc_violet_downto]", "Attention! Alert level lowered to violet")
-				security_level = SEC_LEVEL_VIOLET
+					GLOB.security_announcement_down.Announce("[CONFIG_GET(string/alert_desc_violet_downto)]", "Attention! Alert level lowered to violet")
+				GLOB.security_level = SEC_LEVEL_VIOLET
 			if(SEC_LEVEL_ORANGE)
-				if(security_level < SEC_LEVEL_ORANGE)
-					security_announcement_up.Announce("[config.alert_desc_orange_upto]", "Attention! Alert level elevated to orange")
+				if(GLOB.security_level < SEC_LEVEL_ORANGE)
+					GLOB.security_announcement_up.Announce("[CONFIG_GET(string/alert_desc_orange_upto)]", "Attention! Alert level elevated to orange")
 				else
-					security_announcement_down.Announce("[config.alert_desc_orange_downto]", "Attention! Alert level lowered to orange")
-				security_level = SEC_LEVEL_ORANGE
+					GLOB.security_announcement_down.Announce("[CONFIG_GET(string/alert_desc_orange_downto)]", "Attention! Alert level lowered to orange")
+				GLOB.security_level = SEC_LEVEL_ORANGE
 			if(SEC_LEVEL_BLUE)
-				if(security_level < SEC_LEVEL_BLUE)
-					security_announcement_up.Announce("[config.alert_desc_blue_upto]", "Attention! Alert level elevated to blue")
+				if(GLOB.security_level < SEC_LEVEL_BLUE)
+					GLOB.security_announcement_up.Announce("[CONFIG_GET(string/alert_desc_blue_upto)]", "Attention! Alert level elevated to blue")
 				else
-					security_announcement_down.Announce("[config.alert_desc_blue_downto]", "Attention! Alert level lowered to blue")
-				security_level = SEC_LEVEL_BLUE
+					GLOB.security_announcement_down.Announce("[CONFIG_GET(string/alert_desc_blue_downto)]", "Attention! Alert level lowered to blue")
+				GLOB.security_level = SEC_LEVEL_BLUE
 			if(SEC_LEVEL_RED)
-				if(security_level < SEC_LEVEL_RED)
-					security_announcement_up.Announce("[config.alert_desc_red_upto]", "Attention! Code red!", new_sound = sound('sound/effects/alert_levels/red_alert.ogg', volume = 75))
+				if(GLOB.security_level < SEC_LEVEL_RED)
+					GLOB.security_announcement_up.Announce("[CONFIG_GET(string/alert_desc_red_upto)]", "Attention! Code red!", new_sound = sound('sound/effects/alert_levels/red_alert.ogg', volume = 75))
 				else
-					security_announcement_down.Announce("[config.alert_desc_red_downto]", "Attention! Code red!")
-				security_level = SEC_LEVEL_RED
+					GLOB.security_announcement_down.Announce("[CONFIG_GET(string/alert_desc_red_downto)]", "Attention! Code red!")
+				GLOB.security_level = SEC_LEVEL_RED
 			if(SEC_LEVEL_DELTA)
-				security_announcement_up.Announce("[config.alert_desc_delta]", "Attention! Delta alert level reached!", new_sound = 'sound/effects/alert_levels/deltaklaxon.ogg')
-				security_level = SEC_LEVEL_DELTA
+				GLOB.security_announcement_up.Announce("[CONFIG_GET(string/alert_desc_delta)]", "Attention! Delta alert level reached!", new_sound = 'sound/effects/alert_levels/deltaklaxon.ogg')
+				GLOB.security_level = SEC_LEVEL_DELTA
 
 		var/newlevel = get_security_level()
-		for(var/obj/machinery/firealarm/FA in machines)
+		for(var/obj/machinery/firealarm/FA in GLOB.machines)
 			if(FA.z in using_map.contact_levels)
 				FA.set_security_level(newlevel)
-		for(var/obj/machinery/status_display/FA in machines)
+		for(var/obj/machinery/status_display/FA in GLOB.machines)
 			if(FA.z in using_map.contact_levels)
 				FA.on_alert_changed(newlevel)
 		//VOREStation Add
@@ -81,17 +81,17 @@
 		//VOREStation Add End
 
 		if(level >= SEC_LEVEL_RED)
-			atc.reroute_traffic(yes = 1) // Tell them fuck off we're busy.
+			SSatc.reroute_traffic(yes = 1) // Tell them fuck off we're busy.
 		else
-			atc.reroute_traffic(yes = 0)
+			SSatc.reroute_traffic(yes = 0)
 
 		spawn()
-			SSnightshift.check_nightshift()
+			SSnightshift.check_nightshift(TRUE)
 
 		admin_chat_message(message = "Security level is now: [uppertext(get_security_level())]", color = "#CC2222") //VOREStation Add
 
 /proc/get_security_level()
-	switch(security_level)
+	switch(GLOB.security_level)
 		if(SEC_LEVEL_GREEN)
 			return "green"
 		if(SEC_LEVEL_YELLOW)
@@ -107,7 +107,7 @@
 		if(SEC_LEVEL_DELTA)
 			return "delta"
 
-/proc/num2seclevel(var/num)
+/proc/num2seclevel(num)
 	switch(num)
 		if(SEC_LEVEL_GREEN)
 			return "green"
@@ -124,7 +124,7 @@
 		if(SEC_LEVEL_DELTA)
 			return "delta"
 
-/proc/seclevel2num(var/seclevel)
+/proc/seclevel2num(seclevel)
 	switch( lowertext(seclevel) )
 		if("green")
 			return SEC_LEVEL_GREEN

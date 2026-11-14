@@ -19,7 +19,7 @@
 	spore_type = /mob/living/simple_mob/blob/spore/weak
 	chunk_active_ability_cooldown = 60 SECONDS
 
-/datum/blob_type/fulminant_organism/on_expand(var/obj/structure/blob/B, var/obj/structure/blob/new_B, var/turf/T, var/mob/observer/blob/O)
+/datum/blob_type/fulminant_organism/on_expand(obj/structure/blob/B, obj/structure/blob/new_B, turf/T, mob/observer/blob/O)
 	if(prob(10)) // 10% chance to make a weak spore when expanding.
 		var/mob/living/simple_mob/blob/spore/S = new spore_type(T)
 		if(istype(S))
@@ -33,7 +33,7 @@
 /datum/blob_type/fulminant_organism/on_death(obj/structure/blob/B)
 	if(prob(33)) // 33% chance to make a spore when dying.
 		var/mob/living/simple_mob/blob/spore/S = new spore_type(get_turf(B))
-		B.visible_message("<span class='danger'>\The [S] floats free from the [name]!</span>")
+		B.visible_message(span_danger("\The [S] floats free from the [name]!"))
 		if(istype(S))
 			S.overmind = B.overmind
 			S.faction = faction
@@ -42,7 +42,7 @@
 			S.faction = faction
 		S.update_icons()
 
-/datum/blob_type/fulminant_organism/on_chunk_use(obj/item/weapon/blobcore_chunk/B, mob/living/user)
+/datum/blob_type/fulminant_organism/on_chunk_use(obj/item/blobcore_chunk/B, mob/living/user)
 	for(var/I = 1 to rand(3,4))
 		var/mob/living/simple_mob/blob/spore/S = new spore_type(get_turf(B))
 		S.faction = user.faction

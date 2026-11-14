@@ -8,14 +8,35 @@
 	//When we get into galloping mode, we stay there until both runs win less often than MIN_GALLOP consecutive times.
 #define MIN_GALLOP 7
 
-	//This is a global instance to allow much of this code to be reused. The interfaces are kept separately
-var/datum/sortInstance/sortInstance = new()
-/datum/sortInstance
+/// Helper for the sorting procs. Prevents some code duplication. Creates /datum/sort_instance/sorter
+#define CREATE_SORT_INSTANCE(to_sort, cmp, associative, fromIndex, toIndex) \
+	if(length(to_sort) < 2) { \
+		return to_sort; \
+	} \
+	fromIndex = fromIndex % length(to_sort); \
+	toIndex = toIndex % (length(to_sort) + 1); \
+	if (fromIndex <= 0) { \
+		fromIndex += length(to_sort); \
+	} \
+	if (toIndex <= 0) { \
+		toIndex += length(to_sort) + 1; \
+	} \
+	var/datum/sort_instance/sorter = GLOB.sortInstance; \
+	if (isnull(sorter)) { \
+		sorter = new; \
+	} \
+	sorter.L = to_sort; \
+	sorter.cmp = cmp; \
+	sorter.associative = associative;
+
+//This is a global instance to allow much of this code to be reused. The interfaces are kept separately
+GLOBAL_DATUM_INIT(sortInstance, /datum/sort_instance, new())
+/datum/sort_instance
 	//The array being sorted.
 	var/list/L
 
 	//The comparator proc-reference
-	var/cmp = /proc/cmp_numeric_asc
+	var/cmp = GLOBAL_PROC_REF(cmp_numeric_asc)
 
 	//whether we are sorting list keys (0: L[i]) or associated values (1: L[L[i]])
 	var/associative = 0
@@ -32,7 +53,7 @@ var/datum/sortInstance/sortInstance = new()
 	var/list/runLens = list()
 
 
-/datum/sortInstance/proc/timSort(start, end)
+/datum/sort_instance/proc/timSort(start, end)
 	runBases.Cut()
 	runLens.Cut()
 
@@ -83,21 +104,21 @@ var/datum/sortInstance/sortInstance = new()
 
 	return L
 
-/*
-Sorts the specified portion of the specified array using a binary
-insertion sort.  This is the best method for sorting small numbers
-of elements.  It requires O(n log n) compares, but O(n^2) data
-movement (worst case).
+	/*
+	Sorts the specified portion of the specified array using a binary
+	insertion sort.  This is the best method for sorting small numbers
+	of elements.  It requires O(n log n) compares, but O(n^2) data
+	movement (worst case).
 
-If the initial part of the specified range is already sorted,
-this method can take advantage of it: the method assumes that the
-elements in range [lo,start) are already sorted
+	If the initial part of the specified range is already sorted,
+	this method can take advantage of it: the method assumes that the
+	elements in range [lo,start) are already sorted
 
-lo		the index of the first element in the range to be sorted
-hi		the index after the last element in the range to be sorted
-start	the index of the first element in the range that is	not already known to be sorted
-*/
-/datum/sortInstance/proc/binarySort(lo, hi, start)
+	lo the index of the first element in the range to be sorted
+	hi the index after the last element in the range to be sorted
+	start the index of the first element in the range that is not already known to be sorted
+	*/
+/datum/sort_instance/proc/binarySort(lo, hi, start)
 	//ASSERT(lo <= start && start <= hi)
 	if(start <= lo)
 		start = lo + 1
@@ -135,7 +156,7 @@ For its intended use in a stable mergesort, the strictness of the
 definition of "descending" is needed so that the call can safely
 reverse a descending sequence without violating stability.
 */
-/datum/sortInstance/proc/countRunAndMakeAscending(lo, hi)
+/datum/sort_instance/proc/countRunAndMakeAscending(lo, hi)
 	//ASSERT(lo < hi)
 
 	var/runHi = lo + 1
@@ -152,7 +173,7 @@ reverse a descending sequence without violating stability.
 			if(call(cmp)(current, last) >= 0)
 				break
 			++runHi
-		reverseRange(L, lo, runHi)
+		reverse_range(L, lo, runHi)
 	else
 		while(runHi < hi)
 			last = current
@@ -165,7 +186,7 @@ reverse a descending sequence without violating stability.
 
 //Returns the minimum acceptable run length for an array of the specified length.
 //Natural runs shorter than this will be extended with binarySort
-/datum/sortInstance/proc/minRunLength(n)
+/datum/sort_instance/proc/minRunLength(n)
 	//ASSERT(n >= 0)
 	var/r = 0	//becomes 1 if any bits are shifted off
 	while(n >= MIN_MERGE)
@@ -178,7 +199,7 @@ reverse a descending sequence without violating stability.
 //	runLen[i-2] > runLen[i-1]
 //This method is called each time a new run is pushed onto the stack.
 //So the invariants are guaranteed to hold for i<stackSize upon entry to the method
-/datum/sortInstance/proc/mergeCollapse()
+/datum/sort_instance/proc/mergeCollapse()
 	while(runBases.len >= 2)
 		var/n = runBases.len - 1
 		if(n > 1 && runLens[n-1] <= runLens[n] + runLens[n+1])
@@ -193,7 +214,7 @@ reverse a descending sequence without violating stability.
 
 //Merges all runs on the stack until only one remains.
 //Called only once, to finalise the sort
-/datum/sortInstance/proc/mergeForceCollapse()
+/datum/sort_instance/proc/mergeForceCollapse()
 	while(runBases.len >= 2)
 		var/n = runBases.len - 1
 		if(n > 1 && runLens[n-1] < runLens[n+1])
@@ -204,7 +225,7 @@ reverse a descending sequence without violating stability.
 //Merges the two consecutive runs at stack indices i and i+1
 //Run i must be the penultimate or antepenultimate run on the stack
 //In other words, i must be equal to stackSize-2 or stackSize-3
-/datum/sortInstance/proc/mergeAt(i)
+/datum/sort_instance/proc/mergeAt(i)
 	//ASSERT(runBases.len >= 2)
 	//ASSERT(i >= 1)
 	//ASSERT(i == runBases.len - 1 || i == runBases.len - 2)
@@ -258,7 +279,7 @@ reverse a descending sequence without violating stability.
 
 	Returns the index at which to insert element 'key'
 */
-/datum/sortInstance/proc/gallopLeft(key, base, len, hint)
+/datum/sort_instance/proc/gallopLeft(key, base, len, hint)
 	//ASSERT(len > 0 && hint >= 0 && hint < len)
 
 	var/lastOffset = 0
@@ -317,7 +338,7 @@ reverse a descending sequence without violating stability.
  * @param c the comparator used to order the range, and to search
  * @return the int k,  0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
  */
-/datum/sortInstance/proc/gallopRight(key, base, len, hint)
+/datum/sort_instance/proc/gallopRight(key, base, len, hint)
 	//ASSERT(len > 0 && hint >= 0 && hint < len)
 
 	var/offset = 1
@@ -369,7 +390,7 @@ reverse a descending sequence without violating stability.
 
 //Merges two adjacent runs in-place in a stable fashion.
 //For performance this method should only be called when len1 <= len2!
-/datum/sortInstance/proc/mergeLo(base1, len1, base2, len2)
+/datum/sort_instance/proc/mergeLo(base1, len1, base2, len2)
 	//ASSERT(len1 > 0 && len2 > 0 && base1 + len1 == base2)
 
 	var/cursor1 = base1
@@ -471,7 +492,7 @@ reverse a descending sequence without violating stability.
 		//ASSERT(len1 > 1)
 
 
-/datum/sortInstance/proc/mergeHi(base1, len1, base2, len2)
+/datum/sort_instance/proc/mergeHi(base1, len1, base2, len2)
 	//ASSERT(len1 > 0 && len2 > 0 && base1 + len1 == base2)
 
 	var/cursor1 = base1 + len1 - 1	//start at end of sublists
@@ -571,7 +592,7 @@ reverse a descending sequence without violating stability.
 		//ASSERT(len2 > 0)
 
 
-/datum/sortInstance/proc/mergeSort(start, end)
+/datum/sort_instance/proc/mergeSort(start, end)
 	var/remaining = end - start
 
 	//If array is small, do an insertion sort
@@ -616,7 +637,7 @@ reverse a descending sequence without violating stability.
 
 	return L
 
-/datum/sortInstance/proc/mergeAt2(i)
+/datum/sort_instance/proc/mergeAt2(i)
 	var/cursor1 = runBases[i]
 	var/cursor2 = runBases[i+1]
 

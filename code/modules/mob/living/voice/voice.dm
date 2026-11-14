@@ -3,15 +3,16 @@
 	name = "unknown person"
 	desc = "How are you examining me?"
 	see_invisible = SEE_INVISIBLE_LIVING
-	var/obj/item/device/communicator/comm = null
+	var/obj/item/communicator/comm = null
+	var/item_tf = FALSE
 
 	emote_type = 2 //This lets them emote through containers.  The communicator has a image feed of the person calling them so...
 
-/mob/living/voice/Initialize(loc)
+/mob/living/voice/Initialize(mapload)
 	add_language(LANGUAGE_GALCOM)
-	set_default_language(GLOB.all_languages[LANGUAGE_GALCOM])
+	apply_default_language(GLOB.all_languages[LANGUAGE_GALCOM])
 
-	if(istype(loc, /obj/item/device/communicator))
+	if(istype(loc, /obj/item/communicator))
 		comm = loc
 	. = ..()
 
@@ -28,9 +29,9 @@
 		alpha = 127 //Maybe we'll have hologram calls later.
 		if(speaker.client && speaker.client.prefs)
 			var/datum/preferences/p = speaker.client.prefs
-			name = p.real_name
+			name = p.read_preference(/datum/preference/name/real_name)
 			real_name = name
-			gender = p.identifying_gender
+			gender = p.read_preference(/datum/preference/choiced/gender/identifying)
 
 			for(var/language in p.alternate_languages)
 				add_language(language)
@@ -40,8 +41,8 @@
 // Description: Adds a static overlay to the client's screen.
 /mob/living/voice/Login()
 	..()
-	client.screen |= global_hud.whitense
-	client.screen |= global_hud.darkMask
+	client.screen |= GLOB.global_hud.whitense
+	client.screen |= GLOB.global_hud.darkMask
 
 // Proc: Destroy()
 // Parameters: None
@@ -80,17 +81,17 @@
 	set desc = "Changes your name."
 	set src = usr
 
-	var/new_name = sanitizeSafe(tgui_input_text(src, "Who would you like to be now?", "Communicator", src.client.prefs.real_name, MAX_NAME_LEN), MAX_NAME_LEN)
+	var/new_name = sanitizeSafe(tgui_input_text(src, "Who would you like to be now?", "Communicator", src.client.prefs.read_preference(/datum/preference/name/real_name), MAX_NAME_LEN, encode = FALSE), MAX_NAME_LEN)
 	if(new_name)
 		if(comm)
-			comm.visible_message("<span class='notice'>\icon[comm][bicon(comm)] [src.name] has left, and now you see [new_name].</span>")
+			comm.visible_message(span_notice("[icon2html(comm,viewers(comm))] [src.name] has left, and now you see [new_name]."))
 		//Do a bit of logging in-case anyone tries to impersonate other characters for whatever reason.
 		var/msg = "[src.client.key] ([src]) has changed their communicator identity's name to [new_name]."
 		message_admins(msg)
 		log_game(msg)
 		src.name = new_name
 	else
-		to_chat(src, "<span class='warning'>Invalid name.  Rejected.</span>")
+		to_chat(src, span_warning("Invalid name.  Rejected."))
 
 // Proc: Life()
 // Parameters: None
@@ -104,7 +105,7 @@
 // Proc: say()
 // Parameters: 4 (generic say() arguments)
 // Description: Adds a speech bubble to the communicator device, then calls ..() to do the real work.
-/mob/living/voice/say(var/message, var/datum/language/speaking = null, var/whispering = 0)
+/mob/living/voice/say(message, datum/language/speaking = null, whispering = 0)
 	//Speech bubbles.
 	if(comm)
 		var/speech_bubble_test = say_test(message)
@@ -128,7 +129,7 @@
 /mob/living/voice/speech_bubble_appearance()
 	return "comm"
 
-/mob/living/voice/say_understands(var/other, var/datum/language/speaking = null)
+/mob/living/voice/say_understands(other, datum/language/speaking = null)
 	//These only pertain to common. Languages are handled by mob/say_understands()
 	if(!speaking)
 		if(iscarbon(other))
@@ -139,6 +140,8 @@
 			return TRUE
 	return ..()
 
-/mob/living/voice/custom_emote(var/m_type = VISIBLE_MESSAGE, var/message = null, var/range = world.view)
-	if(!comm) return
-	..(m_type,message,comm.video_range)
+/mob/living/voice/custom_emote(m_type = VISIBLE_MESSAGE, message = null, range = world.view)
+	if(comm)
+		..(m_type,message,comm.video_range)
+	else if(item_tf)
+		..(m_type,message,range)

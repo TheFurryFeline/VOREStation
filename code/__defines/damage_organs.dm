@@ -45,15 +45,16 @@
 #define DROPLIMB_EDGE 0
 #define DROPLIMB_BLUNT 1
 #define DROPLIMB_BURN 2
+#define DROPLIMB_ACID 3
 
 // Damage above this value must be repaired with surgery.
 #define ROBOLIMB_REPAIR_CAP 30
 
 #define ORGAN_FLESH    0 // Normal organic organs.
-#define ORGAN_ASSISTED 1 // Like pacemakers, not robotic
+#define ORGAN_ASSISTED 1 // Like an LVAD - No pulse, but still organic.
 #define ORGAN_ROBOT    2 // Fully robotic, no organic parts
 #define ORGAN_LIFELIKE 3 // Robotic, made to appear organic
-#define ORGAN_NANOFORM 4 // VOREStation Add - Fully nanoswarm organ
+#define ORGAN_NANOFORM 4 // Fully nanoswarm organ
 
 //Germs and infections.
 #define GERM_LEVEL_AMBIENT  110 // Maximum germ level you can reach by standing still.
@@ -67,3 +68,48 @@
 #define MODULAR_BODYPART_INVALID    0 // Cannot be detached or reattached.
 #define MODULAR_BODYPART_PROSTHETIC 1 // Can be detached or reattached freely.
 #define MODULAR_BODYPART_CYBERNETIC 2 // Can be detached or reattached to compatible parent organs.
+
+#define WOUND_CRITICAL_HEAL_LIMIT 50 // Damage that wounds will not self-heal from, even if treated by basic medical supplies. Chems/surgery ignores this.
+
+//CitRP Port
+#define CYBERBEAST_MONITOR_STYLES "blank=cyber_blank;\
+	default=cyber_default;\
+	eyes=eyes;\
+	static=cyber_static;\
+	alert=cyber_alert;\
+	happy=cyber_happ;\
+	unhappy=cyber_unhapp;\
+	flat=cyber_flat;\
+	sad=cyber_sad;\
+	heart=cyber_heart;\
+	cross=cyber_cross;\
+	wave=cyber_wave;\
+	uwu=cyber_uwu;\
+	question=cyber_question;\
+	lowpower=cyber_lowpower;\
+	idle=cyber_idle;\
+	nwn=cyber_nwn"
+
+//Ending a monitor style with [-colored] will override eye coloration. If you have custom colors on a monitor icon, you should do this.
+#define STANDARD_MONITOR_STYLES "blank=ipc_blank;\
+	pink=ipc_pink-colored;\
+	green=ipc_green-colored;\
+	red=ipc_red-colored;\
+	blue=ipc_blue-colored;\
+	shower=ipc_shower-colored;\
+	orange=ipc_orange-colored;\
+	nature=ipc_nature-colored;\
+	eight=ipc_eight-colored;\
+	goggles=ipc_goggles-colored;\
+	heart=ipc_heart-colored;\
+	monoeye=ipc_monoeye-colored;\
+	breakout=ipc_breakoutv-colored;\
+	yellow=ipc_yellow-colored;\
+	static=ipc_static-colored;\
+	purple=ipc_purple-colored;\
+	scroll=ipc_scroll;\
+	console=ipc_console;\
+	glider=ipc_gol_glider;\
+	rainbow=ipc_rainbow-colored;\
+	smiley=ipc_smiley-colored;\
+	database=ipc_database-colored"

@@ -10,7 +10,7 @@
 GLOBAL_LIST_EMPTY(bicon_cache) // Cache of the <img> tag results, not the icons
 */
 
-/proc/bicon(var/obj, var/use_class = 1, var/custom_classes = "")
+/proc/bicon(obj, use_class = 1, custom_classes = "")
 	return icon2base64html(obj, custom_classes)
 
 	/* Old bicon code
@@ -38,7 +38,7 @@ GLOBAL_LIST_EMPTY(bicon_cache) // Cache of the <img> tag results, not the icons
 		base64 = icon2base64(A.examine_icon(), key)
 		GLOB.bicon_cache[key] = base64
 		if(changes_often)
-			addtimer(CALLBACK(GLOBAL_PROC, .proc/expire_bicon_cache, key), 50 SECONDS, TIMER_UNIQUE)
+			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(expire_bicon_cache), key), 50 SECONDS, TIMER_UNIQUE)
 
 	// May add a class to the img tag created by bicon
 	if(use_class)

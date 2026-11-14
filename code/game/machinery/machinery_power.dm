@@ -19,7 +19,7 @@
 
 // returns true if the area has power on given channel (or doesn't require power).
 // defaults to power_channel
-/obj/machinery/proc/powered(var/chan = CURRENT_CHANNEL) // defaults to power_channel
+/obj/machinery/proc/powered(chan = CURRENT_CHANNEL) // defaults to power_channel
 	//Don't do this. It allows machines that set use_power to 0 when off (many machines) to
 	//be turned on again and used after a power failure because they never gain the NOPOWER flag.
 	//if(!use_power)
@@ -49,12 +49,12 @@
 	return POWER_CONSUMPTION
 
 // DEPRECATED! - USE use_power_oneoff() instead!
-/obj/machinery/proc/use_power(var/amount, var/chan = -1) // defaults to power_channel
+/obj/machinery/proc/use_power(amount, chan = -1) // defaults to power_channel
 	return src.use_power_oneoff(amount, chan);
 
 // This will have this machine have its area eat this much power next tick, and not afterwards. Do not use for continued power draw.
 // Returns actual amount drawn (In theory this could be less than the amount asked for. In pratice it won't be FOR NOW)
-/obj/machinery/proc/use_power_oneoff(var/amount, var/chan = CURRENT_CHANNEL)
+/obj/machinery/proc/use_power_oneoff(amount, chan = CURRENT_CHANNEL)
 	var/area/A = get_area(src)		// make sure it's in an area
 	if(!A)
 		return
@@ -65,22 +65,26 @@
 // Check if we CAN use a given amount of extra power as a one off. Returns amount we could use without actually using it.
 // For backwards compatibilty this returns true if the channel is powered. This is consistant with pre-static-power
 // behavior of APC powerd machines, but at some point we might want to make this a bit cooler.
-/obj/machinery/proc/can_use_power_oneoff(var/amount, var/chan = CURRENT_CHANNEL)
+/obj/machinery/proc/can_use_power_oneoff(amount, chan = CURRENT_CHANNEL)
 	if(powered(chan))
 		return amount // If channel is powered then you can do it.
 	return 0
 
 // Do not do power stuff in New/Initialize until after ..()
-/obj/machinery/Initialize()
+/obj/machinery/Initialize(mapload)
 	. = ..()
+	RegisterSignal(src, COMSIG_MOVABLE_ATTEMPTED_MOVE, PROC_REF(update_power_on_move))
+	AddComponent(/datum/component/recursive_move)
 	var/power = POWER_CONSUMPTION
 	REPORT_POWER_CONSUMPTION_CHANGE(0, power)
 	power_init_complete = TRUE
 
 // Or in Destroy at all, but especially after the ..().
 /obj/machinery/Destroy()
+	/*
 	if(ismovable(loc))
-		GLOB.moved_event.unregister(loc, src, PROC_REF(update_power_on_move)) // Unregister just in case
+		UnregisterSignal(loc, COMSIG_MOVABLE_ATTEMPTED_MOVE) // Unregister just in case
+	*/
 	var/power = POWER_CONSUMPTION
 	REPORT_POWER_CONSUMPTION_CHANGE(power, 0)
 	. = ..()
@@ -90,12 +94,15 @@
 /obj/machinery/Moved(atom/old_loc, direction, forced = FALSE)
 	. = ..()
 	update_power_on_move(src, old_loc, loc)
-	if(ismovable(loc)) // Register for recursive movement (if the thing we're inside moves)
-		GLOB.moved_event.register(loc, src, PROC_REF(update_power_on_move))
+	/* No
 	if(ismovable(old_loc)) // Unregister recursive movement.
-		GLOB.moved_event.unregister(old_loc, src, PROC_REF(update_power_on_move))
+		UnregisterSignal(old_loc, COMSIG_MOVABLE_ATTEMPTED_MOVE)
+	if(ismovable(loc)) // Register for recursive movement (if the thing we're inside moves)
+		RegisterSignal(loc, COMSIG_MOVABLE_ATTEMPTED_MOVE, PROC_REF(update_power_on_move), override = TRUE)
+	*/
 
 /obj/machinery/proc/update_power_on_move(atom/movable/mover, atom/old_loc, atom/new_loc)
+	SIGNAL_HANDLER
 	var/area/old_area = get_area(old_loc)
 	var/area/new_area = get_area(new_loc)
 	if(old_area != new_area)
@@ -120,7 +127,7 @@
 //
 
 // Sets the use_power var and then forces an area power update
-/obj/machinery/proc/update_use_power(var/new_use_power)
+/obj/machinery/proc/update_use_power(new_use_power)
 	if(use_power == new_use_power)
 		return
 	if(!power_init_complete)
@@ -133,7 +140,7 @@
 	return TRUE
 
 // Sets the power_channel var and then forces an area power update.
-/obj/machinery/proc/update_power_channel(var/new_channel)
+/obj/machinery/proc/update_power_channel(new_channel)
 	if(power_channel == new_channel)
 		return
 	if(!power_init_complete)
@@ -146,7 +153,7 @@
 	return TRUE
 
 // Sets the idle_power_usage var and then forces an area power update if use_power was USE_POWER_IDLE
-/obj/machinery/proc/update_idle_power_usage(var/new_power_usage)
+/obj/machinery/proc/update_idle_power_usage(new_power_usage)
 	if(idle_power_usage == new_power_usage)
 		return
 	var/old_power = idle_power_usage
@@ -155,7 +162,7 @@
 		REPORT_POWER_CONSUMPTION_CHANGE(old_power, new_power_usage)
 
 // Sets the active_power_usage var and then forces an area power update if use_power was USE_POWER_ACTIVE
-/obj/machinery/proc/update_active_power_usage(var/new_power_usage)
+/obj/machinery/proc/update_active_power_usage(new_power_usage)
 	if(active_power_usage == new_power_usage)
 		return
 	var/old_power = active_power_usage

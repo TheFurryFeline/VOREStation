@@ -5,7 +5,7 @@
 	icon_state = "bonfire"
 	density = TRUE
 	anchored = TRUE
-	interaction_message = "<span class='warning'>You feel like you shouldn't be sticking your nose into a wild animal's den.</span>"
+	interaction_message = span_warning("You feel like you shouldn't be sticking your nose into a wild animal's den.")
 
 	var/disturbance_spawn_chance = 20
 	var/last_spawn
@@ -19,7 +19,7 @@
 	var/tally = 0				//The counter referenced against total_creature_max, or just to see how many mobs it has spawned.
 	var/total_creature_max	//If set, it can spawn this many creatures, total, ever.
 
-/obj/structure/prop/nest/Initialize()
+/obj/structure/prop/nest/Initialize(mapload)
 	. = ..()
 	den_mobs = list()
 	START_PROCESSING(SSobj, src)
@@ -32,7 +32,7 @@
 /obj/structure/prop/nest/Destroy()
 	den_mobs = null
 	STOP_PROCESSING(SSobj, src)
-	..()
+	. = ..()
 
 /obj/structure/prop/nest/attack_hand(mob/living/user) // Used to tell the player that this isn't useful for anything.
 	..()
@@ -44,7 +44,7 @@
 	if(world.time > last_spawn + spawn_delay)
 		spawn_creature(get_turf(src))
 
-/obj/structure/prop/nest/proc/spawn_creature(var/turf/spawnpoint)
+/obj/structure/prop/nest/proc/spawn_creature(turf/spawnpoint)
 	update_creatures() //Paranoia.
 	if(total_creature_max && tally >= total_creature_max)
 		return
@@ -54,11 +54,11 @@
 		var/mob/living/L = new spawn_choice(spawnpoint)
 		if(den_faction)
 			L.faction = den_faction
-		visible_message("<span class='warning'>\The [L] crawls out of \the [src].</span>")
+		visible_message(span_warning("\The [L] crawls out of \the [src]."))
 		den_mobs += L
 		tally++
 
-/obj/structure/prop/nest/proc/remove_creature(var/mob/target)
+/obj/structure/prop/nest/proc/remove_creature(mob/target)
 	den_mobs -= target
 
 /obj/structure/prop/nest/proc/update_creatures()

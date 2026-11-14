@@ -25,7 +25,7 @@
 		else
 			message = weight_messages[10]
 	if(message)
-		message = "<span class='notice'>[message]</span>"
+		message = span_notice("[message]")
 	return message //Credit to Aronai for helping me actually get this working!
 
 /mob/living/carbon/human/proc/examine_nutrition()
@@ -55,7 +55,7 @@
 		if(5125 to INFINITY) // More.
 			message = nutrition_messages[10]
 	if(message)
-		message = "<span class='notice'>[message]</span>"
+		message = span_notice("[message]")
 	return message
 
 //For OmniHUD records access for appropriate models
@@ -98,7 +98,7 @@
 
 /mob/living/carbon/human/proc/examine_nif(mob/living/carbon/human/H)
 	if(nif && nif.examine_msg) //If you have one set, anyway.
-		return "<span class='notice'>[nif.examine_msg]</span>"
+		return span_notice("[nif.examine_msg]")
 
 /mob/living/carbon/human/proc/examine_chimera(mob/living/carbon/human/H)
 	var/t_He 	= "It" //capitalised for use at the start of each line.
@@ -129,10 +129,29 @@
 			t_He 	= "Shi"
 			t_His 	= "Hir"
 			t_his 	= "hir"
-	if(revive_ready == REVIVING_NOW || revive_ready == REVIVING_DONE)
-		if(stat == DEAD)
-			return "<span class='warning'>[t_His] body is twitching subtly.</span>"
-		else
-			return "<span class='notice'>[t_He] [t_appear] to be in some sort of torpor.</span>"
-	if(feral)
-		return "<span class='warning'>[t_He] [t_has] a crazed, wild look in [t_his] eyes!</span>"
+	var/datum/component/xenochimera/xc = get_xenochimera_component()
+	if(xc)
+		if((xc.revive_ready == REVIVING_NOW || xc.revive_ready == REVIVING_DONE))
+			if(stat == DEAD)
+				return span_warning("[t_His] body is twitching subtly.")
+			else
+				return span_notice("[t_He] [t_appear] to be in some sort of torpor.")
+		else if(xc.feral)
+			return span_warning("[t_He] [t_has] a crazed, wild look in [t_his] eyes!")
+
+/mob/living/carbon/human/proc/examine_body_writing(list/hidden)
+	. = list()
+
+	for(var/bodypart in hidden)
+		var/is_hidden = hidden[bodypart]
+		if(is_hidden)
+			continue
+
+		var/writing = LAZYACCESS(body_writing, bodypart)
+		if(writing)
+			var/obj/item/organ/external/affecting = get_organ(bodypart)
+			if(!affecting || affecting.is_stump())
+				LAZYREMOVE(body_writing, bodypart)
+				continue
+
+			. += span_notice("[p_They()] [p_have()] \"[writing]\" written on [p_their()] [parse_zone(bodypart)].")

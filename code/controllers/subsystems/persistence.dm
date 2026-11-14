@@ -1,7 +1,12 @@
 SUBSYSTEM_DEF(persistence)
 	name = "Persistence"
-	init_order = INIT_ORDER_PERSISTENCE
+	dependencies = list(
+		/datum/controller/subsystem/mapping,
+		/datum/controller/subsystem/atoms,
+		/datum/controller/subsystem/points_of_interest
+	)
 	flags = SS_NO_FIRE
+
 	var/list/tracking_values = list()
 	var/list/persistence_datums = list()
 
@@ -11,21 +16,21 @@ SUBSYSTEM_DEF(persistence)
 	var/list/unpicked_paintings = list()
 
 /datum/controller/subsystem/persistence/Initialize()
-	. = ..()
 	for(var/datum/persistent/P as anything in subtypesof(/datum/persistent))
 		if(initial(P.name))
 			P = new P
 			persistence_datums[P.type] = P
 			P.Initialize()
+	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/persistence/Shutdown()
 	for(var/thing in persistence_datums)
 		var/datum/persistent/P = persistence_datums[thing]
 		P.Shutdown()
 
-/datum/controller/subsystem/persistence/proc/track_value(var/atom/value, var/track_type)
+/datum/controller/subsystem/persistence/proc/track_value(atom/value, track_type)
 
-	if(config.persistence_disabled) //if the config is set to persistence disabled, nothing will save or load.
+	if(CONFIG_GET(flag/persistence_disabled)) //if the config is set to persistence disabled, nothing will save or load.
 		return
 
 	var/turf/T = get_turf(value)
@@ -33,7 +38,7 @@ SUBSYSTEM_DEF(persistence)
 		return
 
 	var/area/A = get_area(T)
-	if(!A || (A.flags & AREA_FLAG_IS_NOT_PERSISTENT))
+	if(!A || (A.flag_check(AREA_FLAG_IS_NOT_PERSISTENT)))
 		return
 
 	if(!(T.z in using_map.persist_levels))
@@ -43,17 +48,17 @@ SUBSYSTEM_DEF(persistence)
 		tracking_values[track_type] = list()
 	tracking_values[track_type] += value
 
-/datum/controller/subsystem/persistence/proc/forget_value(var/atom/value, var/track_type)
+/datum/controller/subsystem/persistence/proc/forget_value(atom/value, track_type)
 	if(tracking_values[track_type])
 		tracking_values[track_type] -= value
 
 
-/datum/controller/subsystem/persistence/proc/show_info(var/mob/user)
-	if(!user.client.holder)
+/datum/controller/subsystem/persistence/proc/show_info(mob/user)
+	if(!check_rights_for(user.client, R_HOLDER))
 		return
 
 	var/list/dat = list("<table width = '100%'>")
-	var/can_modify = check_rights(R_ADMIN, 0, user)
+	var/can_modify = check_rights_for(user.client, (R_ADMIN|R_DEBUG))
 	for(var/thing in persistence_datums)
 		var/datum/persistent/P = persistence_datums[thing]
 		if(P.has_admin_data)

@@ -25,7 +25,7 @@
 /datum/tgui_module/alarm_monitor/engineering
 /datum/tgui_module/alarm_monitor/engineering/New()
 	..()
-	alarm_handlers = list(atmosphere_alarm, fire_alarm, power_alarm)
+	alarm_handlers = list(GLOB.atmosphere_alarm, GLOB.fire_alarm, GLOB.power_alarm)
 
 // Subtype for glasses_state
 /datum/tgui_module/alarm_monitor/engineering/glasses
@@ -44,7 +44,7 @@
 /datum/tgui_module/alarm_monitor/security
 /datum/tgui_module/alarm_monitor/security/New()
 	..()
-	alarm_handlers = list(camera_alarm, motion_alarm)
+	alarm_handlers = list(GLOB.camera_alarm, GLOB.motion_alarm)
 
 // Subtype for glasses_state
 /datum/tgui_module/alarm_monitor/security/glasses
@@ -55,11 +55,11 @@
 /datum/tgui_module/alarm_monitor/security/ntos
 	ntos = TRUE
 
-/datum/tgui_module/alarm_monitor/proc/register_alarm(var/object, var/procName)
+/datum/tgui_module/alarm_monitor/proc/register_alarm(object, procName)
 	for(var/datum/alarm_handler/AH in alarm_handlers)
 		AH.register_alarm(object, procName)
 
-/datum/tgui_module/alarm_monitor/proc/unregister_alarm(var/object)
+/datum/tgui_module/alarm_monitor/proc/unregister_alarm(object)
 	for(var/datum/alarm_handler/AH in alarm_handlers)
 		AH.unregister_alarm(object)
 
@@ -96,22 +96,22 @@
 
 	return all_alarms
 
-/datum/tgui_module/alarm_monitor/tgui_act(action, params)
+/datum/tgui_module/alarm_monitor/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
-	
+
 	// Camera stuff is AI only.
 	// If you're not an AI, this is a read-only UI.
-	if(!isAI(usr))
+	if(!isAI(ui.user))
 		return
 
 	switch(action)
 		if("switchTo")
-			var/obj/machinery/camera/C = locate(params["camera"]) in cameranet.cameras
+			var/obj/machinery/camera/C = locate(params["camera"]) in GLOB.cameranet.cameras
 			if(!C)
 				return
 
-			usr.switch_to_camera(C)
+			ui.user.switch_to_camera(C)
 			return 1
 
 /datum/tgui_module/alarm_monitor/tgui_data(mob/user)

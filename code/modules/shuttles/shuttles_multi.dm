@@ -27,12 +27,12 @@
 	start_location = current_location
 	last_location = current_location
 
-/datum/shuttle/autodock/multi/proc/set_destination(var/destination_key, mob/user)
+/datum/shuttle/autodock/multi/proc/set_destination(destination_key, mob/user)
 	if(moving_status != SHUTTLE_IDLE)
 		return
 	next_location = destinations_cache[destination_key]
 	if(!next_location)
-		warning("Shuttle [src] set to destination we can't find: [destination_key]")
+		WARNING("Shuttle [src] set to destination we can't find: [destination_key]")
 
 /datum/shuttle/autodock/multi/proc/get_destinations()
 	if (last_cache_rebuild_time < SSshuttles.last_landmark_registration_time)
@@ -54,9 +54,9 @@
 /datum/shuttle/autodock/multi/proc/announce_departure()
 	if(cloaked || isnull(departure_message))
 		return
-	command_announcement.Announce(departure_message, (announcer ? announcer : "[using_map.boss_name]"))
+	GLOB.command_announcement.Announce(departure_message, (announcer ? announcer : "[using_map.boss_name]"))
 
 /datum/shuttle/autodock/multi/proc/announce_arrival()
 	if(cloaked || isnull(arrival_message))
 		return
-	command_announcement.Announce(arrival_message, (announcer ? announcer : "[using_map.boss_name]"))
+	GLOB.command_announcement.Announce(arrival_message, (announcer ? announcer : "[using_map.boss_name]"))

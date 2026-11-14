@@ -1,129 +1,141 @@
 /* Paint and crayons */
 
 /datum/reagent/crayon_dust
-	name = "Crayon dust"
-	id = "crayon_dust"
+	name = REAGENT_CRAYONDUST
+	id = REAGENT_ID_CRAYONDUST
 	description = "Intensely coloured powder obtained by grinding crayons."
 	taste_description = "powdered wax"
-	reagent_state = LIQUID
+	reagent_state = SOLID
+	dermal_absorption = 0 //no
 	color = "#888888"
-	overdose = 5
+	overdose = 10
+	scannable = SCANNABLE_ADVANCED
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_COSMETIC
 
 /datum/reagent/crayon_dust/red
-	name = "Red crayon dust"
-	id = "crayon_dust_red"
+	name = REAGENT_CRAYONDUSTRED
+	id = REAGENT_ID_CRAYONDUSTRED
 	color = "#FE191A"
 
 /datum/reagent/crayon_dust/orange
-	name = "Orange crayon dust"
-	id = "crayon_dust_orange"
+	name = REAGENT_CRAYONDUSTORANGE
+	id = REAGENT_ID_CRAYONDUSTORANGE
 	color = "#FFBE4F"
 
 /datum/reagent/crayon_dust/yellow
-	name = "Yellow crayon dust"
-	id = "crayon_dust_yellow"
+	name = REAGENT_CRAYONDUSTYELLOW
+	id = REAGENT_ID_CRAYONDUSTYELLOW
 	color = "#FDFE7D"
 
 /datum/reagent/crayon_dust/green
-	name = "Green crayon dust"
-	id = "crayon_dust_green"
+	name = REAGENT_CRAYONDUSTGREEN
+	id = REAGENT_ID_CRAYONDUSTGREEN
 	color = "#18A31A"
 
 /datum/reagent/crayon_dust/blue
-	name = "Blue crayon dust"
-	id = "crayon_dust_blue"
+	name = REAGENT_CRAYONDUSTBLUE
+	id = REAGENT_ID_CRAYONDUSTBLUE
 	color = "#247CFF"
 
 /datum/reagent/crayon_dust/purple
-	name = "Purple crayon dust"
-	id = "crayon_dust_purple"
+	name = REAGENT_CRAYONDUSTPURPLE
+	id = REAGENT_ID_CRAYONDUSTPURPLE
 	color = "#CC0099"
 
 /datum/reagent/crayon_dust/grey //Mime
-	name = "Grey crayon dust"
-	id = "crayon_dust_grey"
+	name = REAGENT_CRAYONDUSTGREY
+	id = REAGENT_ID_CRAYONDUSTGREY
 	color = "#808080"
 
 /datum/reagent/crayon_dust/brown //Rainbow
-	name = "Brown crayon dust"
-	id = "crayon_dust_brown"
+	name = REAGENT_CRAYONDUSTBROWN
+	id = REAGENT_ID_CRAYONDUSTBROWN
 	color = "#846F35"
 
 /datum/reagent/marker_ink
-	name = "Marker ink"
-	id = "marker_ink"
+	name = REAGENT_MARKERINK
+	id = REAGENT_ID_MARKERINK
 	description = "Intensely coloured ink used in markers."
 	taste_description = "extremely bitter"
 	reagent_state = LIQUID
+	dermal_absorption = 0 //NO
 	color = "#888888"
-	overdose = 5
+	overdose = 10
+	scannable = SCANNABLE_ADVANCED
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_COSMETIC
 
 /datum/reagent/marker_ink/black
-	name = "Black marker ink"
-	id = "marker_ink_black"
+	name = REAGENT_MARKERINKBLACK
+	id = REAGENT_ID_MARKERINKBLACK
 	color = "#000000"
 
 /datum/reagent/marker_ink/red
-	name = "Red marker ink"
-	id = "marker_ink_red"
+	name = REAGENT_MARKERINKRED
+	id = REAGENT_ID_MARKERINKRED
 	color = "#FE191A"
 
 /datum/reagent/marker_ink/orange
-	name = "Orange marker ink"
-	id = "marker_ink_orange"
+	name = REAGENT_MARKERINKORANGE
+	id = REAGENT_ID_MARKERINKORANGE
 	color = "#FFBE4F"
 
 /datum/reagent/marker_ink/yellow
-	name = "Yellow marker ink"
-	id = "marker_ink_yellow"
+	name = REAGENT_MARKERINKYELLOW
+	id = REAGENT_ID_MARKERINKYELLOW
 	color = "#FDFE7D"
 
 /datum/reagent/marker_ink/green
-	name = "Green marker ink"
-	id = "marker_ink_green"
+	name = REAGENT_MARKERINKGREEN
+	id = REAGENT_ID_MARKERINKGREEN
 	color = "#18A31A"
 
 /datum/reagent/marker_ink/blue
-	name = "Blue marker ink"
-	id = "marker_ink_blue"
+	name = REAGENT_MARKERINKBLUE
+	id = REAGENT_ID_MARKERINKBLUE
 	color = "#247CFF"
 
 /datum/reagent/marker_ink/purple
-	name = "Purple marker ink"
-	id = "marker_ink_purple"
+	name = REAGENT_MARKERINKPURPLE
+	id = REAGENT_ID_MARKERINKPURPLE
 	color = "#CC0099"
 
 /datum/reagent/marker_ink/grey //Mime
-	name = "Grey marker ink"
-	id = "marker_ink_grey"
+	name = REAGENT_MARKERINKGREY
+	id = REAGENT_ID_MARKERINKGREY
 	color = "#808080"
 
 /datum/reagent/marker_ink/brown //Rainbow
-	name = "Brown marker ink"
-	id = "marker_ink_brown"
+	name = REAGENT_MARKERINKBROWN
+	id = REAGENT_ID_MARKERINKBROWN
 	color = "#846F35"
 
 /datum/reagent/paint
-	name = "Paint"
-	id = "paint"
+	name = REAGENT_PAINT
+	id = REAGENT_ID_PAINT
 	description = "This paint will stick to almost any object."
 	taste_description = "chalk"
 	reagent_state = LIQUID
+	dermal_absorption = 0 //NOOOOOOOOOOO
 	color = "#808080"
 	overdose = REAGENTS_OVERDOSE * 0.5
 	color_weight = 20
+	scannable = SCANNABLE_ADVANCED
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_COSMETIC
 
-/datum/reagent/paint/touch_turf(var/turf/T)
+/datum/reagent/paint/touch_turf(turf/T)
 	..()
 	if(istype(T) && !istype(T, /turf/space))
 		T.color = color
 
-/datum/reagent/paint/touch_obj(var/obj/O)
+/datum/reagent/paint/touch_obj(obj/O)
 	..()
 	if(istype(O))
 		O.color = color
 
-/datum/reagent/paint/touch_mob(var/mob/M)
+/datum/reagent/paint/touch_mob(mob/M)
 	..()
 	if(istype(M) && !istype(M, /mob/observer)) //painting ghosts: not allowed
 		M.color = color //maybe someday change this to paint only clothes and exposed body parts for human mobs.
@@ -131,11 +143,11 @@
 /datum/reagent/paint/get_data()
 	return color
 
-/datum/reagent/paint/initialize_data(var/newdata)
+/datum/reagent/paint/initialize_data(newdata)
 	color = newdata
 	return
 
-/datum/reagent/paint/mix_data(var/newdata, var/newamount)
+/datum/reagent/paint/mix_data(newdata, newamount)
 	var/list/colors = list(0, 0, 0, 0)
 	var/tot_w = 0
 
@@ -164,23 +176,28 @@
 /* Things that didn't fit anywhere else */
 
 /datum/reagent/adminordrazine //An OP chemical for admins
-	name = "Adminordrazine"
-	id = "adminordrazine"
+	name = REAGENT_ADMINORDRAZINE
+	id = REAGENT_ID_ADMINORDRAZINE
 	description = "It's magic. We don't have to explain it."
 	taste_description = "bwoink"
 	reagent_state = LIQUID
 	color = "#C8A5DC"
 	affects_dead = TRUE //This can even heal dead people.
 	metabolism = 0.1
+	scannable = SCANNABLE_UNSCANNABLE
 	mrate_static = TRUE //Just in case
 
 	glass_name = "liquid gold"
 	glass_desc = "It's magic. We don't have to explain it."
+	wiki_flag = WIKI_SPOILER
 
-/datum/reagent/adminordrazine/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = "how did you get this?"
+
+/datum/reagent/adminordrazine/affect_touch(mob/living/carbon/M, alien, removed)
 	affect_blood(M, alien, removed)
 
-/datum/reagent/adminordrazine/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/adminordrazine/affect_blood(mob/living/carbon/M, alien, removed)
 	M.heal_organ_damage(40,40)
 	M.adjustCloneLoss(-40)
 	M.adjustToxLoss(-40)
@@ -195,14 +212,14 @@
 	M.SetStunned(0)
 	M.SetParalysis(0)
 	M.silent = 0
-	M.dizziness = 0
+	M.clear_dizzy()
+	M.clear_jittery()
 	M.drowsyness = 0
 	M.stuttering = 0
 	M.SetConfused(0)
 	M.SetSleeping(0)
-	M.jitteriness = 0
 	M.radiation = 0
-	M.ExtinguishMob()
+	M.extinguish_mob()
 	M.fire_stacks = 0
 	M.add_chemical_effect(CE_ANTIBIOTIC, ANTIBIO_SUPER)
 	M.add_chemical_effect(CE_STABLE, 15)
@@ -232,44 +249,56 @@
 						O.wounds -= W
 
 /datum/reagent/gold
-	name = "Gold"
-	id = "gold"
+	name = REAGENT_GOLD
+	id = REAGENT_ID_GOLD
 	description = "Gold is a dense, soft, shiny metal and the most malleable and ductile metal known."
 	taste_description = "metal"
 	reagent_state = SOLID
+	scannable = SCANNABLE_ADVANCED
 	color = "#F7C430"
+	supply_conversion_value = 2 SHEET_TO_REAGENT_EQUIVILENT // has sheet value
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/silver
-	name = "Silver"
-	id = "silver"
+	name = REAGENT_SILVER
+	id = REAGENT_ID_SILVER
 	description = "A soft, white, lustrous transition metal, it has the highest electrical conductivity of any element and the highest thermal conductivity of any metal."
 	taste_description = "metal"
 	reagent_state = SOLID
+	scannable = SCANNABLE_ADVANCED
 	color = "#D0D0D0"
+	supply_conversion_value = 1 SHEET_TO_REAGENT_EQUIVILENT // has sheet value
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/platinum
-	name = "Platinum"
-	id = "platinum"
+	name = REAGENT_PLATINUM
+	id = REAGENT_ID_PLATINUM
 	description = "Platinum is a dense, malleable, ductile, highly unreactive, precious, gray-white transition metal.  It is very resistant to corrosion."
 	taste_description = "metal"
 	reagent_state = SOLID
+	scannable = SCANNABLE_ADVANCED
 	color = "#777777"
+	supply_conversion_value = 5 SHEET_TO_REAGENT_EQUIVILENT // has sheet value
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/uranium
-	name ="Uranium"
-	id = "uranium"
+	name = REAGENT_URANIUM
+	id = REAGENT_ID_URANIUM
 	description = "A silvery-white metallic chemical element in the actinide series, weakly radioactive."
 	taste_description = "metal"
 	reagent_state = SOLID
+	scannable = SCANNABLE_ADVANCED
 	color = "#B8B8C0"
+	supply_conversion_value = 2 SHEET_TO_REAGENT_EQUIVILENT // has sheet value
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
-/datum/reagent/uranium/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/uranium/affect_touch(mob/living/carbon/M, alien, removed)
 	affect_ingest(M, alien, removed)
 
-/datum/reagent/uranium/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/uranium/affect_blood(mob/living/carbon/M, alien, removed)
 	M.apply_effect(5 * removed, IRRADIATE, 0)
 
-/datum/reagent/uranium/touch_turf(var/turf/T)
+/datum/reagent/uranium/touch_turf(turf/T)
 	..()
 	if(volume >= 3)
 		if(!istype(T, /turf/space))
@@ -279,68 +308,86 @@
 			return
 
 /datum/reagent/hydrogen/deuterium
-	name = "Deuterium"
-	id = "deuterium"
+	name = REAGENT_DEUTERIUM
+	id = REAGENT_ID_DEUTERIUM
 	description = "A isotope of hydrogen. It has one extra neutron, and shares all chemical characteristics with hydrogen."
+	supply_conversion_value = REFINERYEXPORT_VALUE_RARE
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
+	coolant_modifier = 1 // It's ALMOST water
 
 /datum/reagent/hydrogen/tritium
-	name = "Tritium"
-	id = "tritium"
+	name = REAGENT_TRITIUM
+	id = REAGENT_ID_TRITIUM
 	description = "A radioactive isotope of hydrogen. It has two extra neutrons, and shares all other chemical characteristics with hydrogen."
+	supply_conversion_value = REFINERYEXPORT_VALUE_RARE
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
+	coolant_modifier = 1 // It's ALMOST water
 
 /datum/reagent/lithium/lithium6
-	name = "Lithium-6"
-	id = "lithium6"
+	name = REAGENT_LITHIUM6
+	id = REAGENT_ID_LITHIUM6
 	description = "An isotope of lithium. It has 3 neutrons, but shares all chemical characteristics with regular lithium."
+	supply_conversion_value = REFINERYEXPORT_VALUE_RARE
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/helium/helium3
-	name = "Helium-3"
-	id = "helium3"
+	name = REAGENT_HELIUM3
+	id = REAGENT_ID_HELIUM3
 	description = "An isotope of helium. It only has one neutron, but shares all chemical characteristics with regular helium."
 	taste_mult = 0
 	reagent_state = GAS
 	color = "#808080"
+	supply_conversion_value = REFINERYEXPORT_VALUE_RARE
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
+	coolant_modifier = 2
 
 /datum/reagent/boron/boron11
-	name = "Boron-11"
-	id = "boron11"
+	name = REAGENT_BORON11
+	id = REAGENT_ID_BORON11
 	description = "An isotope of boron. It has 6 neutrons."
 	taste_description = "metallic" // Apparently noone on the internet knows what boron tastes like. Or at least they won't share
+	supply_conversion_value = REFINERYEXPORT_VALUE_RARE
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/supermatter
-	name = "Supermatter"
-	id = "supermatter"
+	name = REAGENT_SUPERMATTER
+	id = REAGENT_ID_SUPERMATTER
 	color = "#fffd6b"
 	reagent_state = SOLID
 	affects_dead = TRUE
 	affects_robots = TRUE
+	scannable = SCANNABLE_UNSCANNABLE
 	description = "The immense power of a supermatter crystal, in liquid form. You're not entirely sure how that's possible, but it's probably best handled with care."
 	taste_description = "taffy" // 0. The supermatter is tasty, tasty taffy.
+	wiki_flag = WIKI_SPOILER
+	supply_conversion_value = REFINERYEXPORT_VALUE_MASSINDUSTRY
+	industrial_use = REFINERYEXPORT_REASON_MATSCI
 
 // Same as if you boop it wrong. It touches you, you die
 /datum/reagent/supermatter/affect_touch(mob/living/carbon/M, alien, removed)
-	. = ..()
 	M.ash()
 
 /datum/reagent/supermatter/affect_ingest(mob/living/carbon/M, alien, removed)
-	. = ..()
 	M.ash()
 
 /datum/reagent/supermatter/affect_blood(mob/living/carbon/M, alien, removed)
-	. = ..()
 	M.ash()
 
 
 /datum/reagent/adrenaline
-	name = "Adrenaline"
-	id = "adrenaline"
+	name = REAGENT_ADRENALINE
+	id = REAGENT_ID_ADRENALINE
 	description = "Adrenaline is a hormone used as a drug to treat cardiac arrest and other cardiac dysrhythmias resulting in diminished or absent cardiac output."
 	taste_description = "bitterness"
 	reagent_state = LIQUID
+	dermal_absorption = 0.2
+	scannable = SCANNABLE_BENEFICIAL
 	color = "#C8A5DC"
 	mrate_static = TRUE
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/adrenaline/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/adrenaline/affect_blood(mob/living/carbon/M, alien, removed)
 	if(alien == IS_DIONA)
 		return
 	M.SetParalysis(0)
@@ -348,71 +395,142 @@
 	M.adjustToxLoss(rand(3))
 
 /datum/reagent/water/holywater
-	name = "Holy Water"
-	id = "holywater"
+	name = REAGENT_HOLYWATER
+	id = REAGENT_ID_HOLYWATER
 	description = "An ashen-obsidian-water mix, this solution will alter certain sections of the brain's rationality."
 	taste_description = "water"
 	color = "#E0E8EF"
 	mrate_static = TRUE
+	dermal_absorption = 0.5 //It's so holy it penetrates into your blood.
+	scannable = SCANNABLE_BENEFICIAL
 
 	glass_name = "holy water"
 	glass_desc = "An ashen-obsidian-water mix, this solution will alter certain sections of the brain's rationality."
+	wiki_flag = WIKI_SPOILER
 
-/datum/reagent/water/holywater/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+	supply_conversion_value = REFINERYEXPORT_VALUE_NO
+	industrial_use = REFINERYEXPORT_REASON_RAW
+	coolant_modifier = 1 // It's water
+	var/failed_message = FALSE
+
+/datum/reagent/water/holywater/affect_ingest(mob/living/carbon/M, alien, removed)
 	..()
 	if(ishuman(M)) // Any location
-		if(M.mind && cult.is_antagonist(M.mind) && prob(10))
-			cult.remove_antagonist(M.mind)
+		if(M.mind && GLOB.cult.is_antagonist(M.mind) && prob(10))
+			GLOB.cult.remove_antagonist(M.mind)
+		if(prob(2)) //Get an ACTUAL chaplain for your stuff
+			if(M.has_modifier_of_type(/datum/modifier/redspace_corruption))
+				M.remove_modifiers_of_type(/datum/modifier/redspace_corruption)
+				to_chat(M, span_notice("You feel calmer."))
 
-/datum/reagent/water/holywater/touch_turf(var/turf/T)
+			if(M.HasDisease(/datum/disease/fleshy_spread))
+				for(var/datum/disease/fleshy_spread/disease in M.GetViruses())
+					disease.cure()
+					break
+				to_chat(M, span_notice("Your fever subsides.."))
+		if(volume <= max_dose * 0.5 && !failed_message)
+			if(M.has_modifier_of_type(/datum/modifier/redspace_corruption) || M.HasDisease(/datum/disease/fleshy_spread))
+				to_chat(M, span_notice("The power of the holy water courses through you, but seems to have failed to cure your ailments. Perhaps a larger dose is needed?"))
+				failed_message = TRUE
+
+/datum/reagent/water/holywater/affect_blood(mob/living/carbon/M, alien, removed)
+	..()
+	if(ishuman(M)) // Any location
+		if(M.mind && GLOB.cult.is_antagonist(M.mind) && prob(5))
+			GLOB.cult.remove_antagonist(M.mind)
+		if(prob(1)) //injecting holy water makes it weaker because that's sinful
+			if(M.has_modifier_of_type(/datum/modifier/redspace_corruption))
+				M.remove_modifiers_of_type(/datum/modifier/redspace_corruption)
+				to_chat(M, span_notice("You feel calmer."))
+
+			if(M.HasDisease(/datum/disease/fleshy_spread))
+				for(var/datum/disease/fleshy_spread/disease in M.GetViruses())
+					disease.cure()
+					break
+				to_chat(M, span_notice("Your fever subsides.."))
+		if(volume <= max_dose * 0.25 && !failed_message)
+			if(M.has_modifier_of_type(/datum/modifier/redspace_corruption) || M.HasDisease(/datum/disease/fleshy_spread))
+				to_chat(M, span_notice("The power of the holy water courses through you, but seems to have failed to cure your ailments. Perhaps a larger dose is needed?"))
+				failed_message = TRUE
+	return
+
+/datum/reagent/water/holywater/touch_turf(turf/T)
 	..()
 	if(volume >= 5)
 		T.holy = 1
 	return
 
 /datum/reagent/ammonia
-	name = "Ammonia"
-	id = "ammonia"
+	name = REAGENT_AMMONIA
+	id = REAGENT_ID_AMMONIA
 	description = "A caustic substance commonly used in fertilizer or household cleaners."
 	taste_description = "mordant"
 	taste_mult = 2
 	reagent_state = GAS
+	scannable = SCANNABLE_ADVANCED
 	color = "#404030"
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_RAW
+	coolant_modifier = 1.25
 
 /datum/reagent/diethylamine
-	name = "Diethylamine"
-	id = "diethylamine"
+	name = REAGENT_DIETHYLAMINE
+	id = REAGENT_ID_DIETHYLAMINE
 	description = "A secondary amine, mildly corrosive."
-	taste_description = "iron"
+	taste_description = REAGENT_ID_IRON
 	reagent_state = LIQUID
+	scannable = SCANNABLE_ADVANCED
 	color = "#604030"
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
+
+/datum/reagent/lye
+	name = REAGENT_LYE
+	id = REAGENT_ID_LYE
+	description = "Also known as sodium hydroxide. As a profession making this is somewhat underwhelming."
+	taste_description = "acid"
+	reagent_state = LIQUID
+	scannable = SCANNABLE_ADVANCED
+	color = "#FFFFD6" // very very light yellow"
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/fluorosurfactant // Foam precursor
-	name = "Fluorosurfactant"
-	id = "fluorosurfactant"
+	name = REAGENT_FLUOROSURFACTANT
+	id = REAGENT_ID_FLUOROSURFACTANT
 	description = "A perfluoronated sulfonic acid that forms a foam when mixed with water."
 	taste_description = "metal"
 	reagent_state = LIQUID
+	scannable = SCANNABLE_ADVANCED
 	color = "#9E6B38"
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/foaming_agent // Metal foaming agent. This is lithium hydride. Add other recipes (e.g. LiH + H2O -> LiOH + H2) eventually.
-	name = "Foaming agent"
-	id = "foaming_agent"
+	name = REAGENT_FOAMINGAGENT
+	id = REAGENT_ID_FOAMINGAGENT
 	description = "A agent that yields metallic foam when mixed with light metal and a strong acid."
 	taste_description = "metal"
 	reagent_state = SOLID
+	scannable = SCANNABLE_ADVANCED
 	color = "#664B63"
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/thermite
-	name = "Thermite"
-	id = "thermite"
+	name = REAGENT_THERMITE
+	id = REAGENT_ID_THERMITE
 	description = "Thermite produces an aluminothermic reaction known as a thermite reaction. Can be used to melt walls."
 	taste_description = "sweet tasting metal"
 	reagent_state = SOLID
+	dermal_absorption = 0
+	scannable = SCANNABLE_ADVANCED
 	color = "#673910"
 	touch_met = 50
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
-/datum/reagent/thermite/touch_turf(var/turf/T)
+/datum/reagent/thermite/touch_turf(turf/T)
 	..()
 	if(volume >= 5)
 		if(istype(T, /turf/simulated/wall))
@@ -422,74 +540,88 @@
 			remove_self(5)
 	return
 
-/datum/reagent/thermite/touch_mob(var/mob/living/L, var/amount)
+/datum/reagent/thermite/touch_mob(mob/living/L, amount)
 	..()
 	if(istype(L))
 		L.adjust_fire_stacks(amount / 5)
 
-/datum/reagent/thermite/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/thermite/affect_blood(mob/living/carbon/M, alien, removed)
 	M.adjustFireLoss(3 * removed)
 
 /datum/reagent/space_cleaner
-	name = "Space cleaner"
-	id = "cleaner"
+	name = REAGENT_CLEANER
+	id = REAGENT_ID_CLEANER
 	description = "A compound used to clean things. Now with 50% more sodium hypochlorite!"
 	taste_description = "sourness"
 	reagent_state = LIQUID
+	dermal_absorption = 0
+	scannable = SCANNABLE_ADVANCED
 	color = "#A5F0EE"
 	touch_met = 50
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_CLEAN
 
-/datum/reagent/space_cleaner/touch_mob(var/mob/M)
+/datum/reagent/space_cleaner/touch_mob(mob/M)
 	..()
 	if(iscarbon(M))
 		var/mob/living/carbon/C = M
-		C.clean_blood(TRUE)
+		C.wash(CLEAN_SCRUB)
 
-/datum/reagent/space_cleaner/touch_obj(var/obj/O)
+	if(istype(M, /mob/living/simple_mob/vore/aggressive/macrophage)) // Big ouch for viruses
+		var/mob/living/simple_mob/macrophage = M
+		macrophage.adjustToxLoss(20)
+
+/datum/reagent/space_cleaner/touch_obj(obj/O)
 	..()
-	O.clean_blood()
+	O.wash(CLEAN_SCRUB)
 
-/datum/reagent/space_cleaner/touch_turf(var/turf/T)
+/datum/reagent/space_cleaner/touch_turf(turf/T)
 	..()
 	if(volume >= 1)
 		if(istype(T, /turf/simulated))
 			var/turf/simulated/S = T
 			S.dirt = 0
-		T.clean_blood()
+		T.wash(CLEAN_SCRUB)
+		for(var/obj/effect/O in T)
+			if(istype(O,/obj/effect/rune) || istype(O,/obj/effect/decal/cleanable) || istype(O,/obj/effect/overlay))
+				qdel(O)
 
 		for(var/mob/living/simple_mob/slime/M in T)
 			M.adjustToxLoss(rand(5, 10))
 
-/datum/reagent/space_cleaner/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
+		for(var/mob/living/simple_mob/vore/aggressive/macrophage/virus in T)
+			virus.adjustToxLoss(rand(5, 10))
+
+/datum/reagent/space_cleaner/affect_touch(mob/living/carbon/M, alien, removed)
 	if(M.r_hand)
-		M.r_hand.clean_blood()
+		M.r_hand.wash(CLEAN_SCRUB)
 	if(M.l_hand)
-		M.l_hand.clean_blood()
+		M.l_hand.wash(CLEAN_SCRUB)
 	if(M.wear_mask)
-		if(M.wear_mask.clean_blood())
+		if(M.wear_mask.wash(CLEAN_SCRUB))
 			M.update_inv_wear_mask(0)
 	if(ishuman(M))
 		var/mob/living/carbon/human/H = M
 		if(alien == IS_SLIME)
 			M.adjustToxLoss(rand(5, 10))
 		if(H.head)
-			if(H.head.clean_blood())
+			if(H.head.wash(CLEAN_SCRUB))
 				H.update_inv_head(0)
 		if(H.wear_suit)
-			if(H.wear_suit.clean_blood())
+			if(H.wear_suit.wash(CLEAN_SCRUB))
 				H.update_inv_wear_suit(0)
 		else if(H.w_uniform)
-			if(H.w_uniform.clean_blood())
+			if(H.w_uniform.wash(CLEAN_SCRUB))
 				H.update_inv_w_uniform(0)
 		if(H.shoes)
-			if(H.shoes.clean_blood())
+			if(H.shoes.wash(CLEAN_SCRUB))
 				H.update_inv_shoes(0)
 		else
-			H.clean_blood(1)
+			H.wash(CLEAN_SCRUB)
 			return
-	M.clean_blood()
+	M.wash(CLEAN_SCRUB)
 
-/datum/reagent/space_cleaner/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/space_cleaner/affect_ingest(mob/living/carbon/M, alien, removed)
 	if(alien == IS_SLIME)
 		M.adjustToxLoss(6 * removed)
 	else
@@ -497,41 +629,47 @@
 		if(prob(5))
 			M.vomit()
 
-/datum/reagent/space_cleaner/touch_mob(var/mob/living/L, var/amount)
+/datum/reagent/space_cleaner/touch_mob(mob/living/L, amount)
 	..()
-	if(istype(L, /mob/living/carbon/human))
+	if(ishuman(L))
 		var/mob/living/carbon/human/H = L
 		if(H.wear_mask)
 			if(istype(H.wear_mask, /obj/item/clothing/mask/smokable))
 				var/obj/item/clothing/mask/smokable/S = H.wear_mask
 				if(S.lit)
 					S.quench() // No smoking in my medbay!
-					H.visible_message("<span class='notice'>[H]\'s [S.name] is put out.</span>")
+					H.visible_message(span_notice("[H]\'s [S.name] is put out."))
 
 /datum/reagent/lube // TODO: spraying on borgs speeds them up
-	name = "Space Lube"
-	id = "lube"
+	name = REAGENT_LUBE
+	id = REAGENT_ID_LUBE
 	description = "Lubricant is a substance introduced between two moving surfaces to reduce the friction and wear between them. giggity."
 	taste_description = "slime"
 	reagent_state = LIQUID
+	scannable = SCANNABLE_ADVANCED
 	color = "#009CA8"
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_LUBE
 
-/datum/reagent/lube/touch_turf(var/turf/simulated/T)
+/datum/reagent/lube/touch_turf(turf/simulated/T)
 	..()
 	if(!istype(T))
 		return
 	if(volume >= 1)
-		T.wet_floor(2)
+		T.MakeSlippery(TURF_WET_LUBE, 160 SECONDS, min(volume * 2 SECONDS, 120))
 
 /datum/reagent/silicate
-	name = "Silicate"
-	id = "silicate"
+	name = REAGENT_SILICATE
+	id = REAGENT_ID_SILICATE
 	description = "A compound that can be used to reinforce glass."
 	taste_description = "plastic"
 	reagent_state = LIQUID
+	scannable = SCANNABLE_ADVANCED
 	color = "#C7FFFF"
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
-/datum/reagent/silicate/touch_obj(var/obj/O)
+/datum/reagent/silicate/touch_obj(obj/O)
 	..()
 	if(istype(O, /obj/structure/window))
 		var/obj/structure/window/W = O
@@ -540,181 +678,238 @@
 	return
 
 /datum/reagent/glycerol
-	name = "Glycerol"
-	id = "glycerol"
+	name = REAGENT_GLYCEROL
+	id = REAGENT_ID_GLYCEROL
 	description = "Glycerol is a simple polyol compound. Glycerol is sweet-tasting and of low toxicity."
 	taste_description = "sweetness"
 	reagent_state = LIQUID
+	scannable = SCANNABLE_ADVANCED
 	color = "#808080"
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
+	coolant_modifier = 0.95
 
-/datum/reagent/nitroglycerin
-	name = "Nitroglycerin"
-	id = "nitroglycerin"
+/datum/reagent/nitroglycerin //This immediately explode as soon as it reacts, so you can't actually obtain this.
+	name = REAGENT_NITROGLYCERIN
+	id = REAGENT_ID_NITROGLYCERIN
 	description = "Nitroglycerin is a heavy, colorless, oily, explosive liquid obtained by nitrating glycerol."
 	taste_description = "oil"
 	reagent_state = LIQUID
+	scannable = SCANNABLE_UNSCANNABLE
 	color = "#808080"
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/coolant
-	name = "Coolant"
-	id = "coolant"
+	name = REAGENT_COOLANT
+	id = REAGENT_ID_COOLANT
 	description = "Industrial cooling substance."
 	taste_description = "sourness"
 	taste_mult = 1.1
 	reagent_state = LIQUID
+	scannable = SCANNABLE_ADVANCED
 	color = "#C8A5DC"
 
 	affects_robots = TRUE
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_INDUSTRY
+	coolant_modifier = 2 // In the name
 
-/datum/reagent/coolant/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/coolant/affect_blood(mob/living/carbon/M, alien, removed)
 	if(M.isSynthetic() && ishuman(M))
 		var/mob/living/carbon/human/H = M
 
 		var/datum/reagent/blood/coolant = H.get_blood(H.vessel)
 
 		if(coolant)
-			H.vessel.add_reagent("blood", removed, coolant.data)
+			H.vessel.add_reagent(REAGENT_ID_BLOOD, removed, coolant.data)
 
 		else
-			H.vessel.add_reagent("blood", removed)
+			H.vessel.add_reagent(REAGENT_ID_BLOOD, removed)
 			H.fixblood()
 
 	else
 		..()
 
 /datum/reagent/ultraglue
-	name = "Ultra Glue"
-	id = "glue"
+	name = REAGENT_GLUE
+	id = REAGENT_ID_GLUE
+	scannable = SCANNABLE_ADVANCED
 	description = "An extremely powerful bonding agent."
 	taste_description = "a special education class"
 	color = "#FFFFCC"
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/woodpulp
-	name = "Wood Pulp"
-	id = "woodpulp"
+	name = REAGENT_WOODPULP
+	id = REAGENT_ID_WOODPULP
+	scannable = SCANNABLE_ADVANCED
 	description = "A mass of wood fibers."
 	taste_description = "wood"
 	reagent_state = LIQUID
 	color = "#B97A57"
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/luminol
-	name = "Luminol"
-	id = "luminol"
+	name = REAGENT_LUMINOL
+	id = REAGENT_ID_LUMINOL
+	scannable = SCANNABLE_ADVANCED
 	description = "A compound that interacts with blood on the molecular level."
 	taste_description = "metal"
 	reagent_state = LIQUID
 	color = "#F2F3F4"
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
-/datum/reagent/luminol/touch_obj(var/obj/O)
+/datum/reagent/luminol/touch_obj(obj/O)
 	..()
 	O.reveal_blood()
 
-/datum/reagent/luminol/touch_mob(var/mob/living/L)
+/datum/reagent/luminol/touch_mob(mob/living/L)
 	..()
 	L.reveal_blood()
 
 /datum/reagent/nutriment/biomass
-	name = "Biomass"
-	id = "biomass"
+	name = REAGENT_BIOMASS
+	id = REAGENT_ID_BIOMASS
 	description = "A slurry of compounds that contains the basic requirements for life."
 	taste_description = "salty meat"
 	reagent_state = LIQUID
 	color = "#DF9FBF"
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_CLONEDRUG
+	coolant_modifier = -2 //Ew
 
 /datum/reagent/mineralfluid
-	name = "Mineral-Rich Fluid"
-	id = "mineralizedfluid"
+	name = REAGENT_MINERALIZEDFLUID
+	id = REAGENT_ID_MINERALIZEDFLUID
+	scannable = SCANNABLE_ADVANCED
 	description = "A warm, mineral-rich fluid."
 	taste_description = "salt"
 	reagent_state = LIQUID
 	color = "#ff205255"
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_MATSCI
+	coolant_modifier = -2.5
 
 // The opposite to healing nanites, exists to make unidentified hypos implied to have nanites not be 100% safe.
 /datum/reagent/defective_nanites
-	name = "Defective Nanites"
-	id = "defective_nanites"
+	name = REAGENT_DEFECTIVENANITES
+	id = REAGENT_ID_DEFECTIVENANITES
+	scannable = SCANNABLE_DIFFICULT
 	description = "Miniature medical robots that are malfunctioning and cause bodily harm. Fortunately, they cannot self-replicate."
 	taste_description = "metal"
 	reagent_state = SOLID
+	dermal_absorption = 0.1 //Burrow into the skin and get into your bloodstream. This means 60u splashed on someone (with no losses, given splash is lossy) will give them 6u of nanites.
 	color = "#333333"
 	metabolism = REM * 3 // Broken nanomachines go a bit slower.
 	scannable = 1
+	wiki_flag = WIKI_SPOILER
+	supply_conversion_value = REFINERYEXPORT_VALUE_NO
+	industrial_use = REFINERYEXPORT_REASON_BIOHAZARD
 
-/datum/reagent/defective_nanites/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/defective_nanites/affect_blood(mob/living/carbon/M, alien, removed)
 	M.take_organ_damage(2 * removed, 2 * removed)
 	M.adjustOxyLoss(4 * removed)
 	M.adjustToxLoss(2 * removed)
 	M.adjustCloneLoss(2 * removed)
 
 /datum/reagent/nutriment/fishbait
-	name = "Fish Bait"
-	id = "fishbait"
+	name = REAGENT_FISHBAIT
+	id = REAGENT_ID_FISHBAIT
 	description = "A natural slurry that particularily appeals to fish."
 	taste_description = "slimy dirt"
 	reagent_state = LIQUID
 	color = "#62764E"
 	nutriment_factor = 15
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_FOOD
 
 /datum/reagent/carpet
-	name = "Liquid Carpet"
-	id = "liquidcarpet"
+	name = REAGENT_LIQUIDCARPET
+	id = REAGENT_ID_LIQUIDCARPET
+	scannable = SCANNABLE_ADVANCED
 	description = "Liquified carpet fibers, ready for dyeing."
 	reagent_state = LIQUID
 	color = "#b51d05"
-	taste_description = "carpet" 
+	taste_description = "carpet"
+	supply_conversion_value = REFINERYEXPORT_VALUE_COMMON
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
 
 /datum/reagent/carpet/black
-	name = "Liquid Black Carpet"
-	id = "liquidcarpetb"
+	name = REAGENT_LIQUIDCARPETB
+	id = REAGENT_ID_LIQUIDCARPETB
 	description = "Black Carpet Fibers, ready for reinforcement."
 	reagent_state = LIQUID
 	color = "#000000"
-	taste_description = "rare and ashy carpet" 
+	taste_description = "rare and ashy carpet"
 
 /datum/reagent/carpet/blue
-	name = "Liquid Blue Carpet"
-	id = "liquidcarpetblu"
+	name = REAGENT_LIQUIDCARPETBLU
+	id = REAGENT_ID_LIQUIDCARPETBLU
 	description = "Blue Carpet Fibers, ready for reinforcement."
 	reagent_state = LIQUID
 	color = "#3f4aee"
-	taste_description = "commanding carpet" 
+	taste_description = "commanding carpet"
 
 /datum/reagent/carpet/turquoise
-	name = "Liquid Turquoise Carpet"
-	id = "liquidcarpettur"
+	name = REAGENT_LIQUIDCARPETTUR
+	id = REAGENT_ID_LIQUIDCARPETTUR
 	description = "Turquoise Carpet Fibers, ready for reinforcement."
 	reagent_state = LIQUID
 	color = "#0592b5"
-	taste_description = "water-logged carpet" 
+	taste_description = "water-logged carpet"
 
 /datum/reagent/carpet/sblue
-	name = "Liquid Silver Blue Carpet"
-	id = "liquidcarpetsblu"
+	name = REAGENT_LIQUIDCARPETSBLU
+	id = REAGENT_ID_LIQUIDCARPETSBLU
 	description = "Silver Blue Carpet Fibers, ready for reinforcement."
 	reagent_state = LIQUID
 	color = "#0011ff"
-	taste_description = "sterile and medicinal carpet" 
+	taste_description = "sterile and medicinal carpet"
 
 /datum/reagent/carpet/clown
-	name = "Liquid Clown Carpet"
-	id = "liquidcarpetc"
+	name = REAGENT_LIQUIDCARPETC
+	id = REAGENT_ID_LIQUIDCARPETC
 	description = "Clown Carpet Fibers.... No clowns were harmed in the making of this."
 	reagent_state = LIQUID
 	color = "#e925be"
-	taste_description = "clown shoes and banana peels" 
+	taste_description = "clown shoes and banana peels"
 
 /datum/reagent/carpet/purple
-	name = "Liquid Purple Carpet"
-	id = "liquidcarpetp"
+	name = REAGENT_LIQUIDCARPETP
+	id = REAGENT_ID_LIQUIDCARPETP
 	description = "Purple Carpet Fibers, ready for reinforcement."
 	reagent_state = LIQUID
 	color = "#a614d3"
-	taste_description = "bleeding edge carpet research" 
+	taste_description = "bleeding edge carpet research"
 
 /datum/reagent/carpet/orange
-	name = "Liquid Orange Carpet"
-	id = "liquidcarpeto"
+	name = REAGENT_LIQUIDCARPETO
+	id = REAGENT_ID_LIQUIDCARPETO
 	description = "Orange Carpet Fibers, ready for reinforcement."
 	reagent_state = LIQUID
 	color = "#f16e16"
-	taste_description = "extremely overengineered carpet" 
+	taste_description = "extremely overengineered carpet"
+
+/datum/reagent/essential_oil
+	name = REAGENT_ESSENTIALOIL
+	id = REAGENT_ID_ESSENTIALOIL
+	scannable = SCANNABLE_ADVANCED
+	description = "A slurry of compounds that contains the basic requirements for life."
+	taste_description = "a mixture of thick, sweet, salty, salty and spicy flavours that all blend together to not be very nice at all"
+	reagent_state = LIQUID
+	color = "#e8e2b0"
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_PRECURSOR
+
+/datum/reagent/nutriment/pitcher_nectar //Pitcher plant reagent, doubles plant growth speed.
+	name = REAGENT_PITCHERNECTAR
+	id = REAGENT_ID_PITCHERNECTAR
+	description = "An odd, sticky slurry which promotes rapid plant growth."
+	taste_description = "pineapple"
+	reagent_state = LIQUID
+	nutriment_factor = 60
+	color = "#a839a2"

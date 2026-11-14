@@ -12,9 +12,9 @@
 	var/flags = SHUTTLE_FLAGS_NONE
 	var/process_state = IDLE_STATE // Used with SHUTTLE_FLAGS_PROCESS, as well as to store current state.
 	var/category = /datum/shuttle
-	var/multiz = 0	//how many multiz levels, starts at 0  TODO Leshana - Are we porting this?
+	var/multiz = 0	//how many multiz levels, starts at 0 TODO Leshana - Are we porting this?
 
-	var/ceiling_type // Type path of turf to roof over the shuttle when at multi-z landmarks.  Ignored if null.
+	var/ceiling_type // Type path of turf to roof over the shuttle when at multi-z landmarks. Ignored if null.
 
 	var/sound_takeoff = 'sound/effects/shuttles/shuttle_takeoff.ogg'
 	var/sound_landing = 'sound/effects/shuttles/shuttle_landing.ogg'
@@ -22,11 +22,11 @@
 	var/knockdown = 1 //whether shuttle downs non-buckled people when it moves
 
 	var/defer_initialisation = FALSE //If this this shuttle should be initialised automatically.
-	                                 //If set to true, you are responsible for initialzing the shuttle manually.
-	                                 //Useful for shuttles that are initialized by map_template loading, or shuttles that are created in-game or not used.
+									//If set to true, you are responsible for initialzing the shuttle manually.
+									//Useful for shuttles that are initialized by map_template loading, or shuttles that are created in-game or not used.
 
-	var/mothershuttle //tag of mothershuttle
-	var/motherdock    //tag of mothershuttle landmark, defaults to starting location
+	var/mothershuttle 	//tag of mothershuttle
+	var/motherdock		//tag of mothershuttle landmark, defaults to starting location
 
 	var/tmp/depart_time = 0 //Similar to above, set when the shuttle leaves when long jumping. Used for progress bars.
 
@@ -34,7 +34,7 @@
 
 	// Future Thoughts: Baystation put "docking" stuff in a subtype, leaving base type pure and free of docking stuff. Is this best?
 
-/datum/shuttle/New(_name, var/obj/effect/shuttle_landmark/initial_location)
+/datum/shuttle/New(_name, obj/effect/shuttle_landmark/initial_location)
 	..()
 	if(_name)
 		src.name = _name
@@ -88,7 +88,7 @@
 	return
 
 // This creates a graphical warning to where the shuttle is about to land, in approximately five seconds.
-/datum/shuttle/proc/create_warning_effect(var/obj/effect/shuttle_landmark/destination)
+/datum/shuttle/proc/create_warning_effect(obj/effect/shuttle_landmark/destination)
 	destination.create_warning_effect(src)
 
 // Return false to abort a jump, before the 'warmup' phase.
@@ -101,15 +101,15 @@
 
 // If you need an event to occur when the shuttle jumps in short or long jump, override this.
 // Keep in mind that destination is the intended destination, the shuttle may or may not actually reach it.s
-/datum/shuttle/proc/on_shuttle_departure(var/obj/effect/shuttle_landmark/origin, var/obj/effect/shuttle_landmark/destination)
+/datum/shuttle/proc/on_shuttle_departure(obj/effect/shuttle_landmark/origin, obj/effect/shuttle_landmark/destination)
 	return
 
-// Similar to above, but when it finishes moving to the target.  Short jump generally makes this occur immediately after the above proc.
-// Keep in mind we might not actually have gotten to destination.  Check current_location to be sure where we ended up.
-/datum/shuttle/proc/on_shuttle_arrival(var/obj/effect/shuttle_landmark/origin, var/obj/effect/shuttle_landmark/destination)
+// Similar to above, but when it finishes moving to the target. Short jump generally makes this occur immediately after the above proc.
+// Keep in mind we might not actually have gotten to destination. Check current_location to be sure where we ended up.
+/datum/shuttle/proc/on_shuttle_arrival(obj/effect/shuttle_landmark/origin, obj/effect/shuttle_landmark/destination)
 	return
 
-/datum/shuttle/proc/short_jump(var/obj/effect/shuttle_landmark/destination)
+/datum/shuttle/proc/short_jump(obj/effect/shuttle_landmark/destination)
 	if(moving_status != SHUTTLE_IDLE)
 		return
 
@@ -117,7 +117,7 @@
 		return
 
 	var/obj/effect/shuttle_landmark/start_location = current_location
-	// TODO - Figure out exactly when to play sounds.  Before warmup_time delay? Should there be a sleep for waiting for sounds? or no?
+	// TODO - Figure out exactly when to play sounds. Before warmup_time delay? Should there be a sleep for waiting for sounds? or no?
 	moving_status = SHUTTLE_WARMUP
 	spawn(warmup_time*10)
 
@@ -146,7 +146,7 @@
 		make_sounds(HYPERSPACE_END)
 
 // TODO - Far Future - Would be great if this was driven by process too.
-/datum/shuttle/proc/long_jump(var/obj/effect/shuttle_landmark/destination, var/obj/effect/shuttle_landmark/interim, var/travel_time)
+/datum/shuttle/proc/long_jump(obj/effect/shuttle_landmark/destination, obj/effect/shuttle_landmark/interim, travel_time)
 	//to_world("shuttle/long_jump: current_location=[current_location], destination=[destination], interim=[interim], travel_time=[travel_time]")
 	if(moving_status != SHUTTLE_IDLE)
 		return
@@ -155,7 +155,7 @@
 		return
 
 	var/obj/effect/shuttle_landmark/start_location = current_location
-	// TODO - Figure out exactly when to play sounds.  Before warmup_time delay? Should there be a sleep for waiting for sounds? or no?
+	// TODO - Figure out exactly when to play sounds. Before warmup_time delay? Should there be a sleep for waiting for sounds? or no?
 	moving_status = SHUTTLE_WARMUP
 	spawn(warmup_time*10)
 
@@ -204,12 +204,12 @@
 
 
 //////////////////////////////
-// Forward declarations of public procs.  They do nothing because this is not auto-dock.
+// Forward declarations of public procs. They do nothing because this is not auto-dock.
 
 /datum/shuttle/proc/fuel_check()
 	return 1 //fuel check should always pass in non-overmap shuttles (they have magic engines)
 
-/datum/shuttle/proc/cancel_launch(var/user)
+/datum/shuttle/proc/cancel_launch(user)
 	// If we are past warming up its too late to cancel.
 	if (moving_status == SHUTTLE_WARMUP)
 		moving_status = SHUTTLE_IDLE
@@ -240,7 +240,7 @@
 
 // Move the shuttle to destination if possible.
 // Returns TRUE if we actually moved, otherwise FALSE.
-/datum/shuttle/proc/attempt_move(var/obj/effect/shuttle_landmark/destination, var/interim = FALSE)
+/datum/shuttle/proc/attempt_move(obj/effect/shuttle_landmark/destination, interim = FALSE)
 	if(current_location == destination)
 		if(debug_logging)
 			log_shuttle("Shuttle [src] attempted to move to [destination] but is already there!")
@@ -257,7 +257,7 @@
 
 	// Observer pattern pre-move
 	var/old_location = current_location
-	GLOB.shuttle_pre_move_event.raise_event(src, old_location, destination)
+	SEND_SIGNAL(src, COMSIG_OBSERVER_SHUTTLE_PRE_MOVE, old_location, destination)
 	current_location.shuttle_departed(src)
 
 	if(debug_logging)
@@ -273,7 +273,7 @@
 
 	// Observer pattern post-move
 	destination.shuttle_arrived(src)
-	GLOB.shuttle_moved_event.raise_event(src, old_location, destination)
+	SEND_SIGNAL(src, COMSIG_OBSERVER_SHUTTLE_MOVED, old_location, destination)
 
 	return TRUE
 
@@ -281,7 +281,7 @@
 //just moves the shuttle from A to B
 //A note to anyone overriding move in a subtype. perform_shuttle_move() must absolutely not, under any circumstances, fail to move the shuttle.
 //If you want to conditionally cancel shuttle launches, that logic must go in short_jump() or long_jump()
-/datum/shuttle/proc/perform_shuttle_move(var/obj/effect/shuttle_landmark/destination, var/list/turf_translation)
+/datum/shuttle/proc/perform_shuttle_move(obj/effect/shuttle_landmark/destination, list/turf_translation)
 	if(debug_logging)
 		log_shuttle("perform_shuttle_move() current=[current_location] destination=[destination]")
 	//to_world("move_shuttle() called for [name] leaving [origin] en route to [destination].")
@@ -295,12 +295,12 @@
 		var/new_grav = 1
 		if(destination.flags & SLANDMARK_FLAG_ZERO_G)
 			var/area/new_area = get_area(destination)
-			new_grav = new_area.has_gravity
+			new_grav = new_area.get_gravity()
 		for(var/area/our_area in shuttle_area)
-			if(our_area.has_gravity != new_grav)
+			if(our_area.get_gravity() != new_grav)
 				our_area.gravitychange(new_grav)
 
-	// TODO - Old code used to throw stuff out of the way instead of squashing.  Should we?
+	// TODO - Old code used to throw stuff out of the way instead of squashing. Should we?
 
 	// Move, gib, or delete everything in our way!
 	for(var/turf/src_turf in turf_translation)
@@ -314,6 +314,9 @@
 					continue
 				if(isobserver(AM) || isEye(AM))
 					continue
+				if(length(AM.locs) > 1) // multi-loc objects need to check if it's their actual loc, and not just a corner!
+					if(AM.loc != dst_turf)
+						continue
 				if(isliving(AM))
 					var/mob/living/bug = AM
 					bug.gib()
@@ -330,23 +333,24 @@
 					TA.ChangeTurf(get_base_turf_by_area(TA), 1, 1)
 		if(knockdown)
 			for(var/mob/living/M in A)
-				spawn(0)
-					if(M.buckled)
-						to_chat(M, span_red("Sudden acceleration presses you into \the [M.buckled]!"))
-						shake_camera(M, 3, 1)
-					else
-						to_chat(M, span_red("The floor lurches beneath you!"))
-						shake_camera(M, 10, 1)
-						// TODO - tossing?
-						//M.visible_message("<span class='warning'>[M.name] is tossed around by the sudden acceleration!</span>")
-						//M.throw_at_random(FALSE, 4, 1)
-						if(istype(M, /mob/living/carbon))
-							M.Weaken(3)
-							//VOREStation Add
-							if(move_direction)
-								throw_a_mob(M,move_direction)
-							//VOREStation Add End
-		// We only need to rebuild powernets for our cables.  No need to check machines because they are on top of cables.
+				if(M.is_incorporeal())
+					continue
+				if(M.buckled)
+					to_chat(M, span_red("Sudden acceleration presses you into \the [M.buckled]!"))
+					shake_camera(M, 3, 1)
+				else
+					to_chat(M, span_red("The floor lurches beneath you!"))
+					shake_camera(M, 10, 1)
+					// TODO - tossing?
+					//M.visible_message(span_warning("[M.name] is tossed around by the sudden acceleration!"))
+					//M.throw_at_random(FALSE, 4, 1)
+					if(istype(M, /mob/living/carbon))
+						M.Weaken(3)
+						//VOREStation Add
+						if(move_direction)
+							throw_a_mob(M,move_direction)
+						//VOREStation Add End
+		// We only need to rebuild powernets for our cables. No need to check machines because they are on top of cables.
 		for(var/obj/structure/cable/C in A)
 			powernets |= C.powernet
 
@@ -393,7 +397,7 @@
 /datum/shuttle/proc/has_arrive_time()
 	return (moving_status == SHUTTLE_INTRANSIT)
 
-/datum/shuttle/proc/make_sounds(var/sound_type)
+/datum/shuttle/proc/make_sounds(sound_type)
 	var/sound_to_play = null
 	switch(sound_type)
 		if(HYPERSPACE_WARMUP)
@@ -406,7 +410,7 @@
 		for(var/obj/machinery/door/E in A)	//dumb, I know, but playing it on the engines doesn't do it justice
 			playsound(E, sound_to_play, 50, FALSE)
 
-/datum/shuttle/proc/message_passengers(var/message)
+/datum/shuttle/proc/message_passengers(message)
 	for(var/area/A in shuttle_area)
 		for(var/mob/M in A)
 			M.show_message(message, 2)

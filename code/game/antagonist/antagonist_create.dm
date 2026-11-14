@@ -1,4 +1,4 @@
-/datum/antagonist/proc/create_antagonist(var/datum/mind/target, var/move, var/gag_announcement, var/preserve_appearance)
+/datum/antagonist/proc/create_antagonist(datum/mind/target, move, gag_announcement, preserve_appearance)
 
 	if(!target)
 		return
@@ -18,7 +18,7 @@
 	greet(target)
 	announce_antagonist_spawn()
 
-/datum/antagonist/proc/create_default(var/mob/source)
+/datum/antagonist/proc/create_default(mob/source)
 	var/mob/living/M
 	if(mob_path)
 		M = new mob_path(get_turf(source))
@@ -26,13 +26,15 @@
 		M = new /mob/living/carbon/human(get_turf(source))
 	M.real_name = source.real_name
 	M.name = M.real_name
+	if(!isnull(source.mind))
+		source.mind.transfer_to(M)
 	M.ckey = source.ckey
 	add_antagonist(M.mind, 1, 0, 1) // Equip them and move them to spawn.
 	return M
 
-/datum/antagonist/proc/create_id(var/assignment, var/mob/living/carbon/human/player, var/equip = 1)
+/datum/antagonist/proc/create_id(assignment, mob/living/carbon/human/player, equip = 1)
 
-	var/obj/item/weapon/card/id/W = new id_type(player)
+	var/obj/item/card/id/W = new id_type(player)
 	if(!W) return
 	W.access |= default_access
 	W.assignment = "[assignment]"
@@ -40,22 +42,22 @@
 	if(equip) player.equip_to_slot_or_del(W, slot_wear_id)
 	return W
 
-/datum/antagonist/proc/create_radio(var/freq, var/mob/living/carbon/human/player)
-	var/obj/item/device/radio/R
+/datum/antagonist/proc/create_radio(freq, mob/living/carbon/human/player)
+	var/obj/item/radio/R
 
 	switch(freq)
 		if(SYND_FREQ)
-			R = new/obj/item/device/radio/headset/syndicate(player)
+			R = new/obj/item/radio/headset/syndicate(player)
 		if(RAID_FREQ)
-			R = new/obj/item/device/radio/headset/raider(player)
+			R = new/obj/item/radio/headset/raider(player)
 		else
-			R = new/obj/item/device/radio/headset(player)
+			R = new/obj/item/radio/headset(player)
 			R.set_frequency(freq)
 
 	player.equip_to_slot_or_del(R, slot_l_ear)
 	return R
 
-/datum/antagonist/proc/create_nuke(var/atom/paper_spawn_loc, var/datum/mind/code_owner)
+/datum/antagonist/proc/create_nuke(atom/paper_spawn_loc, datum/mind/code_owner)
 
 	// Decide on a code.
 	var/obj/effect/landmark/nuke_spawn = locate(nuke_spawn_loc ? nuke_spawn_loc : "landmark*Nuclear-Bomb")
@@ -75,7 +77,7 @@
 
 		if(paper_spawn_loc)
 			// Create and pass on the bomb code paper.
-			var/obj/item/weapon/paper/P = new(paper_spawn_loc)
+			var/obj/item/paper/P = new(paper_spawn_loc)
 			P.info = "The nuclear authorization code is: <b>[code]</b>"
 			P.name = "nuclear bomb code"
 			if(leader && leader.current)
@@ -85,40 +87,40 @@
 		if(!code_owner && leader)
 			code_owner = leader
 		if(code_owner)
-			code_owner.store_memory("<B>Nuclear Bomb Code</B>: [code]", 0, 0)
+			code_owner.store_memory(span_bold("Nuclear Bomb Code") + ": [code]", 0, 0)
 			to_chat(code_owner.current, "The nuclear authorization code is: <B>[code]</B>")
 	else
-		message_admins("<span class='danger'>Could not spawn nuclear bomb. Contact a developer.</span>")
+		message_admins(span_danger("Could not spawn nuclear bomb. Contact a developer."))
 		return
 
 	spawned_nuke = code
 	return code
 
-/datum/antagonist/proc/greet(var/datum/mind/player)
+/datum/antagonist/proc/greet(datum/mind/player)
 	// Makes it harder to miss if you're alt-tabbed or not paying attention.
 	if(antag_sound)
 		SEND_SOUND(player.current, sound(antag_sound))
 	window_flash(player.current.client)
 
 	// Basic intro text.
-	to_chat(player.current, "<span class='danger'><font size=3>You are a [role_text]!</font></span>")
+	to_chat(player.current, span_danger(span_large("You are a [role_text]!")))
 	if(leader_welcome_text && player == leader)
-		to_chat(player.current, "<span class='notice'>[leader_welcome_text]</span>")
+		to_chat(player.current, span_notice("[leader_welcome_text]"))
 	else
-		to_chat(player.current, "<span class='notice'>[welcome_text]</span>")
-	if (config.objectives_disabled)
-		to_chat(player.current, "<span class='notice'>[antag_text]</span>")
+		to_chat(player.current, span_notice("[welcome_text]"))
+	if (CONFIG_GET(flag/objectives_disabled))
+		to_chat(player.current, span_notice("[antag_text]"))
 
 	if((flags & ANTAG_HAS_NUKE) && !spawned_nuke)
 		create_nuke()
 
-	if (!config.objectives_disabled)
+	if (!CONFIG_GET(flag/objectives_disabled))
 		show_objectives(player)
 	return 1
 
-/datum/antagonist/proc/set_antag_name(var/mob/living/player)
+/datum/antagonist/proc/set_antag_name(mob/living/player)
 	// Choose a name, if any.
-	var/newname = sanitize(tgui_input_text(player, "You are a [role_text]. Would you like to change your name to something else?", "Name change", null, MAX_NAME_LEN), MAX_NAME_LEN)
+	var/newname = tgui_input_text(player, "You are a [role_text]. Would you like to change your name to something else?", "Name change", null, MAX_NAME_LEN)
 	if (newname)
 		player.real_name = newname
 		player.name = player.real_name

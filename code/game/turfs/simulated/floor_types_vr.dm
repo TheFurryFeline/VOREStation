@@ -39,7 +39,7 @@
 	icon = 'icons/goonstation/featherzone.dmi'
 	icon_state = "floor"
 
-/turf/simulated/floor/flock/Crossed(var/atom/movable/AM)
+/turf/simulated/floor/flock/Crossed(atom/movable/AM)
 	. = ..()
 	if(isliving(AM))
 		icon_state = "floor-on"
@@ -55,8 +55,8 @@
 			return
 		var/obj/item/stack/rods/R = C
 		if (R.use(1))
-			to_chat(user, "<span class='notice'>Constructing support lattice ...</span>")
-			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
+			to_chat(user, span_notice("Constructing support lattice ..."))
+			playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
 			new/obj/structure/lattice(src)
 		return
 
@@ -67,12 +67,12 @@
 			if (S.get_amount() < 1)
 				return
 			qdel(L)
-			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
+			playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
 			S.use(1)
 			ChangeTurf(/turf/simulated/floor/airless)
 			return
 		else
-			to_chat(user, "<span class='warning'>The plating is going to need some support.</span>")
+			to_chat(user, span_warning("The plating is going to need some support."))
 
 /turf/simulated/shuttle/plating/airless/carry/is_solid_structure()
 	return locate(/obj/structure/lattice, src)
@@ -88,4 +88,3 @@
 	desc = "It is entirely made of sick, gurgling flesh. It is releasing a sickly odour."
 	icon_state = "bloodfloor_2"
 	icon = 'icons/goonstation/turf/meatland.dmi'
-

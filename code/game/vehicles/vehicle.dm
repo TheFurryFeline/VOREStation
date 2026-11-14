@@ -16,15 +16,15 @@
 	//var/deflect_chance = 10 //chance to deflect the incoming projectiles, hits, or lesser the effect of ex_act.
 	//the values in this list show how much damage will pass through, not how much will be absorbed.
 	var/list/damage_absorption = list("brute"=0.8,"fire"=1.2,"bullet"=0.9,"laser"=1,"energy"=1,"bomb"=1)
-	var/obj/item/weapon/cell/cell //Our power source
+	var/obj/item/cell/cell //Our power source
 	var/state = 0
-	var/list/log = new
+	var/list/log = list()
 	var/last_message = 0
 	var/add_req_access = 1
 	var/maint_access = 1
 	//var/dna	//dna-locking the mech
 	var/list/proc_res = list() //stores proc owners, like proc_res["functionname"] = owner reference
-	var/datum/effect/effect/system/spark_spread/spark_system = new
+	var/datum/effect/effect/system/spark_spread/spark_system
 	var/lights = 0
 	var/lights_power = 6
 
@@ -35,51 +35,52 @@
 	//var/datum/gas_mixture/cabin_air
 	//var/obj/machinery/atmospherics/portables_connector/connected_port = null
 
-	var/obj/item/device/radio/radio = null
+	var/obj/item/radio/radio = null
 
 	var/max_temperature = 2500
 	//var/internal_damage_threshold = 50 //health percentage below which internal damage is possible
 	var/internal_damage = 0 //contains bitflags
 
 	var/list/operation_req_access = list()//required access level for mecha operation
-	var/list/internals_req_access = list(access_engine,access_robotics)//required access level to open cell compartment
+	var/list/internals_req_access = list(ACCESS_ENGINE,ACCESS_ROBOTICS)//required access level to open cell compartment
 
 	var/wreckage
 
-	var/list/equipment = new
+	var/list/equipment = list()
 	var/obj/selected
 	//var/max_equip = 3
 
 
 
 
-/obj/vehicle/Initialize()
+/obj/vehicle/Initialize(mapload)
 	. = ..()
 	icon_state += "-unmanned"
 	add_radio()
 
+	spark_system = new
 	spark_system.set_up(2, 0, src)
 	spark_system.attach(src)
 	add_cell()
 	removeVerb(/atom/movable/verb/pull)
-	log_message("[src.name]'s functions initialised. Work protocols active - Entering IDLE mode.")
+	src.mecha_log_message("[src.name]'s functions initialised. Work protocols active - Entering IDLE mode.")
 
 
 //################ Helpers ###########################################################
 
 
 /obj/vehicle/proc/removeVerb(verb_path)
-	verbs -= verb_path
+	src.verbs -= verb_path
 
 /obj/vehicle/proc/addVerb(verb_path)
-	verbs += verb_path
+	src.verbs += verb_path
 
-/obj/vehicle/proc/add_cell(var/obj/item/weapon/cell/C=null)
+/obj/vehicle/proc/add_cell(obj/item/cell/C=null)
 	if(C)
 		C.forceMove(src)
 		cell = C
 		return
-	cell = new /obj/item/weapon/cell/mech(src)
+	cell = new /obj/item/cell/mech(src)
 
 /obj/vehicle/proc/add_radio()
 	radio = new(src)
@@ -97,7 +98,7 @@
 //################ Logs and messages ############################################
 
 
-/obj/vehicle/proc/log_message(message as text,red=null)
+/obj/vehicle/proc/mecha_log_message(message as text,red=null)
 	log.len++
-	log[log.len] = list("time"=world.timeofday,"message"="[red?"<font color='red'>":null][message][red?"</font>":null]")
+	log[log.len] = list("time"=world.timeofday,"message"="[red?span_red("[message]"):[message]]")
 	return log.len

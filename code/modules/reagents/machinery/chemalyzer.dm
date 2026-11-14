@@ -1,9 +1,9 @@
 // Detects reagents inside most containers, and acts as an infinite identification system for reagent-based unidentified objects.
 
 /obj/machinery/chemical_analyzer
-	name = "chem analyzer"
-	desc = "Used to precisely scan chemicals and other liquids inside various containers. \
-	It may also identify the liquid contents of unknown objects."
+	name = "chem analyzer PRO"
+	desc = "New and improved! Used to precisely scan chemicals and other liquids inside various containers. \
+	It can also identify the liquid contents of unknown objects and their chemical breakdowns."
 	description_info = "This machine will try to tell you what reagents are inside of something capable of holding reagents. \
 	It is also used to 'identify' specific reagent-based objects with their properties obscured from inspection by normal means."
 	icon = 'icons/obj/chemical.dmi'
@@ -13,7 +13,13 @@
 	use_power = TRUE
 	idle_power_usage = 20
 	clicksound = "button"
+	circuit = /obj/item/circuitboard/chemical_analyzer
 	var/analyzing = FALSE
+	var/list/found_reagents = list()
+
+/obj/machinery/chemical_analyzer/Initialize(mapload)
+	. = ..()
+	default_apply_parts()
 
 /obj/machinery/chemical_analyzer/update_icon()
 	icon_state = "chem_analyzer[analyzing ? "-working":""]"
@@ -26,14 +32,13 @@
 		return
 	if(default_deconstruction_crowbar(user, I))
 		return
-
-	if(istype(I,/obj/item/weapon/reagent_containers))
+	if(istype(I,/obj/item/reagent_containers))
 		analyzing = TRUE
 		update_icon()
-		to_chat(user, span("notice", "Analyzing \the [I], please stand by..."))
+		to_chat(user, span_notice("Analyzing \the [I], please stand by..."))
 
 		if(!do_after(user, 2 SECONDS, src))
-			to_chat(user, span("warning", "Sample moved outside of scan range, please try again and remain still."))
+			to_chat(user, span_warning("Sample moved outside of scan range, please try again and remain still."))
 			analyzing = FALSE
 			update_icon()
 			return
@@ -46,18 +51,65 @@
 
 		// Now tell us everything that is inside.
 		if(I.reagents && I.reagents.reagent_list.len)
-			to_chat(user, "<br>") // To add padding between regular chat and the output.
+			found_reagents.Cut()
 			for(var/datum/reagent/R in I.reagents.reagent_list)
 				if(!R.name)
 					continue
-				to_chat(user, span("notice", "Contains [R.volume]u of <b>[R.name]</b>.<br>[R.description]<br>"))
+				found_reagents[R.id] = R.volume
+			tgui_interact(user)
+		else
+			to_chat(user, span_warning("Nothing detected in [I]"))
 
-		// Last, unseal it if it's an autoinjector.
-		if(istype(I,/obj/item/weapon/reagent_containers/hypospray/autoinjector/biginjector) && !(I.flags & OPENCONTAINER))
-			I.flags |= OPENCONTAINER
-			to_chat(user, span("notice", "Sample container unsealed.<br>"))
-
-		to_chat(user, span("notice", "Scanning of \the [I] complete."))
 		analyzing = FALSE
 		update_icon()
 		return
+
+/obj/machinery/chemical_analyzer/attack_hand(mob/user)
+	if(!found_reagents.len)
+		return ..()
+	tgui_interact(user) // Show last analysis
+
+/obj/machinery/chemical_analyzer/tgui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
+	if(!ui)
+		ui = new(user, src, "ChemAnalyzerPro", name)
+		ui.open()
+
+/obj/machinery/chemical_analyzer/tgui_data(mob/user)
+	var/list/data = list()
+
+	var/total_vol = 0
+	var/list/reagents_sent = list()
+	var/obj/item/reagent_containers/glass/beaker/large/beaker_path = /obj/item/reagent_containers/glass/beaker/large
+	for(var/ID in found_reagents)
+		var/datum/reagent/R = SSchemistry.chemical_reagents[ID]
+		if(!R)
+			continue
+		var/list/subdata = list()
+		subdata["title"] = R.name
+		SSinternal_wiki.add_icon(subdata, initial(beaker_path.icon), initial(beaker_path.icon_state), R.color)
+		// Get internal data
+		subdata["description"] = R.description
+		subdata["addictive"] = 0
+		subdata["cooling_mod"] = R.coolant_modifier
+		if(R.id in get_addictive_reagents(ADDICT_ALL))
+			subdata["addictive"] = TRUE
+		subdata["industrial_use"] = R.industrial_use
+		subdata["supply_points"] = R.supply_conversion_value ? R.supply_conversion_value : 0
+		var/value = R.supply_conversion_value * REAGENTS_PER_SHEET * SSsupply.money_per_points
+		value = FLOOR(value * 100,1) / 100 // Truncate decimals
+		subdata["market_price"] = value
+		subdata["sintering"] = SSinternal_wiki.assemble_sintering(GLOB.reagent_sheets[R.id])
+		subdata["overdose"] = R.overdose
+		subdata["flavor"] = R.taste_description
+		subdata["allergen"] = assembly_allergy_list(R.allergen_type, R.medallergen_type)
+		subdata["beakerAmount"] = found_reagents[ID]
+		total_vol += found_reagents[ID]
+		SSinternal_wiki.assemble_reaction_data(subdata, R)
+		// Send as a big list of lists
+		reagents_sent += list(subdata)
+	data["scannedReagents"] = reagents_sent
+	data["beakerTotal"] = total_vol
+	data["beakerMax"] = initial(beaker_path.volume)
+
+	return data

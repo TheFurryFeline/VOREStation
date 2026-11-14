@@ -8,6 +8,6 @@
 	acceleration = 0
 	owner_follows_eye = 1
 
-/mob/observer/eye/maskEye/New()
-	..()
-	visualnet = cultnet
+/mob/observer/eye/maskEye/Initialize(mapload)
+	. = ..()
+	visualnet = GLOB.cultnet

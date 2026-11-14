@@ -23,7 +23,7 @@
 	tt_desc = "S Felidae fluctursora"
 	catalogue_data = list(/datum/category_item/catalogue/fauna/kururak)
 
-	faction = "kururak"
+	faction = FACTION_KURUAK
 
 	icon_state = "bigcat"
 	icon_living = "bigcat"
@@ -33,7 +33,7 @@
 
 	default_pixel_x = -16
 	pixel_x = -16
-
+	minbodytemp = 175
 	maxHealth = 200
 	health = 200
 
@@ -47,7 +47,7 @@
 	base_attack_cooldown = 2 SECONDS
 	attacktext = list("gouged", "bit", "cut", "clawed", "whipped")
 
-	organ_names = /decl/mob_organ_names/kururak
+	organ_names = /datum/decl/mob_organ_names/kururak
 	meat_amount = 5
 
 	armor = list(
@@ -60,16 +60,6 @@
 		"rad" = 100
 		)
 
-	armor_soak = list(
-		"melee" = 5,
-		"bullet" = 5,
-		"laser" = 5,
-		"energy" = 0,
-		"bomb" = 0,
-		"bio" = 0,
-		"rad" = 0
-		)
-
 	say_list_type = /datum/say_list/kururak
 	ai_holder_type = /datum/ai_holder/simple_mob/intentional/kururak
 
@@ -77,12 +67,32 @@
 	special_attack_max_range = 4
 	special_attack_cooldown = 1 MINUTE
 
+	vore_active = TRUE
+	vore_capacity = 1
+	vore_pounce_chance = 15
+
 	// Players have 2 seperate cooldowns for these, while the AI must choose one. Both respect special_attack_cooldown
 	var/last_strike_time = 0
 	var/last_flash_time = 0
 
 	var/instinct	// The points used by Kururaks to decide Who Is The Boss
 	var/obey_pack_rule = TRUE	// Decides if the Kururak will automatically assign itself to follow the one with the highest instinct.
+
+/mob/living/simple_mob/animal/sif/kururak/load_default_bellies()
+	. = ..()
+	var/obj/belly/B = vore_selected
+	B.name = "stomach"
+	B.desc = "Blue innards of a sleek creature surround you in an overwhelmingly tight pressure. Walls, coated in slick, reflective mucus reflect \
+		light from the pool of teal stomach juices, flashing you from random angles. The texture of the surroundings is only mildly soft, it feels \
+		firm, muscular body ensuring you stay in your place, drenched in fluids, pacified by constant churning motions. Effective and agile predator \
+		made sure you were helpless during the hunt, now its gut ensures you are as disoriented in this pit of flashing lights and bubbling acid."
+	B.mode_flags = DM_FLAG_THICKBELLY | DM_FLAG_NUMBING
+	B.digest_brute = 3
+	B.digest_burn = 2
+	B.digestchance = 0
+	B.absorbchance = 0
+	B.escapechance = 25
+	B.escape_stun = 5
 
 /datum/say_list/kururak
 	speak = list("Kurr?","|R|rrh..", "Ksss...")
@@ -94,7 +104,7 @@
 	health = 250
 	instinct = 50
 
-/mob/living/simple_mob/animal/sif/kururak/Initialize()
+/mob/living/simple_mob/animal/sif/kururak/Initialize(mapload)
 	. = ..()
 	if(!instinct)
 		if(prob(20))
@@ -113,7 +123,7 @@
 				var/obj/item/I = H.get_active_hand()
 				if(I.force <= 1.25 * melee_damage_upper)
 					return TRUE
-		else if(istype(L, /mob/living/simple_mob))
+		else if(isanimal(L))
 			var/mob/living/simple_mob/S = L
 			if(S.melee_damage_upper > 1.5 * melee_damage_upper)
 				return TRUE
@@ -143,12 +153,12 @@
 	return ..()
 
 /mob/living/simple_mob/animal/sif/kururak/verb/do_flash()
-	set category = "Abilities"
+	set category = "Abilities.Kururak"
 	set name = "Tail Blind"
 	set desc = "Disorient a creature within range."
 
 	if(world.time < last_flash_time + special_attack_cooldown)
-		to_chat(src, span("warning", "You do not have the focus to do this so soon.."))
+		to_chat(src, span_warning("You do not have the focus to do this so soon.."))
 		return
 
 	last_flash_time = world.time
@@ -158,7 +168,7 @@
 	set waitfor = FALSE
 
 	if(stat)
-		to_chat(src, span("warning","You cannot move your tails in this state.."))
+		to_chat(src, span_warning("You cannot move your tails in this state.."))
 		return
 
 	if(!A && src.client)
@@ -177,7 +187,7 @@
 		A = tgui_input_list(src, "What do we wish to flash?", "Target Choice", choices)
 
 
-	visible_message(span("alien","\The [src] flares its tails!"))
+	visible_message(span_alien("\The [src] flares its tails!"))
 	if(isliving(A))
 		var/mob/living/L = A
 		if(iscarbon(L))
@@ -190,10 +200,10 @@
 						var/mob/living/carbon/human/H = C
 						flash_strength *= H.species.flash_mod
 						if(flash_strength > 0)
-							to_chat(H, span("alien","You are disoriented by \the [src]!"))
+							to_chat(H, span_alien("You are disoriented by \the [src]!"))
 							H.eye_blurry = max(H.eye_blurry, flash_strength + 5)
 							H.flash_eyes()
-							H.apply_damage(flash_strength * H.species.flash_burn/5, BURN, BP_HEAD, 0, 0, "Photon burns")
+							H.apply_damage(flash_strength * H.species.flash_burn/5, BURN, BP_HEAD, 0)
 
 		else if(issilicon(L))
 			if(isrobot(L))
@@ -206,7 +216,7 @@
 							shield.adjust_flash_count(R, 1)
 							flashfail = TRUE
 				if(!flashfail)
-					to_chat(R, span("alien","Your optics are scrambled by \the [src]!"))
+					to_chat(R, span_alien("Your optics are scrambled by \the [src]!"))
 					R.Confuse(10)
 					R.flash_eyes()
 
@@ -229,12 +239,12 @@
 			R.flash_eyes()
 
 /mob/living/simple_mob/animal/sif/kururak/verb/do_strike()
-	set category = "Abilities"
+	set category = "Abilities.Kururak"
 	set name = "Rending Strike"
 	set desc = "Strike viciously at an entity within range."
 
 	if(world.time < last_strike_time + special_attack_cooldown)
-		to_chat(src, span("warning", "Your claws cannot take that much stress in so short a time.."))
+		to_chat(src, span_warning("Your claws cannot take that much stress in so short a time.."))
 		return
 
 	last_strike_time = world.time
@@ -242,7 +252,7 @@
 
 /mob/living/simple_mob/animal/sif/kururak/proc/rending_strike(atom/A)
 	if(stat)
-		to_chat(src, span("warning","You cannot strike in this state.."))
+		to_chat(src, span_warning("You cannot strike in this state.."))
 		return
 
 	if(!A && src.client)
@@ -256,7 +266,7 @@
 				choices += M
 
 		if(!choices.len)
-			to_chat(src, span("warning","There are no viable targets within range..."))
+			to_chat(src, span_warning("There are no viable targets within range..."))
 			return
 
 		A = tgui_input_list(src, "What do we wish to strike?", "Target Choice", choices)
@@ -267,11 +277,11 @@
 
 	var/damage_to_apply = rand(melee_damage_lower, melee_damage_upper) + 10
 	if(isliving(A))
-		visible_message(span("danger","\The [src] rakes its claws across [A]."))
+		visible_message(span_danger("\The [src] rakes its claws across [A]."))
 		var/mob/living/L = A
 		if(ishuman(L))
 			var/mob/living/carbon/human/H = L
-			H.apply_damage(damage_to_apply, BRUTE, BP_TORSO, 0, 0, "Animal claws")
+			H.apply_damage(damage_to_apply, BRUTE, BP_TORSO, 0)
 
 		else
 			L.adjustBruteLoss(damage_to_apply)
@@ -279,13 +289,13 @@
 		L.add_modifier(/datum/modifier/grievous_wounds, 60 SECONDS)
 
 	else if(istype(A, /obj/mecha))
-		visible_message(span("danger","\The [src] rakes its claws against \the [A]."))
+		visible_message(span_danger("\The [src] rakes its claws against \the [A]."))
 		var/obj/mecha/M = A
 		M.take_damage(damage_to_apply)
 		if(prob(3))
-			visible_message(span("critical","\The [src] begins digging its claws into \the [M]'s hatch!"))
-			if(do_after(src, 1 SECOND))
-				visible_message(span("critical","\The [src] rips \the [M]'s access hatch open, dragging [M.occupant] out!"))
+			visible_message(span_critical("\The [src] begins digging its claws into \the [M]'s hatch!"))
+			if(do_after(src, 1 SECOND, target = M))
+				visible_message(span_critical("\The [src] rips \the [M]'s access hatch open, dragging [M.occupant] out!"))
 				M.go_out()
 
 	else
@@ -294,7 +304,7 @@
 /mob/living/simple_mob/animal/sif/kururak/verb/rally_pack()	// Mostly for telling other players to follow you. AI Kururaks will auto-follow, if set to.
 	set name = "Rally Pack"
 	set desc = "Tries to command your fellow pack members to follow you."
-	set category = "Abilities"
+	set category = "Abilities.Kururak"
 
 	if(has_modifier_of_type(/datum/modifier/ace))
 		for(var/mob/living/simple_mob/animal/sif/kururak/K in hearers(7, src))
@@ -305,7 +315,7 @@
 			if(K.faction != src.faction)
 				continue
 			var/datum/ai_holder/AI = K.ai_holder
-			to_chat(K, span("notice","The pack leader wishes for you to follow them."))
+			to_chat(K, span_notice("The pack leader wishes for you to follow them."))
 			AI.set_follow(src)
 
 /mob/living/simple_mob/animal/sif/kururak/proc/detect_instinct()	// Will return the Kururak within 10 tiles that has the highest instinct.
@@ -333,7 +343,7 @@
 	else
 		remove_modifiers_of_type(/datum/modifier/ace)
 
-/mob/living/simple_mob/animal/sif/kururak/hibernate/Initialize()
+/mob/living/simple_mob/animal/sif/kururak/hibernate/Initialize(mapload)
 	. = ..()
 	lay_down()
 	instinct = 0
@@ -425,5 +435,5 @@
 	bleeding_rate_percent = 0.7
 	attack_speed_percent = 0.8
 
-/decl/mob_organ_names/kururak
+/datum/decl/mob_organ_names/kururak
 	hit_zones = list("head", "chest", "left foreleg", "right foreleg", "left hind leg", "right hind leg", "far left tail", "far right tail", "left middle tail", "right middle tail")

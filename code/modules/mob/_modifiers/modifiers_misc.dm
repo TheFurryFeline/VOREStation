@@ -46,8 +46,8 @@ the artifact triggers the rage.
 	client_color = "#FF5555" // Make everything red!
 	mob_overlay_state = "berserk"
 
-	on_created_text = "<span class='critical'>You feel an intense and overwhelming rage overtake you as you go berserk!</span>"
-	on_expired_text = "<span class='notice'>The blaze of rage inside you has ran out.</span>"
+	on_created_text = span_critical("You feel an intense and overwhelming rage overtake you as you go berserk!")
+	on_expired_text = span_notice("The blaze of rage inside you has ran out.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	// The good stuff.
@@ -72,8 +72,8 @@ the artifact triggers the rage.
 
 // For changelings.
 /datum/modifier/berserk/changeling
-	on_created_text = "<span class='critical'>We feel an intense and overwhelming rage overtake us as we go berserk!</span>"
-	on_expired_text = "<span class='notice'>The blaze of rage inside us has ran out.</span>"
+	on_created_text = span_critical("We feel an intense and overwhelming rage overtake us as we go berserk!")
+	on_expired_text = span_notice("The blaze of rage inside us has ran out.")
 
 // For changelings who bought the Recursive Enhancement evolution.
 /datum/modifier/berserk/changeling/recursive
@@ -84,7 +84,7 @@ the artifact triggers the rage.
 /datum/modifier/berserk/on_applied()
 	if(ishuman(holder)) // Most other mobs don't really use nutrition and can't get it back.
 		holder.adjust_nutrition(-nutrition_cost)
-	holder.visible_message("<span class='critical'>\The [holder] descends into an all consuming rage!</span>")
+	holder.visible_message(span_critical("\The [holder] descends into an all consuming rage!"))
 
 	// End all stuns.
 	holder.SetParalysis(0)
@@ -105,17 +105,18 @@ the artifact triggers the rage.
 		holder.add_modifier(/datum/modifier/berserk_exhaustion, exhaustion_duration)
 
 		if(prob(last_shock_stage))
-			to_chat(holder, "<span class='warning'>You pass out from the pain you were suppressing.</span>")
+			to_chat(holder, span_warning("You pass out from the pain you were suppressing."))
 			holder.Paralyse(5)
+			holder.Sleeping(5)
 
 		if(ishuman(holder))
 			var/mob/living/carbon/human/H = holder
 			H.shock_stage = last_shock_stage
 
-/datum/modifier/berserk/can_apply(var/mob/living/L, var/suppress_failure = FALSE)
+/datum/modifier/berserk/can_apply(mob/living/L, suppress_failure = FALSE)
 	if(L.stat)
 		if(!suppress_failure)
-			to_chat(L, "<span class='warning'>You can't be unconscious or dead to berserk.</span>")
+			to_chat(L, span_warning("You can't be unconscious or dead to berserk."))
 		return FALSE // It would be weird to see a dead body get angry all of a sudden.
 
 	if(!L.is_sentient())
@@ -123,7 +124,7 @@ the artifact triggers the rage.
 
 	if(L.has_modifier_of_type(/datum/modifier/berserk_exhaustion))
 		if(!suppress_failure)
-			to_chat(L, "<span class='warning'>You recently berserked, and cannot do so again while exhausted.</span>")
+			to_chat(L, span_warning("You recently berserked, and cannot do so again while exhausted."))
 		return FALSE // On cooldown.
 
 	if(L.isSynthetic())
@@ -133,12 +134,12 @@ the artifact triggers the rage.
 	if(ishuman(L))
 		var/mob/living/carbon/human/H = L
 		if(H.species.name == "Diona")
-			to_chat(L, "<span class='warning'>You feel strange for a moment, but it passes.</span>")
+			to_chat(L, span_warning("You feel strange for a moment, but it passes."))
 			return FALSE // Happy trees aren't affected by blood rages.
 
 	if(L.nutrition < nutrition_cost)
 		if(!suppress_failure)
-			to_chat(L, "<span class='warning'>You are too hungry to berserk.</span>")
+			to_chat(L, span_warning("You are too hungry to berserk."))
 		return FALSE // Too hungry to enrage.
 
 	return ..()
@@ -153,8 +154,8 @@ the artifact triggers the rage.
 	name = "exhaustion"
 	desc = "You recently exerted yourself extremely hard, and need a rest."
 
-	on_created_text = "<span class='warning'>You feel extremely exhausted.</span>"
-	on_expired_text = "<span class='notice'>You feel less exhausted now.</span>"
+	on_created_text = span_warning("You feel extremely exhausted.")
+	on_expired_text = span_notice("You feel less exhausted now.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	slowdown = 2
@@ -164,7 +165,7 @@ the artifact triggers the rage.
 	evasion = -30
 
 /datum/modifier/berserk_exhaustion/on_applied()
-	holder.visible_message("<span class='warning'>\The [holder] looks exhausted.</span>")
+	holder.visible_message(span_warning("\The [holder] looks exhausted."))
 
 
 // Synth version with no benefits due to a loss of focus inside a metal shell, which can't be pushed harder just be being mad.
@@ -175,9 +176,9 @@ the artifact triggers the rage.
 	client_color = "#FF0000" // Make everything red!
 	mob_overlay_state = "berserk"
 
-	on_created_text = "<span class='danger'>You feel an intense and overwhelming rage overtake you as you go berserk! \
-	Unfortunately, your lifeless body cannot benefit from this. You feel reckless...</span>"
-	on_expired_text = "<span class='notice'>The blaze of rage inside your mind has ran out.</span>"
+	on_created_text = span_danger("You feel an intense and overwhelming rage overtake you as you go berserk! \
+	Unfortunately, your lifeless body cannot benefit from this. You feel reckless...")
+	on_expired_text = span_notice("The blaze of rage inside your mind has ran out.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	// Just being mad isn't gonna overclock your body when you're a beepboop.
@@ -190,8 +191,8 @@ the artifact triggers the rage.
 	name = "sprinting"
 	desc = "You are filled with energy!"
 
-	on_created_text = "<span class='warning'>You feel a surge of energy!</span>"
-	on_expired_text = "<span class='notice'>The energy high dies out.</span>"
+	on_created_text = span_warning("You feel a surge of energy!")
+	on_expired_text = span_notice("The energy high dies out.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	slowdown = -1
@@ -202,8 +203,8 @@ the artifact triggers the rage.
 	name = "melee surge"
 	desc = "You are filled with energy!"
 
-	on_created_text = "<span class='warning'>You feel a surge of energy!</span>"
-	on_expired_text = "<span class='notice'>The energy high dies out.</span>"
+	on_created_text = span_warning("You feel a surge of energy!")
+	on_expired_text = span_notice("The energy high dies out.")
 	stacks = MODIFIER_STACK_ALLOWED
 
 	attack_speed_percent = 0.8
@@ -216,8 +217,8 @@ the artifact triggers the rage.
 	name = "grievous wounds"
 	desc = "Your wounds are not easily mended."
 
-	on_created_text = "<span class='critical'>Your wounds pain you greatly.</span>"
-	on_expired_text = "<span class='notice'>The pain lulls.</span>"
+	on_created_text = span_critical("Your wounds pain you greatly.")
+	on_expired_text = span_notice("The pain lulls.")
 
 	stacks = MODIFIER_STACK_EXTEND
 
@@ -234,8 +235,8 @@ the artifact triggers the rage.
 	desc = "You feel yourself freezing up. Its hard to move."
 	mob_overlay_state = "chilled"
 
-	on_created_text = "<span class='danger'>You feel like you're going to freeze! It's hard to move.</span>"
-	on_expired_text = "<span class='warning'>You feel somewhat warmer and more mobile now.</span>"
+	on_created_text = span_danger("You feel like you're going to freeze! It's hard to move.")
+	on_expired_text = span_warning("You feel somewhat warmer and more mobile now.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	slowdown = 2
@@ -252,8 +253,8 @@ the artifact triggers the rage.
 	desc = "You have poison inside of you. It will cause harm over a long span of time if not cured."
 	mob_overlay_state = "poisoned"
 
-	on_created_text = "<span class='warning'>You feel sick...</span>"
-	on_expired_text = "<span class='notice'>You feel a bit better.</span>"
+	on_created_text = span_warning("You feel sick...")
+	on_expired_text = span_notice("You feel a bit better.")
 	stacks = MODIFIER_STACK_ALLOWED // Multiple instances will hurt a lot.
 	var/damage_per_tick = 1
 
@@ -277,7 +278,7 @@ the artifact triggers the rage.
 
 /datum/modifier/poisoned/paralysis
 	desc = "You have poison inside of you. It will cause harm over a long span of time if not cured, and may cause temporary paralysis."
-	on_created_text = "<span class='warning'>You feel incredibly weak...</span>"
+	on_created_text = span_warning("You feel incredibly weak...")
 	damage_per_tick = 0.75
 
 /datum/modifier/poisoned/paralysis/tick()
@@ -294,8 +295,8 @@ the artifact triggers the rage.
 	name = "false pulse"
 	desc = "Your blood flows, despite all other factors."
 
-	on_created_text = "<span class='notice'>You feel alive.</span>"
-	on_expired_text = "<span class='notice'>You feel.. different.</span>"
+	on_created_text = span_notice("You feel alive.")
+	on_expired_text = span_notice("You feel.. different.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	pulse_set_level = PULSE_NORM
@@ -304,8 +305,8 @@ the artifact triggers the rage.
 	name = "slow pulse"
 	desc = "Your blood flows slower."
 
-	on_created_text = "<span class='notice'>You feel sluggish.</span>"
-	on_expired_text = "<span class='notice'>You feel energized.</span>"
+	on_created_text = span_notice("You feel sluggish.")
+	on_expired_text = span_notice("You feel energized.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	bleeding_rate_percent = 0.8
@@ -317,8 +318,8 @@ the artifact triggers the rage.
 	name = "temperature resistance"
 	desc = "Your body normalizes to room temperature."
 
-	on_created_text = "<span class='notice'>You feel comfortable.</span>"
-	on_expired_text = "<span class='notice'>You feel.. still probably comfortable.</span>"
+	on_created_text = span_notice("You feel comfortable.")
+	on_expired_text = span_notice("You feel.. still probably comfortable.")
 	stacks = MODIFIER_STACK_EXTEND
 
 /datum/modifier/homeothermic/tick()
@@ -329,8 +330,8 @@ the artifact triggers the rage.
 	name = "heat resistance"
 	desc = "Your body lowers to room temperature."
 
-	on_created_text = "<span class='notice'>You feel comfortable.</span>"
-	on_expired_text = "<span class='notice'>You feel.. still probably comfortable.</span>"
+	on_created_text = span_notice("You feel comfortable.")
+	on_expired_text = span_notice("You feel.. still probably comfortable.")
 	stacks = MODIFIER_STACK_EXTEND
 
 /datum/modifier/exothermic/tick()
@@ -342,8 +343,8 @@ the artifact triggers the rage.
 	name = "cold resistance"
 	desc = "Your body rises to room temperature."
 
-	on_created_text = "<span class='notice'>You feel comfortable.</span>"
-	on_expired_text = "<span class='notice'>You feel.. still probably comfortable.</span>"
+	on_created_text = span_notice("You feel comfortable.")
+	on_expired_text = span_notice("You feel.. still probably comfortable.")
 	stacks = MODIFIER_STACK_EXTEND
 
 /datum/modifier/endothermic/tick()
@@ -357,8 +358,8 @@ the artifact triggers the rage.
 	desc = "You are covered in some form of faraday shielding. EMPs have no effect."
 	mob_overlay_state = "electricity"
 
-	on_created_text = "<span class='notice'>You feel a surge of energy, that fades to a calm tide.</span>"
-	on_expired_text = "<span class='warning'>You feel a longing for the flow of energy.</span>"
+	on_created_text = span_notice("You feel a surge of energy, that fades to a calm tide.")
+	on_expired_text = span_warning("You feel a longing for the flow of energy.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	emp_modifier = 5
@@ -369,8 +370,8 @@ the artifact triggers the rage.
 	desc = "You are protected from explosions somehow."
 	mob_overlay_state = "electricity"
 
-	on_created_text = "<span class='notice'>You feel a surge of energy, that fades to a stalwart hum.</span>"
-	on_expired_text = "<span class='warning'>You feel a longing for the flow of energy.</span>"
+	on_created_text = span_notice("You feel a surge of energy, that fades to a stalwart hum.")
+	on_expired_text = span_warning("You feel a longing for the flow of energy.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	explosion_modifier = 3
@@ -380,13 +381,13 @@ the artifact triggers the rage.
 	name = "Doomed"
 	desc = "You are doomed."
 
-	on_created_text = "<span class='notice'>You feel an overwhelming sense of dread.</span>"
-	on_expired_text = "<span class='warning'>You feel the life drain from your body.</span>"
+	on_created_text = span_notice("You feel an overwhelming sense of dread.")
+	on_expired_text = span_warning("You feel the life drain from your body.")
 	stacks = MODIFIER_STACK_EXTEND
 
 /datum/modifier/doomed/on_expire()
 	if(holder.stat != DEAD)
-		holder.visible_message("<span class='alien'>\The [holder] collapses, the life draining from their body.</span>")
+		holder.visible_message(span_alien("\The [holder] collapses, the life draining from their body."))
 		holder.death()
 
 /datum/modifier/outline_test
@@ -432,8 +433,36 @@ the artifact triggers the rage.
 	name = "entangled"
 	desc = "Its hard to move."
 
-	on_created_text = "<span class='danger'>You're caught in something! It's hard to move.</span>"
-	on_expired_text = "<span class='warning'>Your movement is freed.</span>"
+	on_created_text = span_danger("You're caught in something! It's hard to move.")
+	on_expired_text = span_warning("Your movement is freed.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	slowdown = 2
+
+/datum/modifier/trait/thickdigits
+	name = "Thick Digits"
+	desc = "Your hands cannot properly wield weapons."
+
+/datum/modifier/trait/empresist
+	name = "Emp Resist"
+	desc = "You are resistant to EMPs."
+	emp_modifier = 1
+
+/datum/modifier/trait/empresistb
+	name = "Major Emp Resist"
+	desc = "You are resistant to EMPs."
+	emp_modifier = 2
+
+/datum/modifier/trait/empweakness
+	name = "Emp Weakness"
+	desc = "You are weak to EMPs."
+	emp_modifier = -1
+
+/datum/modifier/trait/majorempweakness
+	name = "Major Emp Weakness"
+	desc = "You are weak to EMPs."
+	emp_modifier = -2
+
+/datum/modifier/rednet //Not used here currently, but used downstream. Todo: Port it.
+	mob_overlay_state = "red_electricity_constant"
+	slowdown = 1

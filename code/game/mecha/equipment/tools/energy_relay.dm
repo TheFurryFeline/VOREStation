@@ -2,7 +2,6 @@
 	name = "energy relay"
 	desc = "Wirelessly drains energy from any available power channel in area. The performance index is quite low."
 	icon_state = "tesla"
-	origin_tech = list(TECH_MAGNET = 4, TECH_ILLEGAL = 2)
 	equip_cooldown = 10
 	energy_drain = 0
 	range = 0
@@ -12,7 +11,7 @@
 
 /obj/item/mecha_parts/mecha_equipment/repair_droid/Destroy()
 	STOP_PROCESSING(SSfastprocess, src)
-	..()
+	. = ..()
 
 /obj/item/mecha_parts/mecha_equipment/tesla_energy_relay/process()
 	if(!chassis || chassis.hasInternalDamage(MECHA_INT_SHORT_CIRCUIT))
@@ -68,7 +67,7 @@
 		return chassis.dyngetcharge()
 	return charge
 
-/obj/item/mecha_parts/mecha_equipment/tesla_energy_relay/proc/get_power_channel(var/area/A)
+/obj/item/mecha_parts/mecha_equipment/tesla_energy_relay/proc/get_power_channel(area/A)
 	var/pow_chan
 	if(A)
 		for(var/c in use_channels)
@@ -83,13 +82,13 @@
 		if(datum_flags & DF_ISPROCESSING)
 			STOP_PROCESSING(SSfastprocess, src)
 			set_ready_state(TRUE)
-			log_message("Deactivated.")
+			src.mecha_log_message("Deactivated.")
 		else
 			START_PROCESSING(SSfastprocess, src)
 			set_ready_state(FALSE)
-			log_message("Activated.")
+			src.mecha_log_message("Activated.")
 	return
 
 /obj/item/mecha_parts/mecha_equipment/tesla_energy_relay/get_equip_info()
 	if(!chassis) return
-	return "<span style=\"color:[equip_ready?"#0f0":"#f00"];\">*</span>&nbsp;[src.name] - <a href='?src=\ref[src];toggle_relay=1'>[(datum_flags & DF_ISPROCESSING)?"Dea":"A"]ctivate</a>"
+	return (equip_ready ? span_green("*") : span_red("*")) + "&nbsp;[src.name] - <a href='byond://?src=\ref[src];toggle_relay=1'>[(datum_flags & DF_ISPROCESSING)?"Dea":"A"]ctivate</a>"

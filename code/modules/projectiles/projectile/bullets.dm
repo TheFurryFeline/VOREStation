@@ -17,12 +17,12 @@
 
 	muzzle_type = /obj/effect/projectile/muzzle/bullet
 
-/obj/item/projectile/bullet/on_hit(var/atom/target, var/blocked = 0)
+/obj/item/projectile/bullet/on_hit(atom/target, blocked = 0)
 	if (..(target, blocked))
 		var/mob/living/L = target
 		shake_camera(L, 3, 2)
 
-/obj/item/projectile/bullet/attack_mob(var/mob/living/target_mob, var/distance, var/miss_modifier)
+/obj/item/projectile/bullet/attack_mob(mob/living/target_mob, distance, miss_modifier)
 	if(penetrating > 0 && damage > 20 && prob(damage))
 		mob_passthrough_check = 1
 	else
@@ -35,7 +35,7 @@
 		return 0
 	return ..()
 
-/obj/item/projectile/bullet/check_penetrate(var/atom/A)
+/obj/item/projectile/bullet/check_penetrate(atom/A)
 	if(!A || !A.density) return 1 //if whatever it was got destroyed when we hit it, then I guess we can just keep going
 
 	if(istype(A, /obj/mecha))
@@ -62,7 +62,7 @@
 	if(prob(chance))
 		if(A.opacity)
 			//display a message so that people on the other side aren't so confused
-			A.visible_message("<span class='warning'>\The [src] pierces through \the [A]!</span>")
+			A.visible_message(span_warning("\The [src] pierces through \the [A]!"))
 		return 1
 
 	return 0
@@ -95,6 +95,21 @@
 	armor_penetration = 15
 	hud_state = "pistol_light_ap"
 
+/obj/item/projectile/bullet/pistol/medium/ap/suppressor // adminspawn only
+	name = "suppressor bullet" // this guy is Important and also Hates You
+	fire_sound = 'sound/weapons/doompistol.ogg' // converted from .wavs extracted from doom 2
+	damage = 10 // high rof kinda fucked up lets be real
+	agony = 10 // brute easily heals, agony not so much
+	armor_penetration = 30 // reduces shield blockchance
+	accuracy = -20 // he do miss actually
+	speed = 0.4 // if the pathfinder gets a funny burst rifle, they deserve a rival
+	// that's 2x projectile speed btw
+	hud_state = "monkey"
+
+/obj/item/projectile/bullet/pistol/medium/ap/suppressor/turbo // spicy boys
+	speed = 0.2 // this is 4x projectile speed
+	hud_state = "monkey"
+
 /obj/item/projectile/bullet/pistol/medium/hp
 	damage = 30
 	armor_penetration = -50
@@ -122,13 +137,13 @@
 	sharp = FALSE
 	check_armour = "melee"
 	hud_state = "pistol_special"
-	fire_sound ='sound/weapons/Gunshot_pathetic.ogg' // Rubber shots have less powder in the casing.
+	fire_sound ='sound/weapons/gunshot_pathetic.ogg' // Rubber shots have less powder in the casing.
 
 /* shotgun projectiles */
 
 /obj/item/projectile/bullet/shotgun
 	name = "slug"
-	fire_sound = 'sound/weapons/Gunshot_shotgun.ogg'
+	fire_sound = 'sound/weapons/gunshot_shotgun.ogg'
 	damage = 50
 	armor_penetration = 20
 	hud_state = "shotgun_slug"
@@ -147,7 +162,7 @@
 //Overall less damage than slugs in exchange for more damage at very close range and more embedding
 /obj/item/projectile/bullet/pellet/shotgun
 	name = "shrapnel"
-	fire_sound = 'sound/weapons/Gunshot_shotgun.ogg'
+	fire_sound = 'sound/weapons/gunshot_shotgun.ogg'
 	damage = 13
 	pellets = 6
 	range_step = 1
@@ -173,7 +188,7 @@
 
 	combustion = FALSE
 
-/obj/item/projectile/bullet/shotgun/ion/on_hit(var/atom/target, var/blocked = 0)
+/obj/item/projectile/bullet/shotgun/ion/on_hit(atom/target, blocked = 0)
 	..()
 	empulse(target, 0, 0, 0, 0)	//Only affects what it hits
 	return 1
@@ -182,19 +197,19 @@
 /* "Rifle" rounds */
 
 /obj/item/projectile/bullet/rifle
-	fire_sound = 'sound/weapons/Gunshot_generic_rifle.ogg'
+	fire_sound = 'sound/weapons/gunshot_generic_rifle.ogg'
 	armor_penetration = 15
 	penetrating = 1
 	hud_state = "rifle"
 	hud_state_empty = "rifle_empty"
 
 /obj/item/projectile/bullet/rifle/a762
-	fire_sound = 'sound/weapons/Gunshot_heavy.ogg'
+	fire_sound = 'sound/weapons/gunshot_heavy.ogg'
 	damage = 35
 	hud_state = "rifle_heavy"
 
 /obj/item/projectile/bullet/rifle/a762/sniper // Hitscan specifically for sniper ammo; to be implimented at a later date, probably for the SVD. -Ace
-	fire_sound = 'sound/weapons/Gunshot_sniper.ogg'
+	fire_sound = 'sound/weapons/gunshot_sniper.ogg'
 	hitscan = 1 //so the ammo isn't useless as a sniper weapon
 	hud_state = "hivelo"
 
@@ -211,12 +226,11 @@
 
 /obj/item/projectile/bullet/rifle/a762/hunter // Optimized for killing simple animals and not people, because Balance(tm)
 	damage = 20
-	SA_bonus_damage = 50 // 70 total on animals.
-	SA_vulnerability = SA_ANIMAL
+	mob_bonus_damage = 50
 	hud_state = "rifle_heavy"
 
 /obj/item/projectile/bullet/rifle/a545
-	fire_sound = 'sound/weapons/Gunshot_light.ogg'
+	fire_sound = 'sound/weapons/gunshot_light.ogg'
 	damage = 25
 	hud_state = "rifle"
 
@@ -233,12 +247,11 @@
 
 /obj/item/projectile/bullet/rifle/a545/hunter
 	damage = 15
-	SA_bonus_damage = 35 // 50 total on animals.
-	SA_vulnerability = SA_ANIMAL
+	mob_bonus_damage = 35
 	hud_state = "rifle_heavy"
 
-/obj/item/projectile/bullet/rifle/a145 // 14.5�114mm is bigger than a .50 BMG round.
-	fire_sound = 'sound/weapons/Gunshot_cannon.ogg' // This is literally an anti-tank rifle caliber. It better sound like a fucking cannon.
+/obj/item/projectile/bullet/rifle/a145 // 14.5×114mm is bigger than a .50 BMG round.
+	fire_sound = 'sound/weapons/gunshot_cannon.ogg' // This is literally an anti-tank rifle caliber. It better sound like a fucking cannon.
 	damage = 80
 	stun = 3
 	weaken = 3
@@ -285,7 +298,7 @@
 	edge = TRUE
 	hud_state = "pistol_fire"
 
-/obj/item/projectile/bullet/burstbullet/on_hit(var/atom/target, var/blocked = 0)
+/obj/item/projectile/bullet/burstbullet/on_hit(atom/target, blocked = 0)
 	if(isturf(target))
 		explosion(target, -1, 0, 2)
 	..()
@@ -325,7 +338,7 @@
 				Victim.die_off()
 
 /obj/item/projectile/bullet/incendiary/flamethrower/large
-	damage = 5
+	damage = 10
 	incendiary = 3
 	flammability = 2
 	range = 6
@@ -333,10 +346,8 @@
 
 /obj/item/projectile/bullet/incendiary/flamethrower/tiny
 	damage = 2
-	incendiary = 0
+	incendiary = 10
 	flammability = 2
-	modifier_type_to_apply = /datum/modifier/fire/stack_managed/weak
-	modifier_duration = 20 SECONDS
 	range = 6
 	agony = 0
 	hud_state = "flame"
@@ -366,7 +377,7 @@
 /obj/item/projectile/bullet/blank
 	name = "blank"
 	damage_type = HALLOSS
-	fire_sound = 'sound/weapons/Gunshot_generic_rifle.ogg' // Blanks still make loud noises.
+	fire_sound = 'sound/weapons/gunshot_generic_rifle.ogg' // Blanks still make loud noises.
 	damage = 0
 	nodamage = 1
 	embed_chance = 0
@@ -429,13 +440,17 @@
 	range = 15
 	hud_state = "grenade_dummy"
 
-/obj/item/projectile/bullet/foam_dart/on_impact(var/atom/A)
+/obj/item/projectile/bullet/foam_dart/on_impact(atom/A)
 	. = ..()
 	var/turf/T = get_turf(loc)
 	if(istype(T))
 		new /obj/item/ammo_casing/afoam_dart(get_turf(loc))
 
-/obj/item/projectile/bullet/foam_dart/on_range(var/atom/A)
+///Doesn't give a damn about what faction you're on, hits you anyway.
+/obj/item/projectile/bullet/foam_dart/on_hit(atom/target, blocked = 0)
+	handle_lasertag_attack(target, firer, tag_damage = 1, vest_override = TRUE)
+
+/obj/item/projectile/bullet/foam_dart/on_range(atom/A)
 	. = ..()
 	var/turf/T = get_turf(loc)
 	if(istype(T))
@@ -458,14 +473,17 @@
 	range = 15
 	hud_state = "grenade_he"
 
-/obj/item/projectile/bullet/foam_dart_riot/on_impact(var/atom/A)
+/obj/item/projectile/bullet/foam_dart_riot/on_impact(atom/A)
 	. = ..()
 	var/turf/T = get_turf(loc)
 	if(istype(T))
 		new /obj/item/ammo_casing/afoam_dart/riot(get_turf(loc))
 
-/obj/item/projectile/bullet/foam_dart_riot/on_range(var/atom/A)
+/obj/item/projectile/bullet/foam_dart_riot/on_range(atom/A)
 	. = ..()
 	var/turf/T = get_turf(loc)
 	if(istype(T))
 		new /obj/item/ammo_casing/afoam_dart/riot(get_turf(loc))
+
+/obj/item/projectile/bullet/foam_dart_riot/on_hit(atom/target, blocked = 0)
+	handle_lasertag_attack(target, firer, 5, vest_override = TRUE) //Insult to injury.

@@ -9,11 +9,10 @@
 	pick_message_server()
 
 /datum/event/pda_spam/proc/pick_message_server()
-	if(message_servers)
-		for (var/obj/machinery/message_server/MS in message_servers)
-			if(MS.active)
-				useMS = MS
-				break
+	for(var/obj/machinery/message_server/MS in GLOB.message_servers)
+		if(MS.active)
+			useMS = MS
+			break
 
 /datum/event/pda_spam/tick()
 	if(world.time > last_spam_time + 3000)
@@ -33,12 +32,12 @@
 	if(useMS)
 		if(prob(5))
 			// /obj/machinery/message_server/proc/send_pda_message(var/recipient = "",var/sender = "",var/message = "")
-			var/obj/item/device/pda/P
+			var/obj/item/pda/P
 			var/list/viables = list()
-			for(var/obj/item/device/pda/check_pda in sortAtom(PDAs))
+			for(var/obj/item/pda/check_pda in GLOB.PDAs)
 				if (!check_pda.owner || check_pda == src || check_pda.hidden)
 					continue
-				
+
 				var/datum/data/pda/app/messenger/M = check_pda.find_program(/datum/data/pda/app/messenger)
 				if(!M || M.toff)
 					continue
@@ -60,7 +59,7 @@
 				if(2)
 					sender = pick(300;"QuickDatingSystem",200;"Find your russian bride",50;"Tajaran beauties are waiting",50;"Find your secret skrell crush",50;"Beautiful unathi brides")
 					message = pick("Your profile caught my attention and I wanted to write and say hello (QuickDating).",\
-					"If you will write to me on my email [pick(first_names_female)]@[pick(last_names)].[pick("ru","ck","tj","ur","nt")] I shall necessarily send you a photo (QuickDating).",\
+					"If you will write to me on my email [pick(GLOB.first_names_female)]@[pick(GLOB.last_names)].[pick("ru","ck","tj","ur","nt")] I shall necessarily send you a photo (QuickDating).",\
 					"I want that we write each other and I hope, that you will like my profile and you will answer me (QuickDating).",\
 					"You have (1) new message!",\
 					"You have (2) new profile views!")
@@ -69,7 +68,7 @@
 					message = pick("Luxury watches for Blowout sale prices!",\
 					"Watches, Jewelry & Accessories, Bags & Wallets !",\
 					"Deposit 100$ and get 300$ totally free!",\
-					" 100K NT.|WOWGOLD �nly $89            <HOT>",\
+					" 100K NT.|WOWGOLD Only $89            <HOT>",\
 					"We have been filed with a complaint from one of your customers in respect of their business relations with you.",\
 					"We kindly ask you to open the COMPLAINT REPORT (attached) to reply on this complaint..")
 				if(4)
@@ -107,14 +106,14 @@
 
 			/*	//VOREStation Removal: no need to spam the AI tenfold
 			if (prob(50)) //Give the AI an increased chance to intercept the message
-				for(var/mob/living/silicon/ai/ai in mob_list)
+				for(var/mob/living/silicon/ai/ai in GLOB.mob_list)
 					// Allows other AIs to intercept the message but the AI won't intercept their own message.
 					if(ai.aiPDA != P && ai.aiPDA != src)
-						ai.show_message("<i>Intercepted message from <b>[sender]</b></i> (Unknown / spam?) <i>to <b>[P:owner]</b>: [message]</i>")
+						ai.show_message(span_italics("Intercepted message from <b>[sender]</b></i> (Unknown / spam?) <i>to <b>[P:owner]</b>: [message]"))
 			*/
 
 			//Commented out because we don't send messages like this anymore.  Instead it will just popup in their chat window.
 			//P.tnote += "<i><b>&larr; From [sender] (Unknown / spam?):</b></i><br>[message]<br>"
 
 			var/datum/data/pda/app/messenger/PM = P.find_program(/datum/data/pda/app/messenger)
-			PM.notify("<b>Message from [sender] (Unknown / spam?), </b>\"[message]\" (Unable to Reply)", 0)
+			PM.notify(span_bold("Message from [sender] (Unknown / spam?), ") + "\"[message]\" (Unable to Reply)", 0)

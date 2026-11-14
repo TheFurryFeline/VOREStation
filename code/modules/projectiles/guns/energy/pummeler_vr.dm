@@ -1,5 +1,5 @@
 // -------------- Pummeler -------------
-/obj/item/weapon/gun/energy/pummeler
+/obj/item/gun/energy/pummeler
 	name = "hypersonic gun"
 	desc = "For when you want to get that pesky marketing guy out of your face ASAP. The PML9 'Pummeler' fires one HUGE \
 	sonic blast in the direction of fire, throwing the target away from you at high speed. Now you can REALLY \
@@ -20,7 +20,6 @@
 
 	charge_cost = 600
 
-	origin_tech = list(TECH_COMBAT = 3, TECH_MATERIAL = 3, TECH_MAGNET = 5)
 
 	slot_flags = SLOT_BELT|SLOT_BACK
 	w_class = ITEMSIZE_LARGE
@@ -36,7 +35,7 @@
 	vacuum_traversal = 0
 	range = 6 //Scary name, but just deletes the projectile after this range
 
-/obj/item/projectile/pummel/on_hit(var/atom/movable/target, var/blocked = 0)
+/obj/item/projectile/pummel/on_hit(atom/movable/target, blocked = 0)
 	if(isliving(target))
 		var/mob/living/L = target
 		var/throwdir = get_dir(firer,L)
@@ -50,7 +49,7 @@
 			var/mob/living/simple_mob/vore/alienanimals/startreader/S = L
 			if(!S.flipped)
 				S.adjustBruteLoss(100)
-				S.visible_message("<span class='notice'>\The [S] is flipped over!!!</span>")
+				S.visible_message(span_notice("\The [S] is flipped over!!!"))
 				S.flipped = TRUE
 				S.flip_cooldown = 10
 				S.handle_flip()

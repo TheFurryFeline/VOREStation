@@ -3,7 +3,7 @@
 	name = "cortical borer"
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "borer"
-	organ_tag = "brain"
+	organ_tag = O_BRAIN
 	desc = "A disgusting space slug."
 	parent_organ = BP_HEAD
 	vital = 1
@@ -11,7 +11,7 @@
 /obj/item/organ/internal/borer/process()
 
 	// Borer husks regenerate health, feel no pain, and are resistant to stuns and brainloss.
-	for(var/chem in list("tricordrazine","tramadol","hyperzine","alkysine"))
+	for(var/chem in list(REAGENT_ID_TRICORDRAZINE,REAGENT_ID_TRAMADOL,REAGENT_ID_HYPERZINE,REAGENT_ID_ALKYSINE))
 		if(owner.reagents.get_reagent_amount(chem) < 3)
 			owner.reagents.add_reagent(chem, 5)
 
@@ -30,7 +30,7 @@
 			goo.basecolor = "#412464"
 			goo.update_icon()
 
-/obj/item/organ/internal/borer/removed(var/mob/living/user)
+/obj/item/organ/internal/borer/removed(mob/living/user)
 
 	..()
 
@@ -46,17 +46,10 @@
 /obj/item/organ/internal/stack
 	name = "cortical stack"
 	parent_organ = BP_HEAD
-	icon_state = "brain-prosthetic"
+	icon_state = "brain_prosthetic"
 	organ_tag = "stack"
-	vital = 1
-	var/backup_time = 0
-	var/datum/mind/backup
-
-/obj/item/organ/internal/stack/process()
-	if(owner && owner.stat != DEAD && !is_broken())
-		backup_time = world.time
-		if(owner.mind) backup = owner.mind
+	vital = TRUE
 
 /obj/item/organ/internal/stack/vox/stack
 	name = "vox cortical stack"
-	icon_state = "cortical_stack"
+	icon_state = "cortical-stack"

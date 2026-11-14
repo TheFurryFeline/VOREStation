@@ -7,23 +7,27 @@
 /*
  * Locator
  */
-/obj/item/weapon/locator
+/obj/item/locator
 	name = "locator"
 	desc = "Used to track those with locater implants."
 	icon = 'icons/obj/device.dmi'
 	icon_state = "locator"
 	var/temp = null
-	var/frequency = 1451
+	var/frequency = TRACK_IMP_FREQ
 	var/broadcasting = null
 	var/listening = 1.0
 	w_class = ITEMSIZE_SMALL
 	item_state = "electronic"
 	throw_speed = 4
 	throw_range = 20
-	origin_tech = list(TECH_MAGNET = 1)
-	matter = list(MAT_STEEL = 400)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.2))
+	pickup_sound = 'sound/items/pickup/device.ogg'
+	drop_sound = 'sound/items/drop/device.ogg'
 
-/obj/item/weapon/locator/attack_self(mob/user as mob)
+/obj/item/locator/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	user.set_machine(src)
 	var/dat
 	if (src.temp)
@@ -37,12 +41,12 @@ Frequency:
 <A href='byond://?src=\ref[src];freq=2'>+</A>
 <A href='byond://?src=\ref[src];freq=10'>+</A><BR>
 
-<A href='?src=\ref[src];refresh=1'>Refresh</A>"}
-	user << browse(dat, "window=radio")
+<A href='byond://?src=\ref[src];refresh=1'>Refresh</A>"}
+	user << browse("<html>[dat]</html>", "window=radio")
 	onclose(user, "radio")
 	return
 
-/obj/item/weapon/locator/Topic(href, href_list)
+/obj/item/locator/Topic(href, href_list)
 	..()
 	if (usr.stat || usr.restrained())
 		return
@@ -53,13 +57,13 @@ Frequency:
 	if ((usr.contents.Find(src) || (in_range(src, usr) && istype(src.loc, /turf))))
 		usr.set_machine(src)
 		if (href_list["refresh"])
-			src.temp = "<B>Persistent Signal Locator</B><HR>"
+			src.temp = span_bold("Persistent Signal Locator") + "<HR>"
 			var/turf/sr = get_turf(src)
 
 			if (sr)
-				src.temp += "<B>Located Beacons:</B><BR>"
+				src.temp += span_bold("Located Beacons:") + "<BR>"
 
-				for(var/obj/item/device/radio/beacon/W in all_beacons)
+				for(var/obj/item/radio/beacon/W in GLOB.all_beacons)
 					if (W.frequency == src.frequency)
 						var/turf/tr = get_turf(W)
 						if (tr.z == sr.z && tr)
@@ -76,9 +80,9 @@ Frequency:
 										direct = "very weak"
 							src.temp += "[W.code]-[dir2text(get_dir(sr, tr))]-[direct]<BR>"
 
-				src.temp += "<B>Extraneous Signals:</B><BR>"
-				for (var/obj/item/weapon/implant/tracking/W in all_tracking_implants)
-					if (!W.implanted || !(istype(W.loc,/obj/item/organ/external) || ismob(W.loc) || W.malfunction))
+				src.temp += span_bold("Extraneous Signals:") + "<BR>"
+				for (var/obj/item/implant/tracking/W in GLOB.all_tracking_implants)
+					if (!W.implanted || !(istype(W.loc,/obj/item/organ/external) || ismob(W.loc) || W.malfunction) || is_vore_jammed(W))
 						continue
 
 					var/turf/tr = get_turf(W)
@@ -94,9 +98,9 @@ Frequency:
 									direct = "weak"
 							src.temp += "[W.id]-[dir2text(get_dir(sr, tr))]-[direct]<BR>"
 
-				src.temp += "<B>You are at \[[sr.x],[sr.y],[sr.z]\]</B> in orbital coordinates.<BR><BR><A href='byond://?src=\ref[src];refresh=1'>Refresh</A><BR>"
+				src.temp += span_bold("You are at \[[sr.x],[sr.y],[sr.z]\]") + " in orbital coordinates.<BR><BR><A href='byond://?src=\ref[src];refresh=1'>Refresh</A><BR>"
 			else
-				src.temp += "<B><FONT color='red'>Processing Error:</FONT></B> Unable to locate orbital position.<BR>"
+				src.temp += span_bold(span_red("Processing Error:")) + " Unable to locate orbital position.<BR>"
 		else
 			if (href_list["freq"])
 				src.frequency += text2num(href_list["freq"])
@@ -116,7 +120,7 @@ Frequency:
 /*
  * Hand-tele
  */
-/obj/item/weapon/hand_tele
+/obj/item/hand_tele
 	name = "hand tele"
 	desc = "A portable item using blue-space technology."
 	icon = 'icons/obj/device.dmi'
@@ -126,23 +130,25 @@ Frequency:
 	w_class = ITEMSIZE_SMALL
 	throw_speed = 3
 	throw_range = 5
-	origin_tech = list(TECH_MAGNET = 1, TECH_BLUESPACE = 3)
-	matter = list(MAT_STEEL = 10000)
+	matter = list(MAT_STEEL = MATERIAL_COST(5))
 	preserve_item = 1
 
-/obj/item/weapon/hand_tele/attack_self(mob/user as mob)
+/obj/item/hand_tele/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	var/turf/current_location = get_turf(user)//What turf is the user on?
 	if(!current_location || (current_location.z in using_map.admin_levels) || current_location.block_tele)//If turf was not found or they're on z level 2 or >7 which does not currently exist.
-		to_chat(user, "<span class='notice'>\The [src] is malfunctioning.</span>")
+		to_chat(user, span_notice("\The [src] is malfunctioning."))
 		return
 	var/list/L = list(  )
-	for(var/obj/machinery/teleport/hub/R in machines)
+	for(var/obj/machinery/teleport/hub/R in GLOB.machines)
 		var/obj/machinery/computer/teleporter/com
 		var/obj/machinery/teleport/station/station
-		for(var/direction in cardinal)
+		for(var/direction in GLOB.cardinal)
 			station = locate(/obj/machinery/teleport/station, get_step(R, direction))
 			if(station)
-				for(direction in cardinal)
+				for(direction in GLOB.cardinal)
 					com = locate(/obj/machinery/computer/teleporter, get_step(station, direction))
 					if(com)
 						break
@@ -166,14 +172,14 @@ Frequency:
 	if ((user.get_active_hand() != src || user.stat || user.restrained()))
 		return
 	var/count = 0	//num of portals from this teleport in world
-	for(var/obj/effect/portal/PO in all_portals)
+	for(var/obj/effect/portal/PO in GLOB.all_portals)
 		if(PO.creator == src)	count++
 	if(count >= 3)
-		user.show_message("<span class='notice'>\The [src] is recharging!</span>")
+		user.show_message(span_notice("\The [src] is recharging!"))
 		return
 	var/T = L[t1]
 	for(var/mob/O in hearers(user, null))
-		O.show_message("<span class='notice'>Locked In.</span>", 2)
+		O.show_message(span_notice("Locked In."), 2)
 	var/obj/effect/portal/P = new /obj/effect/portal( get_turf(src) )
 	P.target = T
 	P.creator = src

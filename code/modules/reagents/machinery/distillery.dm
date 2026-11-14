@@ -5,7 +5,7 @@
 
 /obj/machinery/portable_atmospherics/powered/reagent_distillery
 	name = "chemical distillery"
-	desc = "A complex machine utilizing state-of-the-art components to mix chemicals at different temperatures."
+	desc = "A complex machine utilizing state-of-the-art components to mix chemicals at different temperatures. Can be attached to a connector port to utilize gasses."
 	use_power = USE_POWER_IDLE
 
 	icon = 'icons/obj/machines/reagent.dmi'
@@ -24,7 +24,7 @@
 
 	var/current_temp = T20C
 
-	var/use_atmos = FALSE	// If true, this machine will be connectable to ports, and use gas mixtures as the source of heat, rather than its internal controls.
+	var/use_atmos = FALSE	// If true, this machine will use the temperature of the connected gas mixtures as the source of heat, rather than its internal controls.
 
 	var/static/radial_examine = image(icon = 'icons/mob/radial.dmi', icon_state = "radial_examine")
 	var/static/radial_use = image(icon = 'icons/mob/radial.dmi', icon_state = "radial_use")
@@ -53,13 +53,13 @@
 	var/image/overlay_dumping
 	var/image/overlay_connected
 
-	var/obj/item/weapon/reagent_containers/glass/InputBeaker
-	var/obj/item/weapon/reagent_containers/glass/OutputBeaker
+	var/obj/item/reagent_containers/glass/InputBeaker
+	var/obj/item/reagent_containers/glass/OutputBeaker
 
 // A multiplier for the production amount. This should really only ever be lower than one, otherwise you end up with duping.
 	var/efficiency = 1
 
-/obj/machinery/portable_atmospherics/powered/reagent_distillery/Initialize()
+/obj/machinery/portable_atmospherics/powered/reagent_distillery/Initialize(mapload)
 	. = ..()
 
 	create_reagents(600, /datum/reagents/distilling)
@@ -73,7 +73,7 @@
 
 /obj/machinery/portable_atmospherics/powered/reagent_distillery/RefreshParts()
 	var/total_laser_rating = 0
-	for(var/obj/item/weapon/stock_parts/micro_laser/ML in component_parts)
+	for(var/obj/item/stock_parts/micro_laser/ML in component_parts)
 		total_laser_rating += ML.rating
 
 	max_temp = initial(max_temp) + (50 * (total_laser_rating - 1))
@@ -99,34 +99,34 @@
 		qdel(OutputBeaker)
 		OutputBeaker = null
 
-	..()
+	. = ..()
 
 /obj/machinery/portable_atmospherics/powered/reagent_distillery/examine(mob/user)
 	. = ..()
 	if(get_dist(user, src) <= 2)
-		. += "<span class='notice'>\The [src] is powered [on ? "on" : "off"].</span>"
+		. += span_notice("\The [src] is powered [on ? "on" : "off"].")
 
-		. += "<span class='notice'>\The [src]'s gauges read:</span>"
+		. += span_notice("\The [src]'s gauges read:")
 		if(!use_atmos)
-			. += "<span class='notice'>- Target Temperature:</span> <span class='warning'>[target_temp]</span>"
-		. += "<span class='notice'>- Temperature:</span> <span class='warning'>[current_temp]</span>"
+			. += span_notice("- Target Temperature:") + span_warning("[target_temp]")
+		. += span_notice("- Temperature:") + span_warning("[current_temp]")
 
 		if(InputBeaker)
 			if(InputBeaker.reagents.reagent_list.len)
-				. += "<span class='notice'>\The [src]'s input beaker holds [InputBeaker.reagents.total_volume] units of liquid.</span>"
+				. += span_notice("\The [src]'s input beaker holds [InputBeaker.reagents.total_volume] units of liquid.")
 			else
-				. += "<span class='notice'>\The [src]'s input beaker is empty!</span>"
+				. += span_notice("\The [src]'s input beaker is empty!")
 
 		if(reagents.reagent_list.len)
-			. += "<span class='notice'>\The [src]'s internal buffer holds [reagents.total_volume] units of liquid.</span>"
+			. += span_notice("\The [src]'s internal buffer holds [reagents.total_volume] units of liquid.")
 		else
-			. += "<span class='notice'>\The [src]'s internal buffer is empty!</span>"
+			. += span_notice("\The [src]'s internal buffer is empty!")
 
 		if(OutputBeaker)
 			if(OutputBeaker.reagents.reagent_list.len)
-				. += "<span class='notice'>\The [src]'s output beaker holds [OutputBeaker.reagents.total_volume] units of liquid.</span>"
+				. += span_notice("\The [src]'s output beaker holds [OutputBeaker.reagents.total_volume] units of liquid.")
 			else
-				. += "<span class='notice'>\The [src]'s output beaker is empty!</span>"
+				. += span_notice("\The [src]'s output beaker is empty!")
 
 /obj/machinery/portable_atmospherics/powered/reagent_distillery/verb/toggle_power(mob/user = usr)
 	set name = "Toggle Distillery Heating"
@@ -135,22 +135,22 @@
 
 	if(powered())
 		on = !on
-		to_chat(user, "<span class='notice'>You turn \the [src] [on ? "on" : "off"].</span>")
+		to_chat(user, span_notice("You turn \the [src] [on ? "on" : "off"]."))
 	else
-		to_chat(user, "<span class='notice'> Nothing happens.</span>")
+		to_chat(user, span_notice(" Nothing happens."))
 
 /obj/machinery/portable_atmospherics/powered/reagent_distillery/verb/toggle_mixing(mob/user = usr)
 	set name = "Start Distillery Mixing"
 	set category = "Object"
 	set src in view(1)
 
-	to_chat(user, "<span class='notice'>You press \the [src]'s chamber agitator button.</span>")
+	to_chat(user, span_notice("You press \the [src]'s chamber agitator button."))
 	if(on)
-		visible_message("<b>\The [src]</b> rattles to life.")
+		visible_message(span_infoplain(span_bold("\The [src]") + " rattles to life."))
 		reagents.handle_reactions()
 	else
 		spawn(1 SECOND)
-			to_chat(user, "<span class='notice'>Nothing happens..</span>")
+			to_chat(user, span_notice("Nothing happens.."))
 
 /obj/machinery/portable_atmospherics/powered/reagent_distillery/attack_hand(mob/user)
 	var/list/options = list()
@@ -185,10 +185,10 @@
 			toggle_power(user)
 
 		if("inspect gauges")
-			to_chat(user, "<span class='notice'>\The [src]'s gauges read:</span>")
+			to_chat(user, span_notice("\The [src]'s gauges read:"))
 			if(!use_atmos)
-				to_chat(user, "<span class='notice'>- Target Temperature:</span> <span class='warning'>[target_temp]</span>")
-			to_chat(user, "<span class='notice'>- Temperature:</span> <span class='warning'>[current_temp]</span>")
+				to_chat(user, span_notice("- Target Temperature:") + span_warning("[target_temp]"))
+			to_chat(user, span_notice("- Temperature:") + span_warning("[current_temp]"))
 
 		if("pulse agitator")
 			toggle_mixing(user)
@@ -204,14 +204,15 @@
 				OutputBeaker = null
 
 		if("adjust temp")
-			target_temp = tgui_input_number(usr, "Choose a target temperature.", "Temperature.", T20C, max_temp, min_temp, round_value = FALSE)
-			target_temp = CLAMP(target_temp, min_temp, max_temp)
+			var/new_temp = tgui_input_number(user, "Choose a target temperature.", "Temperature.", T20C, max_temp, min_temp, round_value = FALSE)
+			if(isnum(new_temp))
+				target_temp = new_temp
 
 	update_icon()
 
-/obj/machinery/portable_atmospherics/powered/reagent_distillery/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/portable_atmospherics/powered/reagent_distillery/attackby(obj/item/W as obj, mob/user as mob)
 	var/list/options = list()
-	if(istype(W, /obj/item/weapon/reagent_containers/glass))
+	if(istype(W, /obj/item/reagent_containers/glass))
 		if(!InputBeaker)
 			options["install input"] = radial_install_input
 		if(!OutputBeaker)
@@ -245,7 +246,7 @@
 
 	update_icon()
 
-/obj/machinery/portable_atmospherics/powered/reagent_distillery/use_power(var/amount, var/chan = -1)
+/obj/machinery/portable_atmospherics/powered/reagent_distillery/use_power(amount, chan = -1)
 	last_power_draw = amount
 	if(use_cell && cell && cell.charge)
 		var/cellcharge = cell.charge
@@ -316,12 +317,12 @@
 				if(target_temp == round(current_temp, 1.0))
 					current_temp = target_temp // Hard set it so we don't need to worry about exact decimals any more, after we've been keeping track of it all this time
 					playsound(src, 'sound/machines/ping.ogg', 50, 0)
-					src.visible_message("<b>\The [src]</b> pings as it reaches the target temperature.")
+					src.visible_message(span_infoplain(span_bold("\The [src]") + " pings as it reaches the target temperature."))
 
 		else if(connected_port && avg_pressure > 1000)
 			current_temp = round((current_temp + avg_temp) / 2)
 		else if(!run_pump)
-			visible_message("<span class='notice'>\The [src]'s motors wind down.</span>")
+			visible_message(span_notice("\The [src]'s motors wind down."))
 			on = FALSE
 
 		if(InputBeaker && reagents.total_volume < reagents.maximum_volume)
@@ -365,6 +366,14 @@
 
 /obj/machinery/portable_atmospherics/powered/reagent_distillery/industrial
 	name = "industrial chemical distillery"
-	desc = "A gas-operated variant of a chemical distillery. Able to reach much higher, and lower, temperatures through the use of treated gas."
+	desc = "A gas-operated variant of a chemical distillery. Able to reach much higher, and lower, temperatures through the use of treated gas at the cost of not having an internal heater/cooler."
 
 	use_atmos = TRUE
+
+
+/obj/machinery/portable_atmospherics/powered/reagent_distillery/return_air()
+	if(connected_port)
+		var/obj/machinery/atmospherics/portables_connector/our_port = connected_port
+		if(our_port.network)
+			return our_port.network.gases[1]
+	. = ..()

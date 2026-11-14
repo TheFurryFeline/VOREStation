@@ -11,12 +11,12 @@
 	power_draw_per_use = 1
 	var/number_of_pins = 1
 
-/obj/item/integrated_circuit/memory/New()
+/obj/item/integrated_circuit/memory/Initialize(mapload)
 	for(var/i = 1 to number_of_pins)
 		inputs["input [i]"] = IC_PINTYPE_ANY // This is just a string since pins don't get built until ..() is called.
 		outputs["output [i]"] = IC_PINTYPE_ANY
+	. = ..()
 	complexity = number_of_pins
-	..()
 
 /obj/item/integrated_circuit/memory/examine(mob/user)
 	. = ..()
@@ -58,7 +58,6 @@
 	name = "large memory circuit"
 	desc = "This big circuit can hold eight pieces of data."
 	icon_state = "memory8"
-	origin_tech = list(TECH_ENGINEERING = 3, TECH_DATA = 3)
 	power_draw_per_use = 4
 	number_of_pins = 8
 
@@ -68,7 +67,6 @@
 	icon_state = "memory16"
 	w_class = ITEMSIZE_NORMAL
 	spawn_flags = IC_SPAWN_RESEARCH
-	origin_tech = list(TECH_ENGINEERING = 4, TECH_DATA = 4)
 	power_draw_per_use = 8
 	number_of_pins = 16
 
@@ -85,10 +83,17 @@
 /obj/item/integrated_circuit/memory/constant/do_work()
 	var/datum/integrated_io/O = outputs[1]
 	O.push_data()
-
+/*
+/obj/item/integrated_circuit/memory/constant/emp_act(severity, recursive)
+	// Prevents default EMP behavior for single-slot constants memory.
+	return
+*/
 /obj/item/integrated_circuit/memory/constant/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	var/datum/integrated_io/O = outputs[1]
-	var/type_to_use = tgui_input_list(usr, "Please choose a type to use.","[src] type setting", list("string","number","ref", "null"))
+	var/type_to_use = tgui_input_list(user, "Please choose a type to use.","[src] type setting", list("string","number","ref", "null"))
 	if(!CanInteract(user, GLOB.tgui_physical_state))
 		return
 
@@ -96,30 +101,29 @@
 	switch(type_to_use)
 		if("string")
 			accepting_refs = 0
-			new_data = tgui_input_text(usr, "Now type in a string.","[src] string writing", MAX_NAME_LEN)
-			new_data = sanitize(new_data,MAX_NAME_LEN)
+			new_data = sanitizeSafe(tgui_input_text(user, "Now type in a string.","[src] string writing","", MAX_NAME_LEN, encode = FALSE), MAX_NAME_LEN, 0, 0)
 			if(istext(new_data) && CanInteract(user, GLOB.tgui_physical_state))
 				O.data = new_data
-				to_chat(user, "<span class='notice'>You set \the [src]'s memory to [O.display_data(O.data)].</span>")
+				to_chat(user, span_notice("You set \the [src]'s memory to [O.display_data(O.data)]."))
 		if("number")
 			accepting_refs = 0
-			new_data = tgui_input_number(usr, "Now type in a number.","[src] number writing", MAX_NAME_LEN)
+			new_data = tgui_input_number(user, "Now type in a number.","[src] number writing", 0)
 			if(isnum(new_data) && CanInteract(user, GLOB.tgui_physical_state))
 				O.data = new_data
-				to_chat(user, "<span class='notice'>You set \the [src]'s memory to [O.display_data(O.data)].</span>")
+				to_chat(user, span_notice("You set \the [src]'s memory to [O.display_data(O.data)]."))
 		if("ref")
 			accepting_refs = 1
-			to_chat(user, "<span class='notice'>You turn \the [src]'s ref scanner on.  Slide it across \
-			an object for a ref of that object to save it in memory.</span>")
+			to_chat(user, span_notice("You turn \the [src]'s ref scanner on. Slide it across \
+			an object for a ref of that object to save it in memory."))
 		if("null")
 			O.data = null
-			to_chat(user, "<span class='notice'>You set \the [src]'s memory to absolutely nothing.</span>")
+			to_chat(user, span_notice("You set \the [src]'s memory to absolutely nothing."))
 
 /obj/item/integrated_circuit/memory/constant/afterattack(atom/target, mob/living/user, proximity)
 	if(accepting_refs && proximity)
 		var/datum/integrated_io/O = outputs[1]
 		O.data = WEAKREF(target)
-		visible_message("<span class='notice'>[user] slides \a [src]'s over \the [target].</span>")
-		to_chat(user, "<span class='notice'>You set \the [src]'s memory to a reference to [O.display_data(O.data)].  The ref scanner is \
-		now off.</span>")
+		visible_message(span_notice("[user] slides \a [src]'s over \the [target]."))
+		to_chat(user, span_notice("You set \the [src]'s memory to a reference to [O.display_data(O.data)]. The ref scanner is \
+		now off."))
 		accepting_refs = 0

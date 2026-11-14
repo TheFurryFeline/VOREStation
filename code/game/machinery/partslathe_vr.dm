@@ -18,9 +18,10 @@
 
 /obj/machinery/partslathe
 	name = "parts lathe"
+	desc = "The middle child of autolathes and protolathes."
 	icon = 'icons/obj/partslathe_vr.dmi'
 	icon_state = "partslathe-idle"
-	circuit = /obj/item/weapon/circuitboard/partslathe
+	circuit = /obj/item/circuitboard/partslathe
 	anchored = TRUE
 	density = TRUE
 	use_power = USE_POWER_IDLE
@@ -31,7 +32,7 @@
 	var/list/materials = list(MAT_STEEL = 0, MAT_GLASS = 0)
 	var/list/storage_capacity = list(MAT_STEEL = 0, MAT_GLASS = 0)
 
-	var/obj/item/weapon/circuitboard/copy_board // Inserted board
+	var/obj/item/circuitboard/copy_board // Inserted board
 
 	var/list/datum/category_item/partslathe/queue = list() // Queue of things to build
 	var/busy = 0			// Currently building stuff y/n
@@ -43,28 +44,20 @@
 	// type -> /datum/category_item/partslathe/
 	var/static/list/partslathe_recipies
 
-/obj/machinery/partslathe/New()
-	..()
+/obj/machinery/partslathe/Initialize(mapload)
+	. = ..()
 	default_apply_parts()
 	update_icon()
 	update_recipe_list()
 
-/obj/machinery/partslathe/proc/getHighestOriginTechLevel(var/obj/item/I)
-	if(!istype(I) || !I.origin_tech)
-		return 0
-	var/highest = 0
-	for(var/tech in I.origin_tech)
-		highest = max(highest, I.origin_tech[tech])
-	return highest
-
 /obj/machinery/partslathe/RefreshParts()
 	var/mb_rating = 0
-	for(var/obj/item/weapon/stock_parts/matter_bin/M in component_parts)
+	for(var/obj/item/stock_parts/matter_bin/M in component_parts)
 		mb_rating += M.rating
 	storage_capacity[MAT_STEEL] = mb_rating  * 16000
-	storage_capacity["glass"] = mb_rating  * 8000
+	storage_capacity[MAT_GLASS] = mb_rating  * 8000
 	var/T = 0
-	for(var/obj/item/weapon/stock_parts/manipulator/M in component_parts)
+	for(var/obj/item/stock_parts/manipulator/M in component_parts)
 		T += M.rating
 	mat_efficiency = 6 / T // Ranges from 3.0 to 1.0
 	speed = T / 2 // Ranges from 1.0 to 3.0
@@ -86,9 +79,9 @@
 			flick("partslathe-lidopen", src)
 		icon_state = "partslathe-idle"
 
-/obj/machinery/partslathe/attackby(var/obj/item/O as obj, var/mob/user as mob)
+/obj/machinery/partslathe/attackby(obj/item/O, mob/user)
 	if(busy)
-		to_chat(user, "<span class='notice'>\The [src] is busy. Please wait for completion of previous operation.</span>")
+		to_chat(user, span_notice("\The [src] is busy. Please wait for completion of previous operation."))
 		return 1
 	if(default_deconstruction_screwdriver(user, O))
 		return
@@ -99,31 +92,30 @@
 	if(inoperable())
 		return
 	if(panel_open)
-		to_chat(user, "<span class='notice'>You can't load \the [src] while it's opened.</span>")
+		to_chat(user, span_notice("You can't load \the [src] while it's opened."))
 		return
-	if(istype(O, /obj/item/weapon/circuitboard))
+	if(istype(O, /obj/item/circuitboard))
 		if(copy_board)
-			to_chat(user, "<span class='warning'>There is already a board inserted in \the [src].</span>")
+			to_chat(user, span_warning("There is already a board inserted in \the [src]."))
 			return
 		if(!user.unEquip(O))
 			return
 		copy_board = O
 		O.forceMove(src)
-		user.visible_message("[user] inserts [O] into \the [src]'s circuit reader.", "<span class='notice'>You insert [O] into \the [src]'s circuit reader.</span>")
-		updateUsrDialog()
+		user.visible_message("[user] inserts [O] into \the [src]'s circuit reader.", span_notice("You insert [O] into \the [src]'s circuit reader."))
 		return
 	if(try_load_materials(user, O))
 		return
 	else
-		to_chat(user, "<span class='notice'>You cannot insert this item into \the [src]!</span>")
+		to_chat(user, span_notice("You cannot insert this item into \the [src]!"))
 		return
 
 // Attept to load materials.  Returns 0 if item wasn't a stack of materials, otherwise 1 (even if failed to load)
-/obj/machinery/partslathe/proc/try_load_materials(var/mob/user, var/obj/item/stack/material/S)
+/obj/machinery/partslathe/proc/try_load_materials(mob/user, obj/item/stack/material/S)
 	if(!istype(S))
 		return 0
 	if(!(S.material.name in materials))
-		to_chat(user, "<span class='warning'>The [src] doesn't accept [S.material]!</span>")
+		to_chat(user, span_warning("The [src] doesn't accept [material_display_name(S.material)]!"))
 		return 1
 	if(S.get_amount() < 1)
 		return 1 // Does this even happen? Sanity check I guess.
@@ -134,11 +126,10 @@
 			materials[S.material.name] += S.perunit
 			S.use(1)
 			count++
-		user.visible_message("[user] inserts [S.name] into \the [src].", "<span class='notice'>You insert [count] [S.name] into \the [src].</span>")
+		user.visible_message("[user] inserts [S.name] into \the [src].", span_notice("You insert [count] [S.name] into \the [src]."))
 		flick("partslathe-load-[S.material.name]", src)
-		updateUsrDialog()
 	else
-		to_chat(user, "<span class='warning'>\The [src] cannot hold more [S.name].</span>")
+		to_chat(user, span_warning("\The [src] cannot hold more [S.name]."))
 	return 1
 
 /obj/machinery/partslathe/process()
@@ -163,27 +154,28 @@
 			removeFromQueue(1)
 		update_icon()
 	else if(busy)
-		visible_message("<span class='notice'>\icon [src] flashes: insufficient materials: [getLackingMaterials(D)].</span>")
+		visible_message(span_notice("[icon2html(src,viewers(src))] flashes: insufficient materials: [getLackingMaterials(D)]."))
 		busy = 0
 		update_use_power(USE_POWER_IDLE)
 		update_icon()
 		playsound(src, 'sound/machines/chime.ogg', 50, 0)
 
-/obj/machinery/partslathe/proc/addToQueue(var/datum/category_item/partslathe/D)
+/obj/machinery/partslathe/proc/addToQueue(datum/category_item/partslathe/D)
 	queue += D
 	return
 
-/obj/machinery/partslathe/proc/removeFromQueue(var/index)
-	queue.Cut(index, index + 1)
-	return
+/obj/machinery/partslathe/proc/removeFromQueue(index)
+	if(queue.len >= index)
+		queue.Cut(index, index + 1)
+		return
 
-/obj/machinery/partslathe/proc/canBuild(var/datum/category_item/partslathe/D)
+/obj/machinery/partslathe/proc/canBuild(datum/category_item/partslathe/D)
 	for(var/M in D.resources)
 		if(materials[M] < CEILING((D.resources[M] * mat_efficiency), 1))
 			return 0
 	return 1
 
-/obj/machinery/partslathe/proc/getLackingMaterials(var/datum/category_item/partslathe/D)
+/obj/machinery/partslathe/proc/getLackingMaterials(datum/category_item/partslathe/D)
 	var/ret = ""
 	for(var/M in D.resources)
 		if(materials[M] < CEILING((D.resources[M] * mat_efficiency), 1))
@@ -192,10 +184,10 @@
 			ret += "[CEILING((D.resources[M] * mat_efficiency), 1) - materials[M]] [M]"
 	return ret
 
-/obj/machinery/partslathe/proc/build(var/datum/category_item/partslathe/D)
+/obj/machinery/partslathe/proc/build(datum/category_item/partslathe/D)
 	for(var/M in D.resources)
 		materials[M] = max(0, materials[M] - CEILING((D.resources[M] * mat_efficiency), 1))
-	var/obj/new_item = D.build(loc);
+	var/obj/item/new_item = D.build(loc);
 	if(new_item)
 		new_item.loc = loc
 		if(mat_efficiency < 1) // No matter out of nowhere
@@ -204,14 +196,14 @@
 					new_item.matter[i] = CEILING((new_item.matter[i] * mat_efficiency), 1)
 
 // 0 amount = 0 means ejecting a full stack; -1 means eject everything
-/obj/machinery/partslathe/proc/eject_materials(var/material, var/amount)
+/obj/machinery/partslathe/proc/eject_materials(material, amount)
 	var/recursive = amount == -1 ? TRUE : FALSE
 	material = lowertext(material)
 	var/mattype
 	switch(material)
 		if(MAT_STEEL)
 			mattype = /obj/item/stack/material/steel
-		if("glass")
+		if(MAT_GLASS)
 			mattype = /obj/item/stack/material/glass
 		else
 			return
@@ -235,7 +227,7 @@
 
 /obj/machinery/partslathe/ui_assets(mob/user)
 	return list(
-		get_asset_datum(/datum/asset/spritesheet/sheetmaterials)
+		get_asset_datum(/datum/asset/spritesheet_batched/sheetmaterials)
 	)
 
 /obj/machinery/partslathe/tgui_interact(mob/user, datum/tgui/ui, datum/tgui/parent_ui)
@@ -257,6 +249,7 @@
 			"removable" = materials[M] >= SHEET_MATERIAL_AMOUNT,
 		)))
 	data["materials"] = materials_ui
+	data["SHEET_MATERIAL_AMOUNT"] = SHEET_MATERIAL_AMOUNT
 
 	data["copyBoard"] = null
 	data["copyBoardReqComponents"] = null
@@ -279,7 +272,7 @@
 		var/datum/category_item/partslathe/current = queue[1]
 		data["building"] = current.name
 		data["buildPercent"] = (progress / current.time * 100)
-	
+
 	data["error"] = null
 	if(queue.len > 0 && !canBuild(queue[1]))
 		data["error"] = getLackingMaterials(queue[1])
@@ -296,7 +289,7 @@
 	if(..())
 		return TRUE
 
-	add_fingerprint(usr)
+	add_fingerprint(ui.user)
 	switch(action)
 		// Queue management can be done even while busy
 		if("queue")
@@ -330,13 +323,13 @@
 			return TRUE
 
 	if(busy)
-		to_chat(usr, "<span class='notice'>[src] is busy. Please wait for completion of previous operation.</span>")
+		to_chat(ui.user, span_notice("[src] is busy. Please wait for completion of previous operation."))
 		return
 
 	switch(action)
 		if("ejectBoard")
 			if(copy_board)
-				visible_message("<span class='notice'>[copy_board] is ejected from [src]'s circuit reader</span>.")
+				visible_message(span_notice("[copy_board] is ejected from [src]'s circuit reader."))
 				copy_board.forceMove(src.loc)
 				copy_board = null
 			return TRUE
@@ -352,13 +345,10 @@
 /obj/machinery/partslathe/proc/update_recipe_list()
 	if(!partslathe_recipies)
 		partslathe_recipies = list()
-		var/list/paths = subtypesof(/obj/item/weapon/stock_parts)
+		var/list/paths = subtypesof(/obj/item/stock_parts) - typesof(/obj/item/stock_parts/subspace)
 		for(var/type in paths)
-			var/obj/item/weapon/stock_parts/I = new type()
-			if(getHighestOriginTechLevel(I) > 1)
-				qdel(I)
-				continue // Ignore high-tech parts
-			if(!I.matter)
+			var/obj/item/stock_parts/I = new type()
+			if(!I.matter || I.rating > 1)
 				qdel(I)
 				continue // Ignore parts we can't build
 
@@ -383,5 +373,5 @@
 /datum/category_item/partslathe/dd_SortValue()
 	return name
 
-/datum/category_item/partslathe/proc/build(var/loc)
+/datum/category_item/partslathe/proc/build(loc)
 	return new path(loc)

@@ -6,8 +6,6 @@
 	icon_state = "mecha_phase"
 	energy_drain = 25
 	projectile = /obj/item/projectile/energy/phase/heavy
-	fire_sound = 'sound/weapons/Taser.ogg'
+	fire_sound = 'sound/weapons/taser.ogg'
 
 	equip_type = EQUIP_UTILITY
-
-	origin_tech = list(TECH_MATERIAL = 1, TECH_COMBAT = 2, TECH_MAGNET = 2)

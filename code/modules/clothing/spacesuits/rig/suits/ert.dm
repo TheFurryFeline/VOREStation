@@ -2,7 +2,7 @@
 	light_overlay = "helmet_light_dual"
 	camera_networks = list(NETWORK_ERT)
 
-/obj/item/weapon/rig/ert
+/obj/item/rig/ert
 	name = "ERT-C hardsuit control module"
 	desc = "A suit worn by the commander of an Emergency Response Team. Has blue highlights. Armoured and space ready."
 	suit_type = "ERT commander"
@@ -10,29 +10,11 @@
 
 	helm_type = /obj/item/clothing/head/helmet/space/rig/ert
 
-	req_access = list(access_cent_specops)
+	req_access = list(ACCESS_CENT_SPECOPS)
 	siemens_coefficient= 0.5
 
 	armor = list(melee = 60, bullet = 50, laser = 30,energy = 15, bomb = 30, bio = 100, rad = 100)
-	allowed = list(
-		/obj/item/device/flashlight,
-		/obj/item/weapon/tank,
-		/obj/item/device/t_scanner,
-		/obj/item/weapon/rcd,
-		/obj/item/weapon/tool/crowbar,
-		/obj/item/weapon/tool/screwdriver,
-		/obj/item/weapon/weldingtool,
-		/obj/item/weapon/tool/wirecutters,
-		/obj/item/weapon/tool/wrench,
-		/obj/item/device/multitool,
-		/obj/item/device/radio,
-		/obj/item/device/analyzer,
-		/obj/item/weapon/storage,
-		/obj/item/weapon/melee/baton,
-		/obj/item/weapon/gun,
-		/obj/item/weapon/reagent_containers/hypospray,
-		/obj/item/roller
-		)
+	allowed = list(POCKET_GENERIC, POCKET_EMERGENCY, POCKET_ALL_TANKS, POCKET_SUIT_REGULATORS, POCKET_ENGINEERING, POCKET_CE, POCKET_SECURITY, POCKET_MEDICAL, POCKET_HEAVYTOOLS, POCKET_BAYSUIT)
 
 	initial_modules = list(
 		/obj/item/rig_module/ai_container,
@@ -40,7 +22,7 @@
 		/obj/item/rig_module/datajack,
 		)
 
-/obj/item/weapon/rig/ert/engineer
+/obj/item/rig/ert/engineer
 	name = "ERT-E suit control module"
 	desc = "A suit worn by the engineering division of an Emergency Response Team. Has orange highlights. Armoured and space ready."
 	suit_type = "ERT engineer"
@@ -55,7 +37,7 @@
 		/obj/item/rig_module/device/rcd
 		)
 
-/obj/item/weapon/rig/ert/medical
+/obj/item/rig/ert/medical
 	name = "ERT-M suit control module"
 	desc = "A suit worn by the medical division of an Emergency Response Team. Has white highlights. Armoured and space ready."
 	suit_type = "ERT medic"
@@ -68,7 +50,7 @@
 		/obj/item/rig_module/chem_dispenser/injector/advanced
 		)
 
-/obj/item/weapon/rig/ert/security
+/obj/item/rig/ert/security
 	name = "ERT-S suit control module"
 	desc = "A suit worn by the security division of an Emergency Response Team. Has red highlights. Armoured and space ready."
 	suit_type = "ERT security"
@@ -81,12 +63,12 @@
 		/obj/item/rig_module/mounted/egun,
 		)
 
-/obj/item/weapon/rig/ert/assetprotection
+/obj/item/rig/ert/assetprotection
 	name = "Heavy Asset Protection suit control module"
 	desc = "A heavy suit worn by the highest level of Asset Protection, don't mess with the person wearing this. Armoured and space ready."
 	suit_type = "heavy asset protection"
 	icon_state = "asset_protection_rig"
-	armor = list(melee = 60, bullet = 50, laser = 50,energy = 40, bomb = 40, bio = 100, rad = 100)
+	armor = list(melee = 80, bullet = 70, laser = 60, energy = 15, bomb = 80, bio = 100, rad = 60)
 	siemens_coefficient= 0.3
 	glove_type = /obj/item/clothing/gloves/gauntlets/rig/eva
 
@@ -100,4 +82,15 @@
 		/obj/item/rig_module/device/plasmacutter,
 		/obj/item/rig_module/device/rcd,
 		/obj/item/rig_module/datajack
+		)
+
+/obj/item/rig/ert/janitor
+	name = "ERT-J suit control module"
+	desc = "A suit worn by the janitorial division of an Emergency Response Team. Has purple highlights. Armoured and space ready."
+	suit_type = "ERT janitor"
+	icon_state = "ert_janitor_rig"
+
+	initial_modules = list(
+		/obj/item/rig_module/maneuvering_jets,
+		/obj/item/rig_module/cleaner_launcher,
 		)

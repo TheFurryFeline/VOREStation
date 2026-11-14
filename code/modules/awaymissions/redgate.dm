@@ -28,12 +28,17 @@
 
 	return ..()
 
-/obj/structure/redgate/proc/teleport(var/mob/M as mob)
+/obj/structure/redgate/proc/teleport(mob/M as mob)
 	var/keycheck = TRUE
-	if (!istype(M,/mob/living))		//We only want mob/living, no bullets or mechs or AI eyes or items
+	if (!isliving(M))		//We only want mob/living, no bullets or mechs or AI eyes or items
 		if(is_type_in_list(M, exceptions))
 			keycheck = FALSE		//we'll allow it
 		else
+			return
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		if(H.redgate_restricted)
+			to_chat(M, span_warning("You can not walk through the redgate without another character giving you permission (by clicking on the redgate with you nearby)."))
 			return
 
 	if(is_type_in_list(M, restrictions))	//Some stuff we don't want to bring EVEN IF it has a key.
@@ -41,7 +46,7 @@
 
 	for(var/obj/O in M.contents)
 		if(O.redgate_allowed == FALSE)
-			to_chat(M, "<span class='warning'>The redgate refuses to allow you to pass whilst you possess \the [O].</span>")
+			to_chat(M, span_warning("The redgate refuses to allow you to pass whilst you possess \the [O]."))
 			return
 
 	if(keycheck)		//exceptions probably won't have a ckey
@@ -54,7 +59,7 @@
 	var/turf/ourturf = find_our_turf(M)		//Find the turf on the opposite side of the target
 	if(!ourturf.check_density(TRUE,TRUE))	//Make sure there isn't a wall there
 		M.unbuckle_all_mobs(TRUE)
-		if(istype(M,/mob/living) && M.pulling)
+		if(isliving(M) && M.pulling)
 			var/atom/movable/pulled = M.pulling
 			M.stop_pulling()
 			playsound(src,'sound/effects/ominous-hum-2.ogg', 100,1)
@@ -66,14 +71,16 @@
 				pulled.forceMove(ourturf)
 				M.continue_pulling(pulled)
 			else
-				to_chat(M, "<span class='notice'>The redgate refused your pulled item.</span>")
+				to_chat(M, span_notice("The redgate refused your pulled item."))
 		else
 			playsound(src,'sound/effects/ominous-hum-2.ogg', 100,1)
+			if(egg_interdict(M, ourturf))
+				return
 			M.forceMove(ourturf)		//Let's just do forcemove, I don't really want people teleporting to weird places if they have bluespace stuff
 	else
-		to_chat(M, "<span class='notice'>Something blocks your way.</span>")
+		to_chat(M, span_notice("Something blocks your way."))
 
-/obj/structure/redgate/proc/find_our_turf(var/atom/movable/AM)	//This finds the turf on the opposite side of the target gate from where you are
+/obj/structure/redgate/proc/find_our_turf(atom/movable/AM)	//This finds the turf on the opposite side of the target gate from where you are
 	var/offset_x = x - AM.x										//used for more smooth teleporting
 	var/offset_y = y - AM.y
 
@@ -98,26 +105,45 @@
 	return
 
 /obj/structure/redgate/Crossed(mob/M as mob)
+	. = ..()
 	src.teleport(M)
 	return
 
 /obj/structure/redgate/attack_hand(mob/M as mob)
 	if(density)
-		src.teleport(M)
+		if(ishuman(M))
+			var/mob/living/carbon/human/O = M
+			var/list/nearby_restricted = list()
+			for(var/obj/structure/redgate/g in world)
+				for(var/mob/living/carbon/human/H in oview(7,g))
+					if(H.redgate_restricted && !O.redgate_restricted) //For every restricted human near the redgate, if you aren't restricted yourself, put them in a list.
+						nearby_restricted |= H
+			if(!nearby_restricted.len)
+				teleport(M) //teleport functionality remains if no restricted people are nearby.
+			else
+				var/mob/living/carbon/human/restricted_human = tgui_input_list(M, "Who do you wish to give access through the redgate?", "Nearby Redgate Inhabitants", nearby_restricted)
+				if(!restricted_human)
+					return
+				restricted_human.redgate_restricted = FALSE
+				to_chat(M, span_notice("You have given [restricted_human] permission to use the redgate."))
+				to_chat(restricted_human, span_notice("[M] has given you permission to use the redgate."))
+				log_and_message_admins("[M] has given [restricted_human] permission to use the redgate.")
+		else
+			teleport(M)
 	else
 		if(!find_partner())
-			to_chat(M, "<span class='warning'>The [src] remains off... seems like it doesn't have a destination.</span>")
+			to_chat(M, span_warning("The [src] remains off... seems like it doesn't have a destination."))
 
 
-/obj/structure/redgate/attack_ghost(var/mob/observer/dead/user)
+/obj/structure/redgate/attack_ghost(mob/observer/dead/user)
 
 	if(target)
-		if(!(secret || target.secret) || user?.client?.holder)
+		if(!(secret || target.secret) || check_rights_for(user?.client, R_HOLDER))
 			user.forceMove(get_turf(target))
 	else
 		return ..()
 
-/obj/structure/redgate/away/Initialize()
+/obj/structure/redgate/away/Initialize(mapload)
 	. = ..()
 	if(!find_partner())
 		log_and_message_admins("An away redgate spawned but wasn't able to find a gateway to link to. If this appeared at roundstart, something has gone wrong, otherwise if you spawn another gate they should connect.")
@@ -162,6 +188,22 @@
 /area/redgate/structure/powered
 	requires_power = 0
 
+/area/redgate/structure/powered/bed1
+	name = "Bedroom 1"
+	requires_power = 0
+
+/area/redgate/structure/powered/bed2
+	name = "Bedroom 2"
+	requires_power = 0
+
+/area/redgate/structure/powered/bed3
+	name = "Bedroom 3"
+	requires_power = 0
+
+/area/redgate/structure/powered/bed4
+	name = "Bedroom 4"
+	requires_power = 0
+
 /area/redgate/lit
 	dynamic_lighting = 0
 
@@ -171,7 +213,7 @@
 /area/redgate/structure/powered/teppi_ranch/barn
 	name = "barn"
 
-/obj/item/weapon/paper/teppiranch
+/obj/item/paper/teppiranch
 	name = "elegantly scrawled note"
 	info = {"<i>Goeleigh,<BR><BR>
 
@@ -864,26 +906,32 @@
 /area/redgate/train/dorm1
 	name = "Train Dorm 1"
 	icon_state = "purple"
+	flags = RAD_SHIELDED| BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_SOUNDPROOF | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING
 
 /area/redgate/train/dorm2
 	name = "Train Dorm 2"
 	icon_state = "yellow"
+	flags = RAD_SHIELDED| BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_SOUNDPROOF | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING
 
 /area/redgate/train/dorm3
 	name = "Train Dorm 3"
 	icon_state = "purple"
+	flags = RAD_SHIELDED| BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_SOUNDPROOF | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING
 
 /area/redgate/train/dorm4
 	name = "Train Dorm 4"
 	icon_state = "purple"
+	flags = RAD_SHIELDED| BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_SOUNDPROOF | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING
 
 /area/redgate/train/dorm5
 	name = "Train Dorm 5"
 	icon_state = "yellow"
+	flags = RAD_SHIELDED| BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_SOUNDPROOF | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING
 
 /area/redgate/train/dorm6
 	name = "Train Dorm 6"
 	icon_state = "purple"
+	flags = RAD_SHIELDED| BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_SOUNDPROOF | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING
 
 /area/redgate/train/seclobby
 	name = "Train Security Lobby"
@@ -1077,6 +1125,340 @@
 	name = "Fantasy house"
 	icon_state = "green"
 
+//WELCOME TO THE JUNGLE
+
+/area/redgate/jungle
+	name = "Jungle"
+	icon_state = "red"
+	requires_power = 0
+
+/area/redgate/jungle/aboveground
+	name = "Jungle"
+	icon_state = "red"
+
+/area/redgate/jungle/temple
+	name = "Jungle temple"
+	icon_state = "yellow"
+
+/area/redgate/jungle/westcaves
+	name = "Jungle west caves"
+	icon_state = "yellow"
+
+/area/redgate/jungle/eastcaves
+	name = "Jungle east caves"
+	icon_state = "yellow"
+
+/area/redgate/jungle/southcaves
+	name = "Jungle south caves"
+	icon_state = "yellow"
+
+/area/redgate/jungle/deepforest
+	name = "Jungle deep forest"
+	icon_state = "yellow"
+
+/area/redgate/jungle/facilitynw
+	name = "Jungle facility north-west"
+	icon_state = "yellow"
+	lightswitch = 0
+
+/area/redgate/jungle/facilityne
+	name = "Jungle facility north-east"
+	icon_state = "yellow"
+	lightswitch = 0
+
+/area/redgate/jungle/facilitysw
+	name = "Jungle facility south-west"
+	icon_state = "yellow"
+	lightswitch = 0
+
+/area/redgate/jungle/facilityse
+	name = "Jungle facility south-east"
+	icon_state = "yellow"
+	lightswitch = 0
+
+/area/redgate/jungle/underwaterwest
+	name = "Jungle underwater west"
+	icon_state = "purple"
+	forced_ambience = list('sound/effects/underwater.ogg')
+
+/area/redgate/jungle/underwaterswamp
+	name = "Jungle underwater swamp"
+	icon_state = "purple"
+	forced_ambience = list('sound/effects/underwater.ogg')
+
+/area/redgate/jungle/underwaterpong
+	name = "Jungle underwater pond"
+	icon_state = "purple"
+	forced_ambience = list('sound/effects/underwater.ogg')
+
+/area/redgate/jungle/underwatercave
+	name = "Jungle underwater cave"
+	icon_state = "yellow"
+
+/area/redgate/jungle/underwatercaveswamp
+	name = "Jungle underwater swamp cave"
+	icon_state = "yellow"
+
+/area/redgate/jungle/underwatercavepond
+	name = "Jungle underwater pond cave"
+	icon_state = "yellow"
+
+/area/redgate/jungle/murderroom
+	name = "Jungle trophy room"
+	icon_state = "yellow"
+
+/area/redgate/jungle/facilitybar
+	name = "Jungle facility bar"
+	icon_state = "yellow"
+
+/area/redgate/jungle/facilitycasino
+	name = "Jungle facility casino"
+	icon_state = "yellow"
+
+//Facility locations
+
+/area/redgate/facility
+	name = "Facility"
+	icon_state = "red"
+	requires_power = 0
+
+/area/redgate/facility/ne
+	name = "Facility - North East"
+
+/area/redgate/facility/nw
+	name = "Facility - North West"
+
+/area/redgate/facility/sw
+	name = "Facility - South West"
+
+/area/redgate/facility/se
+	name = "Facility - South East"
+
+/area/redgate/facility/medbay
+	name = "Facility - Medbay"
+	icon_state = "yellow"
+
+/area/redgate/facility/securitylobby
+	name = "Facility - Security Lobby"
+	icon_state = "yellow"
+
+/area/redgate/facility/security
+	name = "Facility - Security"
+	icon_state = "yellow"
+
+/area/redgate/facility/tram
+	name = "Facility - Tram"
+	icon_state = "yellow"
+
+/area/redgate/facility/entrance
+	name = "Facility - Entrance"
+	icon_state = "yellow"
+
+/area/redgate/facility/lab1
+	name = "Facility - Lab 1"
+	icon_state = "yellow"
+
+/area/redgate/facility/lab2
+	name = "Facility - Lab 2"
+	icon_state = "yellow"
+
+/area/redgate/facility/lab3
+	name = "Facility - Lab 3"
+	icon_state = "yellow"
+
+/area/redgate/facility/lab4
+	name = "Facility - Lab 4"
+	icon_state = "yellow"
+
+/area/redgate/facility/lab5
+	name = "Facility - Lab 5"
+	icon_state = "yellow"
+
+/area/redgate/facility/lab6
+	name = "Facility - Lab 6"
+	icon_state = "yellow"
+
+/area/redgate/facility/lab7
+	name = "Facility - Lab 7"
+	icon_state = "yellow"
+
+/area/redgate/facility/lab8
+	name = "Facility - Lab 8"
+	icon_state = "yellow"
+
+/area/redgate/facility/cell1
+	name = "Facility - Cell 1"
+	icon_state = "green"
+
+/area/redgate/facility/cell2
+	name = "Facility - Cell 2"
+	icon_state = "green"
+
+/area/redgate/facility/cell3
+	name = "Facility - Cell 3"
+	icon_state = "green"
+
+/area/redgate/facility/cell4
+	name = "Facility - Cell 4"
+	icon_state = "green"
+
+/area/redgate/facility/cell5
+	name = "Facility - Cell 5"
+	icon_state = "green"
+
+/area/redgate/facility/cell6
+	name = "Facility - Cell 6"
+	icon_state = "green"
+
+/area/redgate/facility/cell7
+	name = "Facility - Cell 7"
+	icon_state = "green"
+
+/area/redgate/facility/cell8
+	name = "Facility - Cell 8"
+	icon_state = "green"
+
+/area/redgate/facility/cell9
+	name = "Facility - Cell 9"
+	icon_state = "green"
+
+/area/redgate/facility/cell10
+	name = "Facility - Cell 10"
+	icon_state = "green"
+
+/area/redgate/facility/cell11
+	name = "Facility - Cell 11"
+	icon_state = "green"
+
+/area/redgate/facility/cell12
+	name = "Facility - Cell 12"
+	icon_state = "green"
+
+/area/redgate/facility/cell13
+	name = "Facility - Cell 13"
+	icon_state = "green"
+
+/area/redgate/facility/cell14
+	name = "Facility - Cell 14"
+	icon_state = "green"
+
+/area/redgate/facility/cell15
+	name = "Facility - Cell 15"
+	icon_state = "green"
+
+/area/redgate/facility/cell16
+	name = "Facility - Cell 16"
+	icon_state = "green"
+
+/area/redgate/facility/cell17
+	name = "Facility - Cell 17"
+	icon_state = "green"
+
+/area/redgate/facility/cell18
+	name = "Facility - Cell 18"
+	icon_state = "green"
+
+/area/redgate/facility/cell19
+	name = "Facility - Cell 19"
+	icon_state = "green"
+
+/area/redgate/facility/cell20
+	name = "Facility - Cell 20"
+	icon_state = "green"
+
+/area/redgate/facility/cell21
+	name = "Facility - Cell 21"
+	icon_state = "green"
+
+/area/redgate/facility/cell22
+	name = "Facility - Cell 22"
+	icon_state = "green"
+
+/area/redgate/facility/cell23
+	name = "Facility - Cell 23"
+	icon_state = "green"
+
+/area/redgate/facility/cell24
+	name = "Facility - Cell 24"
+	icon_state = "green"
+
+/area/redgate/facility/cell25
+	name = "Facility - Cell 25"
+	icon_state = "green"
+
+/area/redgate/facility/cell26
+	name = "Facility - Cell 26"
+	icon_state = "green"
+
+/area/redgate/facility/cell27
+	name = "Facility - Cell 28"
+	icon_state = "green"
+
+/area/redgate/facility/cell29
+	name = "Facility - Cell 29"
+	icon_state = "green"
+
+/area/redgate/facility/office1
+	name = "Facility - Office 1"
+	icon_state = "green"
+
+/area/redgate/facility/office2
+	name = "Facility - Office 2"
+	icon_state = "green"
+
+/area/redgate/facility/office3
+	name = "Facility - Office 3"
+	icon_state = "green"
+
+/area/redgate/facility/office4
+	name = "Facility - Office 4"
+	icon_state = "green"
+
+/area/redgate/facility/office5
+	name = "Facility - Office 5"
+	icon_state = "green"
+
+/area/redgate/facility/office6
+	name = "Facility - Office 6"
+	icon_state = "green"
+
+/area/redgate/facility/office7
+	name = "Facility - Office 7"
+	icon_state = "green"
+
+/area/redgate/facility/office8
+	name = "Facility - Office 8"
+	icon_state = "green"
+
+/area/redgate/facility/office9
+	name = "Facility - Office 9"
+	icon_state = "green"
+
+/area/redgate/facility/office10
+	name = "Facility - Office 10"
+	icon_state = "green"
+
+/area/redgate/facility/office11
+	name = "Facility - Office 11"
+	icon_state = "green"
+
+/area/redgate/facility/office12
+	name = "Facility - Office 12"
+	icon_state = "green"
+
+/area/redgate/facility/office13
+	name = "Facility - Office 13"
+	icon_state = "green"
+
+/area/redgate/facility/office14
+	name = "Facility - Office 14"
+	icon_state = "green"
+
+/area/redgate/facility/office15
+	name = "Facility - Office 15"
+	icon_state = "green"
+
+
 //HIIIIGHWAY TO THE! LASER-DOME!
 /area/redgate/laserdome
 	name = "Laserdome Safe Zone"
@@ -1103,19 +1485,20 @@
 /area/redgate/laserdome/lobby/store_2
 	name = "Laserdome Store 2"
 
-/area/redgate/laserdome/lobby/spaceview_lounge
-	name = "Laserdome Spaceview Lounge"
-
 /area/redgate/laserdome/arena
 	name = "Laserdome Arenas"
-	icon_state = "yelwhisqu"
+	icon_state = "cyawhisqu"
 
 /area/redgate/laserdome/arena/ctf_prep
 	name = "Laserdome Capture The Flag Prep Area"
-	icon_state = "yelwhisqu"
+	icon_state = "yelwhitri"
 
 /area/redgate/laserdome/arena/hbl_prep
 	name = "Laserdome Hyperball Prep Area"
+	icon_state = "yelwhicir"
+
+/area/redgate/laserdome/arena/ffa_prep
+	name = "Laserdome Free-For-All Prep Area"
 	icon_state = "yelwhisqu"
 
 /area/redgate/laserdome/arena/capture_the_flag
@@ -1126,12 +1509,12 @@
 	name = "Laserdome Hyperball Arena"
 	icon_state = "redwhicir"
 
-/area/redgate/laserdome/space
-	name = "Laserdome Space View"
-	icon_state = "dark128"
+/area/redgate/laserdome/arena/freeforall
+	name = "Laserdome Free-For-All Arena"
+	icon_state = "redwhisqu"
 
 //The actual flags. Base type defined to handle some of the basic behaviours.
-/obj/item/weapon/laserdome_flag
+/obj/item/laserdome_flag
 	name = "Flag"
 	desc = "Steal the enemy flag and take it to your base in order to score! First team to three captures wins! Or was it five? Eh, check with the referee I guess."
 	description_info = "Simply pick up your team's flag to return it to your base after a short delay. If you're carrying the enemy flag, use it on your team's flag base to score a point!"
@@ -1149,18 +1532,18 @@
 	var/start_pos
 	var/flag_return_delay = 3 SECONDS	//how long you have to hold onto your team's flag before it returns home
 
-/obj/item/weapon/laserdome_flag/Initialize()
+/obj/item/laserdome_flag/Initialize(mapload)
 	. = ..()
 	start_pos = src.loc	//save our starting location for later
 
 /*
 //TODO - make this not trigger when the flag is returned to its original location
-/obj/item/weapon/laserdome_flag/dropped()
+/obj/item/laserdome_flag/dropped(mob/user, equipping, slot)
 	. = ..()
-	global_announcer.autosay("[src] dropped!","Laserdome Announcer","Entertainment")
+	GLOB.global_announcer.autosay("[src] dropped!","Laserdome Announcer","Entertainment")
 */
 
-/obj/item/weapon/laserdome_flag/attack_hand(mob/user as mob)
+/obj/item/laserdome_flag/attack_hand(mob/user as mob)
 	. = ..()
 	var/mob/living/carbon/human/M = loc
 	var/grabbing_team
@@ -1170,34 +1553,34 @@
 		return
 
 	//get their uniform
-	if(istype(M.wear_suit, /obj/item/clothing/suit/redtag))
+	if(istype(M.wear_suit, /obj/item/clothing/suit/lasertag/redtag))
 		grabbing_team = "red"
-	else if(istype(M.wear_suit, /obj/item/clothing/suit/bluetag))
+	else if(istype(M.wear_suit, /obj/item/clothing/suit/lasertag/bluetag))
 		grabbing_team = "blue"
 	else
 		return	//if they're not on a team, stop!
 
 	//set the verb based on matching (or mismatching) outfits, and teleport the flag back to base if it was touched by the owning team
 	if(grabbing_team == laser_team)
-		user.visible_message("<span class='warning'>[user] is returning \the [src]!</span>")
-		if(do_after(user,flag_return_delay))	//channel return, rather than instant
+		user.visible_message(span_warning("[user] is returning \the [src]!"))
+		if(do_after(user, flag_return_delay, target = src))	//channel return, rather than instant
 			user.drop_from_inventory(src)
 			src.loc = src.start_pos
-			global_announcer.autosay("[capitalize(laser_team)] flag returned by [user]!","Laserdome Announcer","Entertainment")
+			GLOB.global_announcer.autosay("[capitalize(laser_team)] flag returned by [user]!","Laserdome Announcer","Entertainment")
 		else	//if they fail the channel (e.g. because they got tagged!) then drop it
 			user.drop_from_inventory(src)
 			return
 	else
-		user.visible_message("<span class='warning'>[user] has taken \the [src]!</span>")
-		global_announcer.autosay("[src] taken by [capitalize(grabbing_team)] team!","Laserdome Announcer","Entertainment")
+		user.visible_message(span_warning("[user] has taken \the [src]!"))
+		GLOB.global_announcer.autosay("[src] taken by [capitalize(grabbing_team)] team!","Laserdome Announcer","Entertainment")
 
-/obj/item/weapon/laserdome_flag/red
+/obj/item/laserdome_flag/red
 	name = "Red flag"
 	icon_state = "red_flag"
 	item_state = "laserdome_flag_red"
 	laser_team = "red"
 
-/obj/item/weapon/laserdome_flag/blue
+/obj/item/laserdome_flag/blue
 	name = "Blue flag"
 	icon_state = "blue_flag"
 	item_state = "laserdome_flag_blue"
@@ -1238,25 +1621,25 @@
 	. = ..()
 
 	//TODO- require the team's flag to be present before they can score?
-	if(istype(F,/obj/item/weapon/laserdome_flag))
-		var/obj/item/weapon/laserdome_flag/flag = F
+	if(istype(F,/obj/item/laserdome_flag))
+		var/obj/item/laserdome_flag/flag = F
 		if(flag.laser_team != base_team)
-			global_announcer.autosay("[user] captured the [capitalize(flag.laser_team)] flag for [capitalize(base_team)] team!","Laserdome Announcer","Entertainment")
+			GLOB.global_announcer.autosay("[user] captured the [capitalize(flag.laser_team)] flag for [capitalize(base_team)] team!","Laserdome Announcer","Entertainment")
 			user.drop_from_inventory(flag)
 			flag.loc = flag.start_pos	//teleport the captured flag back to its base location
 			score++	//increment our score by 1!
 			if(score < score_limit)	//announce the current score and how many more captures are needed
-				global_announcer.autosay("[num2text(score_limit-score)] captures remain until [capitalize(base_team)] team wins.","Laserdome Announcer","Entertainment")
+				GLOB.global_announcer.autosay("[num2text(score_limit-score)] captures remain until [capitalize(base_team)] team wins.","Laserdome Announcer","Entertainment")
 			else if(score >= score_limit)	//now, if score equals or exceeds (somehow) the score limit, announce that our team won and reset the score for all flag bases nearby
-				global_announcer.autosay("+|[uppertext(base_team)] TEAM HAS WON THE MATCH!|+","Laserdome Announcer","Entertainment")
+				GLOB.global_announcer.autosay("+|[uppertext(base_team)] TEAM HAS WON THE MATCH!|+","Laserdome Announcer","Entertainment")
 				for(var/obj/structure/flag_base/FB in src.loc.loc.contents)	//this feels dirty, but it works
 					FB.score = 0
 		else if(flag.laser_team == base_team)
-			global_announcer.autosay("[capitalize(base_team)] flag returned!","Laserdome Announcer","Entertainment")
+			GLOB.global_announcer.autosay("[capitalize(base_team)] flag returned!","Laserdome Announcer","Entertainment")
 			user.drop_from_inventory(flag)
 			flag.loc = src.loc			//place our flag neatly back on its pedestal
 
-/obj/item/weapon/laserdome_hyperball
+/obj/item/laserdome_hyperball
 	name = "\improper HYPERball"	//*always* refer to it as "the hyperball", not just "the ball". corporate insists.
 	desc = "Because regular balls aren't exciting enough, the future needs HYPERballs!"
 	description_info = "Take the ball and dunk it into the opposing team's goal to score! You can either throw it into the goal or dunk it directly; the latter is worth more points, but it's more challenging as you need to be next to the goal in order to dunk."
@@ -1274,7 +1657,7 @@
 	var/last_holder
 	var/last_team
 
-/obj/item/weapon/laserdome_hyperball_prop
+/obj/item/laserdome_hyperball_prop
 	name = "demonstration HYPERball"
 	desc = "Because regular balls aren't exciting enough, the future needs HYPERballs!"
 	description_info = "This model is for demonstration purposes only. It looks pretty heavy!"
@@ -1284,11 +1667,11 @@
 	w_class = ITEMSIZE_NO_CONTAINER
 	redgate_allowed = FALSE //you can't take the demonstration balls and go home either
 
-/obj/item/weapon/laserdome_hyperball/Initialize()
+/obj/item/laserdome_hyperball/Initialize(mapload)
 	. = ..()
 	start_pos = src.loc	//save our starting location for later
 
-/obj/item/weapon/laserdome_hyperball/attack_hand(mob/user as mob)
+/obj/item/laserdome_hyperball/attack_hand(mob/user as mob)
 	. = ..()
 	var/mob/living/carbon/human/M = loc
 	var/grabbing_team
@@ -1298,31 +1681,31 @@
 		return
 
 	//get their uniform
-	if(istype(M.wear_suit, /obj/item/clothing/suit/redtag))
+	if(istype(M.wear_suit, /obj/item/clothing/suit/lasertag/redtag))
 		grabbing_team = "red"
 		icon_state = "[initial(icon_state)]_red"
 		item_state = "[initial(icon_state)]_red"
-	else if(istype(M.wear_suit, /obj/item/clothing/suit/bluetag))
+	else if(istype(M.wear_suit, /obj/item/clothing/suit/lasertag/bluetag))
 		grabbing_team = "blue"
 		icon_state = "[initial(icon_state)]_blue"
 		item_state = "[initial(icon_state)]_blue"
 	else
 		return	//if they're not on a team, stop!
 
-	user.visible_message("<span class='warning'>[user] has taken \the [src]!</span>")
+	user.visible_message(span_warning("[user] has taken \the [src]!"))
 	//cache our grabber and their team, for throw interactions with the goals later
 	last_holder = M
 	last_team = grabbing_team
 	//finally, announcer calls out which team has the ball
-	global_announcer.autosay("[capitalize(grabbing_team)] team on offense!","Laserdome Announcer","Entertainment")
+	GLOB.global_announcer.autosay("[capitalize(grabbing_team)] team on offense!","Laserdome Announcer","Entertainment")
 	update_icon()
 	update_held_icon()
 
 /*
 //TODO- make this not trigger when the ball is thrown or dunked, only when it's actually dropped
-/obj/item/weapon/laserdome_hyperball/dropped()
+/obj/item/laserdome_hyperball/dropped(mob/user, equipping, slot)
 	. = ..()
-	global_announcer.autosay("[capitalize(last_team)] fumble!","Laserdome Announcer","Entertainment")
+	GLOB.global_announcer.autosay("[capitalize(last_team)] fumble!","Laserdome Announcer","Entertainment")
 */
 
 /obj/structure/hyperball_pedestal
@@ -1361,22 +1744,22 @@
 	. = ..()
 	var/mob/living/carbon/human/M = user
 	var/dunking_team
-	if(istype(M.wear_suit, /obj/item/clothing/suit/redtag))
+	if(istype(M.wear_suit, /obj/item/clothing/suit/lasertag/redtag))
 		dunking_team = "red"
-	else if(istype(M.wear_suit, /obj/item/clothing/suit/bluetag))
+	else if(istype(M.wear_suit, /obj/item/clothing/suit/lasertag/bluetag))
 		dunking_team = "blue"
 	else
 		return	//if they're not on a team, stop!
 
-	if(istype(B,/obj/item/weapon/laserdome_hyperball))
-		var/obj/item/weapon/laserdome_hyperball/ball = B
+	if(istype(B,/obj/item/laserdome_hyperball))
+		var/obj/item/laserdome_hyperball/ball = B
 		if(dunking_team != goal_team)
-			global_announcer.autosay("[user] dunked the HYPERball for [capitalize(dunking_team)] team! [num2text(dunk_points)] points scored!","Laserdome Announcer","Entertainment")
+			GLOB.global_announcer.autosay("[user] dunked the HYPERball for [capitalize(dunking_team)] team! [num2text(dunk_points)] points scored!","Laserdome Announcer","Entertainment")
 			score += dunk_points	//increment our score!
 			if(score < score_limit)	//announce the current score and how many more captures are needed
-				global_announcer.autosay("[num2text(score_limit-score)] points remain until [capitalize(dunking_team)] team wins.","Laserdome Announcer","Entertainment")
+				GLOB.global_announcer.autosay("[num2text(score_limit-score)] points remain until [capitalize(dunking_team)] team wins.","Laserdome Announcer","Entertainment")
 			else if(score >= score_limit)	//now, if score equals or exceeds (somehow) the score limit, announce that our team won and reset the score for all flag bases nearby
-				global_announcer.autosay("+|[uppertext(dunking_team)] TEAM HAS WON THE MATCH!|+","Laserdome Announcer","Entertainment")
+				GLOB.global_announcer.autosay("+|[uppertext(dunking_team)] TEAM HAS WON THE MATCH!|+","Laserdome Announcer","Entertainment")
 				for(var/obj/structure/hyperball_goal/HB in src.loc.loc.contents)	//this feels dirty, but it works
 					HB.score = 0
 		else if(dunking_team == goal_team)	//discourage people from dunking the ball into their own goal as a quick way to teleport it back to the midfield
@@ -1384,11 +1767,11 @@
 				if("blue")
 					for(var/obj/structure/hyperball_goal/red/HGR in src.loc.loc.contents)
 						HGR.score = max(0,HGR.score-dunk_points)
-						global_announcer.autosay("[user] dunked the HYPERball and scored an own goal! +Points |de-ducted!|+ [capitalize(goal_team)] team score is now: [HGR.score].","Laserdome Announcer","Entertainment")
+						GLOB.global_announcer.autosay("[user] dunked the HYPERball and scored an own goal! +Points |de-ducted!|+ [capitalize(goal_team)] team score is now: [HGR.score].","Laserdome Announcer","Entertainment")
 				if("red")
 					for(var/obj/structure/hyperball_goal/blue/HGB in src.loc.loc.contents)
 						HGB.score = max(0,HGB.score-dunk_points)
-						global_announcer.autosay("[user] dunked the HYPERball and scored an own goal! +Points |de-ducted!|+ [capitalize(goal_team)] team score is now: [HGB.score].","Laserdome Announcer","Entertainment")
+						GLOB.global_announcer.autosay("[user] dunked the HYPERball and scored an own goal! +Points |de-ducted!|+ [capitalize(goal_team)] team score is now: [HGB.score].","Laserdome Announcer","Entertainment")
 
 		user.drop_from_inventory(ball)
 		ball.loc = ball.start_pos	//teleport the ball back to the midfield
@@ -1396,36 +1779,84 @@
 		ball.item_state = "[initial(ball.item_state)]"
 		ball.update_icon()
 
-/obj/structure/hyperball_goal/hitby(obj/B as obj)
+/obj/structure/hyperball_goal/hitby(atom/movable/source, datum/thrownthing/throwingdatum)
 	. = ..()
-	if(istype(B,/obj/item/weapon/laserdome_hyperball))
-		var/obj/item/weapon/laserdome_hyperball/ball = B
-		if(prob(range_dunk_chance))
-			if(ball.last_team != goal_team)
-				global_announcer.autosay("[ball.last_holder] threw the HYPERball for [capitalize(ball.last_team)] team! [num2text(range_dunk_points)] points scored!","Laserdome Announcer","Entertainment")
-				score += range_dunk_points	//increment our score!
-				if(score < score_limit)	//announce the current score and how many more captures are needed
-					global_announcer.autosay("[num2text(score_limit-score)] points remain until [capitalize(ball.last_team)] team wins.","Laserdome Announcer","Entertainment")
-				else if(score >= score_limit)	//now, if score equals or exceeds the score limit, announce that our team won and reset the score for all flag bases nearby
-					global_announcer.autosay("+|[uppertext(ball.last_team)] TEAM HAS WON THE MATCH!|+","Laserdome Announcer","Entertainment")
-					for(var/obj/structure/hyperball_goal/HB in src.loc.loc.contents)	//this feels dirty, but it works
-						HB.score = 0
-			else if(ball.last_team == goal_team)	//discourage people from dunking the ball into their own goal as a quick way to teleport it back to the midfield
-				switch(goal_team)	//this gets a bit fiddly because we store our score on the target's goal, so we need to scan the map for the opposing team's goal and deduct points from it
-					if("blue")
-						for(var/obj/structure/hyperball_goal/red/HGR in src.loc.loc.contents)
-							HGR.score = max(0,HGR.score-range_dunk_points)
-							global_announcer.autosay("[ball.last_holder] threw the HYPERball and scored an own goal! +Points |de-ducted!|+ [capitalize(goal_team)] team score is now: [HGR.score].","Laserdome Announcer","Entertainment")
-					if("red")
-						for(var/obj/structure/hyperball_goal/blue/HGB in src.loc.loc.contents)
-							HGB.score = max(0,HGB.score-range_dunk_points)
-							global_announcer.autosay("[ball.last_holder] threw the HYPERball and scored an own goal! +Points |de-ducted!|+ [capitalize(goal_team)] team score is now: [HGB.score].","Laserdome Announcer","Entertainment")
+	if(!istype(source, /obj/item/laserdome_hyperball))
+		return
 
-			ball.loc = ball.start_pos	//teleport the ball back to the midfield
-			ball.icon_state = "[initial(ball.icon_state)]"
-			ball.item_state = "[initial(ball.item_state)]"
-			ball.update_icon()
-		else
-			//todo; throw the ball in a random direction
-			src.visible_message("\The [ball] bounces off \the [src]'s rim!")
-			global_announcer.autosay("[ball.last_holder] threw the HYPERball and +missed!+ |Oooh!|","Laserdome Announcer","Entertainment")
+	var/obj/item/laserdome_hyperball/ball = source
+	if(prob(range_dunk_chance))
+		if(ball.last_team != goal_team)
+			GLOB.global_announcer.autosay("[ball.last_holder] threw the HYPERball for [capitalize(ball.last_team)] team! [num2text(range_dunk_points)] points scored!","Laserdome Announcer","Entertainment")
+			score += range_dunk_points	//increment our score!
+			if(score < score_limit)	//announce the current score and how many more captures are needed
+				GLOB.global_announcer.autosay("[num2text(score_limit-score)] points remain until [capitalize(ball.last_team)] team wins.","Laserdome Announcer","Entertainment")
+			else if(score >= score_limit)	//now, if score equals or exceeds the score limit, announce that our team won and reset the score for all flag bases nearby
+				GLOB.global_announcer.autosay("+|[uppertext(ball.last_team)] TEAM HAS WON THE MATCH!|+","Laserdome Announcer","Entertainment")
+				for(var/obj/structure/hyperball_goal/HB in src.loc.loc.contents)	//this feels dirty, but it works
+					HB.score = 0
+		else if(ball.last_team == goal_team)	//discourage people from dunking the ball into their own goal as a quick way to teleport it back to the midfield
+			switch(goal_team)	//this gets a bit fiddly because we store our score on the target's goal, so we need to scan the map for the opposing team's goal and deduct points from it
+				if("blue")
+					for(var/obj/structure/hyperball_goal/red/HGR in src.loc.loc.contents)
+						HGR.score = max(0,HGR.score-range_dunk_points)
+						GLOB.global_announcer.autosay("[ball.last_holder] threw the HYPERball and scored an own goal! +Points |de-ducted!|+ [capitalize(goal_team)] team score is now: [HGR.score].","Laserdome Announcer","Entertainment")
+				if("red")
+					for(var/obj/structure/hyperball_goal/blue/HGB in src.loc.loc.contents)
+						HGB.score = max(0,HGB.score-range_dunk_points)
+						GLOB.global_announcer.autosay("[ball.last_holder] threw the HYPERball and scored an own goal! +Points |de-ducted!|+ [capitalize(goal_team)] team score is now: [HGB.score].","Laserdome Announcer","Entertainment")
+
+		ball.loc = ball.start_pos	//teleport the ball back to the midfield
+		ball.icon_state = "[initial(ball.icon_state)]"
+		ball.item_state = "[initial(ball.item_state)]"
+		ball.update_icon()
+	else
+		//todo; throw the ball in a random direction
+		src.visible_message("\The [ball] bounces off \the [src]'s rim!")
+		GLOB.global_announcer.autosay("[ball.last_holder] threw the HYPERball and +missed!+ |Oooh!|","Laserdome Announcer","Entertainment")
+
+/obj/structure/prop/machine/biosyphon/laserdome
+	name = "Laserdome Orientation Holo"
+	desc = {"This device is holoprojecting a wall of flickering text into the air. It seems to be incomprehensible gibberish at first, perhaps an alien language, but the longer you stare the more it starts to make sense, slowly coalescing into coherent sentences in your preferred language. The overall word choice is a little eclectic or unusual at times, and some words remain impossible for you to decipher, but you get the gist pretty quickly. It reads:<br>
+	MANY GREETINGS, BRAVE VISITOR!
+	THE (LIGHT AMPLIFIED BY STIMULATED EMISSION OF RADIATION) DOME IS FINEST PHYSICAL EXERCISE AND RECREATIONAL FACILITY LOCATED UPON THIS RELATIVE SIDE OF THE \[illegible\] SUPERMASSIVE OBSIDIAN VOID.
+	OUR GREAT BRAINS HERE AT THE \[incomprehensible\] HAPPY FUN TIME CORPORATION ARE SURE YOU WILL DEFINITELY MUCH ENJOY PARTAKING IN THE SIGHTS AND SOUNDS OF OUR ESTABLISHMENT.
+	EVEN IF YOU DO NOT WISH TO BE (OR ARE PHYSICALLY INCAPABLE OF) TAKING PART IN THE ACCELERATED LIGHT GAMES, PLEASE WITNESS OUR HEROIC GLADIATORS BATTLE FOR YOUR ENJOYMENT, AND VISIT LOCAL SERVICES SUCH AS THE \[incoherent\] ACCELERATED SUSTENANCE JOINT.
+	PLEASE TO BE FOLLOWINGS FLOOR-BASED POINTED INDICATORS TOWARDS PLACEMENTS OF INTERESTING! AND BE SURE TO BE TAKINGS FREE RADIO HEADSET CHIP TO BE HEARING ARENA ANNOUNCER!
+	THANKINGS YOU FOR YOUR PATRONAGE!!!
+	NEWLY AVAILABLE IS FREE-FOR-ALL ARENA, REPLACING OLD BORING STARVIEW LOUNGINGS!
+	(p.s. please to be cleanings up after selves, do not leave messes on concourse, thankings you again muchly)"}
+
+/obj/structure/prop/machine/biosyphon/laserdome/hyperball
+	name = "Laserdome HYPERball Orientation Holo"
+	desc = {"This device is holoprojecting a wall of flickering text into the air. It seems to be incomprehensible gibberish at first, perhaps an alien language, but the longer you stare the more it starts to make sense, slowly coalescing into coherent sentences in your preferred language. The overall word choice is a little eclectic or unusual at times, and some words remain impossible for you to decipher, but you get the gist pretty quickly. It reads:<br>
+	RULES OF HYPERBALL ARE SIMPLE!<br>
+	TAKE BALL, SLAM-DUNKIFY INTO OPPOSING TEAM GOAL!
+	THREE POINTS AWARD FOR THROW (BUT WATCH OUT, CAN MISS)!
+	SEVEN POINTS IF ENDUNKENING IS BY HAND!
+	POINTS AM DEDUCT IF OWN-DUNKING!
+	FIRST TEAM TO TWENTY-AND-ONE POINTS IS WIN!
+	MUST WEAR TEAM PLATINGS FOR SCORINGS TO COUNT!
+	GOOD LUCK!!!"}
+
+/obj/structure/prop/machine/biosyphon/laserdome/flagcap
+	name = "Laserdome Capture-The-Flag Orientation Holo"
+	desc = {"This device is holoprojecting a wall of flickering text into the air. It seems to be incomprehensible gibberish at first, perhaps an alien language, but the longer you stare the more it starts to make sense, slowly coalescing into coherent sentences in your preferred language. The overall word choice is a little eclectic or unusual at times, and some words remain impossible for you to decipher, but you get the gist pretty quickly. It reads:<br>
+	RULES OF CAPTURING FLAG ARE SIMPLE!
+	GO TO ENEMY BASE, TAKE THEIR FLAG, BRING BACK TO OWN BASE!
+	NO SCORE IF ENEMY TEAM HAS FLAG, SO PROTECT OWN FLAG!
+	RETURN OWN FLAG TO BASE BY TOUCHINGS!
+	FIRST TEAM TO THREE CAPTURES IS WIN!
+	MUST WEAR TEAM PLATINGS FOR SCORINGS TO COUNT!
+	GOOD LUCK!!!"}
+
+/obj/structure/prop/machine/biosyphon/laserdome/freeforall
+	name = "Laserdome Free-For-All Orientation Holo"
+	desc = {"This device is holoprojecting a wall of flickering text into the air. It seems to be incomprehensible gibberish at first, perhaps an alien language, but the longer you stare the more it starts to make sense, slowly coalescing into coherent sentences in your preferred language. The overall word choice is a little eclectic or unusual at times, and some words remain impossible for you to decipher, but you get the gist pretty quickly. It reads:<br>
+	THIS ARENA IS FOR FREE-FOR-ALL AND TEAM-FOR-ALL MODES!
+	PURPLED EQUIPMENT IS HAVING NO TEAM ALLEGIANCE!
+	RECOMMENDED RULINGS AS FOLLOWS:
+	LAST MAN STANDING: WHEN PLAYER HIT, PERMANENTLY ELIMINATED, RETURN TO SPAWN! LAST PLAYER \'ALIVE\' IS WINNING! IN TEAM MODE, LAST TEAM WITH LIVE PLAYERS IS WIN!
+	FIRST TO SCORE: WHEN PLAYER HIT, RETURN TO SPAWN! FIRST PLAYER (OR TEAM) TO ELIMINATE AGREED NUMBER OF OTHERS IS WINNING!
+	OR, PLAY HOWEVER MOST ENJOYED!
+	GOOD LUCK!!!"}

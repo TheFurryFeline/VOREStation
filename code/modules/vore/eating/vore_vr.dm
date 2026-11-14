@@ -1,23 +1,24 @@
 
 /*
-VVVVVVVV           VVVVVVVV     OOOOOOOOO     RRRRRRRRRRRRRRRRR   EEEEEEEEEEEEEEEEEEEEEE
-V::::::V           V::::::V   OO:::::::::OO   R::::::::::::::::R  E::::::::::::::::::::E
-V::::::V           V::::::V OO:::::::::::::OO R::::::RRRRRR:::::R E::::::::::::::::::::E
-V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEEEEE::::E
- V:::::V           V:::::V O::::::O   O::::::O  R::::R     R:::::R  E:::::E       EEEEEE
-  V:::::V         V:::::V  O:::::O     O:::::O  R::::R     R:::::R  E:::::E
-   V:::::V       V:::::V   O:::::O     O:::::O  R::::RRRRRR:::::R   E::::::EEEEEEEEEE
-    V:::::V     V:::::V    O:::::O     O:::::O  R:::::::::::::RR    E:::::::::::::::E
-     V:::::V   V:::::V     O:::::O     O:::::O  R::::RRRRRR:::::R   E:::::::::::::::E
-      V:::::V V:::::V      O:::::O     O:::::O  R::::R     R:::::R  E::::::EEEEEEEEEE
-       V:::::V:::::V       O:::::O     O:::::O  R::::R     R:::::R  E:::::E
-        V:::::::::V        O::::::O   O::::::O  R::::R     R:::::R  E:::::E       EEEEEE
-         V:::::::V         O:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEEEE:::::E
-          V:::::V           OO:::::::::::::OO R::::::R     R:::::RE::::::::::::::::::::E
-           V:::V              OO:::::::::OO   R::::::R     R:::::RE::::::::::::::::::::E
-            VVV                 OOOOOOOOO     RRRRRRRR     RRRRRRREEEEEEEEEEEEEEEEEEEEEE
-
--Aro <3 */
+ * VVVVVVVV           VVVVVVVV     OOOOOOOOO     RRRRRRRRRRRRRRRRR   EEEEEEEEEEEEEEEEEEEEEE
+ * V::::::V           V::::::V   OO:::::::::OO   R::::::::::::::::R  E::::::::::::::::::::E
+ * V::::::V           V::::::V OO:::::::::::::OO R::::::RRRRRR:::::R E::::::::::::::::::::E
+ * V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEEEEE::::E
+ *  V:::::V           V:::::V O::::::O   O::::::O  R::::R     R:::::R  E:::::E       EEEEEE
+ *   V:::::V         V:::::V  O:::::O     O:::::O  R::::R     R:::::R  E:::::E
+ *    V:::::V       V:::::V   O:::::O     O:::::O  R::::RRRRRR:::::R   E::::::EEEEEEEEEE
+ *     V:::::V     V:::::V    O:::::O     O:::::O  R:::::::::::::RR    E:::::::::::::::E
+ *      V:::::V   V:::::V     O:::::O     O:::::O  R::::RRRRRR:::::R   E:::::::::::::::E
+ *       V:::::V V:::::V      O:::::O     O:::::O  R::::R     R:::::R  E::::::EEEEEEEEEE
+ *        V:::::V:::::V       O:::::O     O:::::O  R::::R     R:::::R  E:::::E
+ *         V:::::::::V        O::::::O   O::::::O  R::::R     R:::::R  E:::::E       EEEEEE
+ *          V:::::::V         O:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEEEE:::::E
+ *           V:::::V           OO:::::::::::::OO R::::::R     R:::::RE::::::::::::::::::::E
+ *            V:::V              OO:::::::::OO   R::::::R     R:::::RE::::::::::::::::::::E
+ *             VVV                 OOOOOOOOO     RRRRRRRR     RRRRRRREEEEEEEEEEEEEEEEEEEEEE
+ *
+ * -Aro <3
+ */
 
 //
 // Overrides/additions to stock defines go here, as well as hooks. Sort them by
@@ -32,13 +33,6 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 /client
 	var/datum/vore_preferences/prefs_vr
 
-/hook/client_new/proc/add_prefs_vr(client/C)
-	C.prefs_vr = new/datum/vore_preferences(C)
-	if(C.prefs_vr)
-		return TRUE
-
-	return FALSE
-
 /datum/vore_preferences
 	//Actual preferences
 	var/digestable = TRUE
@@ -47,13 +41,17 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 	var/feeding = TRUE
 	var/can_be_drop_prey = FALSE
 	var/can_be_drop_pred = FALSE
-	var/allow_inbelly_spawning = FALSE
+	var/can_be_afk_prey = FALSE
+	var/can_be_afk_pred = FALSE
 	var/allow_spontaneous_tf = FALSE
 	var/digest_leave_remains = FALSE
 	var/allowmobvore = TRUE
 	var/permit_healbelly = TRUE
 	var/noisy = FALSE
 	var/eating_privacy_global = FALSE //Makes eating attempt/success messages only reach for subtle range if true, overwritten by belly-specific var
+	var/vore_death_privacy = FALSE //Makes it so that vore deaths don't get advertised to ghosts
+	var/allow_mimicry = TRUE
+	var/allowtemp = TRUE //Can be affected by belly temperature
 
 	// These are 'modifier' prefs, do nothing on their own but pair with drop_prey/drop_pred settings.
 	var/drop_vore = TRUE
@@ -61,17 +59,51 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 	var/slip_vore = TRUE
 	var/throw_vore = TRUE
 	var/food_vore = TRUE
+	var/spont_belly_rear = null
+	var/spont_belly_left = null
+	var/spont_belly_right = null
+	var/spont_belly_front = null
+	var/consume_liquid_belly = FALSE //starting off because if someone is into that, they'll toggle it first time they get the error. Otherway around would be more pref breaky.
+
+	var/digest_pain = TRUE
 
 	var/resizable = TRUE
 	var/show_vore_fx = TRUE
 	var/step_mechanics_pref = FALSE
 	var/pickup_pref = TRUE
+	var/vore_sprite_color = list("stomach" = "#000", "taur belly" = "#000")
+	var/vore_sprite_multiply = list("stomach" = FALSE, "taur belly" = FALSE)
+	var/allow_mind_transfer = FALSE
+
+	var/phase_vore = TRUE
+	var/noisy_full = FALSE
+	var/receive_reagents = FALSE
+	var/give_reagents = FALSE
+	var/apply_reagents = TRUE
+	var/latejoin_vore = FALSE
+	var/latejoin_prey = FALSE
+	var/autotransferable = TRUE
+	var/strip_pref = FALSE
+	var/contaminate_pref = TRUE
+	var/no_latejoin_vore_warning = FALSE // Only load, when... no_latejoin_vore_warning_persists
+	var/no_latejoin_prey_warning = FALSE // Only load, when... no_latejoin_vore_warning_persists
+	var/no_latejoin_vore_warning_time = 15 // Only load, when... no_latejoin_vore_warning_persists
+	var/no_latejoin_prey_warning_time = 15 // Only load, when... no_latejoin_vore_warning_persists
+	var/no_latejoin_vore_warning_persists = FALSE
+	var/no_latejoin_prey_warning_persists = FALSE
+	var/belly_rub_target = null
+	var/soulcatcher_pref_flags = NONE
+	var/list/soulcatcher_prefs = list()
+	var/max_voreoverlay_alpha = 255
+	var/persistend_edit_mode = FALSE
+	var/vore_pref_type_flags = ALL
 
 	var/list/belly_prefs = list()
 	var/vore_taste = "nothing in particular"
 	var/vore_smell = "nothing in particular"
 
 	var/selective_preference = DM_DEFAULT
+	var/size_strip_preference = SIZESTRIP_NONE
 
 
 	var/nutrition_message_visible = TRUE
@@ -115,7 +147,11 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 //	Check if an object is capable of eating things, based on vore_organs
 //
 /proc/is_vore_predator(mob/living/O)
-	if(istype(O,/mob/living))
+	if(isliving(O))
+		if(isanimal(O)) //On-demand belly loading.
+			var/mob/living/simple_mob/SM = O
+			if(SM.vore_active && !SM.voremob_loaded)
+				SM.init_vore(TRUE)
 		if(O.vore_organs.len > 0)
 			return TRUE
 
@@ -123,7 +159,7 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 
 //
 //	Belly searching for simplifying other procs
-//  Mostly redundant now with belly-objects and isbelly(loc)
+//	Mostly redundant now with belly-objects and isbelly(loc)
 //
 /proc/check_belly(atom/movable/A)
 	return isbelly(A.loc)
@@ -167,15 +203,18 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 	absorbable = json_from_file["absorbable"]
 	digest_leave_remains = json_from_file["digest_leave_remains"]
 	allowmobvore = json_from_file["allowmobvore"]
+	allowtemp = json_from_file["allowtemp"]
 	vore_taste = json_from_file["vore_taste"]
 	vore_smell = json_from_file["vore_smell"]
 	permit_healbelly = json_from_file["permit_healbelly"]
 	noisy = json_from_file["noisy"]
 	selective_preference = json_from_file["selective_preference"]
+	size_strip_preference = json_from_file["size_strip_preference"]
 	show_vore_fx = json_from_file["show_vore_fx"]
 	can_be_drop_prey = json_from_file["can_be_drop_prey"]
 	can_be_drop_pred = json_from_file["can_be_drop_pred"]
-	allow_inbelly_spawning = json_from_file["allow_inbelly_spawning"]
+	can_be_afk_prey = json_from_file["can_be_afk_prey"]
+	can_be_afk_pred = json_from_file["can_be_afk_pred"]
 	allow_spontaneous_tf = json_from_file["allow_spontaneous_tf"]
 	step_mechanics_pref = json_from_file["step_mechanics_pref"]
 	pickup_pref = json_from_file["pickup_pref"]
@@ -184,12 +223,49 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 	slip_vore = json_from_file["slip_vore"]
 	food_vore = json_from_file["food_vore"]
 	throw_vore = json_from_file["throw_vore"]
+	spont_belly_rear = json_from_file["spont_belly_rear"]
+	spont_belly_left = json_from_file["spont_belly_left"]
+	spont_belly_front = json_from_file["spont_belly_front"]
+	spont_belly_right = json_from_file["spont_belly_right"]
+	consume_liquid_belly = json_from_file["consume_liquid_belly"]
 	stumble_vore = json_from_file["stumble_vore"]
+	digest_pain = json_from_file["digest_pain"]
 	nutrition_message_visible = json_from_file["nutrition_message_visible"]
 	nutrition_messages = json_from_file["nutrition_messages"]
 	weight_message_visible = json_from_file["weight_message_visible"]
 	weight_messages = json_from_file["weight_messages"]
 	eating_privacy_global = json_from_file["eating_privacy_global"]
+	vore_death_privacy = json_from_file["vore_death_privacy"]
+	allow_mimicry = json_from_file["allow_mimicry"]
+	vore_sprite_color = json_from_file["vore_sprite_color"]
+	allow_mind_transfer = json_from_file["allow_mind_transfer"]
+
+	phase_vore = json_from_file["phase_vore"]
+	latejoin_vore = json_from_file["latejoin_vore"]
+	latejoin_prey = json_from_file["latejoin_prey"]
+	receive_reagents = json_from_file["receive_reagents"]
+	noisy_full = json_from_file["noisy_full"]
+	give_reagents = json_from_file["give_reagents"]
+	apply_reagents = json_from_file["apply_reagents"]
+	autotransferable = json_from_file["autotransferable"]
+	vore_sprite_multiply = json_from_file["vore_sprite_multiply"]
+	strip_pref = json_from_file["strip_pref"]
+	contaminate_pref = json_from_file["contaminate_pref"]
+
+	no_latejoin_vore_warning_persists = json_from_file["no_latejoin_vore_warning_persists"]
+	if(no_latejoin_vore_warning_persists)
+		no_latejoin_vore_warning = json_from_file["no_latejoin_vore_warning"]
+		no_latejoin_vore_warning_time = json_from_file["no_latejoin_vore_warning_time"]
+	no_latejoin_prey_warning_persists = json_from_file["no_latejoin_prey_warning_persists"]
+	if(no_latejoin_prey_warning_persists)
+		no_latejoin_prey_warning = json_from_file["no_latejoin_prey_warning"]
+		no_latejoin_prey_warning_time = json_from_file["no_latejoin_prey_warning_time"]
+	belly_rub_target = json_from_file["belly_rub_target"]
+	soulcatcher_pref_flags = json_from_file["soulcatcher_pref_flags"]
+	soulcatcher_prefs = json_from_file["soulcatcher_prefs"]
+	persistend_edit_mode = json_from_file["persistend_edit_mode"]
+	max_voreoverlay_alpha = json_from_file["max_voreoverlay_alpha"]
+	vore_pref_type_flags = json_from_file["vore_pref_type_flags"]
 
 	//Quick sanitize
 	if(isnull(digestable))
@@ -206,10 +282,14 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 		digest_leave_remains = FALSE
 	if(isnull(allowmobvore))
 		allowmobvore = TRUE
+	if(isnull(allowtemp))
+		allowtemp = TRUE
 	if(isnull(permit_healbelly))
 		permit_healbelly = TRUE
 	if(isnull(selective_preference))
 		selective_preference = DM_DEFAULT
+	if(isnull(size_strip_preference))
+		size_strip_preference = SIZESTRIP_NONE
 	if (isnull(noisy))
 		noisy = FALSE
 	if(isnull(show_vore_fx))
@@ -218,8 +298,10 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 		can_be_drop_prey = FALSE
 	if(isnull(can_be_drop_pred))
 		can_be_drop_pred = FALSE
-	if(isnull(allow_inbelly_spawning))
-		allow_inbelly_spawning = FALSE
+	if(isnull(can_be_afk_prey))
+		can_be_afk_prey = FALSE
+	if(isnull(can_be_afk_pred))
+		can_be_afk_pred = FALSE
 	if(isnull(allow_spontaneous_tf))
 		allow_spontaneous_tf = FALSE
 	if(isnull(step_mechanics_pref))
@@ -238,12 +320,20 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 		stumble_vore = TRUE
 	if(isnull(food_vore))
 		food_vore = TRUE
+	if(isnull(consume_liquid_belly))
+		consume_liquid_belly = FALSE
+	if(isnull(digest_pain))
+		digest_pain = TRUE
 	if(isnull(nutrition_message_visible))
 		nutrition_message_visible = TRUE
 	if(isnull(weight_message_visible))
 		weight_message_visible = TRUE
 	if(isnull(eating_privacy_global))
 		eating_privacy_global = FALSE
+	if(isnull(vore_death_privacy))
+		vore_death_privacy = FALSE
+	if(isnull(allow_mimicry))
+		allow_mimicry = TRUE
 	if(isnull(nutrition_messages))
 		nutrition_messages = list(
 							"They are starving! You can hear their stomach snarling from across the room!",
@@ -274,6 +364,55 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 	else if(weight_messages.len < 10)
 		while(weight_messages.len < 10)
 			weight_messages.Add("")
+	if(isnull(vore_sprite_color))
+		vore_sprite_color = list("stomach" = "#000", "taur belly" = "#000")
+	if(isnull(allow_mind_transfer))
+		allow_mind_transfer = FALSE
+
+	if(isnull(phase_vore))
+		phase_vore = TRUE
+	if(isnull(latejoin_vore))
+		latejoin_vore = FALSE
+	if(isnull(latejoin_prey))
+		latejoin_prey = FALSE
+	if(isnull(receive_reagents))
+		receive_reagents = FALSE
+	if(isnull(give_reagents))
+		give_reagents = FALSE
+	if(isnull(apply_reagents))
+		apply_reagents = TRUE
+	if(isnull(noisy_full))
+		noisy_full = FALSE
+	if(isnull(autotransferable))
+		autotransferable = TRUE
+	if(isnull(vore_sprite_multiply))
+		vore_sprite_multiply = list("stomach" = FALSE, "taur belly" = FALSE)
+	if(isnull(strip_pref))
+		strip_pref = TRUE
+	if(isnull(contaminate_pref))
+		contaminate_pref = TRUE
+	if(isnull(no_latejoin_vore_warning))
+		no_latejoin_vore_warning = FALSE
+	if(isnull(no_latejoin_prey_warning))
+		no_latejoin_prey_warning = FALSE
+	if(isnull(no_latejoin_vore_warning_time))
+		no_latejoin_vore_warning_time = 30
+	if(isnull(no_latejoin_prey_warning_time))
+		no_latejoin_prey_warning_time = 30
+	if(isnull(no_latejoin_vore_warning_persists))
+		no_latejoin_vore_warning_persists = FALSE
+	if(isnull(no_latejoin_prey_warning_persists))
+		no_latejoin_prey_warning_persists = FALSE
+	if(isnull(soulcatcher_pref_flags))
+		soulcatcher_pref_flags = NONE
+	if(isnull(soulcatcher_prefs))
+		soulcatcher_prefs = list()
+	if(isnull(persistend_edit_mode))
+		persistend_edit_mode = FALSE
+	if(isnull(max_voreoverlay_alpha))
+		max_voreoverlay_alpha = 255
+	if(isnull(vore_pref_type_flags))
+		vore_pref_type_flags = ALL
 
 	return TRUE
 
@@ -291,46 +430,81 @@ V::::::V           V::::::VO:::::::OOO:::::::ORR:::::R     R:::::REE::::::EEEEEE
 			"feeding"				= feeding,
 			"digest_leave_remains"	= digest_leave_remains,
 			"allowmobvore"			= allowmobvore,
+			"allowtemp"				= allowtemp,
 			"vore_taste"			= vore_taste,
 			"vore_smell"			= vore_smell,
 			"permit_healbelly"		= permit_healbelly,
 			"noisy" 				= noisy,
+			"noisy_full" 			= noisy_full,
 			"selective_preference"	= selective_preference,
+			"size_strip_preference"		= size_strip_preference,
 			"show_vore_fx"			= show_vore_fx,
 			"can_be_drop_prey"		= can_be_drop_prey,
 			"can_be_drop_pred"		= can_be_drop_pred,
-			"allow_inbelly_spawning"= allow_inbelly_spawning,
+			"can_be_afk_prey"		= can_be_afk_prey,
+			"can_be_afk_pred"		= can_be_afk_pred,
+			"latejoin_vore"			= latejoin_vore,
+			"latejoin_prey"			= latejoin_prey,
 			"allow_spontaneous_tf"	= allow_spontaneous_tf,
 			"step_mechanics_pref"	= step_mechanics_pref,
 			"pickup_pref"			= pickup_pref,
 			"belly_prefs"			= belly_prefs,
+			"receive_reagents"		= receive_reagents,
+			"give_reagents"			= give_reagents,
+			"apply_reagents"		= apply_reagents,
+			"autotransferable"		= autotransferable,
 			"drop_vore"				= drop_vore,
 			"slip_vore"				= slip_vore,
 			"stumble_vore"			= stumble_vore,
 			"throw_vore" 			= throw_vore,
-			"food_vore" 			= food_vore,
+			"spont_belly_rear"		= spont_belly_rear,
+			"spont_belly_left"		= spont_belly_left,
+			"spont_belly_front"		= spont_belly_front,
+			"spont_belly_right"		= spont_belly_right,
+			"allow_mind_transfer"	= allow_mind_transfer,
+			"phase_vore" 			= phase_vore,
+			"consume_liquid_belly" 	= consume_liquid_belly,
+			"digest_pain"			= digest_pain,
 			"nutrition_message_visible"	= nutrition_message_visible,
 			"nutrition_messages"		= nutrition_messages,
 			"weight_message_visible"	= weight_message_visible,
 			"weight_messages"			= weight_messages,
 			"eating_privacy_global"		= eating_privacy_global,
+			"vore_death_privacy"		= vore_death_privacy,
+			"vore_sprite_color"			= vore_sprite_color,
+			"allow_mimicry"				= allow_mimicry,
+			"vore_sprite_multiply"		= vore_sprite_multiply,
+			"strip_pref" 			= strip_pref,
+			"contaminate_pref"		= contaminate_pref,
+			"no_latejoin_vore_warning"		= no_latejoin_vore_warning,
+			"no_latejoin_prey_warning"		= no_latejoin_prey_warning,
+			"no_latejoin_vore_warning_time"		= no_latejoin_vore_warning_time,
+			"no_latejoin_prey_warning_time"		= no_latejoin_prey_warning_time,
+			"no_latejoin_vore_warning_persists"		= no_latejoin_vore_warning_persists,
+			"no_latejoin_prey_warning_persists"		= no_latejoin_prey_warning_persists,
+			"belly_rub_target" = belly_rub_target,
+			"soulcatcher_pref_flags" = soulcatcher_pref_flags,
+			"soulcatcher_prefs"			= soulcatcher_prefs,
+			"persistend_edit_mode" = persistend_edit_mode,
+			"max_voreoverlay_alpha" = max_voreoverlay_alpha,
+			"vore_pref_type_flags" = vore_pref_type_flags,
 		)
 
 	//List to JSON
 	var/json_to_file = json_encode(settings_list)
 	if(!json_to_file)
-		log_debug("Saving: [path] failed jsonencode")
+		log_runtime("Saving: [path] failed jsonencode")
 		return FALSE
 
 	//Write it out
 	rustg_file_write(json_to_file, path)
 
 	if(!fexists(path))
-		log_debug("Saving: [path] failed file write")
+		log_runtime("Saving: [path] failed file write")
 		return FALSE
 
 	return TRUE
 
 //Can do conversions here
-/datum/vore_preferences/proc/patch_version(var/list/json_from_file,var/version)
+/datum/vore_preferences/proc/patch_version(list/json_from_file,version)
 	return json_from_file

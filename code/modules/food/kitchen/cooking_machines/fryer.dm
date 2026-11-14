@@ -9,7 +9,7 @@
 	food_color = "#FFAD33"
 	cooked_sound = 'sound/machines/ding.ogg'
 	var/datum/looping_sound/deep_fryer/fry_loop
-	circuit = /obj/item/weapon/circuitboard/fryer
+	circuit = /obj/item/circuitboard/fryer
 	appliancetype = FRYER
 	active_power_usage = 12 KILOWATTS
 	heating_power = 12 KILOWATTS
@@ -24,38 +24,52 @@
 	// Power used to maintain temperature once it's heated.
 	// Going with 25% of the active power. This is a somewhat arbitrary value.
 
-	resistance = 10 KILOWATTS	// Approx. 10 minutes to heat up.
+	resistance = 2 KILOWATTS	// Approx. 2 minutes to heat up.
 
 	max_contents = 2
-	container_type = /obj/item/weapon/reagent_containers/cooking_container/fryer
+	container_type = /obj/item/reagent_containers/cooking_container/fryer
 
 	stat = POWEROFF // Starts turned off
 
-	var/datum/reagents/oil
-	var/optimal_oil = 9000 //90 litres of cooking oil
+	tgui_id = "CookingFryer"
 
-/obj/machinery/appliance/cooker/fryer/Initialize()
+	var/datum/reagents/oil_reagents/oil
+	var/optimal_oil = 2500 //25 litres of cooking oil
+
+///Reagent subtype for the fryer.
+/datum/reagents/oil_reagents
+	var/optimal_oil = 2500 //Overridden during init of the fryer.
+
+/obj/machinery/appliance/cooker/fryer/Initialize(mapload)
 	. = ..()
 	fry_loop = new(list(src), FALSE)
 
-	oil = new/datum/reagents(optimal_oil * 1.25, src)
+	oil = new/datum/reagents/oil_reagents(optimal_oil * 1.25, src)
+	oil.optimal_oil = optimal_oil
 	var/variance = rand()*0.15
 	// Fryer is always a little below full, but its usually negligible
 
 	if(prob(20))
 		// Sometimes the fryer will start with much less than full oil, significantly impacting efficiency until filled
 		variance = rand()*0.5
-	oil.add_reagent("cookingoil", optimal_oil*(1 - variance))
+	oil.add_reagent(REAGENT_ID_COOKINGOIL, optimal_oil*(1 - variance))
+	AddComponent(/datum/component/hose_connector/input/fryer)
 
 /obj/machinery/appliance/cooker/fryer/Destroy()
 	QDEL_NULL(fry_loop)
 	QDEL_NULL(oil)
 	return ..()
 
-/obj/machinery/appliance/cooker/fryer/examine(var/mob/user)
+/obj/machinery/appliance/cooker/fryer/examine(mob/user)
 	. = ..()
+	var/oil_level = oil.total_volume/optimal_oil
 	if(Adjacent(user))
-		to_chat(user, "Oil Level: [oil.total_volume]/[optimal_oil]")
+		var/message = span_notice("Oil Level: [oil.total_volume] / [optimal_oil]")
+		if(oil_level <= 0.9)
+			message += span_warning(" UNDERFILLED")
+		else if(oil_level > 1.05) //A little bit of wiggle room
+			message += span_warning(" OVERFILLED")
+		to_chat(user, message)
 
 /obj/machinery/appliance/cooker/fryer/update_icon() // We add our own version of the proc to use the special fryer double-lights.
 	cut_overlays()
@@ -69,6 +83,10 @@
 	light.pixel_x = light_x
 	light.pixel_y = light_y
 	add_overlay(light)
+
+/obj/machinery/appliance/cooker/fryer/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
+	. = ..()
+	.["reagents"] = list("name" = oil.get_master_reagent_name(), "volume" = oil.total_volume, "max" = oil.maximum_volume)
 
 /obj/machinery/appliance/cooker/fryer/heat_up()
 	if (..())
@@ -122,7 +140,7 @@
 
 //Fryer gradually infuses any cooked food with oil. Moar calories
 //This causes a slow drop in oil levels, encouraging refill after extended use
-/obj/machinery/appliance/cooker/fryer/do_cooking_tick(var/datum/cooking_item/CI)
+/obj/machinery/appliance/cooker/fryer/do_cooking_tick(datum/cooking_item/CI)
 	if(..() && (CI.oil < CI.max_oil) && prob(20))
 		var/datum/reagents/buffer = new /datum/reagents(2)
 		oil.trans_to_holder(buffer, min(0.5, CI.max_oil - CI.oil))
@@ -133,7 +151,7 @@
 //To solve any odd logic problems with results having oil as part of their compiletime ingredients.
 //Upon finishing a recipe the fryer will analyse any oils in the result, and replace them with our oil
 //As well as capping the total to the max oil
-/obj/machinery/appliance/cooker/fryer/finish_cooking(var/datum/cooking_item/CI)
+/obj/machinery/appliance/cooker/fryer/finish_cooking(datum/cooking_item/CI)
 	..()
 	var/total_oil = 0
 	var/total_our_oil = 0
@@ -150,6 +168,7 @@
 						I.reagents.remove_reagent(R.id, R.volume)
 					else
 						total_our_oil += R.volume
+		SEND_SIGNAL(I, COMSIG_ITEM_FRIED)
 
 
 	if (total_removed > 0 || total_oil != CI.max_oil)
@@ -171,12 +190,12 @@
 						if (R.id == our_oil.id)
 							I.reagents.remove_reagent(R.id, R.volume*portion)
 
-/obj/machinery/appliance/cooker/fryer/cook_mob(var/mob/living/victim, var/mob/user)
+/obj/machinery/appliance/cooker/fryer/cook_mob(mob/living/victim, mob/user)
 
 	if(!istype(victim))
 		return
 
-	// user.visible_message("<span class='danger'>\The [user] starts pushing \the [victim] into \the [src]!</span>")
+	// user.visible_message(span_danger("\The [user] starts pushing \the [victim] into \the [src]!"))
 
 	//Removed delay on this action in favour of a cooldown after it
 	//If you can lure someone close to the fryer and grab them then you deserve success.
@@ -186,14 +205,14 @@
 
 	fry_loop.start(src)
 
-	if(!do_mob(user, victim, 20))
+	if(!do_after(user, 2 SECONDS, victim))
 		cooking = FALSE
 		icon_state = off_icon
 		fry_loop.stop(src)
 		return
 
 	if(!victim || !victim.Adjacent(user))
-		to_chat(user, "<span class='danger'>Your victim slipped free!</span>")
+		to_chat(user, span_danger("Your victim slipped free!"))
 		cooking = FALSE
 		icon_state = off_icon
 		fry_loop.stop(src)
@@ -209,12 +228,12 @@
 	if(ishuman(victim) && user.zone_sel.selecting != BP_GROIN && user.zone_sel.selecting != BP_TORSO)
 		var/mob/living/carbon/human/H = victim
 		E = H.get_organ(user.zone_sel.selecting)
-		if(!E || E.species.flags & NO_PAIN)
+		if(!E || E.data.get_species_flags() & NO_PAIN)
 			nopain = 2
 		else if(E.robotic >= ORGAN_ROBOT)
 			nopain = 1
 
-	user.visible_message("<span class='danger'>\The [user] shoves \the [victim][E ? "'s [E.name]" : ""] into \the [src]!</span>")
+	user.visible_message(span_danger("\The [user] shoves \the [victim][E ? "'s [E.name]" : ""] into \the [src]!"))
 	if (damage > 0)
 		if(E)
 			if(E.children && E.children.len)
@@ -228,42 +247,41 @@
 			victim.apply_damage(damage, BURN, user.zone_sel.selecting)
 
 		if(!nopain)
-			to_chat(victim, "<span class='danger'>Agony consumes you as searing hot oil scorches your [E ? E.name : "flesh"] horribly!</span>")
+			to_chat(victim, span_danger("Agony consumes you as searing hot oil scorches your [E ? E.name : "flesh"] horribly!"))
 			victim.emote("scream")
 		else
-			to_chat(victim, "<span class='danger'>Searing hot oil scorches your [E ? E.name : "flesh"]!</span>")
+			to_chat(victim, span_danger("Searing hot oil scorches your [E ? E.name : "flesh"]!"))
 
-		user.attack_log += text("\[[time_stamp()]\] [span_red("Has [cook_type] \the [victim] ([victim.ckey]) in \a [src]")]")
-		victim.attack_log += text("\[[time_stamp()]\] [span_orange("Has been [cook_type] in \a [src] by [user.name] ([user.ckey])")]")
-		msg_admin_attack("[key_name_admin(user)] [cook_type] \the [victim] ([victim.ckey]) in \a [src]. (<A HREF='?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+		add_attack_logs(user, victim, "has been [cook_type] with [src]")
+		msg_admin_attack("[key_name_admin(user)] [cook_type] \the [victim] ([victim.ckey]) in \a [src]. (<A href='byond://?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
 
 	//Coat the victim in some oil
 	oil.trans_to(victim, 40)
 
 	fry_loop.stop()
 
-/obj/machinery/appliance/cooker/fryer/attackby(var/obj/item/I, var/mob/user)
-	if(istype(I, /obj/item/weapon/reagent_containers/glass) && I.reagents)
-		if (I.reagents.total_volume <= 0 && oil)
-			//Its empty, handle scooping some hot oil out of the fryer
-			oil.trans_to(I, I.reagents.maximum_volume)
-			user.visible_message("<span class='filter_notice'>[user] scoops some oil out of \the [src].</span>", span("notice","You scoop some oil out of \the [src]."))
-			return 1
-		else
+/obj/machinery/appliance/cooker/fryer/attackby(obj/item/I, mob/user)
+	if(istype(I, /obj/item/reagent_containers) && !istype(I, /obj/item/reagent_containers/food) && I.reagents)
+		if(istype(I, /obj/item/reagent_containers/glass)) //Scooping stuff out with a glass.
+			if(I.reagents.total_volume <= 0 && oil)
+				//Its empty, handle scooping some hot oil out of the fryer
+				oil.trans_to(I, I.reagents.maximum_volume)
+				user.visible_message(span_filter_notice("[user] scoops some oil out of \the [src]."), span_notice("You scoop some oil out of \the [src]."))
+				return TRUE
 	//It contains stuff, handle pouring any oil into the fryer
 	//Possibly in future allow pouring non-oil reagents in, in  order to sabotage it and poison food.
 	//That would really require coding some sort of filter or better replacement mechanism first
 	//So for now, restrict to oil only
-			var/amount = 0
-			for (var/datum/reagent/R in I.reagents.reagent_list)
-				if (istype(R, /datum/reagent/nutriment/triglyceride/oil))
-					var/delta = oil.get_free_space()
-					delta = min(delta, R.volume)
-					oil.add_reagent(R.id, delta)
-					I.reagents.remove_reagent(R.id, delta)
-					amount += delta
-			if (amount > 0)
-				user.visible_message("<span class='filter_notice'>[user] pours some oil into \the [src].</span>", "<span class='notice'>You pour [amount]u of oil into \the [src].</span>", "<span class='notice'>You hear something viscous being poured into a metal container.</span>")
-				return 1
+		var/amount = 0
+		for(var/datum/reagent/R in I.reagents.reagent_list)
+			if(istype(R, /datum/reagent/nutriment/triglyceride/oil))
+				var/delta = oil.get_free_space()
+				delta = min(delta, R.volume)
+				oil.add_reagent(R.id, delta)
+				I.reagents.remove_reagent(R.id, delta)
+				amount += delta
+		if(amount > 0)
+			user.visible_message(span_filter_notice("[user] pours some oil into \the [src]."), span_notice("You pour [amount]u of oil into \the [src]."), span_notice("You hear something viscous being poured into a metal container."))
+			return TRUE
 	//If neither of the above returned, then call parent as normal
 	..()

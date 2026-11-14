@@ -1,0 +1,78 @@
+### Config Flags for logging, compatibility flags are at the top
+
+## Should we also log entries as human readable
+LOG_AS_HUMAN_READABLE
+
+### Actual logging flags
+
+# Paranoia logging starts on
+PARANOIA_LOGGING
+
+## log client access (logon/logoff)
+LOG_ACCESS
+
+## log admin actions
+LOG_ADMIN
+
+## log admin chat
+LOG_ADMINCHAT
+
+## log event chat
+LOG_EVENTCHAT
+
+## log asset debug logs
+# LOG_ASSET
+
+## log OOC channel
+LOG_OOC
+
+## log LOOC channel
+LOG_LOOC
+
+## log prayers
+LOG_PRAYER
+
+## log client Say
+LOG_SAY
+
+## log game actions (start of round, results, etc.)
+LOG_GAME
+
+## log player votes
+LOG_VOTE
+
+## log client Whisper
+LOG_WHISPER
+
+## log emotes
+LOG_EMOTE
+
+## log attack messages
+LOG_ATTACK
+
+## log pda messages
+LOG_PDA
+
+## log graffiti drawings
+LOG_GRAFFITI
+
+## Log all timers on timer auto reset
+# LOG_TIMERS_ON_BUCKET_RESET
+
+## log world.log messages
+# LOG_WORLD_OUTPUT
+
+## log all Topic() calls (for use by coders in tracking down Topic issues)
+# LOG_HREFS
+
+## log world.log and runtime errors to a file
+LOG_RUNTIME
+
+## log all world.Topic() calls
+LOG_WORLD_TOPIC
+
+## Enables log entries for logins that failed due to suspicious circumstances (banned player, CID randomiser, spoofed BYOND version, etc.) to a dedicated file.
+LOG_SUSPICIOUS_LOGIN
+
+## log all vore interactions
+LOG_VORE

@@ -35,7 +35,7 @@
 	icon_scale_x = 1.5
 	icon_scale_y = 1.5
 
-	faction = "crabs"
+	faction = FACTION_CRABS
 
 	maxHealth = 200
 	health = 200
@@ -53,15 +53,6 @@
 				"bio" = 0,
 				"rad" = 0
 				)
-	armor_soak = list(
-				"melee" = 10,
-				"bullet" = 5,
-				"laser" = 0,
-				"energy" = 0,
-				"bomb" = 0,
-				"bio" = 0,
-				"rad" = 0
-				)
 
 	mob_size = MOB_LARGE
 
@@ -72,7 +63,7 @@
 	attack_edge = TRUE
 	melee_attack_delay = 1 SECOND
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/crabmeat
+	meat_type = /obj/item/reagent_containers/food/snacks/crabmeat
 	meat_amount = 6
 
 	response_help  = "pets"
@@ -82,7 +73,7 @@
 	attacktext = list("clawed", "pinched", "crushed")
 	speak_emote = list("clicks")
 
-	organ_names = /decl/mob_organ_names/crab
+	organ_names = /datum/decl/mob_organ_names/crab
 
 	ai_holder_type = /datum/ai_holder/simple_mob/melee/hooligan
 	say_list_type = /datum/say_list/crab
@@ -100,9 +91,9 @@
 		if(was_stunned) // Try to prevent chain-stuns by having them thrown.
 			var/throwdir = get_dir(src, L)
 			L.throw_at(get_edge_target_turf(L, throwdir), 5, 1, src)
-			visible_message(span("danger", "\The [src] hurls \the [L] away!"))
+			visible_message(span_danger("\The [src] hurls \the [L] away!"))
 		else
-			visible_message(span("danger", "\The [src] crushes \the [L]!"))
+			visible_message(span_danger("\The [src] crushes \the [L]!"))
 
 // The AI for hooligan crabs. Follows people for awhile.
 /datum/ai_holder/simple_mob/melee/hooligan
@@ -119,5 +110,5 @@
 		if(prob(10))
 			for(var/mob/living/L in hearers(holder))
 				if(!istype(L, holder)) // Don't follow other hooligan crabs.
-					holder.visible_message("<b>\The [holder]</b> starts to follow \the [L].")
+					holder.visible_message(span_infoplain(span_bold("\The [holder]") + " starts to follow \the [L]."))
 					set_follow(L, rand(20 SECONDS, 40 SECONDS))

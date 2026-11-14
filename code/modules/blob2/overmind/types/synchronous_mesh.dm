@@ -28,7 +28,7 @@
 			victim.blob_act(C)
 	synchronously_attacking = FALSE
 
-/datum/blob_type/synchronous_mesh/on_received_damage(var/obj/structure/blob/B, damage, damage_type)
+/datum/blob_type/synchronous_mesh/on_received_damage(obj/structure/blob/B, damage, damage_type)
 	var/list/blobs_to_hurt = list() // Maximum split is 9, reducing the damage each blob takes to 11.1% but doing that damage to 9 blobs.
 	for(var/obj/structure/blob/C in range(1, B))
 		if(!istype(C, /obj/structure/blob/core) && !istype(C, /obj/structure/blob/node) && C.overmind && (C.overmind == B.overmind) ) //if it doesn't have the same 'ownership' or is a core or node, don't split damage to it
@@ -42,7 +42,7 @@
 
 	return damage / max(blobs_to_hurt.len, 1) // To hurt the blob that got hit.
 
-/datum/blob_type/synchronous_mesh/on_chunk_tick(obj/item/weapon/blobcore_chunk/B)
+/datum/blob_type/synchronous_mesh/on_chunk_tick(obj/item/blobcore_chunk/B)
 	var/mob/living/carrier = B.get_carrier()
 
 	if(!carrier)
@@ -68,5 +68,5 @@
 				carrier.adjustFireLoss(-3 / nearby_mobs.len)
 
 			if(need_beam)
-				carrier.visible_message("<span class='alien'>\icon [B] \The [B] sends noxious spores toward \the [victim]!</span>")
+				carrier.visible_message(span_alien("[icon2html(B,viewers(carrier))] \The [B] sends noxious spores toward \the [victim]!"))
 				carrier.Beam(victim, icon_state = "lichbeam", time = 2 SECONDS)

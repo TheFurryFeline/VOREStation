@@ -1,4 +1,4 @@
-var/global/datum/repository/crew/crew_repository = new()
+GLOBAL_DATUM_INIT(crew_repository, /datum/repository/crew, new)
 
 /datum/repository/crew
 	var/list/cache_data
@@ -7,7 +7,7 @@ var/global/datum/repository/crew/crew_repository = new()
 	cache_data = list()
 	..()
 
-/datum/repository/crew/proc/health_data(var/zLevel)
+/datum/repository/crew/proc/health_data(zLevel)
 	var/list/crewmembers = list()
 	if(!zLevel)
 		return crewmembers
@@ -24,14 +24,14 @@ var/global/datum/repository/crew/crew_repository = new()
 	var/tracked = scan()
 	for(var/obj/item/clothing/under/C in tracked)
 		var/turf/pos = get_turf(C)
-		var/area/B = pos?.loc //VOREStation Add: No sensor in Dorm
-		if((C.has_sensor) && (pos?.z == zLevel) && (C.sensor_mode != SUIT_SENSOR_OFF) && !(B.block_suit_sensors) && !(is_jammed(C)) && !(is_vore_jammed(C))) //VOREStation Edit
-			if(istype(C.loc, /mob/living/carbon/human))
+		var/area/B = pos?.loc //No sensor in Dorm
+		if((C.has_sensor) && (pos?.z == zLevel) && (C.sensor_mode != SUIT_SENSOR_OFF) && !(B.flag_check(AREA_BLOCK_SUIT_SENSORS)) && !(is_jammed(C)) && !(is_vore_jammed(C)))
+			if(ishuman(C.loc))
 				var/mob/living/carbon/human/H = C.loc
 				if(H.w_uniform != C)
 					continue
 
-				var/list/crewmemberData = list("dead"=0, "oxy"=-1, "tox"=-1, "fire"=-1, "brute"=-1, "area"="", "x"=-1, "y"=-1, "ref" = "\ref[H]")
+				var/list/crewmemberData = list("dead"=0, "oxy"=-1, "tox"=-1, "fire"=-1, "brute"=-1, "area"="", "x"=-1, "y"=-1, "realZ"=-1, "z"="", "ref" = "\ref[H]")
 
 				crewmemberData["sensor_type"] = C.sensor_mode
 				crewmemberData["name"] = H.get_authentification_name(if_no_id="Unknown")
@@ -66,7 +66,11 @@ var/global/datum/repository/crew/crew_repository = new()
 
 /datum/repository/crew/proc/scan()
 	var/list/tracked = list()
-	for(var/mob/living/carbon/human/H in mob_list)
+	for(var/mob/living/carbon/human/H in GLOB.mob_list)
+		if(isanimal(H.loc))
+			var/mob/living/simple_mob/tf_holder = H.loc
+			if(tf_holder.tf_mob_holder == H) //Exclude characters that are TFd into other mobs.
+				continue
 		if(istype(H.w_uniform, /obj/item/clothing/under))
 			var/obj/item/clothing/under/C = H.w_uniform
 			if (C.has_sensor)

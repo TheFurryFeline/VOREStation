@@ -18,8 +18,8 @@
 	var/datum/pipe_network/network1
 	var/datum/pipe_network/network2
 
-/obj/machinery/atmospherics/pipeturbine/New()
-	..()
+/obj/machinery/atmospherics/pipeturbine/Initialize(mapload, newdir)
+	. = ..()
 	air_in.volume = 200
 	air_out.volume = 800
 	volume_ratio = air_in.volume / (air_in.volume + air_out.volume)
@@ -32,6 +32,9 @@
 			initialize_directions = NORTH|SOUTH
 		if(WEST)
 			initialize_directions = NORTH|SOUTH
+
+	AddElement(/datum/element/climbable)
+	AddElement(/datum/element/rotatable)
 
 /obj/machinery/atmospherics/pipeturbine/Destroy()
 	. = ..()
@@ -81,11 +84,11 @@
 	if (kin_energy > 1000000)
 		add_overlay(image('icons/obj/pipeturbine.dmi', "hi-turb"))
 
-/obj/machinery/atmospherics/pipeturbine/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/atmospherics/pipeturbine/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_WRENCH))
 		anchored = !anchored
 		playsound(src, W.usesound, 50, 1)
-		to_chat(user, "<span class='notice'>You [anchored ? "secure" : "unsecure"] the bolts holding \the [src] to the floor.</span>")
+		to_chat(user, span_notice("You [anchored ? "secure" : "unsecure"] the bolts holding \the [src] to the floor."))
 
 		if(anchored)
 			if(dir & (NORTH|SOUTH))
@@ -115,27 +118,6 @@
 		return
 	..()
 
-/obj/machinery/atmospherics/pipeturbine/verb/rotate_clockwise()
-	set name = "Rotate Turbine Clockwise"
-	set category = "Object"
-	set src in view(1)
-
-	if (usr.stat || usr.restrained() || anchored)
-		return
-
-	src.set_dir(turn(src.dir, 270))
-
-
-/obj/machinery/atmospherics/pipeturbine/verb/rotate_counterclockwise()
-	set name = "Rotate Turbine Counterclockwise"
-	set category = "Object"
-	set src in view(1)
-
-	if (usr.stat || usr.restrained() || anchored)
-		return
-
-	src.set_dir(turn(src.dir, 90))
-
 //Goddamn copypaste from binary base class because atmospherics machinery API is not damn flexible
 /obj/machinery/atmospherics/pipeturbine/get_neighbor_nodes_for_init()
 	return list(node1, node2)
@@ -161,13 +143,13 @@
 	var/node2_connect = turn(dir, -90)
 	var/node1_connect = turn(dir, 90)
 
-	for(var/obj/machinery/atmospherics/target in get_step(src,node1_connect))
-		if(target.initialize_directions & get_dir(target,src))
+	for(var/obj/machinery/atmospherics/target in get_prioritized_nodes(get_step(src,node1_connect)))
+		if(can_be_node(target, 1))
 			node1 = target
 			break
 
-	for(var/obj/machinery/atmospherics/target in get_step(src,node2_connect))
-		if(target.initialize_directions & get_dir(target,src))
+	for(var/obj/machinery/atmospherics/target in get_prioritized_nodes(get_step(src,node2_connect)))
+		if(can_be_node(target, 2))
 			node2 = target
 			break
 
@@ -235,14 +217,18 @@
 	var/kin_to_el_ratio = 0.1	//How much kinetic energy will be taken from turbine and converted into electricity
 	var/obj/machinery/atmospherics/pipeturbine/turbine
 
-/obj/machinery/power/turbinemotor/Initialize()
+/obj/machinery/power/turbinemotor/Initialize(mapload)
 	. = ..()
 	updateConnection()
+	AddElement(/datum/element/climbable)
+	AddElement(/datum/element/rotatable)
 
 /obj/machinery/power/turbinemotor/proc/updateConnection()
 	turbine = null
 	if(src.loc && anchored)
 		turbine = locate(/obj/machinery/atmospherics/pipeturbine) in get_step(src,dir)
+		if(!turbine)
+			return
 		if (turbine.stat & (BROKEN) || !turbine.anchored || turn(turbine.dir,180) != dir)
 			turbine = null
 
@@ -255,32 +241,12 @@
 	turbine.kin_energy -= power_generated
 	add_avail(power_generated)
 
-/obj/machinery/power/turbinemotor/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/power/turbinemotor/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_WRENCH))
 		anchored = !anchored
 		playsound(src, W.usesound, 50, 1)
 		turbine = null
-		to_chat(user, "<span class='notice'>You [anchored ? "secure" : "unsecure"] the bolts holding \the [src] to the floor.</span>")
+		to_chat(user, span_notice("You [anchored ? "secure" : "unsecure"] the bolts holding \the [src] to the floor."))
 		updateConnection()
 	else
 		..()
-
-/obj/machinery/power/turbinemotor/verb/rotate_clockwise()
-	set name = "Rotate Motor Clockwise"
-	set category = "Object"
-	set src in view(1)
-
-	if (usr.stat || usr.restrained()  || anchored)
-		return
-
-	src.set_dir(turn(src.dir, 270))
-
-/obj/machinery/power/turbinemotor/verb/rotate_counterclockwise()
-	set name = "Rotate Motor Counterclockwise"
-	set category = "Object"
-	set src in view(1)
-
-	if (usr.stat || usr.restrained()  || anchored)
-		return
-
-	src.set_dir(turn(src.dir, 90))

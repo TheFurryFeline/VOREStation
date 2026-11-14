@@ -19,6 +19,7 @@ When mapping these in, be sure to give at least a one tile clearance, as NORTH f
 two tiles on initialization, and which way a cliff is facing may change during maploading.
 */
 
+#define CLIFF_CLIMB_DELAY 10
 /obj/structure/cliff
 	name = "cliff"
 	desc = "A steep rock ledge. You might be able to climb it if you feel bold enough."
@@ -31,8 +32,6 @@ two tiles on initialization, and which way a cliff is facing may change during m
 	anchored = TRUE
 	density = TRUE
 	opacity = FALSE
-	climbable = TRUE
-	climb_delay = 10 SECONDS
 	unacidable = TRUE
 	block_turf_edges = TRUE // Don't want turf edges popping up from the cliff edge.
 	plane = TURF_PLANE
@@ -45,9 +44,10 @@ two tiles on initialization, and which way a cliff is facing may change during m
 	var/is_double_cliff = FALSE // Set to true when making the two-tile cliffs, used for projectile checks.
 	var/uphill_penalty = 30 // Odds of a projectile not making it up the cliff.
 
-/obj/structure/cliff/Initialize()
+/obj/structure/cliff/Initialize(mapload)
 	. = ..()
 	register_dangerous_to_step()
+	AddElement(/datum/element/climbable/cliff,CLIFF_CLIMB_DELAY SECONDS)
 
 /obj/structure/cliff/Destroy()
 	unregister_dangerous_to_step()
@@ -83,7 +83,7 @@ two tiles on initialization, and which way a cliff is facing may change during m
 /obj/structure/cliff/bottom
 	bottom = TRUE
 
-/obj/structure/cliff/automatic/Initialize()
+/obj/structure/cliff/automatic/Initialize(mapload)
 	..()
 	return INITIALIZE_HINT_LATELOAD
 
@@ -106,11 +106,8 @@ two tiles on initialization, and which way a cliff is facing may change during m
 	// Now make the bottom cliff have mostly the same variables.
 	var/obj/structure/cliff/bottom/bottom = new(T)
 	is_double_cliff = TRUE
-	climb_delay /= 2 // Since there are two cliffs to climb when going north, both take half the time.
-
 	bottom.dir = dir
 	bottom.is_double_cliff = TRUE
-	bottom.climb_delay = climb_delay
 	bottom.icon_variant = icon_variant
 	bottom.corner = corner
 	bottom.ramp = ramp
@@ -132,7 +129,7 @@ two tiles on initialization, and which way a cliff is facing may change during m
 
 	var/subtraction_icon_state = "[icon_state]-subtract"
 	var/cache_string = "[icon_state]_[T.icon]_[T.icon_state]"
-	if(T && (subtraction_icon_state in cached_icon_states(icon)))
+	if(T && icon_exists(icon, subtraction_icon_state))
 		cut_overlays()
 		// If we've made the same icon before, just recycle it.
 		if(cache_string in GLOB.cliff_icon_cache)
@@ -178,14 +175,14 @@ two tiles on initialization, and which way a cliff is facing may change during m
 		return FALSE
 
 	var/turf/T = get_turf(L)
-	if(T && get_dir(T, loc) & reverse_dir[dir]) // dir points 'up' the cliff, e.g. cliff pointing NORTH will cause someone to fall if moving SOUTH into it.
+	if(T && get_dir(T, loc) & GLOB.reverse_dir[dir]) // dir points 'up' the cliff, e.g. cliff pointing NORTH will cause someone to fall if moving SOUTH into it.
 		return TRUE
 	return FALSE
 
 /obj/structure/cliff/proc/fall_off_cliff(mob/living/L)
 	if(!istype(L))
 		return FALSE
-	var/turf/T = get_step(src, reverse_dir[dir])
+	var/turf/T = get_step(src, GLOB.reverse_dir[dir])
 	var/displaced = FALSE
 
 	if(dir in list(EAST, WEST)) // Apply an offset if flying sideways, to help maintain the illusion of depth.
@@ -204,9 +201,9 @@ two tiles on initialization, and which way a cliff is facing may change during m
 			safe_fall = H.species.handle_falling(H, T, silent = TRUE, planetary = FALSE)
 
 		if(safe_fall)
-			visible_message(span("notice", "\The [L] glides down from \the [src]."))
+			visible_message(span_notice("\The [L] glides down from \the [src]."))
 		else
-			visible_message(span("danger", "\The [L] falls off \the [src]!"))
+			visible_message(span_danger("\The [L] falls off \the [src]!"))
 		L.forceMove(T)
 
 		var/harm = !is_double_cliff ? 1 : 0.5
@@ -215,7 +212,7 @@ two tiles on initialization, and which way a cliff is facing may change during m
 			if(istype(L.buckled, /obj/vehicle)) // People falling off in vehicles will take less damage, but will damage the vehicle severely.
 				var/obj/vehicle/vehicle = L.buckled
 				vehicle.adjust_health(40 * harm)
-				to_chat(L, span("warning", "\The [vehicle] absorbs some of the impact, damaging it."))
+				to_chat(L, span_warning("\The [vehicle] absorbs some of the impact, damaging it."))
 				harm /= 2
 
 			playsound(L, 'sound/effects/break_stone.ogg', 70, 1)
@@ -228,14 +225,14 @@ two tiles on initialization, and which way a cliff is facing may change during m
 		sleep(fall_time) // A brief delay inbetween the two sounds helps sell the 'ouch' effect.
 
 		if(safe_fall)
-			visible_message(span("notice", "\The [L] lands on \the [T]."))
+			visible_message(span_notice("\The [L] lands on \the [T]."))
 			playsound(L, "rustle", 25, 1)
 			return
 
 		playsound(L, "punch", 70, 1)
 		shake_camera(L, 1, 1)
 
-		visible_message(span("danger", "\The [L] hits \the [T]!"))
+		visible_message(span_danger("\The [L] hits \the [T]!"))
 
 		// The bigger they are, the harder they fall.
 		// They will take at least 20 damage at the minimum, and tries to scale up to 40% of their max health.
@@ -243,30 +240,20 @@ two tiles on initialization, and which way a cliff is facing may change during m
 		var/damage = between(20, L.getMaxHealth() * 0.4, 100)
 		var/target_zone = ran_zone()
 		var/blocked = L.run_armor_check(target_zone, "melee") * harm
-		var/soaked = L.get_armor_soak(target_zone, "melee") * harm
 
-		L.apply_damage(damage * harm, BRUTE, target_zone, blocked, soaked, used_weapon=src)
+		L.apply_damage(damage * harm, BRUTE, target_zone, blocked, used_weapon=src)
 
 		// Now fall off more cliffs below this one if they exist.
 		var/obj/structure/cliff/bottom_cliff = locate() in T
 		if(bottom_cliff)
-			visible_message(span("danger", "\The [L] rolls down towards \the [bottom_cliff]!"))
+			visible_message(span_danger("\The [L] rolls down towards \the [bottom_cliff]!"))
 			sleep(5)
 			bottom_cliff.fall_off_cliff(L)
-
-/obj/structure/cliff/can_climb(mob/living/user, post_climb_check = FALSE)
-	// Cliff climbing requires climbing gear.
-	if(ishuman(user))
-		var/mob/living/carbon/human/H = user
-		var/obj/item/clothing/shoes/shoes = H.shoes
-		if(shoes && shoes.rock_climbing)
-			return ..() // Do the other checks too.
-
-	to_chat(user, span("warning", "\The [src] is too steep to climb unassisted."))
-	return FALSE
 
 // This tells AI mobs to not be dumb and step off cliffs willingly.
 /obj/structure/cliff/is_safe_to_step(mob/living/L)
 	if(should_fall(L))
 		return FALSE
 	return ..()
+
+#undef CLIFF_CLIMB_DELAY

@@ -1,5 +1,7 @@
 // Areas.dm
 
+GLOBAL_LIST_EMPTY(areas_by_type)
+
 /area
 	var/fire = null
 	var/atmos = 1
@@ -37,9 +39,9 @@
 	var/static_environ = 0
 
 	var/music = null
-	var/has_gravity = 1
-	var/secret_name = FALSE // This tells certain things that display areas' names that they shouldn't display this area's name.
+	var/has_gravity = TRUE // Don't check this var directly; use get_gravity() instead
 	var/obj/machinery/power/apc/apc = null
+	var/list/radiators = null
 	var/no_air = null
 //	var/list/lights				// list of all lights on this area
 	var/list/all_doors = null		//Added by Strumpetplaya - Alarm Change - Contains a list of doors adjacent to this area
@@ -50,12 +52,14 @@
 	var/list/forced_ambience = null
 	var/sound_env = STANDARD_STATION
 	var/turf/base_turf //The base turf type of the area, which can be used to override the z-level's base turf
-	var/forbid_events = FALSE // If true, random events will not start inside this area.
-	var/forbid_singulo = FALSE // If true singulo will not move in.
-	var/no_spoilers = FALSE // If true, makes it much more difficult to see what is inside an area with things like mesons.
-	var/soundproofed = FALSE // If true, blocks sounds from other areas and prevents hearers on other areas from hearing the sounds within.
+	VAR_PROTECTED/color_grading = null // Color blending for clients that enter this area
 
-/area/Initialize()
+/area/New()
+	// Used by the maploader, this must be done in New, not init
+	GLOB.areas_by_type[type] = src
+	return ..()
+
+/area/Initialize(mapload)
 	. = ..()
 	luminosity = !(dynamic_lighting)
 	icon_state = ""
@@ -67,12 +71,12 @@
 		power_equip = 0
 		power_environ = 0
 	power_change()		// all machines set to current power level, also updates lighting icon
-	if(no_spoilers)
+	if(flag_check(AREA_NO_SPOILERS))
 		set_spoiler_obfuscation(TRUE)
 
 // Changes the area of T to A. Do not do this manually.
 // Area is expected to be a non-null instance.
-/proc/ChangeArea(var/turf/T, var/area/A)
+/proc/ChangeArea(turf/T, area/A)
 	if(!istype(A))
 		CRASH("Area change attempt failed: invalid area supplied.")
 	var/area/old_area = get_area(T)
@@ -83,7 +87,7 @@
 	A.contents.Add(T)
 	if(old_area)
 		// Handle dynamic lighting update if
-		if(SSlighting.subsystem_initialized && T.dynamic_lighting && old_area.dynamic_lighting != A.dynamic_lighting)
+		if(SSlighting.initialized && T.dynamic_lighting && old_area.dynamic_lighting != A.dynamic_lighting)
 			if(A.dynamic_lighting)
 				T.lighting_build_overlay()
 			else
@@ -104,20 +108,22 @@
 		cameras += C
 	return cameras
 
-/area/proc/atmosalert(danger_level, var/alarm_source)
+/area/proc/atmosalert(danger_level, alarm_source)
 	if (danger_level == 0)
-		atmosphere_alarm.clearAlarm(src, alarm_source)
+		GLOB.atmosphere_alarm.clearAlarm(src, alarm_source)
 	else
 		var/obj/machinery/alarm/atmosalarm = alarm_source //maybe other things can trigger these, who knows
 		if(istype(atmosalarm))
-			atmosphere_alarm.triggerAlarm(src, alarm_source, severity = danger_level, hidden = atmosalarm.alarms_hidden)
+			GLOB.atmosphere_alarm.triggerAlarm(src, alarm_source, severity = danger_level, hidden = atmosalarm.alarms_hidden)
 		else
-			atmosphere_alarm.triggerAlarm(src, alarm_source, severity = danger_level)
+			GLOB.atmosphere_alarm.triggerAlarm(src, alarm_source, severity = danger_level)
 
 	//Check all the alarms before lowering atmosalm. Raising is perfectly fine.
-	for (var/obj/machinery/alarm/AA in src)
-		if (!(AA.stat & (NOPOWER|BROKEN)) && !AA.shorted && AA.report_danger_level)
-			danger_level = max(danger_level, AA.danger_level)
+	var/obj/machinery/alarm/AM = main_air_alarm?.resolve()
+	if(!(AM && AM.shorted))
+		for(var/obj/machinery/alarm/AA in src)
+			if(!(AA.stat & (NOPOWER|BROKEN)) && !AA.shorted && AA.report_danger_level)
+				danger_level = max(danger_level, AA.danger_level)
 
 	if(danger_level != atmosalm)
 		atmosalm = danger_level
@@ -136,21 +142,17 @@
 	if(fire || party || atmosalm)
 		firedoors_close()
 		arfgs_activate()
-		// VOREStation Edit - Make the lights colored!
 		if(fire)
 			for(var/obj/machinery/light/L in src)
 				L.set_alert_fire()
 		else if(atmosalm)
 			for(var/obj/machinery/light/L in src)
 				L.set_alert_atmos()
-		// VOREStation Edit End
 	else
 		firedoors_open()
 		arfgs_deactivate()
-		// VOREStation Edit - Put the lights back!
 		for(var/obj/machinery/light/L in src)
 			L.reset_alert()
-		// VOREStation Edit End
 
 // Close all firedoors in the area
 /area/proc/firedoors_close()
@@ -254,14 +256,7 @@
 	//	new lighting behaviour with obj lights
 		icon_state = null
 
-
-/*
-#define EQUIP 1
-#define LIGHT 2
-#define ENVIRON 3
-*/
-
-/area/proc/powered(var/chan)		// return true if the area has power to given channel
+/area/proc/powered(chan)		// return true if the area has power to given channel
 
 	if(!requires_power)
 		return 1
@@ -284,7 +279,7 @@
 	if (fire || eject || party)
 		update_icon()
 
-/area/proc/usage(var/chan, var/include_static = TRUE)
+/area/proc/usage(chan, include_static = TRUE)
 	var/used = 0
 	switch(chan)
 		if(LIGHT)
@@ -306,7 +301,7 @@
 	oneoff_environ = 0
 
 // Use this for a one-time power draw from the area, typically for non-machines.
-/area/proc/use_power_oneoff(var/amount, var/chan)
+/area/proc/use_power_oneoff(amount, chan)
 	switch(chan)
 		if(EQUIP)
 			oneoff_equip += amount
@@ -321,7 +316,7 @@
 	use_power_static(new_amount - old_amount, chan) // Simultaneously subtract old_amount and add new_amount.
 
 // Not a proc you want to use directly unless you know what you are doing; see use_power_oneoff above instead.
-/area/proc/use_power_static(var/amount, var/chan)
+/area/proc/use_power_static(amount, chan)
 	switch(chan)
 		if(EQUIP)
 			static_equip += amount
@@ -356,10 +351,10 @@
 		if(!check_rights(R_DEBUG))
 			return
 		src.check_static_power(usr)
-		href_list["datumrefresh"] = "\ref[src]"
+		href_list[VV_HK_DATUM_REFRESH] = "\ref[src]"
 
 // Debugging proc to report if static power is correct or not.
-/area/proc/check_static_power(var/user)
+/area/proc/check_static_power(user)
 	set name = "Check Static Power"
 	var/actual_static_equip = static_equip
 	var/actual_static_light = static_light
@@ -374,8 +369,7 @@
 	return (actual_static_equip == static_equip && actual_static_light == static_light && actual_static_environ == static_environ)
 
 //////////////////////////////////////////////////////////////////
-
-var/list/mob/living/forced_ambiance_list = new
+GLOBAL_LIST_EMPTY(forced_ambiance_list)
 
 /area/Entered(mob/M)
 	if(!istype(M) || !M.ckey)
@@ -389,33 +383,38 @@ var/list/mob/living/forced_ambiance_list = new
 	if(!L.lastarea)
 		L.lastarea = src
 	var/area/oldarea = L.lastarea
-	if((oldarea.has_gravity == 0) && (has_gravity == 1) && (L.m_intent == "run")) // Being ready when you change areas gives you a chance to avoid falling all together.
+	if((oldarea.get_gravity() == 0) && (get_gravity() == 1) && (L.m_intent == I_RUN)) // Being ready when you change areas gives you a chance to avoid falling all together.
 		thunk(L)
 		L.update_floating( L.Check_Dense_Object() )
 
 	L.lastarea = src
 	L.lastareachange = world.time
 	play_ambience(L, initial = TRUE)
-	if(no_spoilers)
+	if(flag_check(AREA_NO_SPOILERS))
 		L.disable_spoiler_vision()
+	check_phase_shift(M)
 
-/area/proc/play_ambience(var/mob/living/L, initial = TRUE)
+	// Update the area's color grading
+	if(L.client && L.client.color != get_color_tint()) // Try to check if we should bother changing before doing blending
+		L.update_client_color()
+
+/area/proc/play_ambience(mob/living/L, initial = TRUE)
 	// Ambience goes down here -- make sure to list each area seperately for ease of adding things in later, thanks! Note: areas adjacent to each other should have the same sounds to prevent cutoff when possible.- LastyScratch
-	if(!(L && L.is_preference_enabled(/datum/client_preference/play_ambiance)))
+	if(!L?.read_preference(/datum/preference/toggle/play_ambience))
 		return
 
 	var/volume_mod = L.get_preference_volume_channel(VOLUME_CHANNEL_AMBIENCE)
 
 	// If we previously were in an area with force-played ambiance, stop it.
-	if((L in forced_ambiance_list) && initial)
+	if((L in GLOB.forced_ambiance_list) && initial)
 		L << sound(null, channel = CHANNEL_AMBIENCE_FORCED)
-		forced_ambiance_list -= L
+		GLOB.forced_ambiance_list -= L
 
 	if(forced_ambience)
-		if(L in forced_ambiance_list)
+		if(L in GLOB.forced_ambiance_list)
 			return
 		if(forced_ambience.len)
-			forced_ambiance_list |= L
+			GLOB.forced_ambiance_list |= L
 			var/sound/chosen_ambiance = pick(forced_ambience)
 			if(!istype(chosen_ambiance))
 				chosen_ambiance = sound(chosen_ambiance, repeat = 1, wait = 0, volume = 25, channel = CHANNEL_AMBIENCE_FORCED)
@@ -424,43 +423,47 @@ var/list/mob/living/forced_ambiance_list = new
 		else
 			L << sound(null, channel = CHANNEL_AMBIENCE_FORCED)
 	else if(src.ambience && src.ambience.len)
-		var/ambience_odds = L?.client.prefs.ambience_chance
+		var/ambience_odds = L.read_preference(/datum/preference/numeric/ambience_chance)
 		if(prob(ambience_odds) && (world.time >= L.client.time_last_ambience_played + 1 MINUTE))
 			var/sound = pick(ambience)
 			L << sound(sound, repeat = 0, wait = 0, volume = 50 * volume_mod, channel = CHANNEL_AMBIENCE)
 			L.client.time_last_ambience_played = world.time
 
-/area/proc/gravitychange(var/gravitystate = 0)
+/area/proc/gravitychange(gravitystate = 0)
 	src.has_gravity = gravitystate
 
 	for(var/mob/M in src)
-		if(has_gravity)
+		if(get_gravity())
 			thunk(M)
 		M.update_floating( M.Check_Dense_Object() )
-		M.update_gravity(has_gravity)
+		M.update_gravity(get_gravity())
 
 /area/proc/thunk(mob)
 	if(istype(get_turf(mob), /turf/space)) // Can't fall onto nothing.
 		return
 
-	if(istype(mob,/mob/living/carbon/human/))
+	if(ishuman(mob))
 		var/mob/living/carbon/human/H = mob
 		if(H.buckled)
 			return // Being buckled to something solid keeps you in place.
 		if(istype(H.shoes, /obj/item/clothing/shoes/magboots) && (H.shoes.item_flags & NOSLIP))
 			return
-		if(H.incorporeal_move) // VOREstation edit - Phaseshifted beings should not be affected by gravity
+		if(H.is_incorporeal()) // Phaseshifted beings should not be affected by gravity
 			return
 		if(H.species.can_zero_g_move || H.species.can_space_freemove)
 			return
 
-		if(H.m_intent == "run")
+		if(H.m_intent == I_RUN)
 			H.AdjustStunned(6)
 			H.AdjustWeakened(6)
 		else
 			H.AdjustStunned(3)
 			H.AdjustWeakened(3)
-		to_chat(mob, "<span class='notice'>The sudden appearance of gravity makes you fall to the floor!</span>")
+		to_chat(mob, span_notice("The sudden appearance of gravity makes you fall to the floor!"))
+		if(HAS_TRAIT(H, TRAIT_UNLUCKY) && prob(50) && H.get_bodypart_name(BP_HEAD))
+			H.visible_message(span_warning("[H] falls to the ground from the sudden appearance of gravity, smashing [H.p_their()] head against the ground!"),span_warning("You smash your head into the ground as gravity appears!"))
+			H.apply_damage(14, BRUTE, BP_HEAD, used_weapon = "blunt force")
+			playsound(H, 'sound/effects/tableheadsmash.ogg', 90, TRUE)
 		playsound(mob, "bodyfall", 50, 1)
 
 /area/proc/prison_break(break_lights = TRUE, open_doors = TRUE, open_blast_doors = TRUE)
@@ -478,17 +481,17 @@ var/list/mob/living/forced_ambiance_list = new
 			for(var/obj/machinery/door/blast/temp_blast in src)
 				temp_blast.open()
 
-/area/has_gravity()
+/area/get_gravity()
 	return has_gravity
 
-/area/space/has_gravity()
+/area/space/get_gravity()
 	return 0
 
-/proc/has_gravity(atom/AT, turf/T)
+/proc/get_gravity(atom/AT, turf/T)
 	if(!T)
 		T = get_turf(AT)
 	var/area/A = get_area(T)
-	if(A && A.has_gravity())
+	if(A && A.get_gravity())
 		return 1
 	return 0
 
@@ -506,40 +509,40 @@ var/list/mob/living/forced_ambiance_list = new
 
 /*Adding a wizard area teleport list because motherfucking lag -- Urist*/
 /*I am far too lazy to make it a proper list of areas so I'll just make it run the usual telepot routine at the start of the game*/
-var/list/teleportlocs = list()
+GLOBAL_LIST_EMPTY(teleportlocs)
 
 /hook/startup/proc/setupTeleportLocs()
 	for(var/area/AR in world)
 		if(istype(AR, /area/shuttle) || istype(AR, /area/syndicate_station) || istype(AR, /area/wizard_station)) continue
-		if(teleportlocs.Find(AR.name)) continue
+		if(GLOB.teleportlocs.Find(AR.name)) continue
 		var/turf/picked = pick(get_area_turfs(AR.type))
 		if (picked.z in using_map.station_levels)
-			teleportlocs += AR.name
-			teleportlocs[AR.name] = AR
+			GLOB.teleportlocs += AR.name
+			GLOB.teleportlocs[AR.name] = AR
 
-	teleportlocs = sortAssoc(teleportlocs)
+	GLOB.teleportlocs = sortAssoc(GLOB.teleportlocs)
 
 	return 1
 
-var/list/ghostteleportlocs = list()
+GLOBAL_LIST_EMPTY(ghostteleportlocs)
 
 /hook/startup/proc/setupGhostTeleportLocs()
 	for(var/area/AR in world)
-		if(ghostteleportlocs.Find(AR.name)) continue
+		if(GLOB.ghostteleportlocs.Find(AR.name)) continue
 		if(istype(AR, /area/aisat) || istype(AR, /area/derelict) || istype(AR, /area/tdome) || istype(AR, /area/shuttle/specops/centcom))
-			ghostteleportlocs += AR.name
-			ghostteleportlocs[AR.name] = AR
+			GLOB.ghostteleportlocs += AR.name
+			GLOB.ghostteleportlocs[AR.name] = AR
 		var/turf/picked = pick(get_area_turfs(AR.type))
 		if (picked.z in using_map.player_levels)
-			ghostteleportlocs += AR.name
-			ghostteleportlocs[AR.name] = AR
+			GLOB.ghostteleportlocs += AR.name
+			GLOB.ghostteleportlocs[AR.name] = AR
 
-	ghostteleportlocs = sortAssoc(ghostteleportlocs)
+	GLOB.ghostteleportlocs = sortAssoc(GLOB.ghostteleportlocs)
 
 	return 1
 
 /area/proc/get_name()
-	if(secret_name)
+	if(flag_check(AREA_SECRET_NAME))
 		return "Unknown Area"
 	return name
 
@@ -554,3 +557,33 @@ GLOBAL_DATUM(spoiler_obfuscation_image, /image)
 		add_overlay(GLOB.spoiler_obfuscation_image)
 	else
 		cut_overlay(GLOB.spoiler_obfuscation_image)
+
+/area/proc/flag_check(flag, match_all = FALSE)
+	if(match_all)
+		return (flags & flag) == flag
+	return flags & flag
+
+/area/proc/check_phase_shift(mob/living/ourmob)
+	if(!flag_check(AREA_BLOCK_PHASE_SHIFT) || !ourmob.is_incorporeal())
+		return
+	if(!isliving(ourmob))
+		return
+	if(check_rights_for(ourmob.client, R_HOLDER)) //If we're an admin, we don't get affected by phase blockers.
+		return
+	var/datum/component/shadekin/SK = ourmob.get_shadekin_component()
+	if(SK && SK.in_phase)
+		SK.attack_dephase(ourmob.loc, src)
+
+/area/proc/isAlwaysIndoors()
+	return FALSE
+
+/area/shuttle/isAlwaysIndoors()
+	return TRUE
+
+/area/turbolift/isAlwaysIndoors()
+	return TRUE
+
+/// Gets a hex color value for blending with a player's client.color. Allows for primitive color grading per area.
+/area/proc/get_color_tint()
+	SHOULD_CALL_PARENT(TRUE)
+	return color_grading

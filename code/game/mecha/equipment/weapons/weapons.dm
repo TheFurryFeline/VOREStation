@@ -1,8 +1,7 @@
 /obj/item/mecha_parts/mecha_equipment/weapon
 	name = "mecha weapon"
 	range = RANGED
-	origin_tech = list(TECH_MATERIAL = 3, TECH_COMBAT = 3)
-	matter = list(MAT_STEEL = 6000, MAT_GLASS = 3000)
+	matter = list(MAT_STEEL = MATERIAL_COST(3), MAT_GLASS = MATERIAL_COST(1.5))
 	var/projectile //Type of projectile fired.
 	var/projectiles = 1 //Amount of projectiles loaded.
 	var/projectiles_per_shot = 1 //Amount of projectiles fired per single shot.
@@ -30,15 +29,10 @@
 	if(!curloc || !targloc)
 		return
 	chassis.use_power(energy_drain)
-	chassis.visible_message("<span class='warning'>[chassis] fires [src]!</span>")
-	occupant_message("<span class='warning'>You fire [src]!</span>")
-	log_message("Fired from [src], targeting [target].")
-	var/target_for_log = "unknown"
-	if(ismob(target))
-		target_for_log = target
-	else if(target)
-		target_for_log = "[target.name]"
-	add_attack_logs(chassis.occupant,target_for_log,"Fired exosuit weapon [src.name] (MANUAL)")
+	chassis.visible_message(span_warning("[chassis] fires [src]!"))
+	occupant_message(span_warning("You fire [src]!"))
+	src.mecha_log_message("Fired from [src], targeting [target].")
+	add_attack_logs(chassis.occupant,target,"Fired exosuit weapon [src.name] (MANUAL)")
 
 	for(var/i = 1 to min(projectiles, projectiles_per_shot))
 		var/turf/aimloc = targloc
@@ -98,3 +92,5 @@
 		if(H.species)
 			P.accuracy += H.species.gun_accuracy_mod
 			P.dispersion = max(P.dispersion + H.species.gun_accuracy_dispersion_mod, 0)
+		if(H.fear > 30)
+			P.accuracy -= 35

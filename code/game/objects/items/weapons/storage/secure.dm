@@ -1,5 +1,5 @@
 /*
- *	Absorbs /obj/item/weapon/secstorage.
+ *	Absorbs /obj/item/secstorage.
  *	Reimplements it only slightly to use existing storage functionality.
  *
  *	Contains:
@@ -10,7 +10,7 @@
 // -----------------------------
 //         Generic Item
 // -----------------------------
-/obj/item/weapon/storage/secure
+/obj/item/storage/secure
 	name = "secstorage"
 	var/icon_locking = "secureb"
 	var/icon_sparking = "securespark"
@@ -27,15 +27,16 @@
 	max_w_class = ITEMSIZE_SMALL
 	max_storage_space = ITEMSIZE_SMALL * 7
 	use_sound = 'sound/items/storage/briefcase.ogg'
+	special_handling = TRUE
 
-/obj/item/weapon/storage/secure/examine(mob/user)
+/obj/item/storage/secure/examine(mob/user)
 	. = ..()
 	if(Adjacent(user))
-		. += "The service panel is [src.open ? "open" : "closed"]."
+		. += span_notice("The service panel is [src.open ? "open" : "closed"].")
 
-/obj/item/weapon/storage/secure/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/item/storage/secure/attackby(obj/item/W as obj, mob/user as mob)
 	if(locked)
-		if (istype(W, /obj/item/weapon/melee/energy/blade) && emag_act(INFINITY, user, "You slice through the lock of \the [src]"))
+		if (istype(W, /obj/item/melee/energy/blade) && emag_act(INFINITY, user, "You slice through the lock of \the [src]"))
 			var/datum/effect/effect/system/spark_spread/spark_system = new /datum/effect/effect/system/spark_spread()
 			spark_system.set_up(5, 0, src.loc)
 			spark_system.start()
@@ -44,25 +45,25 @@
 			return
 
 		if (W.has_tool_quality(TOOL_SCREWDRIVER))
-			if (do_after(user, 20 * W.toolspeed))
+			if (do_after(user, 2 SECONDS * W.toolspeed, target = src))
 				src.open =! src.open
 				playsound(src, W.usesound, 50, 1)
-				user.show_message(text("<span class='notice'>You [] the service panel.</span>", (src.open ? "open" : "close")))
+				user.show_message(span_notice("You [src.open ? "open" : "close"] the service panel."))
 			return
-		if (istype(W, /obj/item/device/multitool) && (src.open == 1)&& (!src.l_hacking))
-			user.show_message("<span class='notice'>Now attempting to reset internal memory, please hold.</span>", 1)
+		if (istype(W, /obj/item/multitool) && (src.open == 1)&& (!src.l_hacking))
+			user.show_message(span_notice("Now attempting to reset internal memory, please hold."), 1)
 			src.l_hacking = 1
-			if (do_after(usr, 100))
+			if (do_after(user, 10 SECONDS, target = src))
 				if (prob(40))
 					src.l_setshort = 1
 					src.l_set = 0
 					src.code = ""
-					user.show_message("<span class='notice'>Internal memory reset. Please give it a few seconds to reinitialize.</span>", 1)
+					user.show_message(span_notice("Internal memory reset. Please give it a few seconds to reinitialize."), 1)
 					sleep(80)
 					src.l_setshort = 0
 					src.l_hacking = 0
 				else
-					user.show_message("<span class='warning'>Unable to reset internal memory.</span>", 1)
+					user.show_message(span_warning("Unable to reset internal memory."), 1)
 					src.l_hacking = 0
 			else	src.l_hacking = 0
 			return
@@ -74,17 +75,17 @@
 	..()
 
 
-/obj/item/weapon/storage/secure/MouseDrop(over_object, src_location, over_location)
+/obj/item/storage/secure/MouseDrop(over_object, src_location, over_location)
 	if (locked)
 		src.add_fingerprint(usr)
 		return
 	..()
 
-/obj/item/weapon/storage/secure/AltClick(mob/user as mob)
+/obj/item/storage/secure/click_alt(mob/user as mob)
 	if (isliving(user) && Adjacent(user) && (src.locked == 1))
-		to_chat(user, "<span class='warning'>[src] is locked and cannot be opened!</span>")
+		to_chat(user, span_warning("[src] is locked and cannot be opened!"))
 	else if (isliving(user) && Adjacent(user) && (!src.locked))
-		src.open(usr)
+		src.open(user)
 	else
 		for(var/mob/M in range(1))
 			if (M.s_active == src)
@@ -92,16 +93,19 @@
 	src.add_fingerprint(user)
 	return
 
-/obj/item/weapon/storage/secure/attack_self(mob/user as mob)
+/obj/item/storage/secure/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	tgui_interact(user)
 
-/obj/item/weapon/storage/secure/tgui_interact(mob/user, datum/tgui/ui = null)
+/obj/item/storage/secure/tgui_interact(mob/user, datum/tgui/ui = null)
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
 		ui = new(user, src, "SecureSafe", name)
 		ui.open()
 
-/obj/item/weapon/storage/secure/tgui_data(mob/user)
+/obj/item/storage/secure/tgui_data(mob/user)
 	var/list/data = list()
 	data["locked"] = locked
 	data["code"] = code
@@ -110,7 +114,7 @@
 	data["l_set"] = l_set
 	return data
 
-/obj/item/weapon/storage/secure/tgui_act(action, params)
+/obj/item/storage/secure/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
 	switch (action)
@@ -132,16 +136,16 @@
 					src.locked = 1
 					cut_overlays()
 					src.code = null
-					src.close(usr)
+					src.close(ui.user)
 				else
 					src.code += text("[]", digit)
 					if (length(src.code) > 5)
 						src.code = "ERROR"
-	src.add_fingerprint(usr)
+	src.add_fingerprint(ui.user)
 	. = TRUE
 	return
 
-/obj/item/weapon/storage/secure/emag_act(var/remaining_charges, var/mob/user, var/feedback)
+/obj/item/storage/secure/emag_act(remaining_charges, mob/user, feedback)
 	if(!emagged)
 		emagged = 1
 		src.add_overlay(icon_sparking)
@@ -155,7 +159,7 @@
 // -----------------------------
 //        Secure Briefcase
 // -----------------------------
-/obj/item/weapon/storage/secure/briefcase
+/obj/item/storage/secure/briefcase
 	name = "secure briefcase"
 	icon = 'icons/obj/storage.dmi'
 	icon_state = "secure"
@@ -168,11 +172,11 @@
 	w_class = ITEMSIZE_LARGE
 	max_storage_space = ITEMSIZE_COST_NORMAL * 4
 
-/obj/item/weapon/storage/secure/briefcase/attack_hand(mob/user as mob)
+/obj/item/storage/secure/briefcase/attack_hand(mob/user as mob)
 	if ((src.loc == user) && (src.locked == 1))
-		to_chat(user, "<span class='warning'>[src] is locked and cannot be opened!</span>")
+		to_chat(user, span_warning("[src] is locked and cannot be opened!"))
 	else if ((src.loc == user) && (!src.locked))
-		src.open(usr)
+		src.open(user)
 	else
 		..()
 		for(var/mob/M in range(1))
@@ -185,7 +189,7 @@
 //        Secure Safe
 // -----------------------------
 
-/obj/item/weapon/storage/secure/safe
+/obj/item/storage/secure/safe
 	name = "secure safe"
 	desc = "It doesn't seem all that secure. Oh well, it'll do."
 	icon = 'icons/obj/storage.dmi'
@@ -197,13 +201,14 @@
 	force = 8.0
 	w_class = ITEMSIZE_NO_CONTAINER
 	max_w_class = ITEMSIZE_LARGE // This was 8 previously...
+	flags = WALL_ITEM
 	anchored = TRUE
 	density = FALSE
-	cant_hold = list(/obj/item/weapon/storage/secure/briefcase)
+	cant_hold = list(/obj/item/storage/secure/briefcase)
 	starts_with = list(
-		/obj/item/weapon/paper,
-		/obj/item/weapon/pen
+		/obj/item/paper,
+		/obj/item/pen
 	)
 
-/obj/item/weapon/storage/secure/safe/attack_hand(mob/user as mob)
+/obj/item/storage/secure/safe/attack_hand(mob/user as mob)
 	tgui_interact(user)

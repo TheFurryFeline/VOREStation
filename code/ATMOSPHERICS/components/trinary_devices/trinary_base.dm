@@ -17,8 +17,8 @@
 	var/datum/pipe_network/network2
 	var/datum/pipe_network/network3
 
-/obj/machinery/atmospherics/trinary/New()
-	..()
+/obj/machinery/atmospherics/trinary/Initialize(mapload)
+	. = ..()
 
 	air1 = new
 	air2 = new
@@ -32,17 +32,17 @@
 	initialize_directions = get_initialize_directions_trinary(dir, mirrored, tee)
 
 /obj/machinery/atmospherics/trinary/update_underlays()
-	if(..())
-		underlays.Cut()
-		var/turf/T = get_turf(src)
-		if(!istype(T))
-			return
-		var/list/node_connects = get_node_connect_dirs()
-		add_underlay(T, node1, node_connects[1])
-		add_underlay(T, node2, node_connects[2])
-		add_underlay(T, node3, node_connects[3])
+	..()
+	underlays.Cut()
+	var/turf/T = get_turf(src)
+	if(!istype(T))
+		return
+	var/list/node_connects = get_node_connect_dirs()
+	add_underlay(T, node1, node_connects[1])
+	add_underlay(T, node2, node_connects[2])
+	add_underlay(T, node3, node_connects[3])
 
-/obj/machinery/atmospherics/trinary/hide(var/i)
+/obj/machinery/atmospherics/trinary/hide(i)
 	update_underlays()
 
 /obj/machinery/atmospherics/trinary/power_change()
@@ -51,21 +51,21 @@
 	if(old_stat != stat)
 		update_icon()
 
-/obj/machinery/atmospherics/trinary/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
+/obj/machinery/atmospherics/trinary/attackby(obj/item/W as obj, mob/user as mob)
 	if (!W.has_tool_quality(TOOL_WRENCH))
 		return ..()
 	if(!can_unwrench())
-		to_chat(user, "<span class='warning'>You cannot unwrench \the [src], it too exerted due to internal pressure.</span>")
+		to_chat(user, span_warning("You cannot unwrench \the [src], it too exerted due to internal pressure."))
 		add_fingerprint(user)
 		return 1
 	playsound(src, W.usesound, 50, 1)
-	to_chat(user, "<span class='notice'>You begin to unfasten \the [src]...</span>")
-	if (do_after(user, 40 * W.toolspeed))
+	to_chat(user, span_notice("You begin to unfasten \the [src]..."))
+	if (do_after(user, 40 * W.toolspeed, target = src))
 		user.visible_message( \
-			"<b>\The [user]</b> unfastens \the [src].", \
-			"<span class='notice'>You have unfastened \the [src].</span>", \
+			span_infoplain(span_bold("\The [user]") + " unfastens \the [src]."), \
+			span_notice("You have unfastened \the [src]."), \
 			"You hear a ratchet.")
-		deconstruct()
+		atom_deconstruct()
 
 // Housekeeping and pipe network stuff below
 /obj/machinery/atmospherics/trinary/get_neighbor_nodes_for_init()
@@ -195,7 +195,7 @@
 
 // Trinary init_dir() logic in a separate proc so it can be referenced from "trinary-ish" places like T-Valves
 // TODO - Someday refactor those places under atmospherics/trinary
-/proc/get_initialize_directions_trinary(var/dir, var/mirrored = FALSE, var/tee = FALSE)
+/proc/get_initialize_directions_trinary(dir, mirrored = FALSE, tee = FALSE)
 	if(tee)
 		switch(dir)
 			if(NORTH)
@@ -228,7 +228,7 @@
 				return WEST|NORTH|EAST
 
 // Trinary get_node_connect_dirs() logic in a separate proc so it can be referenced from "trinary-ish" places like T-Valves
-/proc/get_node_connect_dirs_trinary(var/dir, var/mirrored = FALSE, var/tee = FALSE)
+/proc/get_node_connect_dirs_trinary(dir, mirrored = FALSE, tee = FALSE)
 	var/node1_connect
 	var/node2_connect
 	var/node3_connect

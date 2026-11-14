@@ -3,7 +3,7 @@
 	icon_state = "emitter0"
 	var/previous_state = 0
 
-/obj/machinery/power/emitter/Initialize()
+/obj/machinery/power/emitter/Initialize(mapload)
 	. = ..()
 	previous_state = state
 
@@ -36,3 +36,11 @@
 	else
 		icon_state = "emitter"
 
+/obj/machinery/power/emitter/antique/pre_mapped
+	anchored = TRUE
+	state = 2
+
+/obj/machinery/power/emitter/antique/pre_mapped/Initialize(mapload)
+	. = ..()
+	connect_to_network()
+	update_icon()

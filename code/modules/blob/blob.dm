@@ -17,15 +17,15 @@
 	var/fire_resist = 1
 	var/expandType = /obj/effect/blob
 
-/obj/effect/blob/New(loc)
+/obj/effect/blob/Initialize(mapload)
+	. = ..()
 	health = maxHealth
 	update_icon()
-	return ..(loc)
 
-/obj/effect/blob/CanPass(var/atom/movable/mover, var/turf/target)
+/obj/effect/blob/CanPass(atom/movable/mover, turf/target)
 	return FALSE
 
-/obj/effect/blob/ex_act(var/severity)
+/obj/effect/blob/ex_act(severity)
 	switch(severity)
 		if(1)
 			take_damage(rand(100, 120) / brute_resist)
@@ -40,7 +40,7 @@
 	else
 		icon_state = "blob_damaged"
 
-/obj/effect/blob/take_damage(var/damage)	// VOREStation Edit
+/obj/effect/blob/take_damage(damage)	// VOREStation Edit
 	health -= damage
 	if(health < 0)
 		playsound(src, 'sound/effects/splat.ogg', 50, 1)
@@ -52,8 +52,8 @@
 	health = min(health + 1, maxHealth)
 	update_icon()
 
-/obj/effect/blob/proc/expand(var/turf/T)
-	if(istype(T, /turf/unsimulated/) || istype(T, /turf/space) || (istype(T, /turf/simulated/mineral) && T.density))
+/obj/effect/blob/proc/expand(turf/T)
+	if(istype(T, /turf/unsimulated/) || isopenturf(T) || (ismineralturf(T) && T.density))
 		return
 	if(istype(T, /turf/simulated/wall))
 		var/turf/simulated/wall/SW = T
@@ -94,7 +94,7 @@
 		return
 	var/obj/mecha/M = locate() in T
 	if(M)
-		M.visible_message("<span class='danger'>The blob attacks \the [M]!</span>")
+		M.visible_message(span_danger("The blob attacks \the [M]!"))
 		M.take_damage(40)
 		return
 
@@ -102,13 +102,13 @@
 	for(var/mob/living/L in T)
 		if(L.stat == DEAD)
 			continue
-		L.visible_message("<span class='danger'>The blob attacks \the [L]!</span>", "<span class='danger'>The blob attacks you!</span>")
+		L.visible_message(span_danger("The blob attacks \the [L]!"), span_danger("The blob attacks you!"))
 		playsound(src, 'sound/effects/attackblob.ogg', 50, 1)
 		L.take_organ_damage(rand(30, 40))
 		return
 	new expandType(T, min(health, 30))
 
-/obj/effect/blob/proc/pulse(var/forceLeft, var/list/dirs)
+/obj/effect/blob/proc/pulse(forceLeft, list/dirs)
 	regen()
 	animate(src, color = "#FF0000", time=1)
 	animate(color = "#FFFFFF", time=4, easing=ELASTIC_EASING)
@@ -122,7 +122,7 @@
 		return
 	B.pulse(forceLeft - 1, dirs)
 
-/obj/effect/blob/bullet_act(var/obj/item/projectile/Proj)
+/obj/effect/blob/bullet_act(obj/item/projectile/Proj)
 	if(!Proj)
 		return
 
@@ -133,17 +133,17 @@
 			take_damage(Proj.damage / fire_resist)
 	return 0
 
-/obj/effect/blob/attackby(var/obj/item/weapon/W, var/mob/user)
+/obj/effect/blob/attackby(obj/item/W, mob/user)
 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 	playsound(src, 'sound/effects/attackblob.ogg', 50, 1)
-	visible_message("<span class='danger'>\The [src] has been attacked with \the [W][(user ? " by [user]." : ".")]</span>")
+	visible_message(span_danger("\The [src] has been attacked with \the [W][(user ? " by [user]." : ".")]"))
 	var/damage = 0
 	switch(W.damtype)
-		if("fire")
+		if(BURN)
 			damage = (W.force / fire_resist)
-			if(istype(W, /obj/item/weapon/weldingtool))
+			if(istype(W, /obj/item/weldingtool))
 				playsound(src, W.usesound, 100, 1)
-		if("brute")
+		if(BRUTE)
 			damage = (W.force / brute_resist)
 
 	take_damage(damage)
@@ -164,9 +164,9 @@
 /obj/effect/blob/core/update_icon()
 	return
 
-/obj/effect/blob/core/New(loc)
+/obj/effect/blob/core/Initialize(mapload)
+	. = ..()
 	START_PROCESSING(SSobj, src)
-	return ..(loc)
 
 /obj/effect/blob/core/Destroy()
 	STOP_PROCESSING(SSobj, src)
@@ -188,14 +188,14 @@
 	brute_resist = 1
 	fire_resist = 2
 
-/obj/effect/blob/shield/New()
-	..()
+/obj/effect/blob/shield/Initialize(mapload)
+	. = ..()
 	update_nearby_tiles()
 
 /obj/effect/blob/shield/Destroy()
 	density = FALSE
 	update_nearby_tiles()
-	..()
+	. = ..()
 
 /obj/effect/blob/shield/update_icon()
 	if(health > maxHealth * 2 / 3)
@@ -205,5 +205,5 @@
 	else
 		icon_state = "blob_damaged"
 
-/obj/effect/blob/shield/CanPass(var/atom/movable/mover, var/turf/target)
+/obj/effect/blob/shield/CanPass(atom/movable/mover, turf/target)
 	return !density

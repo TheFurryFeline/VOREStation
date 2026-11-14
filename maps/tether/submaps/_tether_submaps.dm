@@ -5,36 +5,38 @@
 /// Static Load
 
 /datum/map_template/tether_lateload/tether_centcom
-	name = "Tether - Centcom"
+	name = Z_NAME_TETHER_CENTCOM
 	desc = "Central Command lives here!"
-	mappath = 'tether_centcom.dmm'
+	mappath = "maps/tether/submaps/tether_centcom.dmm"
+	name_alias = Z_NAME_ALIAS_CENTCOM
 
 	associated_map_datum = /datum/map_z_level/tether_lateload/centcom
 
 /datum/map_z_level/tether_lateload/centcom
-	z = Z_LEVEL_CENTCOM
+	//z = Z_NAME_ALIAS_CENTCOM
 	name = "Centcom"
 	flags = MAP_LEVEL_ADMIN|MAP_LEVEL_SEALED|MAP_LEVEL_CONTACT|MAP_LEVEL_XENOARCH_EXEMPT
 	base_turf = /turf/simulated/floor/outdoors/rocks
 
 /datum/map_template/tether_lateload/tether_misc
-	name = "Tether - Misc"
+	name = Z_NAME_TETHER_MISC
 	desc = "Misc areas, like some transit areas, holodecks, merc area."
-	mappath = 'tether_misc.dmm'
+	mappath = "maps/tether/submaps/tether_misc.dmm"
+	name_alias = Z_NAME_ALIAS_MISC
 
 	associated_map_datum = /datum/map_z_level/tether_lateload/misc
 
 /datum/map_z_level/tether_lateload/misc
-	z = Z_LEVEL_MISC
+	//z = Z_NAME_ALIAS_MISC
 	name = "Misc"
 	flags = MAP_LEVEL_ADMIN|MAP_LEVEL_SEALED|MAP_LEVEL_CONTACT|MAP_LEVEL_XENOARCH_EXEMPT
 
 #include "underdark_pois/_templates.dm"
 #include "underdark_pois/underdark_things.dm"
 /datum/map_template/tether_lateload/tether_underdark
-	name = "Tether - Underdark"
+	name = Z_NAME_TETHER_UNDERDARK
 	desc = "Mining, but harder."
-	mappath = 'tether_underdark.dmm'
+	mappath = "maps/tether/submaps/tether_underdark.dmm"
 
 	associated_map_datum = /datum/map_z_level/tether_lateload/underdark
 
@@ -42,36 +44,36 @@
 	name = "Underdark"
 	flags = MAP_LEVEL_CONTACT|MAP_LEVEL_PLAYER|MAP_LEVEL_SEALED
 	base_turf = /turf/simulated/mineral/floor/virgo3b
-	z = Z_LEVEL_UNDERDARK
+	//z = Z_NAME_TETHER_UNDERDARK
 
 /datum/map_template/tether_lateload/tether_underdark/on_map_loaded(z)
 	. = ..()
-	seed_submaps(list(Z_LEVEL_UNDERDARK), 100, /area/mine/unexplored/underdark, /datum/map_template/underdark)
-	new /datum/random_map/automata/cave_system/no_cracks(null, 3, 3, Z_LEVEL_UNDERDARK, world.maxx - 4, world.maxy - 4) // Create the mining Z-level.
-	new /datum/random_map/noise/ore/underdark(null, 1, 1, Z_LEVEL_UNDERDARK, 64, 64)         // Create the mining ore distribution map.
+	seed_submaps(list(z), 100, /area/mine/unexplored/underdark, /datum/map_template/underdark)
+	new /datum/random_map/automata/cave_system/no_cracks(null, 3, 3, z, world.maxx - 4, world.maxy - 4) // Create the mining Z-level.
+	new /datum/random_map/noise/ore/underdark(null, 1, 1, z, 64, 64)         // Create the mining ore distribution map.
 
 #include "../../submaps/surface_submaps/plains/plains_vr.dm"
 #include "../../submaps/surface_submaps/plains/plains_areas.dm"
 #include "../../submaps/surface_submaps/plains/plains_turfs.dm"
 /datum/map_template/tether_lateload/tether_plains
-	name = "Tether - Plains"
+	name = Z_NAME_TETHER_PLAINS
 	desc = "The Virgo 3B away mission."
-	mappath = 'tether_plains.dmm'
+	mappath = "maps/tether/submaps/tether_plains.dmm"
 	associated_map_datum = /datum/map_z_level/tether_lateload/tether_plains
 
 /datum/map_z_level/tether_lateload/tether_plains
 	name = "Away Mission - Plains"
 	flags = MAP_LEVEL_CONTACT|MAP_LEVEL_PLAYER|MAP_LEVEL_SEALED
 	base_turf = /turf/simulated/mineral/floor/virgo3b
-	z = Z_LEVEL_PLAINS
+	//z = Z_NAME_TETHER_PLAINS
 
 /datum/map_template/tether_lateload/tether_plains/on_map_loaded(z)
 	. = ..()
-	seed_submaps(list(Z_LEVEL_PLAINS), 120, /area/tether/outpost/exploration_plains, /datum/map_template/surface/plains)
+	seed_submaps(list(z), 120, /area/tether/outpost/exploration_plains, /datum/map_template/surface/plains)
 
 //////////////////////////////////////////////////////////////////////////////
 //Antag/Event/ERT Areas
-
+/* Included in common
 #include "../../submaps/admin_use_vr/ert.dm"
 #include "../../submaps/admin_use_vr/mercship.dm"
 #include "../../submaps/admin_use_vr/salamander_trader.dm"
@@ -79,69 +81,69 @@
 /datum/map_template/admin_use/ert
 	name = "Special Area - ERT"
 	desc = "It's the ERT ship! Lorge."
-	mappath = 'maps/submaps/admin_use_vr/ert.dmm'
+	mappath = "maps/submaps/admin_use_vr/ert.dmm"
 
 /datum/map_template/admin_use/trader
 	name = "Special Area - Trader"
 	desc = "Big trader ship."
-	mappath = 'maps/submaps/admin_use_vr/tradeship.dmm'
+	mappath = "maps/submaps/admin_use_vr/tradeship.dmm"
 
 /datum/map_template/admin_use/salamander_trader
 	name = "Special Area - Salamander Trader"
 	desc = "Modest trader ship."
-	mappath = 'maps/submaps/admin_use_vr/salamander_trader.dmm'
+	mappath = "maps/submaps/admin_use_vr/salamander_trader.dmm"
 
 /datum/map_template/admin_use/mercenary
 	name = "Special Area - Merc Ship"
 	desc = "Prepare tae be boarded, arr!"
-	mappath = 'maps/submaps/admin_use_vr/kk_mercship.dmm'
+	mappath = "maps/submaps/admin_use_vr/kk_mercship.dmm"
 
 /datum/map_template/admin_use/skipjack
 	name = "Special Area - Skipjack Base"
 	desc = "Stinky!"
-	mappath = 'maps/submaps/admin_use_vr/skipjack.dmm'
+	mappath = "maps/submaps/admin_use_vr/skipjack.dmm"
 
 /datum/map_template/admin_use/thunderdome
 	name = "Special Area - Thunderdome"
 	desc = "Thunderrrrdomeee"
-	mappath = 'maps/submaps/admin_use_vr/thunderdome.dmm'
+	mappath = "maps/submaps/admin_use_vr/thunderdome.dmm"
 
 /datum/map_template/admin_use/wizardbase
 	name = "Special Area - Wizard Base"
 	desc = "Wingardium Levosia"
-	mappath = 'maps/submaps/admin_use_vr/wizard.dmm'
+	mappath = "maps/submaps/admin_use_vr/wizard.dmm"
 
 /datum/map_template/admin_use/dojo
 	name = "Special Area - Ninja Dojo"
 	desc = "Sneaky"
-	mappath = 'maps/submaps/admin_use_vr/dojo.dmm'
-
+	mappath = "maps/submaps/admin_use_vr/dojo.dmm"
+*/
 //////////////////////////////////////////////////////////////////////////////
 //Rogue Mines Stuff
 
 /datum/map_template/tether_lateload/tether_roguemines1
-	name = "Asteroid Belt 1"
+	name = Z_NAME_TETHER_ROGUEMINE_1
 	desc = "Mining, but rogue. Zone 1"
-	mappath = 'maps/submaps/rogue_mines_vr/rogue_mine1.dmm'
+	mappath = "maps/submaps/rogue_mines_vr/rogue_mine1.dmm"
 
 	associated_map_datum = /datum/map_z_level/tether_lateload/roguemines1
 
 /datum/map_z_level/tether_lateload/roguemines1
 	name = "Belt 1"
 	flags = MAP_LEVEL_CONTACT|MAP_LEVEL_PLAYER
-	z = Z_LEVEL_ROGUEMINE_1
+	//z = Z_NAME_TETHER_ROGUEMINE_1
 
 /datum/map_template/tether_lateload/tether_roguemines2
-	name = "Asteroid Belt 2"
+	name = Z_NAME_TETHER_ROGUEMINE_2
 	desc = "Mining, but rogue. Zone 2"
-	mappath = 'maps/submaps/rogue_mines_vr/rogue_mine2.dmm'
+	mappath = "maps/submaps/rogue_mines_vr/rogue_mine2.dmm"
 
 	associated_map_datum = /datum/map_z_level/tether_lateload/roguemines2
 
 /datum/map_z_level/tether_lateload/roguemines2
 	name = "Belt 2"
 	flags = MAP_LEVEL_CONTACT|MAP_LEVEL_PLAYER
-	z = Z_LEVEL_ROGUEMINE_2
+	//z = Z_NAME_TETHER_ROGUEMINE_2
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Code Shenanigans for Tether lateload maps
@@ -155,26 +157,23 @@
 		return
 
 	new associated_map_datum(using_map, z)
+	return ..()
 
-/datum/map_z_level/tether_lateload
-	z = 0
-
-/datum/map_z_level/tether_lateload/New(var/datum/map/map, mapZ)
-	if(mapZ && !z)
-		z = mapZ
+/datum/map_z_level/tether_lateload/New(datum/map/map, mapZ)
+	z = mapZ
 	return ..(map)
 
 /obj/effect/step_trigger/zlevel_fall //Don't ever use this, only use subtypes.Define a new var/static/target_z on each
 	affect_ghosts = 1
 
-/obj/effect/step_trigger/zlevel_fall/Initialize()
+/obj/effect/step_trigger/zlevel_fall/Initialize(mapload)
 	. = ..()
 
 	if(istype(get_turf(src), /turf/simulated/floor))
 		src:target_z = z
 		return INITIALIZE_HINT_QDEL
 
-/obj/effect/step_trigger/zlevel_fall/Trigger(var/atom/movable/A) //mostly from /obj/effect/step_trigger/teleporter/planetary_fall, step_triggers.dm L160
+/obj/effect/step_trigger/zlevel_fall/Trigger(atom/movable/A) //mostly from /obj/effect/step_trigger/teleporter/planetary_fall, step_triggers.dm L160
 	if(!src:target_z)
 		return
 
@@ -204,29 +203,29 @@
 
 #include "../../expedition_vr/aerostat/_aerostat.dm"
 /datum/map_template/tether_lateload/away_aerostat
-	name = "Remmi Aerostat - Z1 Aerostat"
+	name = Z_NAME_AEROSTAT
 	desc = "The Virgo 2 Aerostat away mission."
-	mappath = 'maps/expedition_vr/aerostat/aerostat.dmm'
+	mappath = "maps/expedition_vr/aerostat/aerostat.dmm"
 	associated_map_datum = /datum/map_z_level/tether_lateload/away_aerostat
 
 /datum/map_z_level/tether_lateload/away_aerostat
 	name = "Away Mission - Aerostat"
-	z = Z_LEVEL_AEROSTAT
+	//z = Z_NAME_AEROSTAT
 	base_turf = /turf/unsimulated/floor/sky/virgo2_sky
 
 /datum/map_template/tether_lateload/away_aerostat_surface
-	name = "Remmi Aerostat - Z2 Surface"
+	name = Z_NAME_AEROSTAT_SURFACE
 	desc = "The surface from the Virgo 2 Aerostat."
-	mappath = 'maps/expedition_vr/aerostat/surface.dmm'
+	mappath = "maps/expedition_vr/aerostat/surface.dmm"
 	associated_map_datum = /datum/map_z_level/tether_lateload/away_aerostat_surface
 
 /datum/map_template/tether_lateload/away_aerostat_surface/on_map_loaded(z)
 	. = ..()
-	seed_submaps(list(Z_LEVEL_AEROSTAT_SURFACE), 120, /area/offmap/aerostat/surface/unexplored, /datum/map_template/virgo2)
-	new /datum/random_map/automata/cave_system/no_cracks(null, 3, 3, Z_LEVEL_AEROSTAT_SURFACE, world.maxx - 4, world.maxy - 4)
-	new /datum/random_map/noise/ore/virgo2(null, 1, 1, Z_LEVEL_AEROSTAT_SURFACE, 64, 64)
+	seed_submaps(list(z), 120, /area/offmap/aerostat/surface/unexplored, /datum/map_template/virgo2)
+	new /datum/random_map/automata/cave_system/no_cracks(null, 3, 3, z, world.maxx - 4, world.maxy - 4)
+	new /datum/random_map/noise/ore/virgo2(null, 1, 1, z, 64, 64)
 
 /datum/map_z_level/tether_lateload/away_aerostat_surface
 	name = "Away Mission - Aerostat Surface"
-	z = Z_LEVEL_AEROSTAT_SURFACE
+	//z = Z_NAME_AEROSTAT_SURFACE
 	base_turf = /turf/simulated/mineral/floor/ignore_mapgen/virgo2

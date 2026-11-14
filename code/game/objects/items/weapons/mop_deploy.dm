@@ -1,8 +1,9 @@
-/obj/item/weapon/mop_deploy
+/obj/item/mop_deploy
 	name = "mop"
 	desc = "Deployable mop."
 	icon = 'icons/obj/janitor.dmi'
 	icon_state = "mop"
+	item_flags = DROPDEL | NOSTRIP
 	force = 3
 	anchored = TRUE    // Never spawned outside of inventory, should be fine.
 	throwforce = 1  //Throwing or dropping the item deletes it.
@@ -15,13 +16,14 @@
 	var/mopcount = 0
 
 
-/obj/item/weapon/mop_deploy/New()
+/obj/item/mop_deploy/Initialize(mapload)
+	. = ..()
 	create_reagents(5)
 	START_PROCESSING(SSobj, src)
 
 /turf/proc/clean_deploy(atom/source)
-	if(source.reagents.has_reagent("water", 1))
-		clean_blood()
+	if(source.reagents.has_reagent(REAGENT_ID_WATER, 1))
+		wash(CLEAN_SCRUB)
 		if(istype(src, /turf/simulated))
 			var/turf/simulated/T = src
 			T.dirt = 0
@@ -32,37 +34,37 @@
 	source.reagents.reaction(src, TOUCH, 10)	//10 is the multiplier for the reaction effect. probably needed to wet the floor properly.
 	source.reagents.remove_any(1)				//reaction() doesn't use up the reagents
 */
-/obj/item/weapon/mop_deploy/afterattack(atom/A, mob/user, proximity)
+/obj/item/mop_deploy/afterattack(atom/A, mob/user, proximity)
 	if(!proximity) return
 	if(istype(A, /turf) || istype(A, /obj/effect/decal/cleanable) || istype(A, /obj/effect/overlay) || istype(A, /obj/effect/rune))
-		user.visible_message("<span class='warning'>[user] begins to clean \the [get_turf(A)].</span>")
+		user.visible_message(span_warning("[user] begins to clean \the [get_turf(A)]."))
 
-		if(do_after(user, 40))
+		if(do_after(user, 4 SECONDS, target = src))
 			var/turf/T = get_turf(A)
 			if(T)
 				T.clean_deploy(src)
-			to_chat(user, "<span class='notice'>You have finished mopping!</span>")
+			to_chat(user, span_notice("You have finished mopping!"))
 
 /obj/effect/attackby(obj/item/I, mob/user)
-	if(istype(I, /obj/item/weapon/mop_deploy) || istype(I, /obj/item/weapon/soap))
+	if(istype(I, /obj/item/mop_deploy) || istype(I, /obj/item/soap))
 		return
 	..()
 
-/obj/item/weapon/mop_deploy/Destroy()
+/obj/item/mop_deploy/Destroy()
 	STOP_PROCESSING(SSobj, src)
 	. = ..()
 
-/obj/item/weapon/mop_deploy/attack_self(mob/user as mob)
+/obj/item/mop_deploy/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	user.drop_from_inventory(src)
 	spawn(1) if(!QDELETED(src)) qdel(src)
 
-/obj/item/weapon/mop_deploy/dropped()
-	spawn(1) if(!QDELETED(src)) qdel(src)
-
-/obj/item/weapon/mop_deploy/process()
+/obj/item/mop_deploy/process()
 	if(!creator || loc != creator || !creator.item_is_in_hands(src))
 		// Tidy up a bit.
-		if(istype(loc,/mob/living))
+		if(isliving(loc))
 			var/mob/living/carbon/human/host = loc
 			if(istype(host))
 				for(var/obj/item/organ/external/organ in host.organs)

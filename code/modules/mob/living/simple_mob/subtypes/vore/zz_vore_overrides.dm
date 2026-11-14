@@ -2,22 +2,22 @@
 //	This file overrides settings on upstream simple animals to turn on vore behavior
 //
 
-/*
-## For anything that previously inhertited from: /mob/living/simple_mob/hostile/vore ##
-
-  	vore_active = 1
-  	icon = 'icons/mob/vore.dmi'
-
-## For anything that previously inhertied from: /mob/living/simple_mob/hostile/vore/large ##
-
-	vore_active = 1
-	icon = 'icons/mob/vore64x64.dmi'
-	old_x = -16
-	old_y = -16
-	pixel_x = -16
-	pixel_y = -16
-	vore_pounce_chance = 50
-*/
+/**
+ * ## For anything that previously inhertited from: /mob/living/simple_mob/hostile/vore ##
+ *
+ *	vore_active = 1
+ *	icon = 'icons/mob/vore.dmi'
+ *
+ * ## For anything that previously inhertied from: /mob/living/simple_mob/hostile/vore/large ##
+ *
+ *	vore_active = 1
+ *	icon = 'icons/mob/vore64x64.dmi'
+ *	old_x = -16
+ *	old_y = -16
+ *	pixel_x = -16
+ *	pixel_y = -16
+ *	vore_pounce_chance = 50
+ */
 
 //
 // Okay! Here we go!
@@ -112,20 +112,12 @@
 	icon_gib = "bear-gib"
 	vore_icons = SA_ICON_LIVING
 
-/mob/living/simple_mob/animal/space/carp
-	icon = 'icons/mob/vore.dmi'
-	vore_active = 1
-	vore_icons = SA_ICON_LIVING
-	response_help = "pets"
-	response_disarm = "gently pushes aside"
-	response_harm = "hits"
+/mob/living/simple_mob/animal/space/bear/brown/beastmode
+	movement_cooldown = 2
 
-/mob/living/simple_mob/animal/space/carp/large
-	vore_icons = 0
-/mob/living/simple_mob/animal/space/carp/large/huge
-	vore_icons = 0
-/mob/living/simple_mob/animal/space/carp/holodeck
-	vore_icons = 0
+	melee_damage_lower = 5
+	melee_damage_upper = 15
+	attack_armor_pen = 0
 
 /* //VOREStation AI Temporary removal
 /mob/living/simple_mob/hostile/creature/vore
@@ -158,12 +150,12 @@
 /* //VOREStation AI Temporary removal
 /mob/living/simple_mob/animal/passive/cat/PunchTarget()
 	if(istype(target_mob,/mob/living/simple_mob/animal/passive/mouse))
-		visible_message("<span class='warning'>\The [src] pounces on \the [target_mob]!]</span>")
+		visible_message(span_warning("\The [src] pounces on \the [target_mob]!]"))
 		target_mob.Stun(5)
 		return EatTarget()
 	else ..()
 
-/mob/living/simple_mob/animal/passive/cat/Found(var/atom/found_atom)
+/mob/living/simple_mob/animal/passive/cat/Found(atom/found_atom)
 	if(!SA_attackable(found_atom))
 		return null
 	if(istype(found_atom,/mob/living/simple_mob/animal/passive/mouse))
@@ -173,7 +165,7 @@
 	if(will_eat(found_atom))
 		return found_atom
 
-/mob/living/simple_mob/animal/passive/cat/fluff/Found(var/atom/found_atom)
+/mob/living/simple_mob/animal/passive/cat/fluff/Found(atom/found_atom)
 	if (friend == found_atom)
 		return null
 	return ..()
@@ -223,22 +215,26 @@
 	response_disarm = "gently pushes aside"
 	response_harm = "hits"
 
+/mob/living/simple_mob/hostile/carp/pike
+	vore_active = 1
+	// NO VORE SPRITES
+
 /mob/living/simple_mob/animal/space/carp/holographic
 	vore_icons = 0 // NO VORE SPRITES
 	vore_digest_chance = 0
 	vore_absorb_chance = 0
 
 // Override stuff for holodeck carp to make them not digest when set to safe!
-/mob/living/simple_mob/animal/space/carp/holographic/init_vore()
+/mob/living/simple_mob/animal/space/carp/holographic/load_default_bellies()
 	. = ..()
-	var/safe = (faction == "neutral")
+	var/safe = (faction == FACTION_NEUTRAL)
 	for(var/obj/belly/B as anything in vore_organs)
 		B.digest_mode = safe ? DM_HOLD : vore_default_mode
 
-/mob/living/simple_mob/animal/space/carp/holographic/set_safety(var/safe)
+/mob/living/simple_mob/animal/space/carp/holographic/set_safety(safe)
 	. = ..()
 	for(var/obj/belly/B as anything in vore_organs)
 		B.digest_mode = safe ? DM_HOLD : vore_default_mode
 
 /mob/living/simple_mob/animal/passive/mouse
-	faction = "mouse" //Giving mice a faction so certain mobs can get along with them.
+	faction = FACTION_MOUSE //Giving mice a faction so certain mobs can get along with them.

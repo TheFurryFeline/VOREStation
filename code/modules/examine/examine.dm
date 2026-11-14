@@ -1,19 +1,21 @@
 /*	This code is responsible for the examine tab.  When someone examines something, it copies the examined object's description_info,
-	description_fluff, and description_antag, and shows it in a new tab.
+	description_fluff, and description_antag, description_silicon, and shows it in a new tab.
 
 	In this file, some atom and mob stuff is defined here.  It is defined here instead of in the normal files, to keep the whole system self-contained.
 	This means that this file can be unchecked, along with the other examine files, and can be removed entirely with no effort.
 */
 
-#define EXAMINE_PANEL_PADDING "               "
 
 /atom/
 	var/description_info = null //Helpful blue text.
 	var/description_fluff = null //Green text about the atom's fluff, if any exists.
 	var/description_antag = null //Malicious red text, for the antags.
+	var/description_silicon = null //Grey text for the machines.
 
 //Override these if you need special behaviour for a specific type.
-/atom/proc/get_description_info()
+///What is shown to the user when something is examined. This can be overridden for specific uses.
+///The 'additional_information' list var requires creation in the proc itself. It should check to seee if(additional_information) before trying to do additional_information = list() and adding to it.
+/atom/proc/get_description_info(list/additional_information)
 	if(description_info)
 		return description_info
 	return
@@ -28,13 +30,18 @@
 		return description_antag
 	return
 
+/atom/proc/get_description_silicon()
+	if(description_silicon)
+		return description_silicon
+	return
+
 // This one is slightly different, in that it must return a list.
 /atom/proc/get_description_interaction()
 	return list()
 
 // Quickly adds the boilerplate code to add an image and padding for the image.
-/proc/desc_panel_image(var/icon_state)
-	return "\icon[description_icons[icon_state]][EXAMINE_PANEL_PADDING]"
+/proc/desc_panel_image(icon_state)
+	return "[icon2html(GLOB.description_icons[icon_state], usr)]&emsp;"
 
 /mob/living/get_description_fluff()
 	if(flavor_text) //Get flavor text for the green text.
@@ -49,86 +56,124 @@
 
 /client/var/description_holders[0]
 
-/client/proc/update_description_holders(atom/A, update_antag_info=0)
+/client/proc/update_description_holders(atom/A, update_antag_info=0, update_silicon_info=0)
+	examine_icon = null
 	description_holders["info"] = A.get_description_info()
 	description_holders["fluff"] = A.get_description_fluff()
 	description_holders["antag"] = (update_antag_info)? A.get_description_antag() : ""
+	description_holders["silicon"] = (update_silicon_info)? A.get_description_silicon() : ""
 	description_holders["interactions"] = A.get_description_interaction()
 
 	description_holders["name"] = "[A.name]"
-	description_holders["icon"] = "\icon[A.examine_icon()]"
+	description_holders["icon"] = A
 	description_holders["desc"] = A.desc
-
-/mob/Stat()
-	. = ..()
-	if(client && statpanel("Examine"))
-		var/description_holders = client.description_holders
-		stat(null,"[description_holders["icon"]]    <font size='5'>[description_holders["name"]]</font>") //The name, written in big letters.
-		stat(null,"[description_holders["desc"]]") //the default examine text.
-
-
-		var/color_i = "#084B8A"
-		var/color_f = "#298A08"
-		var/color_a = "#8A0808"
-/*
-		The infowindow colours are set in code\modules\vchat\js\vchat.js file
-		Unfortunately, I cannot think of a way to do this elegantly where there's this central define that we can easily track.
-		As of 2023/08/05 13:10, the lightmode colour for vchat tabBackgroundColor is "none", this is also defined in interface\skin.dmf .
-		The darkmode colour for vchat tabBackgroundColor is "#272727".
-		Since it's possible that one day we'll have option to modify the user's preferred tabBackgroundColor
-		I will assume the lightmode colour will be left untouched - therefore, we are checking for none.
-*/
-		if(!(winget(src, "infowindow", "background-color") == "none"))
-			color_i = "#709ec9d8"
-			color_f = "#76d357"
-			color_a = "#c94d4d"
-
-
-		if(description_holders["info"])
-			stat(null,"<font color=[color_i]><b>[description_holders["info"]]</b></font>") //Blue, informative text.
-		if(description_holders["interactions"])
-			for(var/line in description_holders["interactions"])
-				stat(null, "<font color=[color_i]><b>[line]</b></font>")
-		if(description_holders["fluff"])
-			stat(null,"<font color=[color_f]><b>[description_holders["fluff"]]</b></font>") //Yellow, fluff-related text.
-		if(description_holders["antag"])
-			stat(null,"<font color=[color_a]><b>[description_holders["antag"]]</b></font>") //Red, malicious antag-related text
 
 //override examinate verb to update description holders when things are examined
 //mob verbs are faster than object verbs. See http://www.byond.com/forum/?post=1326139&page=2#comment8198716 for why this isn't atom/verb/examine()
 /mob/verb/examinate(atom/A as mob|obj|turf in _validate_atom(A))
 	set name = "Examine"
-	set category = "IC"
+	set category = "IC.Game"
 
-	if((is_blind(src) || usr.stat) && !isobserver(src))
-		to_chat(src, "<span class='notice'>Something is there but you can't see it.</span>")
+	if((is_blind(src) || src.stat) && !isobserver(src))
+		to_chat(src, span_notice("Something is there but you can't see it."))
 		return 1
 
 	//Could be gone by the time they finally pick something
 	if(!A)
 		return 1
-
-	face_atom(A)
+	if(!is_paralyzed())
+		face_atom(A)
 	var/list/results = A.examine(src)
 	if(!results || !results.len)
 		results = list("You were unable to examine that. Tell a developer!")
-	to_chat(src, "<span class='infoplain'>[jointext(results, "<br>")]</span>")
+
+	results += embedded_info(A)
+
+	var/final_string = span_infoplain("[jointext(results, "<br>")]")
+	if(ismob(A) || client?.prefs?.read_preference(/datum/preference/choiced/examine_mode) == EXAMINE_MODE_VERBOSE) // mob descriptions matter more than others, & it looks weird to have dropdowns outside the box.
+		final_string = examine_block(final_string)
+	to_chat(src, final_string)
 	update_examine_panel(A)
 
-/mob/proc/update_examine_panel(var/atom/A)
+/mob/proc/embedded_info(atom/A)
+	. = ""
+	if(!(client?.prefs?.read_preference(/datum/preference/choiced/examine_mode) == EXAMINE_MODE_VERBOSE))
+		return
+	if(!client?.prefs?.read_preference(/datum/preference/toggle/vchat_enable))
+		return //sorry oldchat
+
+	//do pref check here
+	var/desc_info_temp = A.get_description_info()
+	if(desc_info_temp)
+		. += span_details("ℹ️ | Information", desc_info_temp)
+	var/fluff_info_temp = A.get_description_fluff()
+	if(fluff_info_temp && fluff_info_temp != "")
+		var/title = "🪐 | Flavor Information"
+		var/examine_text = splittext(fluff_info_temp, "||")
+		var/index = 0
+		var/rendered_text = ""
+		for(var/part in examine_text)
+			if(index % 2)
+				rendered_text += span_spoiler("[part]")
+			else
+				rendered_text += "[part]"
+			index++
+		if(isliving(A)) //ehhh
+			var/mob/living/B = A
+			if(B.flavor_text)
+				title = "🔍 | Flavor Text"
+
+		. += span_details(title, rendered_text)
+	var/is_antagish = antag_check()
+	var/antag_info_temp = A.get_description_antag()
+	if(is_antagish && antag_info_temp)
+		. += span_details("🏴‍☠️ | Antag Information", antag_info_temp)
+
+	var/is_silicon = silicon_check()
+	var/silicon_info_temp = A.get_description_silicon()
+	if(is_silicon && silicon_info_temp)
+		. += span_details("🤖 | Silicon Information", silicon_info_temp)
+	var/list/interaction_info = A.get_description_interaction()
+	if(LAZYLEN(interaction_info))
+		var/temp = ""
+		for(var/a in interaction_info)
+			temp += a + "\n"
+		. += span_details("🛠️ | Interaction Information", temp)
+
+/mob/proc/antag_check()
+	if(mind && (mind.special_role || mind.antag_holder.is_antag())) //We're a /mob and have a mind and antag status.
+		return TRUE
+	if(isobserver(src)) //We're an observer. We always are able to see stuff antags see.
+		return TRUE
+	var/datum/component/antag/comp = GetComponent(/datum/component/antag)
+	if(comp)
+		return TRUE
+	return FALSE
+
+/mob/proc/silicon_check()
+	if(isobserver(src)) //We're an observer. We always are able to see stuff antags see.
+		return TRUE
+	if(issilicon(src))
+		return TRUE
+	return FALSE
+
+/mob/proc/update_examine_panel(atom/A)
 	if(client)
-		var/is_antag = ((mind && mind.special_role) || isobserver(src)) //ghosts don't have minds
-		client.update_description_holders(A, is_antag)
+		var/is_antag = antag_check()
+		var/is_silicon = silicon_check()
+		client.update_description_holders(A, is_antag, is_silicon)
+		SSstatpanels.set_examine_tab(client)
+
 
 
 /mob/verb/mob_examine()
 	set name = "Mob Examine"
 	set desc = "Allows one to examine mobs they can see, even from inside of bellies and objects."
-	set category = "IC"
+	set category = "IC.Game"
 	set popup_menu = FALSE
 
 	if((is_blind(src) || src.stat) && !isobserver(src))
-		to_chat(src, "<span class='notice'>Something is there but you can't see it.</span>")
+		to_chat(src, span_notice("Something is there but you can't see it."))
 		return 1
 	var/list/E = list()
 	if(isAI(src))
@@ -178,7 +223,7 @@
 					keepgoing = FALSE
 
 	if(E.len == 0)
-		to_chat(src, SPAN_NOTICE("There are no mobs to examine."))
+		to_chat(src, span_notice("There are no mobs to examine."))
 		return
 	var/atom/B = null
 	if(E.len == 1)
@@ -187,8 +232,8 @@
 		B = tgui_input_list(src, "What would you like to examine?", "Examine", E)
 	if(!B)
 		return
-	if(!isbelly(loc) && !istype(loc, /obj/item/weapon/holder) && !isAI(src))
-		if(B.z == src.z)
+	if(!isbelly(loc) && !istype(loc, /obj/item/holder) && !isAI(src))
+		if(B.z == src.z && !is_paralyzed())
 			face_atom(B)
 	var/list/results = B.examine(src)
 	if(!results || !results.len)

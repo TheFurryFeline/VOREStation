@@ -14,20 +14,21 @@
 	active_power_usage = 150 KILOWATTS  //BIG POWER
 	idle_power_usage = 500
 
-	circuit = /obj/item/weapon/circuitboard/thermoregulator
+	circuit = /obj/item/circuitboard/thermoregulator
 
 	var/on = 0
 	var/target_temp = T20C
 	var/mode = MODE_IDLE
 
-/obj/machinery/power/thermoregulator/New()
-	..()
+/obj/machinery/power/thermoregulator/Initialize(mapload)
+	. = ..()
 	default_apply_parts()
+	AddElement(/datum/element/climbable)
 
 /obj/machinery/power/thermoregulator/examine(mob/user)
 	. = ..()
 	if(get_dist(user, src) <= 2)
-		. += "There is a small display that reads \"[convert_k2c(target_temp)]C\"."
+		. += span_notice("There is a small display that reads \"[convert_k2c(target_temp)]C\".")
 
 /obj/machinery/power/thermoregulator/attackby(obj/item/I, mob/user)
 	if(I.has_tool_quality(TOOL_SCREWDRIVER))
@@ -38,7 +39,7 @@
 			return
 	if(I.has_tool_quality(TOOL_WRENCH))
 		anchored = !anchored
-		visible_message("<span class='notice'>\The [src] has been [anchored ? "bolted to the floor" : "unbolted from the floor"] by [user].</span>")
+		visible_message(span_notice("\The [src] has been [anchored ? "bolted to the floor" : "unbolted from the floor"] by [user]."))
 		playsound(src, I.usesound, 75, 1)
 		if(anchored)
 			connect_to_network()
@@ -46,8 +47,8 @@
 			disconnect_from_network()
 			turn_off()
 		return
-	if(istype(I, /obj/item/device/multitool))
-		var/new_temp = tgui_input_number(usr, "Input a new target temperature, in degrees C.","Target Temperature", convert_k2c(target_temp), round_value = FALSE)
+	if(istype(I, /obj/item/multitool))
+		var/new_temp = tgui_input_number(user, "Input a new target temperature, in degrees C.","Target Temperature", convert_k2c(target_temp), MAX_ATMOS_TEMPERATURE, convert_k2c(TCMB), round_value = FALSE)
 		if(!Adjacent(user) || user.incapacitated())
 			return
 		new_temp = convert_c2k(new_temp)
@@ -63,7 +64,7 @@
 	if(!anchored)
 		return
 	on = !on
-	user.visible_message("<span class='notice'>[user] [on ? "activates" : "deactivates"] \the [src].</span>","<span class='notice'>You [on ? "activate" : "deactivate"] \the [src].</span>")
+	user.visible_message(span_notice("[user] [on ? "activates" : "deactivates"] \the [src]."),span_notice("You [on ? "activate" : "deactivate"] \the [src]."))
 	if(!on)
 		change_mode(MODE_IDLE)
 	update_icon()
@@ -76,7 +77,7 @@
 		return
 
 	if(draw_power(idle_power_usage) < idle_power_usage)
-		visible_message("<b>\The [src]</b> shuts down.")
+		visible_message(span_infoplain(span_bold("\The [src]") + " shuts down."))
 		turn_off()
 		return
 
@@ -119,7 +120,7 @@
 				add_overlay("lasergen-cool")
 
 /obj/machinery/power/thermoregulator/proc/turn_off()
-	on = 0
+	on = FALSE
 	change_mode(MODE_IDLE)
 	update_icon()
 
@@ -129,14 +130,16 @@
 	mode = new_mode
 	update_icon()
 
-/obj/machinery/power/thermoregulator/emp_act(severity)
+/obj/machinery/power/thermoregulator/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
 	if(!on)
-		on = 1
+		on = TRUE
 	target_temp += rand(0, 1000)
 	update_icon()
-	..(severity)
 
-/obj/machinery/power/thermoregulator/overload(var/obj/machinery/power/source)
+/obj/machinery/power/thermoregulator/overload(obj/machinery/power/source)
 	if(!anchored || !powernet)
 		return
 	var/power_avail = draw_power(active_power_usage*10)
@@ -148,12 +151,12 @@
 			env.merge(removed)
 	var/turf/T = get_turf(src)
 	new /obj/effect/decal/cleanable/liquid_fuel(T, 5)
-	T.assume_gas("volatile_fuel", 5, T20C)
+	T.assume_gas(GAS_VOLATILE_FUEL, 5, T20C)
 	T.hotspot_expose(700,400)
 	var/datum/effect/effect/system/spark_spread/s = new
 	s.set_up(5, 0, T)
 	s.start()
-	visible_message("<span class='warning'>\The [src] bursts into flame!</span>")
+	visible_message(span_warning("\The [src] bursts into flame!"))
 
 #undef MODE_IDLE
 #undef MODE_HEATING

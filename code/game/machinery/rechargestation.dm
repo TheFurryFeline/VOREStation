@@ -1,16 +1,17 @@
 /obj/machinery/recharge_station
 	name = "cyborg recharging station"
-	desc = "A heavy duty rapid charging system, designed to quickly recharge cyborg power reserves."
+	desc = "A heavy duty rapid charging system, designed to quickly recharge cyborg power reserves. Despite the name, it can also be used by synthmorphs."
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "borgcharger0"
 	density = TRUE
 	anchored = TRUE
 	unacidable = TRUE
-	circuit = /obj/item/weapon/circuitboard/recharge_station
+	flags = REMOTEVIEW_ON_ENTER
+	circuit = /obj/item/circuitboard/recharge_station
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 50
 	var/mob/occupant = null
-	var/obj/item/weapon/cell/cell = null
+	var/obj/item/cell/cell = null
 	var/icon_update_tick = 0	// Used to rebuild the overlay only once every 10 ticks
 	var/charging = 0
 
@@ -23,7 +24,7 @@
 	var/weld_power_use = 2300	// power used per point of brute damage repaired. 2.3 kW ~ about the same power usage of a handheld arc welder
 	var/wire_power_use = 500	// power used per point of burn damage repaired.
 
-/obj/machinery/recharge_station/Initialize()
+/obj/machinery/recharge_station/Initialize(mapload)
 	. = ..()
 	default_apply_parts()
 	cell = default_use_hicell()
@@ -122,27 +123,27 @@
 				H.accumulated_rads = max(H.accumulated_rads - 25, 0)
 
 		if(H.wearing_rig) // stepping into a borg charger to charge your rig and fix your shit
-			var/obj/item/weapon/rig/wornrig = H.get_rig()
+			var/obj/item/rig/wornrig = H.get_rig()
 			if(wornrig) // just to make sure
 				for(var/obj/item/rig_module/storedmod in wornrig.installed_modules)
 					if(weld_rate && storedmod.damage && cell.checked_use(weld_power_use * weld_rate * CELLRATE))
-						to_chat(H, "<span class='notice'>[storedmod] is repaired!</span>")
+						to_chat(H, span_notice("[storedmod] is repaired!"))
 						storedmod.damage = 0
 				if(wornrig.chest)
 					var/obj/item/clothing/suit/space/rig/rigchest = wornrig.chest
 					if(weld_rate && rigchest.damage && cell.checked_use(weld_power_use * weld_rate * CELLRATE))
 						rigchest.breaches = list()
 						rigchest.calc_breach_damage()
-						to_chat(H, "<span class='notice'>[rigchest] is repaired!</span>")
+						to_chat(H, span_notice("[rigchest] is repaired!"))
 				if(wornrig.cell)
-					var/obj/item/weapon/cell/rigcell = wornrig.cell
+					var/obj/item/cell/rigcell = wornrig.cell
 					var/diff = min(rigcell.maxcharge - rigcell.charge, charging_power * CELLRATE) // Capped by charging_power / tick
 					var/charge_used = cell.use(diff)
 					rigcell.give(charge_used)
 
 /obj/machinery/recharge_station/examine(mob/user)
 	. = ..()
-	. += "The charge meter reads: [round(chargepercentage())]%"
+	. += span_notice("The charge meter reads: [round(chargepercentage())]%")
 
 /obj/machinery/recharge_station/proc/chargepercentage()
 	if(!cell)
@@ -155,15 +156,7 @@
 	go_out()
 	return
 
-/obj/machinery/recharge_station/emp_act(severity)
-	if(occupant)
-		occupant.emp_act(severity)
-		go_out()
-	if(cell)
-		cell.emp_act(severity)
-	..(severity)
-
-/obj/machinery/recharge_station/attackby(var/obj/item/O as obj, var/mob/user as mob)
+/obj/machinery/recharge_station/attackby(obj/item/O as obj, mob/user as mob)
 	if(!occupant)
 		if(default_deconstruction_screwdriver(user, O))
 			return
@@ -171,16 +164,16 @@
 			return
 		if(default_part_replacement(user, O))
 			return
-		if (istype(O, /obj/item/weapon/grab) && get_dist(src,user)<2)
-			var/obj/item/weapon/grab/G = O
-			if(istype(G.affecting,/mob/living))
+		if (istype(O, /obj/item/grab) && get_dist(src,user)<2)
+			var/obj/item/grab/G = O
+			if(isliving(G.affecting))
 				var/mob/living/M = G.affecting
 				qdel(O)
 				go_in(M)
 
 	..()
 
-/obj/machinery/recharge_station/MouseDrop_T(var/mob/target, var/mob/user)
+/obj/machinery/recharge_station/MouseDrop_T(mob/target, mob/user)
 	if(user.stat || user.lying || !Adjacent(user) || !target.Adjacent(user))
 		return
 
@@ -191,12 +184,12 @@
 	var/man_rating = 0
 	var/cap_rating = 0
 
-	for(var/obj/item/weapon/stock_parts/P in component_parts)
-		if(istype(P, /obj/item/weapon/stock_parts/capacitor))
+	for(var/obj/item/stock_parts/P in component_parts)
+		if(istype(P, /obj/item/stock_parts/capacitor))
 			cap_rating += P.rating
-		if(istype(P, /obj/item/weapon/stock_parts/manipulator))
+		if(istype(P, /obj/item/stock_parts/manipulator))
 			man_rating += P.rating
-	cell = locate(/obj/item/weapon/cell) in component_parts
+	cell = locate(/obj/item/cell) in component_parts
 
 	charging_power = 40000 + 40000 * cap_rating
 	restore_power_active = 10000 + 15000 * cap_rating
@@ -244,15 +237,15 @@
 	if(icon_update_tick == 0)
 		build_overlays()
 
-/obj/machinery/recharge_station/Bumped(var/mob/living/L)
+/obj/machinery/recharge_station/Bumped(mob/living/L)
 	go_in(L)
 
-/obj/machinery/recharge_station/proc/go_in(var/mob/living/L)
+/obj/machinery/recharge_station/proc/go_in(mob/living/L)
 
 	if(occupant)
 		return
 
-	if(istype(L, /mob/living/silicon/robot))
+	if(isrobot(L))
 		var/mob/living/silicon/robot/R = L
 
 		if(R.incapacitated())
@@ -262,25 +255,23 @@
 			return
 
 		if(istype(R, /mob/living/silicon/robot/platform))
-			to_chat(R, SPAN_WARNING("You are too large to fit into \the [src]."))
+			to_chat(R, span_warning("You are too large to fit into \the [src]."))
 			return
 
 		add_fingerprint(R)
-		R.reset_view(src)
 		R.forceMove(src)
 		occupant = R
 		update_icon()
 		return 1
 
 	//VOREStation Add Start
-	else if(istype(L, /mob/living/silicon/pai))
+	else if(ispAI(L))
 		var/mob/living/silicon/pai/P = L
 
 		if(P.incapacitated())
 			return
 
 		add_fingerprint(P)
-		P.reset_view(src)
 		P.forceMove(src)
 		occupant = P
 		update_icon()
@@ -291,7 +282,6 @@
 		var/mob/living/carbon/human/H = L
 		if(H.isSynthetic() || H.wearing_rig)
 			add_fingerprint(H)
-			H.reset_view(src)
 			H.forceMove(src)
 			occupant = H
 			update_icon()
@@ -302,9 +292,7 @@
 /obj/machinery/recharge_station/proc/go_out()
 	if(!occupant)
 		return
-
-	occupant.forceMove(src.loc)
-	occupant.reset_view()
+	occupant.forceMove(get_turf(src))
 	occupant = null
 	update_icon()
 

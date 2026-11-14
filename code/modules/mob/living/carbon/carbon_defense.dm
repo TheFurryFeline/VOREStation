@@ -1,15 +1,11 @@
 //Called when the mob is hit with an item in combat.
-/mob/living/carbon/resolve_item_attack(obj/item/I, mob/living/user, var/effective_force, var/hit_zone)
+/mob/living/carbon/resolve_item_attack(obj/item/I, mob/living/user, effective_force, hit_zone)
 	if(check_neckgrab_attack(I, user, hit_zone))
 		return null
 	..()
 
-/mob/living/carbon/standard_weapon_hit_effects(obj/item/I, mob/living/user, var/effective_force, var/blocked, var/soaked, var/hit_zone)
+/mob/living/carbon/standard_weapon_hit_effects(obj/item/I, mob/living/user, effective_force, blocked, hit_zone)
 	if(!effective_force || blocked >= 100)
-		return 0
-
-	//If the armor soaks all of the damage, it just skips the rest of the checks
-	if(effective_force <= soaked)
 		return 0
 
 	//Apply weapon damage
@@ -21,7 +17,7 @@
 		weapon_edge = 0
 		hit_embed_chance = I.force/(I.w_class*3)
 
-	apply_damage(effective_force, I.damtype, hit_zone, blocked, soaked, sharp=weapon_sharp, edge=weapon_edge, used_weapon=I)
+	apply_damage(effective_force, I.damtype, hit_zone, blocked, weapon_sharp, weapon_edge, I)
 
 	//Melee weapon embedded object code.
 	if (I && I.damtype == BRUTE && !I.anchored && !is_robot_module(I) && I.embed_chance > 0)
@@ -39,9 +35,9 @@
 	return 1
 
 // Attacking someone with a weapon while they are neck-grabbed
-/mob/living/carbon/proc/check_neckgrab_attack(obj/item/W, mob/user, var/hit_zone)
+/mob/living/carbon/proc/check_neckgrab_attack(obj/item/W, mob/user, hit_zone)
 	if(user.a_intent == I_HURT)
-		for(var/obj/item/weapon/grab/G in src.grabbed_by)
+		for(var/obj/item/grab/G in src.grabbed_by)
 			if(G.assailant == user)
 				if(G.state >= GRAB_AGGRESSIVE)
 					if(hit_zone == BP_TORSO && shank_attack(W, G, user))
@@ -53,15 +49,15 @@
 
 
 // Knifing
-/mob/living/carbon/proc/attack_throat(obj/item/W, obj/item/weapon/grab/G, mob/user)
+/mob/living/carbon/proc/attack_throat(obj/item/W, obj/item/grab/G, mob/user)
 
 	if(!W.edge || !W.force || W.damtype != BRUTE)
 		return 0 //unsuitable weapon
 
-	user.visible_message("<span class='danger'>\The [user] begins to slit [src]'s throat with \the [W]!</span>")
+	user.visible_message(span_danger("\The [user] begins to slit [src]'s throat with \the [W]!"))
 
 	user.next_move = world.time + 20 //also should prevent user from triggering this repeatedly
-	if(!do_after(user, 20))
+	if(!do_after(user, 2 SECONDS, target = src))
 		return 0
 	if(!(G && G.assailant == user && G.affecting == src)) //check that we still have a grab
 		return 0
@@ -87,9 +83,9 @@
 
 	if(total_damage)
 		if(oxyloss >= 40)
-			user.visible_message("<span class='danger'>\The [user] slit [src]'s throat open with \the [W]!</span>")
+			user.visible_message(span_danger("\The [user] slit [src]'s throat open with \the [W]!"))
 		else
-			user.visible_message("<span class='danger'>\The [user] cut [src]'s neck with \the [W]!</span>")
+			user.visible_message(span_danger("\The [user] cut [src]'s neck with \the [W]!"))
 
 		if(W.hitsound)
 			playsound(src, W.hitsound, 50, 1, -1)
@@ -101,15 +97,15 @@
 
 	return 1
 
-/mob/living/carbon/proc/shank_attack(obj/item/W, obj/item/weapon/grab/G, mob/user, hit_zone)
+/mob/living/carbon/proc/shank_attack(obj/item/W, obj/item/grab/G, mob/user, hit_zone)
 
 	if(!W.sharp || !W.force || W.damtype != BRUTE)
 		return 0 //unsuitable weapon
 
-	user.visible_message("<span class='danger'>\The [user] plunges \the [W] into \the [src]!</span>")
+	user.visible_message(span_danger("\The [user] plunges \the [W] into \the [src]!"))
 
 	var/damage = shank_armor_helper(W, G, user)
-	apply_damage(damage, W.damtype, "torso", 0, sharp=W.sharp, edge=W.edge)
+	apply_damage(damage, W.damtype, BP_TORSO, 0, sharp=W.sharp, edge=W.edge)
 
 	if(W.hitsound)
 		playsound(src, W.hitsound, 50, 1, -1)
@@ -118,7 +114,7 @@
 
 	return 1
 
-/mob/living/carbon/proc/shank_armor_helper(obj/item/W, obj/item/weapon/grab/G, mob/user)
+/mob/living/carbon/proc/shank_armor_helper(obj/item/W, obj/item/grab/G, mob/user)
 	var/damage = W.force
 	var/damage_mod = 1
 	if(W.edge)
@@ -153,3 +149,26 @@
 	damage = damage * damage_mod
 
 	return damage
+
+/mob/living/carbon/can_slip(lube)
+	//Slip Godmode
+	if(HAS_TRAIT(src, TRAIT_NO_SLIP_ALL))
+		return FALSE
+	//Not standing on a surface to slip on...
+	if(flying || hovering)
+		return FALSE
+	//Not on this plane of existance (and also not able to touch whatever would be slipping them, probably.)
+	if(is_incorporeal())
+		return FALSE
+	if(lube & PUZZLE_ICE) //Puzzle ice. Gear cant help block these slips.
+		return TRUE
+	// General magboot check to my knowledge. Should block lube-level slips.
+	if(Check_Shoegrip())
+		return FALSE
+	if(!(lube & GALOSHES_DONT_HELP)) //Non-lube slippery (water, soap)
+		if(HAS_TRAIT(src, TRAIT_NO_SLIP_WATER) || HAS_TRAIT(src, TRAIT_NO_SLIP_GREATER))
+			return FALSE
+	else
+		if(HAS_TRAIT(src, TRAIT_NO_SLIP_GREATER))
+			return FALSE
+	return TRUE

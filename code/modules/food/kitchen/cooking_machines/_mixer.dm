@@ -14,17 +14,20 @@ fundamental differences
 	active_power_usage = 3000
 	idle_power_usage = 50
 	var/datum/looping_sound/mixer/mixer_loop
+	tgui_id = "KitchenMixer"
 
-/obj/machinery/appliance/mixer/examine(var/mob/user)
+/obj/machinery/appliance/mixer/examine(mob/user)
 	. = ..()
 	if(Adjacent(user))
-		. += "<span class='notice'>It is currently set to make a [selected_option]</span>"
+		. += span_notice("It is currently set to make a [selected_option]")
 
-/obj/machinery/appliance/mixer/Initialize()
+/obj/machinery/appliance/mixer/Initialize(mapload)
 	. = ..()
-	cooking_objs += new /datum/cooking_item(new /obj/item/weapon/reagent_containers/cooking_container(src))
+	cooking_objs += new /datum/cooking_item(new /obj/item/reagent_containers/cooking_container(src))
 	cooking = FALSE
 	selected_option = pick(output_options)
+	var/datum/cooking_item/CI = cooking_objs[1]
+	CI.combine_target = selected_option
 
 	mixer_loop = new(list(src), FALSE)
 
@@ -34,30 +37,21 @@ fundamental differences
 	QDEL_NULL(mixer_loop)
 
 //Mixers cannot-not do combining mode. So the default option is removed from this. A combine target must be chosen
-/obj/machinery/appliance/mixer/choose_output()
-	set src in view(1)
-	set name = "Choose output"
-	set category = "Object"
-
-	if (!isliving(usr))
+/obj/machinery/appliance/mixer/choose_output(mob/user, new_output)
+	if (!user.IsAdvancedToolUser())
+		to_chat(user, span_notice("You can't operate [src]."))
 		return
 
-	if (!usr.IsAdvancedToolUser())
-		to_chat(usr, "<span class='notice'>You can't operate [src].</span>")
+	if(!output_options[new_output])
 		return
 
-	if(output_options.len)
-		var/choice = tgui_input_list(usr, "What specific food do you wish to make with \the [src]?", "Food Output Choice", output_options)
-		if(!choice)
-			return
-		else
-			selected_option = choice
-			to_chat(usr, "<span class='notice'>You prepare \the [src] to make \a [selected_option].</span>")
-			var/datum/cooking_item/CI = cooking_objs[1]
-			CI.combine_target = selected_option
+	selected_option = new_output
+	to_chat(user, span_notice("You prepare \the [src] to make \a [selected_option]."))
+	var/datum/cooking_item/CI = cooking_objs[1]
+	CI.combine_target = selected_option
 
 
-/obj/machinery/appliance/mixer/has_space(var/obj/item/I)
+/obj/machinery/appliance/mixer/has_space(obj/item/I)
 	var/datum/cooking_item/CI = cooking_objs[1]
 	if (!CI || !CI.container)
 		return 0
@@ -68,22 +62,22 @@ fundamental differences
 	return 0
 
 
-/obj/machinery/appliance/mixer/can_remove_items(var/mob/user, show_warning = TRUE)
+/obj/machinery/appliance/mixer/can_remove_items(mob/user, show_warning = TRUE)
 	if(stat)
 		return 1
 	else
 		if(show_warning)
-			to_chat(user, "<span class='warning'>You can't remove ingredients while it's turned on! Turn it off first or wait for it to finish.</span>")
+			to_chat(user, span_warning("You can't remove ingredients while it's turned on! Turn it off first or wait for it to finish."))
 		return 0
 
 //Container is not removable
-/obj/machinery/appliance/mixer/removal_menu(var/mob/user)
+/obj/machinery/appliance/mixer/removal_menu(mob/user)
 	if (can_remove_items(user))
 		var/list/menuoptions = list()
 		for(var/datum/cooking_item/CI as anything in cooking_objs)
 			if (CI.container)
 				if (!CI.container.check_contents())
-					to_chat(user, "<span class='filter_notice'>There's nothing in [src] you can remove!</span>")
+					to_chat(user, span_filter_notice("There's nothing in [src] you can remove!"))
 					return
 
 				for (var/obj/item/I in CI.container)
@@ -98,6 +92,9 @@ fundamental differences
 		return 1
 	return 0
 
+/obj/machinery/appliance/mixer/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
+	. = ..()
+	.["icon_used"] = off_icon
 
 /obj/machinery/appliance/mixer/toggle_power()
 	set src in view(1)
@@ -106,31 +103,31 @@ fundamental differences
 
 	var/datum/cooking_item/CI = cooking_objs[1]
 	if(!CI.container.check_contents())
-		to_chat("<span class='filter_notice'>There's nothing in it! Add ingredients before turning [src] on!</span>")
+		to_chat(usr, span_filter_notice("There's nothing in it! Add ingredients before turning [src] on!"))
 		return
 
 	if(stat & POWEROFF)//Its turned off
 		stat &= ~POWEROFF
 		if(usr)
-			usr.visible_message("<span class='filter_notice'>[usr] turns the [src] on.</span>", "<span class='filter_notice'>You turn on \the [src].</span>")
+			usr.visible_message(span_filter_notice("[usr] turns the [src] on."), span_filter_notice("You turn on \the [src]."))
 			get_cooking_work(CI)
 			use_power = 2
 	else //Its on, turn it off
 		stat |= POWEROFF
 		use_power = 0
 		if(usr)
-			usr.visible_message("<span class='filter_notice'>[usr] turns the [src] off.</span>", "<span class='filter_notice'>You turn off \the [src].</span>")
+			usr.visible_message(span_filter_notice("[usr] turns the [src] off."), span_filter_notice("You turn off \the [src]."))
 	playsound(src, 'sound/machines/click.ogg', 40, 1)
 	update_icon()
 
-/obj/machinery/appliance/mixer/can_insert(var/obj/item/I, var/mob/user)
+/obj/machinery/appliance/mixer/can_insert(obj/item/I, mob/user)
 	if(!stat)
-		to_chat(user, "<span class='warning'>,You can't add items while \the [src] is running. Wait for it to finish or turn the power off to abort.</span>")
+		to_chat(user, span_warning(",You can't add items while \the [src] is running. Wait for it to finish or turn the power off to abort."))
 		return 0
 	else
 		return ..()
 
-/obj/machinery/appliance/mixer/finish_cooking(var/datum/cooking_item/CI)
+/obj/machinery/appliance/mixer/finish_cooking(datum/cooking_item/CI)
 	..()
 	stat |= POWEROFF
 	playsound(src, 'sound/machines/click.ogg', 40, 1)

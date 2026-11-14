@@ -27,7 +27,7 @@
 	melee_damage_upper = 25
 
 	poison_per_bite = 3
-	poison_type = "chloralhydrate"
+	poison_type = REAGENT_ID_CHLORALHYDRATE
 
 	movement_cooldown = 2
 
@@ -39,19 +39,19 @@
 	var/swarmling_type = /mob/living/simple_mob/animal/giant_spider/hunter
 	var/swarmling_prob = 10 // Odds that a spiderling will be a swarmling instead.
 
-/mob/living/simple_mob/animal/giant_spider/carrier/Initialize()
+/mob/living/simple_mob/animal/giant_spider/carrier/Initialize(mapload)
 	spiderling_count = rand(5, 10)
 	adjust_scale(1.2)
 	return ..()
 
 /mob/living/simple_mob/animal/giant_spider/carrier/death()
-	visible_message(span("warning", "\The [src]'s abdomen splits as it rolls over, spiderlings crawling from the wound.") )
+	visible_message(span_warning("\The [src]'s abdomen splits as it rolls over, spiderlings crawling from the wound.") )
 	spawn(1)
 		var/list/new_spiders = list()
 		for(var/i = 1 to spiderling_count)
 			if(prob(swarmling_prob) && src)
 				var/mob/living/simple_mob/animal/giant_spider/swarmling = new swarmling_type(src.loc)
-				var/swarm_health = FLOOR(swarmling.maxHealth * 0.4, 1)
+				var/swarm_health = FLOOR(swarmling.getMaxHealth() * 0.4, 1)
 				var/swarm_dam_lower = FLOOR(melee_damage_lower * 0.4, 1)
 				var/swarm_dam_upper = FLOOR(melee_damage_upper * 0.4, 1)
 				swarmling.name = "spiderling"
@@ -85,3 +85,6 @@
 	catalogue_data = list(/datum/category_item/catalogue/fauna/giant_spider/recursive_carrier_spider)
 
 	swarmling_type = /mob/living/simple_mob/animal/giant_spider/carrier/recursive
+
+/mob/living/simple_mob/animal/giant_spider/carrier/event
+	ai_holder_type = /datum/ai_holder/simple_mob/event

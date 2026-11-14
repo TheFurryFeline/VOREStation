@@ -6,7 +6,6 @@
 	icon_state = "augment_hybrid"
 	dead_icon = "augment_hybrid_dead"
 
-	robotic = ORGAN_ASSISTED
 	target_parent_classes = list(ORGAN_FLESH)
 
 /* Jensen Shades. Your vision can be augmented.
@@ -23,8 +22,6 @@
 	w_class = ITEMSIZE_TINY
 
 	organ_tag = O_AUG_EYES
-
-	robotic = ORGAN_ROBOT
 
 	parent_organ = BP_HEAD
 
@@ -53,28 +50,28 @@
 			drop_from_inventory(glasses)
 			aug.integrated_object.forceMove(aug)
 			if(!glasses)
-				to_chat(src, "<span class='alien'>Your [aug.integrated_object] retract into your skull.</span>")
+				to_chat(src, span_alien("Your [aug.integrated_object] retract into your skull."))
 		else if(!istype(glasses, /obj/item/clothing/glasses/hud/security/jensenshades))
-			to_chat(src, "<span class='notice'>\The [glasses] block your shades from deploying.</span>")
+			to_chat(src, span_notice("\The [glasses] block your shades from deploying."))
 		else if(istype(glasses, /obj/item/clothing/glasses/hud/security/jensenshades))
 			var/obj/item/G = glasses
 			if(G.canremove)
-				to_chat(src, "<span class='notice'>\The [G] are not your integrated shades.</span>")
+				to_chat(src, span_notice("\The [G] are not your integrated shades."))
 			else
 				drop_from_inventory(G)
-				to_chat(src, "<span class='notice'>\The [G] retract into your skull.</span>")
+				to_chat(src, span_notice("\The [G] retract into your skull."))
 				qdel(G)
 
 	else
 		if(aug && aug.integrated_object)
-			to_chat(src, "<span class='alien'>Your [aug.integrated_object] deploy.</span>")
+			to_chat(src, span_alien("Your [aug.integrated_object] deploy."))
 			equip_to_slot(aug.integrated_object, slot_glasses, 0, 1)
 			if(!glasses || glasses != aug.integrated_object)
 				aug.integrated_object.forceMove(aug)
 		else
 			var/obj/item/clothing/glasses/hud/security/jensenshades/J = new(get_turf(src))
 			equip_to_slot(J, slot_glasses, 1, 1)
-			to_chat(src, "<span class='notice'>Your [aug.integrated_object] deploy.</span>")
+			to_chat(src, span_notice("Your [aug.integrated_object] deploy."))
 
 /obj/item/organ/internal/augment/bioaugment/sprint_enhance
 	name = "locomotive optimization implant"
@@ -84,7 +81,9 @@
 
 	parent_organ = BP_GROIN
 
-	target_parent_classes = list(ORGAN_FLESH, ORGAN_ASSISTED)
+	robotic = ORGAN_ASSISTED //'chunk of meat'
+
+	target_parent_classes = list(ORGAN_FLESH, ORGAN_ROBOT)
 
 	aug_cooldown = 2 MINUTES
 
@@ -98,7 +97,26 @@
 		else
 			return
 
-	if(istype(owner, /mob/living/carbon/human))
+	if(ishuman(owner))
 		var/mob/living/carbon/human/H = owner
 		H.add_modifier(/datum/modifier/sprinting, 1 MINUTES)
 
+/obj/item/organ/internal/augment/bioaugment/health_scan
+	name = "health scanner implant"
+	desc = "A small, rounded metallic implant with a passive spectrometer, meant to scan blood passing it by."
+
+	organ_tag = O_AUG_PELVIC
+
+	parent_organ = BP_GROIN
+
+	target_parent_classes = list(ORGAN_FLESH, ORGAN_ROBOT)
+	var/obj/item/healthanalyzer/med_analyzer = null
+
+/obj/item/organ/internal/augment/bioaugment/health_scan/Initialize(mapload)
+	. = ..()
+	med_analyzer = new /obj/item/healthanalyzer/advanced
+
+/obj/item/organ/internal/augment/bioaugment/health_scan/augment_action()
+	if(!owner)
+		return
+	med_analyzer.scan_mob(owner,owner)

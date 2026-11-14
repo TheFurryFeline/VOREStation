@@ -21,9 +21,9 @@
 				deactivate()
 			return FALSE
 
-		H.visible_message("<span class='warning'>Thin snakelike tendrils grow from [H] and connect to \the [apc].</span>","<span class='notice'>Thin snakelike tendrils grow from you and connect to \the [apc].</span>")
+		H.visible_message(span_warning("Thin snakelike tendrils grow from [H] and connect to \the [apc]."),span_notice("Thin snakelike tendrils grow from you and connect to \the [apc]."))
 
-/datum/nifsoft/apc_recharge/deactivate(var/force = FALSE)
+/datum/nifsoft/apc_recharge/deactivate(force = FALSE)
 	if((. = ..()))
 		apc = null
 
@@ -36,7 +36,7 @@
 			return TRUE
 		else
 			nif.notify("APC charging has ended.")
-			H.visible_message("<span class='warning'>[H]'s snakelike tendrils whip back into their body from \the [apc].</span>","<span class='notice'>The APC connector tendrils return to your body.</span>")
+			H.visible_message(span_warning("[H]'s snakelike tendrils whip back into their body from \the [apc]."),span_notice("The APC connector tendrils return to your body."))
 			deactivate()
 			return FALSE
 
@@ -99,17 +99,17 @@
 	access = 999 //Prevents anyone from buying it without an emag.
 	var/laws = "Be nice to people!"
 
-/datum/nifsoft/compliance/New(var/newloc,var/newlaws)
+/datum/nifsoft/compliance/New(newloc,newlaws)
 	laws = newlaws //Sanitize before this (the disk does)
 	..(newloc)
 
 /datum/nifsoft/compliance/activate()
 	if((. = ..()))
-		to_chat(nif.human,"<span class='danger'>You are compelled to follow these rules: </span>\n<span class='notify'>[laws]</span>")
+		to_chat(nif.human,span_danger("You are compelled to follow these rules:") + "\n" + span_notify("[laws]"))
 
 /datum/nifsoft/compliance/install()
 	if((. = ..()))
-		to_chat(nif.human,"<span class='danger'>You feel suddenly compelled to follow these rules: </span>\n<span class='notify'>[laws]</span>")
+		to_chat(nif.human,span_danger("You feel suddenly compelled to follow these rules:") + "\n" + span_notify("[laws]"))
 
 /datum/nifsoft/compliance/uninstall()
 	nif.notify("ERROR! Unable to comply!",TRUE)
@@ -122,8 +122,8 @@
 	name = "Mass Alteration"
 	desc = "A system that allows one to change their size, through drastic mass rearrangement. Causes significant wear when installed."
 	list_pos = NIF_SIZECHANGE
-	cost = 375
-	wear = 6
+	cost = 300
+	wear = 1
 
 /datum/nifsoft/sizechange/activate()
 	if((. = ..()))
@@ -131,16 +131,16 @@
 
 		if (!nif.human.size_range_check(new_size))
 			if(new_size)
-				to_chat(nif.human,"<span class='notice'>The safety features of the NIF Program prevent you from choosing this size.</span>")
+				to_chat(nif.human,span_notice("The safety features of the NIF Program prevent you from choosing this size."))
 			return
 		else
 			if(nif.human.resize(new_size/100, uncapped=nif.human.has_large_resize_bounds(), ignore_prefs = TRUE))
-				to_chat(nif.human,"<span class='notice'>You set the size to [new_size]%</span>")
-				nif.human.visible_message("<span class='warning'>Swirling grey mist envelops [nif.human] as they change size!</span>","<span class='notice'>Swirling streams of nanites wrap around you as you change size!</span>")
+				to_chat(nif.human,span_notice("You set the size to [new_size]%"))
+				nif.human.visible_message(span_warning("Swirling grey mist envelops [nif.human] as they change size!"),span_notice("Swirling streams of nanites wrap around you as you change size!"))
 		spawn(0)
 			deactivate()
 
-/datum/nifsoft/sizechange/deactivate(var/force = FALSE)
+/datum/nifsoft/sizechange/deactivate(force = FALSE)
 	if((. = ..()))
 		return TRUE
 
@@ -157,22 +157,22 @@
 /datum/nifsoft/worldbend/activate()
 	if((. = ..()))
 		var/list/justme = list(nif.human)
-		for(var/human in human_mob_list)
+		for(var/human in GLOB.human_mob_list)
 			if(human == nif.human)
 				continue
 			var/mob/living/carbon/human/H = human
 			H.display_alt_appearance("animals", justme)
-			alt_farmanimals += nif.human
+			GLOB.alt_farmanimals += nif.human
 
-/datum/nifsoft/worldbend/deactivate(var/force = FALSE)
+/datum/nifsoft/worldbend/deactivate(force = FALSE)
 	if((. = ..()))
 		var/list/justme = list(nif.human)
-		for(var/human in human_mob_list)
+		for(var/human in GLOB.human_mob_list)
 			if(human == nif.human)
 				continue
 			var/mob/living/carbon/human/H = human
 			H.hide_alt_appearance("animals", justme)
-			alt_farmanimals -= nif.human
+			GLOB.alt_farmanimals -= nif.human
 
 /datum/nifsoft/malware
 	name = "Cool Kidz Toolbar"
@@ -188,7 +188,7 @@
 
 /datum/nifsoft/malware/activate()
 	if((. = ..()))
-		to_chat(nif.human,"<span class='danger'>Runtime error in 15_misc.dm, line 191.</span>")
+		to_chat(nif.human,span_danger("Runtime error in 15_misc.dm, line 191."))
 
 /datum/nifsoft/malware/install()
 	if((. = ..()))
@@ -198,4 +198,4 @@
 	if((. = ..()))
 		if(nif.human.client && world.time - last_ads > rand(10 MINUTES, 15 MINUTES) && prob(1))
 			last_ads = world.time
-			nif.human.client.create_fake_ad_popup_multiple(/obj/screen/popup/default, 5)
+			nif.human.client.create_fake_ad_popup_multiple(/atom/movable/screen/popup/default, 5)

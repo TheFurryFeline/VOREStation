@@ -18,25 +18,16 @@
 	plane = TURF_PLANE
 	layer = UNDERWATER_LAYER
 
-	organ_names = /decl/mob_organ_names/fish
+	organ_names = /datum/decl/mob_organ_names/fish
 
-	holder_type = /obj/item/weapon/holder/fish
+	holder_type = /obj/item/holder/fish
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/carpmeat/fish
+	meat_type = /obj/item/reagent_containers/food/snacks/carpmeat/fish
 	meat_amount = 3
-
-	// By default they can be in any water turf.  Subtypes might restrict to deep/shallow etc
-	var/global/list/suitable_turf_types =  list(
-		/turf/simulated/floor/beach/water,
-		/turf/simulated/floor/beach/coastline,
-		/turf/simulated/floor/holofloor/beach/water,
-		/turf/simulated/floor/holofloor/beach/coastline,
-		/turf/simulated/floor/water
-	)
 
 	var/randomize_location = TRUE
 
-/mob/living/simple_mob/animal/passive/fish/Initialize()
+/mob/living/simple_mob/animal/passive/fish/Initialize(mapload)
 	. = ..()
 
 	if(!default_pixel_x && randomize_location)
@@ -47,7 +38,7 @@
 
 // Makes the AI unable to willingly go on land.
 /mob/living/simple_mob/animal/passive/fish/IMove(turf/newloc, safety = TRUE)
-	if(is_type_in_list(newloc, suitable_turf_types))
+	if(is_type_in_list(newloc, GLOB.suitable_fish_turf_types))
 		return ..() // Procede as normal.
 	return MOVEMENT_FAILED // Don't leave the water!
 
@@ -59,7 +50,7 @@
 			return
 
 	var/turf/T = get_turf(src)
-	if(T && !is_type_in_list(T, suitable_turf_types))
+	if(T && !is_type_in_list(T, GLOB.suitable_fish_turf_types))
 		if(prob(50))
 			say(pick("Blub", "Glub", "Burble"))
 		adjustBruteLoss(unsuitable_atoms_damage)
@@ -132,7 +123,7 @@
 
 	catalogue_data = list(/datum/category_item/catalogue/fauna/javelin)
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/carpmeat/fish/sif
+	meat_type = /obj/item/reagent_containers/food/snacks/carpmeat/fish/sif
 
 /datum/category_item/catalogue/fauna/icebass
 	name = "Sivian Fauna - Glitter Bass"
@@ -159,7 +150,7 @@
 
 	catalogue_data = list(/datum/category_item/catalogue/fauna/icebass)
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/carpmeat/fish/sif
+	meat_type = /obj/item/reagent_containers/food/snacks/carpmeat/fish/sif
 
 	var/max_red = 150
 	var/min_red = 50
@@ -176,7 +167,7 @@
 	var/image/dorsal_image
 	var/image/belly_image
 
-/mob/living/simple_mob/animal/passive/fish/icebass/Initialize()
+/mob/living/simple_mob/animal/passive/fish/icebass/Initialize(mapload)
 	. = ..()
 	dorsal_color = rgb(rand(min_red,max_red), rand(min_green,max_green), rand(min_blue,max_blue))
 	belly_color = rgb(rand(min_red,max_red), rand(min_green,max_green), rand(min_blue,max_blue))
@@ -248,9 +239,9 @@
 
 	var/image/head_image
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/carpmeat/fish/sif
+	meat_type = /obj/item/reagent_containers/food/snacks/carpmeat/fish/sif
 
-/mob/living/simple_mob/animal/passive/fish/rockfish/Initialize()
+/mob/living/simple_mob/animal/passive/fish/rockfish/Initialize(mapload)
 	. = ..()
 	head_color = rgb(rand(min_red,max_red), rand(min_green,max_green), rand(min_blue,max_blue))
 	update_icon()
@@ -295,7 +286,7 @@
 
 	has_eye_glow = TRUE
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/carpmeat/fish/sif
+	meat_type = /obj/item/reagent_containers/food/snacks/carpmeat/fish/sif
 
 /datum/category_item/catalogue/fauna/murkin
 	name = "Sivian Fauna - Murkfish"
@@ -322,7 +313,7 @@
 
 	catalogue_data = list(/datum/category_item/catalogue/fauna/murkin)
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/carpmeat/sif/murkfish
+	meat_type = /obj/item/reagent_containers/food/snacks/carpmeat/sif/murkfish
 
-/decl/mob_organ_names/fish
+/datum/decl/mob_organ_names/fish
 	hit_zones = list("head", "body", "dorsal fin", "left pectoral fin", "right pectoral fin", "tail fin")

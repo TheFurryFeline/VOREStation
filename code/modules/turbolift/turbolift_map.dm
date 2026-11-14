@@ -2,28 +2,28 @@
 /obj/turbolift_map_holder
 	name = "turbolift map placeholder"
 	icon = 'icons/obj/turbolift_preview_3x3.dmi'
-	dir = SOUTH         // Direction of the holder determines the placement of the lift control panel and doors.
-	var/depth = 1       // Number of floors to generate, including the initial floor.
+	dir = SOUTH			// Direction of the holder determines the placement of the lift control panel and doors.
+	var/depth = 1		// Number of floors to generate, including the initial floor.
 	var/lift_size_x = 2 // Number of turfs on each axis to generate in addition to the first
 	var/lift_size_y = 2 // ie. a 3x3 lift would have a value of 2 in each of these variables.
 
 	// Various turf and door types used when generating the turbolift floors.
-	var/wall_type =  /turf/simulated/wall/elevator
+	var/wall_type = /turf/simulated/wall/elevator
 	var/floor_type = /turf/simulated/floor/tiled/dark
-	var/door_type =  /obj/machinery/door/airlock/lift
+	var/door_type = /obj/machinery/door/airlock/lift
 
 	var/list/areas_to_use = list()
 
 /obj/turbolift_map_holder/Destroy()
-	turbolifts -= src
+	GLOB.turbolifts -= src
 	return ..()
 
-/obj/turbolift_map_holder/New()
-	turbolifts += src
+/obj/turbolift_map_holder/Initialize(mapload)
 	..()
+	GLOB.turbolifts += src
+	return INITIALIZE_HINT_LATELOAD
 
-/obj/turbolift_map_holder/Initialize()
-	. = ..()
+/obj/turbolift_map_holder/LateInitialize()
 	// Create our system controller.
 	var/datum/turbolift/lift = new()
 
@@ -139,7 +139,7 @@
 				var/turf/checking = locate(tx,ty,cz)
 
 				if(!istype(checking))
-					log_debug("[name] cannot find a component turf at [tx],[ty] on floor [cz]. Aborting.")
+					log_mapping("[name] cannot find a component turf at [tx],[ty] on floor [cz]. Aborting.")
 					qdel(src)
 					return
 
@@ -193,7 +193,7 @@
 		panel_ext.set_dir(udir)
 		cfloor.ext_panel = panel_ext
 
-        // Place lights
+		// Place lights
 		var/turf/placing1 = locate(light_x1, light_y1, cz)
 		var/turf/placing2 = locate(light_x2, light_y2, cz)
 		var/obj/machinery/light/light1 = new(placing1, light)
@@ -207,7 +207,7 @@
 
 		// Update area.
 		if(az > areas_to_use.len)
-			log_debug("Insufficient defined areas in turbolift datum, aborting.")
+			log_mapping("Insufficient defined areas in turbolift datum, aborting.")
 			qdel(src)
 			return
 

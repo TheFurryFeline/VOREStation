@@ -52,7 +52,7 @@
 	name = "magnetic 'pin'"
 	addblends = null
 	desc = "Finally, a hair pin even a Morpheus chassis can use."
-	matter = list(MAT_STEEL = 10)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.005))
 
 /obj/item/clothing/head/pin/flower
 	name = "red flower pin"
@@ -110,7 +110,7 @@
 	name = "redcoat's hat"
 	icon_state = "redcoat"
 	item_state_slots = list(slot_r_hand_str = "pirate", slot_l_hand_str = "pirate")
-	desc = "<i>'I guess it's a redhead.'</i>"
+	desc = span_italics("'I guess it's a redhead.'")
 	body_parts_covered = 0
 
 /obj/item/clothing/head/mailman
@@ -180,25 +180,6 @@
 	body_parts_covered = HEAD|FACE|EYES
 	drop_sound = 'sound/items/drop/cardboardbox.ogg'
 	pickup_sound = 'sound/items/pickup/cardboardbox.ogg'
-
-/obj/item/clothing/head/justice
-	name = "justice hat"
-	desc = "fight for what's righteous!"
-	icon_state = "justicered" //Does this even exist?
-	flags_inv = BLOCKHAIR
-	body_parts_covered = HEAD|EYES
-
-/obj/item/clothing/head/justice/blue
-	icon_state = "justiceblue"
-
-/obj/item/clothing/head/justice/yellow
-	icon_state = "justiceyellow"
-
-/obj/item/clothing/head/justice/green
-	icon_state = "justicegreen"
-
-/obj/item/clothing/head/justice/pink
-	icon_state = "justicepink"
 
 /obj/item/clothing/head/rabbitears
 	name = "rabbit ears"
@@ -364,18 +345,6 @@
 	body_parts_covered = 0
 	item_state_slots = list(slot_r_hand_str = "taq", slot_l_hand_str = "taq")
 
-/obj/item/clothing/head/cowl
-	name = "black cowl"
-	desc = "A gold-lined black cowl. It gives off uncomfortable cult vibes, but fancy."
-	icon_state = "cowl"
-	body_parts_covered = 0
-
-/obj/item/clothing/head/cowl
-	name = "white cowl"
-	desc = "A gold-lined white cowl. It gives off uncomfortable cult vibes, but fancy."
-	icon_state = "whitecowl"
-	body_parts_covered = 0
-
 /obj/item/clothing/head/blackngoldheaddress
 	name = "black and gold headdress"
 	desc = "An odd looking headdress that covers the eyes."
@@ -398,7 +367,7 @@
 /obj/item/clothing/head/beret/corp/pcrc
 	name = "\improper PCRC beret"
 	desc = "A black beret with a PCRC logo insignia, denoting service with Proxima Centauri Risk Control. For private security personnel that are more inclined towards style than safety."
-	icon_state = "beret_black_observatory"
+	icon_state = "beret_black_pcrc"
 
 
 /obj/item/clothing/head/beret/corp/hedberg
@@ -452,7 +421,7 @@
 /obj/item/clothing/head/fedora/brown
 	desc = "A brown fedora. Perfect for detectives or those trying to pilfer artifacts."
 	icon_state = "fedora_brown"
-	allowed = list(/obj/item/weapon/reagent_containers/food/snacks/candy_corn, /obj/item/weapon/pen)
+	allowed = list(POCKET_SLEUTH)
 
 /obj/item/clothing/head/fedora/white
 	desc = "A white fedora, really cool hat if you're a mobster. A really lame hat if you're not."
@@ -563,3 +532,33 @@
 	icon_state = "redtag"
 	flags_inv = HIDEEARS|BLOCKHEADHAIR
 	body_parts_covered = HEAD|EYES
+
+/obj/item/clothing/head/omnitag
+	name = "omni laser tag helmet"
+	desc = "FIRST BLOOD!"
+	icon_state = "marine"
+	flags_inv = HIDEEARS|BLOCKHEADHAIR
+	body_parts_covered = HEAD|EYES
+
+//hair bows
+
+/obj/item/clothing/head/bow
+	name = "large bow"
+	desc = "A large bow that you can place on top of your head."
+	icon_state = "large_bow"
+	body_parts_covered = 0
+
+/obj/item/clothing/head/bow/small
+	name = "small bow"
+	desc = "A small compact bow that you can place on the side of your hair."
+	icon_state = "small_bow"
+
+/obj/item/clothing/head/bow/back
+	name = "back bow"
+	desc = "A large bow that you can place on the back of your head."
+	icon_state = "back_bow"
+
+/obj/item/clothing/head/bow/sweet
+	name = "sweet bow"
+	desc = "A sweet bow that you can place on the back of your head."
+	icon_state = "sweet_bow"

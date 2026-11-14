@@ -1,5 +1,3 @@
-#define EMITTER_DAMAGE_POWER_TRANSFER 450 //used to transfer power to containment field generators
-
 /obj/machinery/power/emitter
 	name = "emitter"
 	desc = "It is a heavy duty industrial laser."
@@ -8,7 +6,7 @@
 	anchored = FALSE
 	density = TRUE
 	unacidable = TRUE
-	req_access = list(access_engine_equip)
+	req_access = list(ACCESS_ENGINE_EQUIP)
 	var/id = null
 
 	use_power = USE_POWER_OFF	//uses powernet power, not APC power
@@ -25,43 +23,28 @@
 	var/state = 0
 	var/locked = 0
 
+	// Anomaly harvesting stuff
+	var/anomalous = FALSE
+	var/particle = ANOMALY_PARTICLE_SIGMA
+
 	var/burst_delay = 2
 	var/initial_fire_delay = 100
 
 	var/integrity = 80
 
-/obj/machinery/power/emitter/verb/rotate_clockwise()
-	set name = "Rotate Emitter Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	if (src.anchored || usr:stat)
-		to_chat(usr, "It is fastened to the floor!")
-		return 0
-	src.set_dir(turn(src.dir, 270))
-	return 1
-
-/obj/machinery/power/emitter/verb/rotate_counterclockwise()
-	set name = "Rotate Emitter Counter-Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	if (src.anchored || usr:stat)
-		to_chat(usr, "It is fastened to the floor!")
-		return 0
-	src.set_dir(turn(src.dir, 90))
-	return 1
-
-/obj/machinery/power/emitter/Initialize()
+/obj/machinery/power/emitter/Initialize(mapload)
 	. = ..()
 	if(state == 2 && anchored)
 		connect_to_network()
+	AddElement(/datum/element/climbable)
+	AddElement(/datum/element/rotatable)
+	AddElement(/datum/element/empprotection, EMP_PROTECT_SELF)
 
 /obj/machinery/power/emitter/Destroy()
-	message_admins("Emitter deleted at ([x],[y],[z] - <A HREF='?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)",0,1)
+	message_admins("Emitter deleted at ([x],[y],[z] - <A href='byond://?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)")
 	log_game("EMITTER([x],[y],[z]) Destroyed/deleted.")
-	investigate_log("<font color='red'>deleted</font> at ([x],[y],[z])","singulo")
-	..()
+	investigate_log(span_red("deleted") + " at ([x],[y],[z])","singulo")
+	. = ..()
 
 /obj/machinery/power/emitter/update_icon()
 	if (active && powernet && avail(active_power_usage))
@@ -81,33 +64,24 @@
 		if(!src.locked)
 			if(src.active==1)
 				src.active = 0
-				to_chat(user, "You turn off [src].")
-				message_admins("Emitter turned off by [key_name(user, user.client)](<A HREF='?_src_=holder;[HrefToken()];adminmoreinfo=\ref[user]'>?</A>) in ([x],[y],[z] - <A HREF='?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)",0,1)
+				balloon_alert_visible("turned off")
+				message_admins("Emitter turned off by [key_name(user, user.client)](<A href='byond://?_src_=holder;[HrefToken()];adminmoreinfo=\ref[user]'>?</A>) in ([x],[y],[z] - <A href='byond://?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)",0,1)
 				log_game("EMITTER([x],[y],[z]) OFF by [key_name(user)]")
-				investigate_log("turned <font color='red'>off</font> by [user.key]","singulo")
+				investigate_log("turned " + span_red("off") + " by [user.key]","singulo")
 			else
 				src.active = 1
-				to_chat(user, "You turn on [src].")
+				balloon_alert_visible("turned on")
 				src.shot_number = 0
 				src.fire_delay = get_initial_fire_delay()
-				message_admins("Emitter turned on by [key_name(user, user.client)](<A HREF='?_src_=holder;[HrefToken()];adminmoreinfo=\ref[user]'>?</A>) in ([x],[y],[z] - <A HREF='?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)",0,1)
+				message_admins("Emitter turned on by [key_name(user, user.client)](<A href='byond://?_src_=holder;[HrefToken()];adminmoreinfo=\ref[user]'>?</A>) in ([x],[y],[z] - <A href='byond://?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)")
 				log_game("EMITTER([x],[y],[z]) ON by [key_name(user)]")
-				investigate_log("turned <font color='green'>on</font> by [user.key]","singulo")
+				investigate_log("turned " + span_green("on") + " by [user.key]","singulo")
 			update_icon()
 		else
-			to_chat(user, "<span class='warning'>The controls are locked!</span>")
+			to_chat(user, span_warning("The controls are locked!"))
 	else
-		to_chat(user, "<span class='warning'>\The [src] needs to be firmly secured to the floor first.</span>")
+		to_chat(user, span_warning("\The [src] needs to be firmly secured to the floor first."))
 		return 1
-
-
-/obj/machinery/power/emitter/emp_act(var/severity)//Emitters are hardened but still might have issues
-//	add_load(1000)
-/*	if((severity == 1)&&prob(1)&&prob(1))
-		if(src.active)
-			src.active = 0
-			src.use_power = 1	*/
-	return 1
 
 /obj/machinery/power/emitter/process()
 	if(stat & (BROKEN))
@@ -124,13 +98,13 @@
 				powered = 1
 				update_icon()
 				log_game("EMITTER([x],[y],[z]) Regained power and is ON.")
-				investigate_log("regained power and turned <font color='green'>on</font>","singulo")
+				investigate_log("regained power and turned " + span_green("on"),"singulo")
 		else
 			if(powered)
 				powered = 0
 				update_icon()
 				log_game("EMITTER([x],[y],[z]) Lost power and was ON.")
-				investigate_log("lost power and turned <font color='red'>off</font>","singulo")
+				investigate_log("lost power and turned" + span_red("off"),"singulo")
 			return
 
 		src.last_shot = world.time
@@ -179,88 +153,104 @@
 				src.anchored = FALSE
 				disconnect_from_network()
 			if(2)
-				to_chat(user, "<span class='warning'>\The [src] needs to be unwelded from the floor.</span>")
+				to_chat(user, span_warning("\The [src] needs to be unwelded from the floor."))
 		update_icon() // VOREStation Add
 		return
 
 	if(W.has_tool_quality(TOOL_WELDER))
-		var/obj/item/weapon/weldingtool/WT = W.get_welder()
+		var/obj/item/weldingtool/WT = W.get_welder()
 		if(active)
 			to_chat(user, "Turn off [src] first.")
 			return
 		switch(state)
 			if(0)
-				to_chat(user, "<span class='warning'>\The [src] needs to be wrenched to the floor.</span>")
+				to_chat(user, span_warning("\The [src] needs to be wrenched to the floor."))
 			if(1)
 				if (WT.remove_fuel(0,user))
 					playsound(src, WT.usesound, 50, 1)
 					user.visible_message("[user.name] starts to weld [src] to the floor.", \
 						"You start to weld [src] to the floor.", \
 						"You hear welding")
-					if (do_after(user,20 * WT.toolspeed))
+					if (do_after(user, 2 SECONDS * WT.toolspeed, target = src))
 						if(!src || !WT.isOn()) return
 						state = 2
 						to_chat(user, "You weld [src] to the floor.")
 						connect_to_network()
 				else
-					to_chat(user, "<span class='warning'>You need more welding fuel to complete this task.</span>")
+					to_chat(user, span_warning("You need more welding fuel to complete this task."))
 			if(2)
 				if (WT.remove_fuel(0,user))
 					playsound(src, WT.usesound, 50, 1)
 					user.visible_message("[user.name] starts to cut [src] free from the floor.", \
 						"You start to cut [src] free from the floor.", \
 						"You hear welding")
-					if (do_after(user,20 * WT.toolspeed))
+					if (do_after(user, 2 SECONDS * WT.toolspeed, target = src))
 						if(!src || !WT.isOn()) return
 						state = 1
 						to_chat(user, "You cut [src] free from the floor.")
 						disconnect_from_network()
 				else
-					to_chat(user, "<span class='warning'>You need more welding fuel to complete this task.</span>")
+					to_chat(user, span_warning("You need more welding fuel to complete this task."))
 		update_icon() // VOREStation Add
 		return
 
 	if(istype(W, /obj/item/stack/material) && W.get_material_name() == MAT_STEEL)
 		var/amt = CEILING(( initial(integrity) - integrity)/10, 1)
 		if(!amt)
-			to_chat(user, "<span class='notice'>\The [src] is already fully repaired.</span>")
+			to_chat(user, span_notice("\The [src] is already fully repaired."))
 			return
 		var/obj/item/stack/P = W
 		if(!P.can_use(amt))
-			to_chat(user, "<span class='warning'>You don't have enough sheets to repair this! You need at least [amt] sheets.</span>")
+			to_chat(user, span_warning("You don't have enough sheets to repair this! You need at least [amt] sheets."))
 			return
-		to_chat(user, "<span class='notice'>You begin repairing \the [src]...</span>")
-		if(do_after(user, 30))
+		to_chat(user, span_notice("You begin repairing \the [src]..."))
+		if(do_after(user, 3 SECONDS, target = src))
 			if(P.use(amt))
-				to_chat(user, "<span class='notice'>You have repaired \the [src].</span>")
+				to_chat(user, span_notice("You have repaired \the [src]."))
 				integrity = initial(integrity)
 				return
 			else
-				to_chat(user, "<span class='warning'>You don't have enough sheets to repair this! You need at least [amt] sheets.</span>")
+				to_chat(user, span_warning("You don't have enough sheets to repair this! You need at least [amt] sheets."))
 				return
 
-	if(istype(W, /obj/item/weapon/card/id) || istype(W, /obj/item/device/pda))
+	if(istype(W, /obj/item/card/id) || istype(W, /obj/item/pda))
 		if(emagged)
-			to_chat(user, "<span class='warning'>The lock seems to be broken.</span>")
+			to_chat(user, span_warning("The lock seems to be broken."))
 			return
 		if(src.allowed(user))
 			src.locked = !src.locked
 			to_chat(user, "The controls are now [src.locked ? "locked." : "unlocked."]")
 			update_icon() // VOREStation Add
 		else
-			to_chat(user, "<span class='warning'>Access denied.</span>")
+			to_chat(user, span_warning("Access denied."))
+		return
+	if(istype(W, /obj/item/anomaly_scanner))
+		anomalous = !anomalous
+		burst_delay = anomalous ? 3 : 8
+		to_chat(user, span_notice("The beam is now set to [anomalous ? "anomalous." : "normal."]"))
+		if(anomalous)
+			description_info = "Use a multitool to change the particle type."
+		else
+			description_info = initial(description_info)
+		return
+	if(W.has_tool_quality(TOOL_MULTITOOL) && anomalous)
+		var/chosen_particle = tgui_input_list(user, "Select particle type", "Particle Selection", ANOMALY_PARTICLE_ALL)
+		if(!chosen_particle)
+			return
+		particle = chosen_particle
+		balloon_alert_visible("changed to [chosen_particle]")
 		return
 	..()
 	return
 
-/obj/machinery/power/emitter/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/power/emitter/emag_act(remaining_charges, mob/user)
 	if(!emagged)
 		locked = 0
 		emagged = 1
-		user.visible_message("[user.name] emags [src].","<span class='warning'>You short out the lock.</span>")
+		user.visible_message("[user.name] emags [src].",span_warning("You short out the lock."))
 		return 1
 
-/obj/machinery/power/emitter/bullet_act(var/obj/item/projectile/P)
+/obj/machinery/power/emitter/bullet_act(obj/item/projectile/P)
 	if(!P || !P.damage || P.get_structure_damage() <= 0 )
 		return
 
@@ -273,10 +263,10 @@
 	integrity = between(0, integrity + amount, initial(integrity))
 	if(integrity == 0)
 		if(powernet && avail(active_power_usage)) // If it's powered, it goes boom if killed.
-			visible_message(src, "<span class='danger'>\The [src] explodes violently!</span>", "<span class='danger'>You hear an explosion!</span>")
+			visible_message(src, span_danger("\The [src] explodes violently!"), span_danger("You hear an explosion!"))
 			explosion(get_turf(src), 1, 2, 4)
 		else
-			src.visible_message("<span class='danger'>\The [src] crumples apart!</span>", "<span class='warning'>You hear metal collapsing.</span>")
+			src.visible_message(span_danger("\The [src] crumples apart!"), span_warning("You hear metal collapsing."))
 		if(src)
 			qdel(src)
 
@@ -284,19 +274,19 @@
 	. = ..()
 	switch(state)
 		if(0)
-			. += "<span class='warning'>It is not secured in place!</span>"
+			. += span_warning("It is not secured in place!")
 		if(1)
-			. += "<span class='warning'>It has been bolted down securely, but not welded into place.</span>"
+			. += span_warning("It has been bolted down securely, but not welded into place.")
 		if(2)
-			. += "<span class='notice'>It has been bolted down securely and welded down into place.</span>"
+			. += span_notice("It has been bolted down securely and welded down into place.")
 	var/integrity_percentage = round((integrity / initial(integrity)) * 100)
 	switch(integrity_percentage)
 		if(0 to 30)
-			. += "<span class='danger'>It is close to falling apart!</span>"
+			. += span_danger("It is close to falling apart!")
 		if(31 to 70)
-			. += "<span class='danger'>It is damaged.</span>"
+			. += span_danger("It is damaged.")
 		if(77 to 99)
-			. += "<span class='warning'>It is slightly damaged.</span>"
+			. += span_warning("It is slightly damaged.")
 
 //R-UST port
 /obj/machinery/power/emitter/proc/get_initial_fire_delay()
@@ -309,4 +299,17 @@
 	return burst_delay
 
 /obj/machinery/power/emitter/proc/get_emitter_beam()
+	if(anomalous)
+		var/obj/item/projectile/energy/anomaly/projectile = new /obj/item/projectile/energy/anomaly(get_turf(src))
+		projectile.particle_type = particle
+		return projectile
 	return new /obj/item/projectile/beam/emitter(get_turf(src))
+
+/obj/machinery/power/emitter/pre_mapped
+	anchored = TRUE
+	state = 2
+
+/obj/machinery/power/emitter/pre_mapped/Initialize(mapload)
+	. = ..()
+	connect_to_network()
+	update_icon()

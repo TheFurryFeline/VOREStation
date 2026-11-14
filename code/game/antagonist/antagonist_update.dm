@@ -2,7 +2,7 @@
 	if(!leader && current_antagonists.len && (flags & ANTAG_HAS_LEADER))
 		leader = current_antagonists[1]
 
-/datum/antagonist/proc/update_antag_mob(var/datum/mind/player, var/preserve_appearance)
+/datum/antagonist/proc/update_antag_mob(datum/mind/player, preserve_appearance)
 
 	// Get the mob.
 	if((flags & ANTAG_OVERRIDE_MOB) && (!player.current || (mob_path && !istype(player.current, mob_path))))
@@ -10,7 +10,7 @@
 		player.current = new mob_path(get_turf(player.current))
 		player.transfer_to(player.current)
 		if(holder) qdel(holder)
-	player.original = player.current
+	player.original_character = WEAKREF(player.current)
 	if(!preserve_appearance && (flags & ANTAG_SET_APPEARANCE))
 		spawn(3)
 			var/mob/living/carbon/human/H = player.current
@@ -18,18 +18,18 @@
 				H.change_appearance(APPEARANCE_ALL, H, species_whitelist = valid_species, state = GLOB.tgui_self_state)
 	return player.current
 
-/datum/antagonist/proc/update_access(var/mob/living/player)
-	for(var/obj/item/weapon/card/id/id in player.contents)
+/datum/antagonist/proc/update_access(mob/living/player)
+	for(var/obj/item/card/id/id in player.contents)
 		player.set_id_info(id)
 
-/datum/antagonist/proc/clear_indicators(var/datum/mind/recipient)
+/datum/antagonist/proc/clear_indicators(datum/mind/recipient)
 	if(!recipient.current || !recipient.current.client)
 		return
 	for(var/image/I in recipient.current.client.images)
 		if(I.icon_state == antag_indicator || (faction_indicator && I.icon_state == faction_indicator))
 			qdel(I)
 
-/datum/antagonist/proc/get_indicator(var/datum/mind/recipient, var/datum/mind/other)
+/datum/antagonist/proc/get_indicator(datum/mind/recipient, datum/mind/other)
 	if(!antag_indicator || !other.current || !recipient.current)
 		return
 	var/indicator = (faction_indicator && (other in faction_members)) ? faction_indicator : antag_indicator
@@ -48,7 +48,7 @@
 			if(antag.current && antag.current.client)
 				antag.current.client.images |= get_indicator(antag, other_antag)
 
-/datum/antagonist/proc/update_icons_added(var/datum/mind/player)
+/datum/antagonist/proc/update_icons_added(datum/mind/player)
 	if(!antag_indicator || !player.current)
 		return
 	spawn(0)
@@ -64,7 +64,7 @@
 			if(player.current.client)
 				player.current.client.images |= get_indicator(player, antag)
 
-/datum/antagonist/proc/update_icons_removed(var/datum/mind/player)
+/datum/antagonist/proc/update_icons_removed(datum/mind/player)
 	if(!antag_indicator || !player.current)
 		return
 	spawn(0)
@@ -78,17 +78,17 @@
 
 /datum/antagonist/proc/update_current_antag_max()
 	cur_max = hard_cap
-	if(ticker && ticker.mode)
-		if(ticker.mode.antag_tags && (id in ticker.mode.antag_tags))
+	if(SSticker && SSticker.mode)
+		if(SSticker.mode.antag_tags && (id in SSticker.mode.antag_tags))
 			cur_max = hard_cap_round
 
-	if(ticker.mode.antag_scaling_coeff)
+	if(SSticker.mode.antag_scaling_coeff)
 
 		var/count = 0
-		for(var/mob/living/M in player_list)
+		for(var/mob/living/M in GLOB.player_list)
 			if(M.client)
 				count++
 
 		// Minimum: initial_spawn_target
 		// Maximum: hard_cap or hard_cap_round
-		cur_max = max(initial_spawn_target,min(round(count/ticker.mode.antag_scaling_coeff),cur_max))
+		cur_max = max(initial_spawn_target,min(round(count/SSticker.mode.antag_scaling_coeff),cur_max))

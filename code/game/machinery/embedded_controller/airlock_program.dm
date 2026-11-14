@@ -28,7 +28,7 @@
 	var/tag_pump_out_external
 	var/tag_pump_out_internal
 
-/datum/embedded_program/airlock/New(var/obj/machinery/embedded_controller/M)
+/datum/embedded_program/airlock/New(obj/machinery/embedded_controller/M)
 	..(M)
 
 	memory["chamber_sensor_pressure"] = ONE_ATMOSPHERE
@@ -57,9 +57,8 @@
 		tag_shuttle_mech_sensor = controller.tag_shuttle_mech_sensor? controller.tag_shuttle_mech_sensor : "[id_tag]_shuttle_mech"
 		memory["secure"] = controller.tag_secure
 
-		spawn(10)
-			signalDoor(tag_exterior_door, "update")		//signals connected doors to update their status
-			signalDoor(tag_interior_door, "update")
+		signalDoor(tag_exterior_door, "update")		//signals connected doors to update their status
+		signalDoor(tag_interior_door, "update")
 
 /datum/embedded_program/airlock/receive_signal(datum/signal/signal, receive_method, receive_param)
 	var/receive_tag = signal.data["tag"]
@@ -209,7 +208,7 @@
 					//purge apparently means clearing the airlock chamber to vacuum (then refilling, handled later)
 					target_pressure = 0
 					state = STATE_DEPRESSURIZE
-					playsound(master, 'sound/AI/airlockout.ogg', 100, 0) //VOREStation Add - TTS
+					playsound(master, announcer_airlock_message(AIRLOCK_MSG_OUT), 100, 0)
 					if(!cycle_to_external_air || target_state == TARGET_OUTOPEN) // if going outside, pump internal air into air tank
 						signalPump(tag_airpump, 1, 0, target_pressure)	//send a signal to start depressurizing
 					else
@@ -218,7 +217,7 @@
 
 				else if(chamber_pressure <= target_pressure)
 					state = STATE_PRESSURIZE
-					playsound(master, 'sound/AI/airlockin.ogg', 100, 0) //VOREStation Add - TTS
+					playsound(master, announcer_airlock_message(AIRLOCK_MSG_IN), 100, 0)
 					if(!cycle_to_external_air || target_state == TARGET_INOPEN) // if going inside, pump air into airlock
 						signalPump(tag_airpump, 1, 1, target_pressure)	//send a signal to start pressurizing
 					else
@@ -228,7 +227,7 @@
 				else if(chamber_pressure > target_pressure)
 					if(!cycle_to_external_air)
 						state = STATE_DEPRESSURIZE
-						playsound(master, 'sound/AI/airlockout.ogg', 100, 0) //VOREStation Add - TTS
+						playsound(master, announcer_airlock_message(AIRLOCK_MSG_OUT), 100, 0)
 						signalPump(tag_airpump, 1, 0, target_pressure)	//send a signal to start depressurizing
 					else
 						memory["purge"] = 1 // should always purge first if using external air, chamber pressure should never be higher than target pressure here
@@ -236,7 +235,7 @@
 				memory["target_pressure"] = max(target_pressure, MIN_TARGET_PRESSURE)
 
 		if(STATE_PRESSURIZE)
-			playsound(master, 'sound/machines/2beep.ogg', 100, 0) //VOREStation Add - TTS
+			playsound(master, announcer_airlock_message(AIRLOCK_MSG_BEEP), 100, 0)
 			if(memory["chamber_sensor_pressure"] >= memory["target_pressure"] * 0.95)
 				//not done until the pump has reported that it's off
 				if(memory["pump_status"] != "off")
@@ -248,11 +247,11 @@
 					cycleDoors(target_state)
 					state = STATE_IDLE
 					target_state = TARGET_NONE
-					playsound(master, 'sound/AI/airlockdone.ogg', 100, 0) //VOREStation Add - TTS
+					playsound(master, announcer_airlock_message(AIRLOCK_MSG_END_IN), 100, 0)
 
 
 		if(STATE_DEPRESSURIZE)
-			playsound(master, 'sound/machines/2beep.ogg', 100, 0) //VOREStation Add - TTS
+			playsound(master, announcer_airlock_message(AIRLOCK_MSG_BEEP), 100, 0)
 			if(memory["chamber_sensor_pressure"] <= max(memory["target_pressure"] * 1.05, MIN_TARGET_PRESSURE))
 				if(memory["pump_status"] != "off")
 					signalPump(tag_airpump, 0)
@@ -268,7 +267,7 @@
 					cycleDoors(target_state)
 					state = STATE_IDLE
 					target_state = TARGET_NONE
-					playsound(master, 'sound/AI/airlockdone.ogg', 100, 0) //VOREStation Add - TTS
+					playsound(master, announcer_airlock_message(AIRLOCK_MSG_END_OUT), 100, 0)
 
 
 	memory["processing"] = (state != target_state)
@@ -313,13 +312,13 @@
 	var/int_closed = check_interior_door_secured()
 	return (ext_closed && int_closed)
 
-/datum/embedded_program/airlock/proc/signalDoor(var/tag, var/command)
+/datum/embedded_program/airlock/proc/signalDoor(tag, command)
 	var/datum/signal/signal = new
 	signal.data["tag"] = tag
 	signal.data["command"] = command
 	post_signal(signal, RADIO_AIRLOCK)
 
-/datum/embedded_program/airlock/proc/signalPump(var/tag, var/power, var/direction, var/pressure)
+/datum/embedded_program/airlock/proc/signalPump(tag, power, direction, pressure)
 	var/datum/signal/signal = new
 	signal.data = list(
 		"tag" = tag,
@@ -331,7 +330,7 @@
 	post_signal(signal)
 
 //this is called to set the appropriate door state at the end of a cycling process, or for the exterior buttons
-/datum/embedded_program/airlock/proc/cycleDoors(var/target)
+/datum/embedded_program/airlock/proc/cycleDoors(target)
 	switch(target)
 		if(TARGET_OUTOPEN)
 			toggleDoor(memory["interior_status"], tag_interior_door, memory["secure"], "close")
@@ -347,7 +346,7 @@
 			signalDoor(tag_exterior_door, command)
 			signalDoor(tag_interior_door, command)
 
-/datum/embedded_program/airlock/proc/signal_mech_sensor(var/command, var/sensor)
+/datum/embedded_program/airlock/proc/signal_mech_sensor(command, sensor)
 	var/datum/signal/signal = new
 	signal.data["tag"] = sensor
 	signal.data["command"] = command
@@ -373,7 +372,7 @@ Only sends a command if it is needed, i.e. if the door is
 already open, passing an open command to this proc will not
 send an additional command to open the door again.
 ----------------------------------------------------------*/
-/datum/embedded_program/airlock/proc/toggleDoor(var/list/doorStatus, var/doorTag, var/secure, var/command)
+/datum/embedded_program/airlock/proc/toggleDoor(list/doorStatus, doorTag, secure, command)
 	var/doorCommand = null
 
 	if(command == "toggle")
@@ -413,6 +412,55 @@ send an additional command to open the door again.
 
 	if(doorCommand)
 		signalDoor(doorTag, doorCommand)
+
+/datum/embedded_program/airlock/proc/get_all_tags()
+	return list(
+		"id_tag" = id_tag,
+		"tag_exterior_door" = tag_exterior_door,
+		"tag_interior_door" = tag_interior_door,
+		"tag_airpump" = tag_airpump,
+		"tag_chamber_sensor" = tag_chamber_sensor,
+		"tag_exterior_sensor" = tag_exterior_sensor,
+		"tag_interior_sensor" = tag_interior_sensor,
+		"tag_airlock_mech_sensor" = tag_airlock_mech_sensor,
+		"tag_shuttle_mech_sensor" = tag_shuttle_mech_sensor
+	)
+
+/datum/embedded_program/airlock/proc/get_tag(tag_name)
+	switch(tag_name)
+		if("id_tag") . = id_tag
+		if("tag_exterior_door") . = tag_exterior_door
+		if("tag_interior_door") . = tag_interior_door
+		if("tag_airpump") . = tag_airpump
+		if("tag_chamber_sensor") . = tag_chamber_sensor
+		if("tag_exterior_sensor") . = tag_exterior_sensor
+		if("tag_interior_sensor") . = tag_interior_sensor
+		if("tag_airlock_mech_sensor") . = tag_airlock_mech_sensor
+		if("tag_shuttle_mech_sensor") . = tag_shuttle_mech_sensor
+
+/datum/embedded_program/airlock/proc/set_tag(tag_name, new_tag)
+	switch(tag_name)
+		if("id_tag")
+			id_tag = new_tag
+		if("tag_exterior_door")
+			tag_exterior_door = new_tag
+			signalDoor(tag_exterior_door, "update")
+		if("tag_interior_door")
+			tag_interior_door = new_tag
+			signalDoor(tag_interior_door, "update")
+		if("tag_airpump")
+			tag_airpump = new_tag
+		if("tag_chamber_sensor")
+			tag_chamber_sensor = new_tag
+		if("tag_exterior_sensor")
+			tag_exterior_sensor = new_tag
+		if("tag_interior_sensor")
+			tag_interior_sensor = new_tag
+		if("tag_airlock_mech_sensor")
+			tag_airlock_mech_sensor = new_tag
+		if("tag_shuttle_mech_sensor")
+			tag_shuttle_mech_sensor = new_tag
+
 
 #undef SKIPCYCLE_MARGIN
 #undef MIN_TARGET_PRESSURE

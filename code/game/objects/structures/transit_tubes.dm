@@ -4,6 +4,7 @@
 // Mappers: you can use "Generate Instances from Icon-states"
 //  to get the different pieces.
 /obj/structure/transit_tube
+	desc = "A transparent tube, often made of reinforced alloyed glass. Most often used for transit between two linked bodies in orbit."
 	icon = 'icons/obj/pipes/transit_tube.dmi'
 	icon_state = "E-W"
 	density = TRUE
@@ -13,17 +14,11 @@
 	var/exit_delay = 2
 	var/enter_delay = 1
 
-	// alldirs in global.dm is the same list of directions, but since
-	//  the specific order matters to get a usable icon_state, it is
-	//  copied here so that, in the unlikely case that alldirs is changed,
-	//  this continues to work.
-	var/global/list/tube_dir_list = list(NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST)
-
-
 // A place where tube pods stop, and people can get in or out.
 // Mappers: use "Generate Instances from Directions" for this
 //  one.
 /obj/structure/transit_tube/station
+	desc = "You can board, or disembark, from a transit tube here."
 	icon = 'icons/obj/pipes/transit_tube_station.dmi'
 	icon_state = "closed"
 	exit_delay = 2
@@ -43,15 +38,15 @@
 	anchored = TRUE
 	density = TRUE
 	var/moving = 0
-	var/datum/gas_mixture/air_contents = new()
+	var/datum/gas_mixture/air_contents
 
 
 
 /obj/structure/transit_tube_pod/Destroy()
 	for(var/atom/movable/AM in contents)
-		AM.loc = loc
+		AM.forceMove(get_turf(src))
 
-	..()
+	. = ..()
 
 
 
@@ -60,7 +55,7 @@
 	switch(severity)
 		if(1.0)
 			for(var/atom/movable/AM in contents)
-				AM.loc = loc
+				AM.forceMove(get_turf(src))
 				AM.ex_act(severity++)
 
 			qdel(src)
@@ -68,7 +63,7 @@
 		if(2.0)
 			if(prob(50))
 				for(var/atom/movable/AM in contents)
-					AM.loc = loc
+					AM.forceMove(get_turf(src))
 					AM.ex_act(severity++)
 
 				qdel(src)
@@ -78,20 +73,19 @@
 
 
 
-/obj/structure/transit_tube_pod/New(loc)
-	..(loc)
-
-	air_contents.adjust_multi("oxygen", MOLES_O2STANDARD * 2, "nitrogen", MOLES_N2STANDARD)
+/obj/structure/transit_tube_pod/Initialize(mapload)
+	. = ..()
+	air_contents = new()
+	air_contents.adjust_multi(GAS_O2, MOLES_O2STANDARD * 2, GAS_N2, MOLES_N2STANDARD)
 	air_contents.temperature = T20C
 
 	// Give auto tubes time to align before trying to start moving
-	spawn(5)
-		follow_tube()
+	follow_tube()
 
 
 
-/obj/structure/transit_tube/New(loc)
-	..(loc)
+/obj/structure/transit_tube/Initialize(mapload)
+	. = ..()
 
 	if(tube_dirs == null)
 		init_dirs()
@@ -101,26 +95,20 @@
 /obj/structure/transit_tube/Bumped(mob/AM as mob|obj)
 	var/obj/structure/transit_tube/T = locate() in AM.loc
 	if(T)
-		to_chat(AM, "<span class='warning'>The tube's support pylons block your way.</span>")
+		to_chat(AM, span_warning("The tube's support pylons block your way."))
 		return ..()
 	else
-		AM.loc = src.loc
-		to_chat(AM, "<span class='info'>You slip under the tube.</span>")
-
-
-/obj/structure/transit_tube/station/New(loc)
-	..(loc)
-
-
+		AM.forceMove(get_turf(src))
+		to_chat(AM, span_info("You slip under the tube."))
 
 /obj/structure/transit_tube/station/Bumped(mob/AM as mob|obj)
 	if(!pod_moving && icon_state == "open" && istype(AM, /mob))
 		for(var/obj/structure/transit_tube_pod/pod in loc)
 			if(pod.contents.len)
-				to_chat(AM, "<span class='notice'>The pod is already occupied.</span>")
+				to_chat(AM, span_notice("The pod is already occupied."))
 				return
 			else if(!pod.moving && (pod.dir in directions()))
-				AM.loc = pod
+				AM.forceMove(pod)
 				return
 
 
@@ -327,7 +315,7 @@
 			last_delay = current_tube.enter_delay(src, next_dir)
 			sleep(last_delay)
 			set_dir(next_dir)
-			loc = next_loc // When moving from one tube to another, skip collision and such.
+			forceMove(next_loc) // When moving from one tube to another, skip collision and such.
 			density = current_tube.density
 
 			if(current_tube && current_tube.should_stop_pod(src, next_dir))
@@ -380,7 +368,7 @@
 	if(istype(mob, /mob) && mob.client)
 		// If the pod is not in a tube at all, you can get out at any time.
 		if(!(locate(/obj/structure/transit_tube) in loc))
-			mob.loc = loc
+			mob.forceMove(get_turf(src))
 			mob.client.Move(get_step(loc, direction), direction)
 
 			//if(moving && istype(loc, /turf/space))
@@ -393,7 +381,7 @@
 					if(!station.pod_moving)
 						if(direction == station.dir)
 							if(station.icon_state == "open")
-								mob.loc = loc
+								mob.forceMove(get_turf(src))
 								mob.client.Move(get_step(loc, direction), direction)
 
 							else
@@ -446,7 +434,7 @@
 	var/list/connected = list()
 	var/list/connected_auto = list()
 
-	for(var/direction in tube_dir_list)
+	for(var/direction in GLOB.tube_dir_list)
 		var/location = get_step(loc, direction)
 		for(var/obj/structure/transit_tube/tube in location)
 			if(tube.directions() == null && tube.icon_state == "auto")
@@ -461,7 +449,7 @@
 
 	tube_dirs = select_automatic_dirs(connected)
 
-	if(length(tube_dirs) == 2 && tube_dir_list.Find(tube_dirs[1]) > tube_dir_list.Find(tube_dirs[2]))
+	if(length(tube_dirs) == 2 && GLOB.tube_dir_list.Find(tube_dirs[1]) > GLOB.tube_dir_list.Find(tube_dirs[2]))
 		tube_dirs.Swap(1, 2)
 
 	generate_automatic_corners(tube_dirs)
@@ -534,10 +522,9 @@
 //  but it is probably safer to assume the existence of, and
 //  rely on, a sufficiently smart compiler/optimizer.
 /obj/structure/transit_tube/proc/parse_dirs(text)
-	var/global/list/direction_table = list()
 
-	if(text in direction_table)
-		return direction_table[text]
+	if(text in GLOB.direction_table)
+		return GLOB.direction_table[text]
 
 	var/list/split_text = splittext(text, "-")
 
@@ -545,7 +532,7 @@
 	//  a purely decorative tube, and doesn't actually
 	//  connect to anything.
 	if(split_text[1] == "D")
-		direction_table[text] = list()
+		GLOB.direction_table[text] = list()
 		return null
 
 	var/list/directions = list()
@@ -556,7 +543,7 @@
 		if(direction > 0)
 			directions += direction
 
-	direction_table[text] = directions
+	GLOB.direction_table[text] = directions
 	return directions
 
 
@@ -581,7 +568,6 @@
 			return 6
 		if("SOUTHWEST", "SW")
 			return 10
-		else
 	return 0
 
 
@@ -606,5 +592,4 @@
 			return "NW"
 		if(10)
 			return "SW"
-		else
 	return

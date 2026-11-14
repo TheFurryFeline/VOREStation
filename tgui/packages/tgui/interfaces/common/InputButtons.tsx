@@ -1,5 +1,5 @@
-import { useBackend } from '../../backend';
-import { Box, Button, Flex } from '../../components';
+import { useBackend } from 'tgui/backend';
+import { Box, Button, Stack } from 'tgui-core/components';
 
 type InputButtonsData = {
   large_buttons: boolean;
@@ -7,20 +7,41 @@ type InputButtonsData = {
 };
 
 type InputButtonsProps = {
-  input: string | number | string[];
-  message?: string;
-};
+  input: string | number | string[] | [string, number][];
+} & Partial<{
+  on_submit: () => void;
+  on_cancel: () => void;
+  message: string;
+  /** Disables the submit button */
+  disabled: boolean;
+}>;
 
 export const InputButtons = (props: InputButtonsProps) => {
   const { act, data } = useBackend<InputButtonsData>();
   const { large_buttons, swapped_buttons } = data;
-  const { input, message } = props;
+  const { input, message, on_submit, on_cancel, disabled } = props;
+
+  let on_submit_actual = on_submit;
+  if (!on_submit_actual) {
+    on_submit_actual = () => {
+      act('submit', { entry: input });
+    };
+  }
+
+  let on_cancel_actual = on_cancel;
+  if (!on_cancel_actual) {
+    on_cancel_actual = () => {
+      act('cancel');
+    };
+  }
+
   const submitButton = (
     <Button
       color="good"
+      disabled={disabled}
       fluid={!!large_buttons}
       height={!!large_buttons && 2}
-      onClick={() => act('submit', { entry: input })}
+      onClick={on_submit_actual}
       m={0.5}
       pl={2}
       pr={2}
@@ -37,7 +58,7 @@ export const InputButtons = (props: InputButtonsProps) => {
       color="bad"
       fluid={!!large_buttons}
       height={!!large_buttons && 2}
-      onClick={() => act('cancel')}
+      onClick={on_cancel_actual}
       m={0.5}
       pl={2}
       pr={2}
@@ -50,29 +71,29 @@ export const InputButtons = (props: InputButtonsProps) => {
   );
 
   return (
-    <Flex
+    <Stack
       align="center"
       direction={!swapped_buttons ? 'row' : 'row-reverse'}
       fill
       justify="space-around"
     >
       {large_buttons ? (
-        <Flex.Item grow>{cancelButton}</Flex.Item>
+        <Stack.Item grow>{cancelButton}</Stack.Item>
       ) : (
-        <Flex.Item>{cancelButton}</Flex.Item>
+        <Stack.Item>{cancelButton}</Stack.Item>
       )}
       {!large_buttons && message && (
-        <Flex.Item>
+        <Stack.Item>
           <Box color="label" textAlign="center">
             {message}
           </Box>
-        </Flex.Item>
+        </Stack.Item>
       )}
       {large_buttons ? (
-        <Flex.Item grow>{submitButton}</Flex.Item>
+        <Stack.Item grow>{submitButton}</Stack.Item>
       ) : (
-        <Flex.Item>{submitButton}</Flex.Item>
+        <Stack.Item>{submitButton}</Stack.Item>
       )}
-    </Flex>
+    </Stack>
   );
 };

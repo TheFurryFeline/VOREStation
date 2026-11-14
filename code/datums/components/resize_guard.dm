@@ -12,8 +12,10 @@
 	UnregisterSignal(parent, COMSIG_ATOM_ENTERING)
 
 /datum/component/resize_guard/proc/check_resize()
+	SIGNAL_HANDLER
 	var/area/A = get_area(parent)
-	if(A?.limit_mob_size)
-		var/mob/living/L = parent
-		L.resize(L.size_multiplier)
-		qdel(src)
+	if(A?.flag_check(AREA_ALLOW_LARGE_SIZE))
+		return
+	var/mob/living/L = parent
+	L.resize(L.size_multiplier, ignore_prefs = TRUE)
+	qdel(src)

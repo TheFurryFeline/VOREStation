@@ -2,50 +2,165 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"type": "process",
+			"command": "tools/build/build.sh",
+			"windows": {
+				"command": ".\\tools\\build\\build.bat"
+			},
+			"options": {
+				"env": {
+					"DM_EXE": "${config:dreammaker.byondPath}"
+				}
+			},
+			"problemMatcher": ["$dreammaker", "$tsc", "$eslint-stylish"],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"dependsOn": "dm: reparse",
+			"label": "Build All"
+		},
+		{
+			"type": "process",
+			"command": "tools/build/build.sh",
+			"args": ["-DLOWMEMORYMODE"],
+			"windows": {
+				"command": ".\\tools\\build\\build.bat",
+				"args": ["-DLOWMEMORYMODE"]
+			},
+			"options": {
+				"env": {
+					"DM_EXE": "${config:dreammaker.byondPath}"
+				}
+			},
+			"problemMatcher": ["$dreammaker", "$tsc", "$eslint-stylish"],
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": "dm: reparse",
+			"label": "Build All (low memory mode)"
+		},
+		{
+			"type": "process",
+			"command": "tools/build/build.sh",
+			"args": ["-DLOWMEMORYMODE", "-DCITESTING", "-DUSE_MAP_TETHER"],
+			"windows": {
+				"command": ".\\tools\\build\\build.bat",
+				"args": ["-DLOWMEMORYMODE", "-DCITESTING", "-DUSE_MAP_TETHER"]
+			},
+			"options": {
+				"env": {
+					"DM_EXE": "${config:dreammaker.byondPath}"
+				}
+			},
+			"problemMatcher": ["$dreammaker", "$tsc", "$eslint-stylish"],
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": "dm: reparse",
+			"label": "Build All (Force Tether)"
+		},
+		{
+			"type": "process",
+			"command": "tools/build/build.sh",
+			"args": ["-DLOWMEMORYMODE", "-DCITESTING", "-DUSE_MAP_STELLARDELIGHT"],
+			"windows": {
+				"command": ".\\tools\\build\\build.bat",
+				"args": ["-DLOWMEMORYMODE", "-DCITESTING", "-DUSE_MAP_STELLARDELIGHT"]
+			},
+			"options": {
+				"env": {
+					"DM_EXE": "${config:dreammaker.byondPath}"
+				}
+			},
+			"problemMatcher": ["$dreammaker", "$tsc", "$eslint-stylish"],
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": "dm: reparse",
+			"label": "Build All (Force Stellar Delight)"
+		},
+		{
+			"type": "process",
+			"command": "tools/build/build.sh",
+			"args": ["-DLOWMEMORYMODE", "-DCITESTING", "-DUSE_MAP_GROUNDBASE"],
+			"windows": {
+				"command": ".\\tools\\build\\build.bat",
+				"args": ["-DLOWMEMORYMODE", "-DCITESTING", "-DUSE_MAP_GROUNDBASE"]
+			},
+			"options": {
+				"env": {
+					"DM_EXE": "${config:dreammaker.byondPath}"
+				}
+			},
+			"problemMatcher": ["$dreammaker", "$tsc", "$eslint-stylish"],
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": "dm: reparse",
+			"label": "Build All (Force Groundbase)"
+		},
+		{
+			"type": "process",
+			"command": "tools/build/build.sh",
+			"args": ["-DLOWMEMORYMODE", "-DCITESTING", "-DUSE_MAP_MINITEST"],
+			"windows": {
+				"command": ".\\tools\\build\\build.bat",
+				"args": ["-DLOWMEMORYMODE", "-DCITESTING", "-DUSE_MAP_MINITEST"]
+			},
+			"options": {
+				"env": {
+					"DM_EXE": "${config:dreammaker.byondPath}"
+				}
+			},
+			"problemMatcher": ["$dreammaker", "$tsc", "$eslint-stylish"],
+			"group": {
+				"kind": "build"
+			},
+			"dependsOn": "dm: reparse",
+			"label": "Build All (Force Minitest)"
+		},
+		{
 			"type": "dreammaker",
 			"dme": "vorestation.dme",
-			"problemMatcher": [
-				"$dreammaker"
-			],
+			"problemMatcher": ["$dreammaker"],
 			"group": "build",
 			"label": "dm: build - vorestation.dme"
 		},
 		{
+			"command": "${command:dreammaker.reparse}",
+			"group": "build",
+			"label": "dm: reparse"
+		},
+		{
 			"type": "shell",
-			"command": "tgui/bin/tgui",
+			"command": "bin/tgui-build",
 			"windows": {
-				"command": ".\\tgui\\bin\\tgui.bat"
+				"command": ".\\bin\\tgui-build.cmd"
 			},
-			"problemMatcher": [
-				"$tsc",
-				"$eslint-stylish"
-			],
+			"problemMatcher": ["$tsc", "$eslint-stylish"],
 			"group": "build",
 			"label": "tgui: build"
 		},
 		{
 			"type": "shell",
-			"command": "yarn build",
-			"options": {
-				"cwd": "tgui/packages/tgfont/",
+			"command": "bin/tgui-dev",
+			"windows": {
+				"command": ".\\bin\\tgui-dev.cmd"
 			},
+			"problemMatcher": ["$tsc", "$eslint-stylish"],
 			"group": "build",
-			"problemMatcher": [],
-			"label": "tgui: build tgfont",
-			"detail": "node mkdist.cjs && fantasticon --config config.cjs"
+			"label": "tgui: dev server"
 		},
 		{
 			"type": "shell",
-			"command": "tgui/bin/tgui",
+			"command": "bin/tgfont",
 			"windows": {
-				"command": ".\\tgui\\bin\\tgui-prettybuild.bat"
+				"command": ".\\bin\\tgfont.cmd"
 			},
-			"problemMatcher": [
-				"$tsc",
-				"$eslint-stylish"
-			],
+			"problemMatcher": ["$tsc", "$eslint-stylish"],
 			"group": "build",
-			"label": "tgui: prettybuild"
+			"label": "tgui: rebuild tgfont"
 		}
 	]
 }

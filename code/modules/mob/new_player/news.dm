@@ -40,7 +40,7 @@
 			show_latest_news(GLOB.news_data.station_newspaper)
 
 
-/mob/new_player/proc/show_latest_news(var/datum/feed_channel/CHANNEL)
+/mob/new_player/proc/show_latest_news(datum/feed_channel/CHANNEL)
 	if(!GLOB.news_data) return
 	if(!GLOB.news_data.station_newspaper) return
 
@@ -55,19 +55,19 @@
 	else
 		dat += get_news_page(CHANNEL, CHANNEL.messages[current_news_page], current_news_page)
 		if(CHANNEL.messages.len > current_news_page)
-			dat += "<a href='?src=\ref[src];next_news=1;nextpage=\ref[CHANNEL]'>Older Issue</a>"
+			dat += "<a href='byond://?src=\ref[src];next_news=1;nextpage=\ref[CHANNEL]'>Older Issue</a>"
 		if(current_news_page > CHANNEL.messages.len || (CHANNEL.messages.len > 1) && !(current_news_page == 1))
-			dat += "<a href='?src=\ref[src];previous_news=1;prevpage=\ref[CHANNEL]'>Newer Issue</a>  "
+			dat += "<a href='byond://?src=\ref[src];previous_news=1;prevpage=\ref[CHANNEL]'>Newer Issue</a>  "
 
 		dat += "  (Page <b>[current_news_page]</b> out of <b>[CHANNEL.messages.len]</b>)"
 
-	var/datum/browser/popup = new(usr, "News", "Latest News", 640, 600, src)
+	var/datum/browser/popup = new(src, "News", "Latest News", 640, 600, src)
 	popup.set_content(jointext(dat,null))
 	popup.open()
 
 	client.seen_news = 1
 
-/proc/get_news_page(var/datum/feed_channel/CHANNEL, var/datum/feed_message/MESSAGE, current_page)
+/proc/get_news_page(datum/feed_channel/CHANNEL, datum/feed_message/MESSAGE, current_page)
 	var/dat
 
 	dat += get_newspaper_header(CHANNEL.channel_name, "Aggregated News", "#d4cec1")
@@ -78,7 +78,7 @@
 		var/pic_data
 
 		if(MESSAGE.img)
-			usr << browse_rsc(MESSAGE.img, "tmp_photo[current_page].png")
+			send_rsc(usr, MESSAGE.img, "tmp_photo[current_page].png")
 			pic_data+="<img src='tmp_photo[current_page].png' width = '180'><BR>"
 
 		dat += get_newspaper_content(MESSAGE.title, MESSAGE.body, MESSAGE.author, "#d4cec1", pic_data)

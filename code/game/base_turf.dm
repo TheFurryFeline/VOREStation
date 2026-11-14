@@ -1,12 +1,12 @@
 // Returns the lowest turf available on a given Z-level, defaults to asteroid for Polaris.
 
-/proc/get_base_turf(var/z)
+/proc/get_base_turf(z)
 	if(!using_map.base_turf_by_z["[z]"])
 		using_map.base_turf_by_z["[z]"] = /turf/space
 	return using_map.base_turf_by_z["[z]"]
 
 //An area can override the z-level base turf, so our solar array areas etc. can be space-based.
-/proc/get_base_turf_by_area(var/turf/T)
+/proc/get_base_turf_by_area(turf/T)
 	var/area/A = T.loc
 	if(A.base_turf)
 		return A.base_turf
@@ -17,7 +17,7 @@
 	set name = "Set Base Turf"
 	set desc = "Set the base turf for a z-level."
 
-	if(!holder)	return
+	if(!check_rights_for(src, R_HOLDER))	return
 
 	var/choice = tgui_input_number(usr, "Which Z-level do you wish to set the base turf for?")
 	if(!choice)

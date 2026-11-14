@@ -3,20 +3,21 @@
 /obj/item/clothing/head/fishing
 	name = "fishing hat"
 	desc = "It's a peaked cap with a quirky slogan."
-	icon = 'icons/inventory/head/item_vr_fishing.dmi'
+	icon = 'icons/inventory/head/item_fishing.dmi'
 	icon_state = "greensoft0"
 	item_state_slots = list(slot_r_hand_str = "greensoft", slot_l_hand_str = "greensoft", slot_head_str = "greensoft0")
 	item_icons = list(
 		slot_l_hand_str = 'icons/mob/items/lefthand_hats.dmi',
 		slot_r_hand_str = 'icons/mob/items/righthand_hats.dmi',
-		slot_head_str = 'icons/inventory/head/mob_vr_fishing.dmi'
+		slot_head_str = 'icons/inventory/head/mob_fishing.dmi'
 		)
 	siemens_coefficient = 0.9
 	body_parts_covered = 0
 	var/slogan = ""
 	var/hatsize = 0
 
-/obj/item/clothing/head/fishing/Initialize()
+/obj/item/clothing/head/fishing/Initialize(mapload)
+	. = ..()
 	//short phrases that women and fish may have about you
 	var/feelings = list("love me",
 						"fear me",

@@ -4,9 +4,9 @@
 
 /datum/shuttle/autodock/ferry/escape_pod/New()
 	move_time = move_time + rand(-30, 60)
-	if(name in emergency_shuttle.escape_pods)
+	if(name in SSemergency_shuttle.escape_pods)
 		CRASH("An escape pod with the name '[name]' has already been defined.")
-	emergency_shuttle.escape_pods[name] = src
+	SSemergency_shuttle.escape_pods[name] = src
 
 	..()
 
@@ -55,9 +55,9 @@
 	. = list(
 		"docking_status" = docking_program.get_docking_status(),
 		"override_enabled" = docking_program.override_enabled,
-		"exterior_status" =	docking_program.memory["door_status"],
-		"can_force" = pod.can_force() || (emergency_shuttle.departed && pod.can_launch()),	//allow players to manually launch ahead of time if the shuttle leaves
-		"armed" = pod.arming_controller.armed,
+		"exterior_status" =	docking_program.memory["door_status"],								// TGUI DATA fails silently when there's no linked pod, leading to UI crashes
+		"can_force" = pod?.can_force() || (SSemergency_shuttle.departed && pod?.can_launch()),	//allow players to manually launch ahead of time if the shuttle leaves
+		"armed" = pod?.arming_controller.armed,
 		"internalTemplateName" = "EscapePodConsole",
 	)
 
@@ -72,7 +72,7 @@
 		if("force_launch")
 			if(pod.can_force())
 				pod.force_launch(src)
-			else if(emergency_shuttle.departed && pod.can_launch())	//allow players to manually launch ahead of time if the shuttle leaves
+			else if(SSemergency_shuttle.departed && pod.can_launch())	//allow players to manually launch ahead of time if the shuttle leaves
 				pod.launch(src)
 			. = TRUE
 
@@ -99,9 +99,9 @@
 		"internalTemplateName" = "EscapePodBerthConsole",
 	)
 
-/obj/machinery/embedded_controller/radio/simple_docking_controller/escape_pod_berth/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/embedded_controller/radio/simple_docking_controller/escape_pod_berth/emag_act(remaining_charges, mob/user)
 	if (!emagged)
-		to_chat(user, "<span class='notice'>You emag the [src], arming the escape pod!</span>")
+		to_chat(user, span_notice("You emag the [src], arming the escape pod!"))
 		emagged = 1
 		if (istype(program, /datum/embedded_program/docking/simple/escape_pod_berth))
 			var/datum/embedded_program/docking/simple/escape_pod_berth/P = program

@@ -16,37 +16,34 @@
 // -- Objs -- //
 
 
-/obj/effect/step_trigger/teleporter/debrisfield_loop/north/New()
-	..()
+/obj/effect/step_trigger/teleporter/debrisfield_loop/north/Initialize(mapload)
+	. = ..()
 	teleport_x = x
 	teleport_y = 2
 	teleport_z = z
 
-/obj/effect/step_trigger/teleporter/debrisfield_loop/south/New()
-	..()
+/obj/effect/step_trigger/teleporter/debrisfield_loop/south/Initialize(mapload)
+	. = ..()
 	teleport_x = x
 	teleport_y = world.maxy - 1
 	teleport_z = z
 
-/obj/effect/step_trigger/teleporter/debrisfield_loop/west/New()
-	..()
+/obj/effect/step_trigger/teleporter/debrisfield_loop/west/Initialize(mapload)
+	. = ..()
 	teleport_x = world.maxx - 1
 	teleport_y = y
 	teleport_z = z
 
-/obj/effect/step_trigger/teleporter/debrisfield_loop/east/New()
-	..()
+/obj/effect/step_trigger/teleporter/debrisfield_loop/east/Initialize(mapload)
+	. = ..()
 	teleport_x = 2
 	teleport_y = y
 	teleport_z = z
 
 //This does nothing right now, but is framework if we do POIs for this place
+
 /obj/away_mission_init/debrisfield
 	name = "away mission initializer - debrisfield"
-
-/obj/away_mission_init/debrisfield/Initialize()
-	initialized = TRUE
-	return INITIALIZE_HINT_QDEL
 
 /area/tether_away/debrisfield
 	name = "Away Mission - Debris Field"
@@ -103,9 +100,9 @@
 	has_gravity = FALSE
 
 
-/area/submap/debrisfield/phoron_tanker/Initialize()
+/area/submap/debrisfield/phoron_tanker/Initialize(mapload)
 	. = ..()
-	var/datum/lore/organization/O = loremaster.organizations[/datum/lore/organization/tsc/nanotrasen]
+	var/datum/lore/organization/O = GLOB.loremaster.organizations[/datum/lore/organization/tsc/nanotrasen]
 	ic_name = pick(O.ship_names)
 	name = "NTV [ic_name]"
 	if(!tag)
@@ -121,7 +118,7 @@
 
 
 /area/submap/debrisfield/luxury_boat
-	secret_name = 0
+	flags = RAD_SHIELDED | AREA_FORBID_EVENTS
 
 /area/submap/debrisfield/luxury_boat/bridge
 	name = "Captain's Quarters"
@@ -153,7 +150,7 @@
 	landmark_tag = "debris_field_yacht_start"
 	shuttle_type = /datum/shuttle/autodock/overmap/luxury_boat
 
-/obj/effect/shuttle_landmark/shuttle_initializer/luxury_boat/Initialize()
+/obj/effect/shuttle_landmark/shuttle_initializer/luxury_boat/Initialize(mapload)
 	var/obj/effect/overmap/visitable/O = get_overmap_sector(get_z(src)) //make this into general system some other time
 	LAZYINITLIST(O.initial_restricted_waypoints)
 	O.initial_restricted_waypoints["Luxury Yacht"] = list(landmark_tag)
@@ -166,9 +163,9 @@
 	vessel_size = SHIP_SIZE_SMALL
 	shuttle = "Luxury Yacht"
 
-/obj/effect/overmap/visitable/ship/landable/luxury_boat/Initialize()
+/obj/effect/overmap/visitable/ship/landable/luxury_boat/Initialize(mapload)
 	. = ..()
-	var/datum/lore/organization/O = loremaster.organizations[/datum/lore/organization/gov/elysia]
+	var/datum/lore/organization/O = GLOB.loremaster.organizations[/datum/lore/organization/gov/elysia]
 	var/newname = "ECS-T [pick(O.ship_names)]"
 	name = newname
 	scanner_desc = {"\[i\]Registration\[/i\]: [newname]
@@ -178,7 +175,7 @@
 	rename_areas(newname)
 
 /obj/effect/overmap/visitable/ship/landable/luxury_boat/proc/rename_areas(newname)
-	if(!SSshuttles.subsystem_initialized)
+	if(!SSshuttles.initialized)
 		spawn(300)
 			rename_areas(newname)
 		return
@@ -212,7 +209,7 @@
 	name = "POI - Destroyed Mining Outpost"
 
 /area/submap/debrisfield/tinyshuttle
-	secret_name = 0
+	flags = RAD_SHIELDED | AREA_FORBID_EVENTS
 
 /area/submap/debrisfield/tinyshuttle/crew
 	name = "Crew Bay"
@@ -244,7 +241,7 @@
 	landmark_tag = "debris_field_carrier_start"
 	shuttle_type = /datum/shuttle/autodock/overmap/tinycarrier
 
-/obj/effect/shuttle_landmark/shuttle_initializer/tinycarrier/Initialize()
+/obj/effect/shuttle_landmark/shuttle_initializer/tinycarrier/Initialize(mapload)
 	var/obj/effect/overmap/visitable/O = get_overmap_sector(get_z(src)) //make this into general system some other time
 	LAZYINITLIST(O.initial_restricted_waypoints)
 	O.initial_restricted_waypoints["Debris Carrier"] = list(landmark_tag)
@@ -257,9 +254,9 @@
 	vessel_size = SHIP_SIZE_SMALL
 	shuttle = "Debris Carrier"
 
-/obj/effect/overmap/visitable/ship/landable/tinycarrier/Initialize()
+/obj/effect/overmap/visitable/ship/landable/tinycarrier/Initialize(mapload)
 	. = ..()
-	var/datum/lore/organization/O = loremaster.organizations[/datum/lore/organization/other/sysdef]
+	var/datum/lore/organization/O = GLOB.loremaster.organizations[/datum/lore/organization/other/sysdef]
 	var/newname = "SDV [pick(O.ship_names)]"
 	name = newname
 	scanner_desc = {"\[i\]Registration\[/i\]: [newname]
@@ -269,7 +266,7 @@
 	rename_areas(newname)
 
 /obj/effect/overmap/visitable/ship/landable/tinycarrier/proc/rename_areas(newname)
-	if(!SSshuttles.subsystem_initialized)
+	if(!SSshuttles.initialized)
 		spawn(300)
 			rename_areas(newname)
 		return
@@ -292,7 +289,7 @@
 /obj/mecha/combat/fighter/baron/busted
 	starting_components = list(/obj/item/mecha_parts/component/hull/lightweight,/obj/item/mecha_parts/component/actuator/hispeed,/obj/item/mecha_parts/component/armor,/obj/item/mecha_parts/component/gas,/obj/item/mecha_parts/component/electrical/high_current)
 
-/obj/mecha/combat/fighter/baron/busted/Initialize()
+/obj/mecha/combat/fighter/baron/busted/Initialize(mapload)
 	. = ..()
 	health = round(rand(50,120))
 	cell?.charge = 0
@@ -304,9 +301,9 @@
 
 	setInternalDamage(MECHA_INT_SHORT_CIRCUIT)
 
-/obj/structure/fuel_port/empty_tank/Initialize()
+/obj/structure/fuel_port/empty_tank/Initialize(mapload)
 	. = ..()
-	var/obj/item/weapon/tank/phoron/T = locate() in src
+	var/obj/item/tank/phoron/T = locate() in src
 	if(T)
 		T.air_contents.remove(T.air_contents.total_moles)
 

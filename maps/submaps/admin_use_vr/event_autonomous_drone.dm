@@ -1,12 +1,12 @@
 // Compile in the map for CI testing if we're testing compileability of all the maps
-#if MAP_TEST
+#ifdef MAP_TEST
 #include "event_autonomous_drone.dmm"
 #endif
 
 /datum/map_template/om_ships/event_autonomous_drone
 	name = "OM Ship - Cargo Drone"
 	desc = "A small cargo hauler"
-	mappath = 'event_autonomous_drone.dmm'
+	mappath = "maps/submaps/admin_use_vr/event_autonomous_drone.dmm"
 	annihilate = TRUE
 
 /datum/shuttle/autodock/overmap/event_autonomous_drone
@@ -27,7 +27,7 @@
 	landmark_tag = "omship_event_autonomous_drone"
 	shuttle_type = /datum/shuttle/autodock/overmap/event_autonomous_drone
 
-/obj/effect/shuttle_landmark/shuttle_initializer/event_autonomous_drone/Initialize()
+/obj/effect/shuttle_landmark/shuttle_initializer/event_autonomous_drone/Initialize(mapload)
 	var/obj/effect/overmap/visitable/O = get_overmap_sector(get_z(src)) //make this into general system some other time
 	LAZYINITLIST(O.initial_restricted_waypoints)
 	O.initial_restricted_waypoints["Autonomous Cargo Drone"] = list(landmark_tag)
@@ -40,9 +40,9 @@
 	vessel_size = SHIP_SIZE_SMALL
 	shuttle = "Autonomous Cargo Drone"
 
-/obj/effect/overmap/visitable/ship/landable/event_autonomous_drone/Initialize()
+/obj/effect/overmap/visitable/ship/landable/event_autonomous_drone/Initialize(mapload)
 	. = ..()
-	var/datum/lore/organization/O = loremaster.organizations[/datum/lore/organization/tsc/nanotrasen]
+	var/datum/lore/organization/O = GLOB.loremaster.organizations[/datum/lore/organization/tsc/nanotrasen]
 	var/newname = "NTV [pick(O.ship_names)]"
 	name = newname
 	scanner_desc = {"\[i\]Registration\[/i\]: [newname]
@@ -52,7 +52,7 @@
 	rename_areas(newname)
 
 /obj/effect/overmap/visitable/ship/landable/event_autonomous_drone/proc/rename_areas(newname)
-	if(!SSshuttles.subsystem_initialized)
+	if(!SSshuttles.initialized)
 		spawn(300)
 			rename_areas(newname)
 		return
@@ -73,7 +73,7 @@
 	req_one_access = list()
 
 /area/submap/event_autonomous_drone
-	secret_name = FALSE
+	flags = RAD_SHIELDED | AREA_FORBID_EVENTS
 
 /area/submap/event_autonomous_drone/engineering
 	name = "Engine Bay"

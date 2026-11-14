@@ -11,8 +11,11 @@
 	icon_state = "hoist_case"
 
 /obj/item/hoist_kit/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	new /obj/structure/hoist (get_turf(user), user.dir)
-	user.visible_message(span("warning", "[user] deploys the hoist kit!"), span("notice", "You deploy the hoist kit!"), span("notice", "You hear the sound of parts snapping into place."))
+	user.visible_message(span_warning("[user] deploys the hoist kit!"), span_notice("You deploy the hoist kit!"), span_notice("You hear the sound of parts snapping into place."))
 	qdel(src)
 
 /obj/effect/hoist_hook
@@ -24,22 +27,23 @@
 	can_buckle = TRUE
 	anchored = TRUE
 	description_info = "Click and drag someone (or any object) to this to attach them to the clamp. If you are within reach, when you click and drag this to a turf adjacent to you, it will move the attached object there and release it."
+	plane = ABOVE_MOB_PLANE
 
 /obj/effect/hoist_hook/attack_hand(mob/living/user)
 	return // This has to be overridden so that it works properly.
 
 /obj/effect/hoist_hook/MouseDrop_T(atom/movable/AM,mob/user)
-	if (use_check(user, USE_DISALLOW_SILICONS))
+	if (use_check(user, 0))
 		return
 
 	if (!AM.simulated || AM.anchored)
-		to_chat(user, span("notice", "You can't do that."))
+		to_chat(user, span_notice("You can't do that."))
 		return
 	if (source_hoist.hoistee)
-		to_chat(user, span("notice", "\The [source_hoist.hoistee] is already attached to \the [src]!"))
+		to_chat(user, span_notice("\The [source_hoist.hoistee] is already attached to \the [src]!"))
 		return
 	source_hoist.attach_hoistee(AM)
-	user.visible_message(span("danger", "[user] attaches \the [AM] to \the [src]."), span("danger", "You attach \the [AM] to \the [src]."), span("danger", "You hear something clamp into place."))
+	user.visible_message(span_danger("[user] attaches \the [AM] to \the [src]."), span_danger("You attach \the [AM] to \the [src]."), span_danger("You hear something clamp into place."))
 
 /obj/structure/hoist/proc/attach_hoistee(atom/movable/AM)
 	if (get_turf(AM) != get_turf(source_hook))
@@ -54,15 +58,15 @@
 	..()
 	if(!Adjacent(usr) || !dest.Adjacent(usr)) return // carried over from the default proc
 
-	if (!ishuman(usr))
+	if (!(ishuman(usr) || issilicon(usr)))
 		return
 
 	if (usr.incapacitated())
-		to_chat(usr, span("notice", "You can't do that while incapacitated."))
+		to_chat(usr, span_notice("You can't do that while incapacitated."))
 		return
 
 	if (!usr.IsAdvancedToolUser())
-		to_chat(usr, span("notice", "You stare cluelessly at \the [src]."))
+		to_chat(usr, span_notice("You stare cluelessly at \the [src]."))
 		return
 
 	if (!source_hoist.hoistee)
@@ -76,7 +80,7 @@
 
 	var/turf/desturf = dest
 	source_hoist.hoistee.forceMove(desturf)
-	usr.visible_message(span("danger", "[usr] detaches \the [source_hoist.hoistee] from the hoist clamp."), span("danger", "You detach \the [source_hoist.hoistee] from the hoist clamp."), span("danger", "You hear something unclamp."))
+	usr.visible_message(span_danger("[usr] detaches \the [source_hoist.hoistee] from the hoist clamp."), span_danger("You detach \the [source_hoist.hoistee] from the hoist clamp."), span_danger("You hear something unclamp."))
 	source_hoist.release_hoistee()
 
 // This will handle mobs unbuckling themselves.
@@ -91,7 +95,7 @@
 	icon = 'icons/obj/hoists.dmi'
 	icon_state = "hoist_base"
 	var/broken = 0
-	density = TRUE
+	density = FALSE
 	anchored = TRUE
 	name = "hoist"
 	desc = "A manual hoist, uses a clamp and pulley to hoist things."
@@ -172,31 +176,33 @@
 				source_hoist.break_hoist()
 			return
 
+/obj/structure/hoist/attack_robot(mob/living/user)
+	attack_hand(user)
 
 /obj/structure/hoist/attack_hand(mob/living/user)
-	if (!ishuman(user))
+	if (!(ishuman(user) || issilicon(user)))
 		return
 
 	if (user.incapacitated())
-		to_chat(user, span("notice", "You can't do that while incapacitated."))
+		to_chat(user, span_notice("You can't do that while incapacitated."))
 		return
 
 	if (!user.IsAdvancedToolUser())
-		to_chat(user, span("notice", "You stare cluelessly at \the [src]."))
+		to_chat(user, span_notice("You stare cluelessly at \the [src]."))
 		return
 
 	if(broken)
-		to_chat(user, span("warning", "The hoist is broken!"))
+		to_chat(user, span_warning("The hoist is broken!"))
 		return
 	var/can = can_move_dir(movedir)
 	var/movtext = movedir == UP ? "raise" : "lower"
 	if (!can) // If you can't...
 		movedir = movedir == UP ? DOWN : UP // switch directions!
-		to_chat(user, span("notice", "You switch the direction of the pulley."))
+		to_chat(user, span_notice("You switch the direction of the pulley."))
 		return
 
 	if (!hoistee)
-		user.visible_message(span("notice", "[user] begins to [movtext] the clamp."), span("notice", "You begin to [movtext] the clamp."), span("notice", "You hear the sound of a crank."))
+		user.visible_message(span_notice("[user] begins to [movtext] the clamp."), span_notice("You begin to [movtext] the clamp."), span_notice("You hear the sound of a crank."))
 		move_dir(movedir, 0)
 		return
 
@@ -210,7 +216,7 @@
 		var/obj/O = hoistee
 		size = O.w_class
 
-	user.visible_message(span("notice", "[user] begins to [movtext] \the [hoistee]!"), span("notice", "You begin to [movtext] \the [hoistee]!"), span("notice", "You hear the sound of a crank."))
+	user.visible_message(span_notice("[user] begins to [movtext] \the [hoistee]!"), span_notice("You begin to [movtext] \the [hoistee]!"), span_notice("You hear the sound of a crank."))
 	if (do_after(user, (1 SECONDS) * size / 4, target = src))
 		move_dir(movedir, 1)
 
@@ -223,17 +229,17 @@
 	set category = "Object"
 	set src in range(1)
 
-	if (!ishuman(usr))
+	if (!(ishuman(usr) || issilicon(usr)))
 		return
 
 	if (isobserver(usr) || usr.incapacitated())
 		return
 	if (!usr.IsAdvancedToolUser()) // thanks nanacode
-		to_chat(usr, span("notice", "You stare cluelessly at \the [src]."))
+		to_chat(usr, span_notice("You stare cluelessly at \the [src]."))
 		return
 
 	if (hoistee)
-		to_chat(usr, span("notice", "You cannot collapse the hoist with \the [hoistee] attached!"))
+		to_chat(usr, span_notice("You cannot collapse the hoist with \the [hoistee] attached!"))
 		return
 	collapse_kit()
 

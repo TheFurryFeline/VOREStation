@@ -1,17 +1,22 @@
 /obj/effect/falling_effect
-	name = "you should not see this"
+	name = DEVELOPER_WARNING_NAME
 	desc = "no data"
-	invisibility = 101
+	invisibility = INVISIBILITY_ABSTRACT
 	anchored = TRUE
 	density = FALSE
 	unacidable = TRUE
-	var/falling_type = /obj/item/weapon/reagent_containers/food/snacks/sliceable/pizza/margherita
+	var/falling_type = /obj/item/reagent_containers/food/snacks/sliceable/pizza/margherita
 	var/crushing = TRUE
+	var/admin_spawned = FALSE
 
-/obj/effect/falling_effect/Initialize(mapload, type)
+/obj/effect/falling_effect/Initialize(mapload, type, crushing_type, admin_spawned = FALSE)
 	..()
+	if(!isnull(crushing_type))
+		crushing = crushing_type
 	if(type)
 		falling_type = type
+	if(admin_spawned)
+		src.admin_spawned = admin_spawned
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/effect/falling_effect/LateInitialize()
@@ -25,12 +30,20 @@
 	dropped.pixel_y = 500 // When you think that pixel_z is height but you are wrong
 	dropped.density = FALSE
 	dropped.opacity = FALSE
+	if(admin_spawned)
+		dropped.flags |= ADMIN_SPAWNED
 	animate(dropped, pixel_y = initial_y, pixel_x = initial_x , time = 7)
-	spawn(7)
-		dropped.end_fall(crushing)
+	addtimer(CALLBACK(dropped, TYPE_PROC_REF(/atom/movable,end_fall), crushing), 0.7 SECONDS)
 	qdel(src)
 
-/atom/movable/proc/end_fall(var/crushing = FALSE)
+/atom/movable/proc/end_fall(crushing = FALSE)
+	if(isliving(src))
+		var/mob/living/L = src
+		for(var/mob/living/P in loc)
+			if(can_drop_vore(L, P))
+				L.feed_grabbed_to_self_falling_nom(L,P)
+				L.visible_message(span_vdanger("\The [L] falls right onto \the [P]!"))
+
 	if(crushing)
 		for(var/atom/movable/AM in loc)
 			if(AM != src)

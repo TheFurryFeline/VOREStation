@@ -3,17 +3,17 @@
 	desc = "Classification: V Insecta gigantus\
 	<br><br>\
 	A massively-sized insect that is native to Virgo 3B. Much like its queen, it bears the combined physical traits \
-	of several of Earth's insects. Its forelegs have claws bearing serrated edges much like a Mantis, which it uses \
-	in both self-defense and during its hunts. On it's back are two large semi transparent wings like a beetle that it \
-	uses for increased mobility. Covering its body is a layer of light, thick, and protective chitin, resilient enough to absorb \
-	most physical damage while being light enough for the Sect Drone to hover. \
+	of several of Earth's insects. Its forelegs have claws bearing serrated edges much like a mantis, which it uses \
+	in both self-defense and during its hunts. On the back are two large semi transparent wings like a beetle which \
+	are used for increased mobility. Covering the body is a layer of light, thick, and protective chitin, resilient enough to absorb \
+	most physical damage while being light enough for the sect drone to hover. \
 	<br>\
-	It is not uncommon for a Sect Drone to go out alone to search for potential prey to bring back to the nest. \
-	Regardless of reason, it is cautioned against approaching a Sect Drone as, like their queen, their behaviour is wildly \
-	inconsistent. A Sect Drone can vary from hostile to docile depending on certain factors that scientists have \
+	It is not uncommon for a sect drone to go out alone to search for potential prey to bring back to the nest. \
+	Regardless of reason, it is cautioned against approaching a sect drone as, like the queen, their behaviour is wildly \
+	inconsistent. A sect drone can vary from hostile to docile depending on certain factors that scientists have \
 	yet to uncover. \
 	<br>\
-	The lack  of chitin on the underside of its abdomen is deliberate, as the flesh is very elastic and stretchable, \
+	The lack of chitin on the underside of its abdomen is very elastic and stretchable, \
 	allowing the drone to carry multiple large prey inside of its stomach with relative ease."
 	value = CATALOGUER_REWARD_MEDIUM
 
@@ -33,7 +33,7 @@
 	vore_eyes = TRUE
 	custom_eye_color = "#00FFFF"
 
-	faction = "insects"
+	faction = FACTION_INSECTS
 	maxHealth = 90
 	health = 90
 	see_in_dark = 8
@@ -50,7 +50,7 @@
 	vore_icons = SA_ICON_LIVING
 
 	meat_amount = 4
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/xenomeat/spidermeat
+	meat_type = /obj/item/reagent_containers/food/snacks/xenomeat/spidermeat
 
 	//Beeg bug don't give a fuck about atmos. Something something, phoron mutation.
 	min_oxy = 0
@@ -84,16 +84,18 @@
 	ai_holder_type = /datum/ai_holder/simple_mob/melee
 	say_list_type = /datum/say_list/sect_drone
 
+	allow_mind_transfer = TRUE
+
 /mob/living/simple_mob/vore/sect_drone/Login()
 	. = ..()
-	verbs |= /mob/living/simple_mob/vore/sect_drone/proc/set_abdomen_color
+	add_verb(src,  /mob/living/simple_mob/vore/sect_drone/proc/set_abdomen_color)
 
 /mob/living/simple_mob/vore/sect_drone/proc/set_abdomen_color()
 	set name = "Set Glow Color"
 	set desc = "Customize your eyes and abdomen glow color."
-	set category = "Abilities"
+	set category = "Abilities.Sect Drone"
 
-	var/new_color = input(src, "Please select color.", "Glow Color", custom_eye_color) as color|null
+	var/new_color = tgui_color_picker(src, "Please select color.", "Glow Color", custom_eye_color)
 	if(new_color)
 		custom_eye_color = new_color
 		remove_eyes()

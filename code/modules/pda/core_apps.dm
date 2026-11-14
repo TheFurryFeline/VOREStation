@@ -3,7 +3,7 @@
 	template = "pda_main_menu"
 	hidden = 1
 
-/datum/data/pda/app/main_menu/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/main_menu/update_ui(mob/user, list/data)
 	title = pda.name
 
 	data["app"]["is_home"] = 1
@@ -33,11 +33,11 @@
 				else
 					switch(text2num(params["option"]))
 						if(1)		// Configure pAI device
-							pda.pai.attack_self(usr)
+							pda.pai.attack_self(ui.user)
 						if(2)		// Eject pAI device
 							var/turf/T = get_turf_or_move(pda.loc)
 							if(T)
-								pda.pai.loc = T
+								pda.pai.forceMove(T)
 								pda.pai = null
 			return TRUE
 
@@ -63,130 +63,130 @@
 		note = "Thank you for choosing the [pda.model_name]!"
 		notetitle = "Congratulations!"
 
-/datum/data/pda/app/notekeeper/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/notekeeper/update_ui(mob/user, list/data)
 	data["note"] = note									// current pda notes
-	data["notename"] = "Note [alphabet_uppercase[currentnote]] : [notetitle]"
+	data["notename"] = "Note [GLOB.alphabet_upper[currentnote]] : [notetitle]"
 
 /datum/data/pda/app/notekeeper/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
 	if(..())
 		return TRUE
 	switch(action)
 		if("Edit")
-			var/n = tgui_input_text(usr, "Please enter message", name, notehtml, multiline = TRUE, prevent_enter = TRUE)
-			if(pda.loc == usr)
+			var/n = tgui_input_text(ui.user, "Please enter message", name, notehtml, multiline = TRUE, prevent_enter = TRUE)
+			if(pda.loc == ui.user)
 				note = adminscrub(n)
 				notehtml = html_decode(note)
 				note = replacetext(note, "\n", "<br>")
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Titleset")
-			var/n = tgui_input_text(usr, "Please enter title", name, notetitle, multiline = FALSE)
-			if(pda.loc == usr)
+			var/n = tgui_input_text(ui.user, "Please enter title", name, notetitle, multiline = FALSE)
+			if(pda.loc == ui.user)
 				notetitle = adminscrub(n)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Print")
-			if(pda.loc == usr)
-				printnote()
+			if(pda.loc == ui.user)
+				printnote(ui.user)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		// dumb way to do this, but i don't know how to easily parse this without a lot of silly code outside the switch!
 		if("Note1")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(1)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note2")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(2)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note3")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(3)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note4")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(4)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note5")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(5)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note6")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(6)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note7")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(7)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note8")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(8)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note9")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(9)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note10")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(10)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note11")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(11)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 		if("Note12")
-			if(pda.loc == usr)
+			if(pda.loc == ui.user)
 				changetonote(12)
 			else
-				pda.close(usr)
+				pda.close(ui.user)
 			return TRUE
 
-/datum/data/pda/app/notekeeper/proc/printnote()
+/datum/data/pda/app/notekeeper/proc/printnote(mob/user)
 	// get active hand of person holding PDA, and print the page to the paper in it
-	if(istype( usr, /mob/living/carbon/human ))
-		var/mob/living/carbon/human/H = usr
+	if(istype( user, /mob/living/carbon/human ))
+		var/mob/living/carbon/human/H = user
 		var/obj/item/I = H.get_active_hand()
-		if(istype(I,/obj/item/weapon/paper))
-			var/obj/item/weapon/paper/P = I
+		if(istype(I,/obj/item/paper))
+			var/obj/item/paper/P = I
 			if(isnull(P.info) || P.info == "" )
-				var/titlenote = "Note [alphabet_uppercase[currentnote]]"
+				var/titlenote = "Note [GLOB.alphabet_upper[currentnote]]"
 				if(!isnull(notetitle) && notetitle != "")
 					titlenote = notetitle
-				to_chat(usr, "<span class='notice'>Successfully printed [titlenote]!</span>")
+				to_chat(user, span_notice("Successfully printed [titlenote]!"))
 				P.set_content( pencode2html(note), titlenote)
 			else
-				to_chat(usr, "<span class='notice'>You can only print to empty paper!</span>")
+				to_chat(user, span_notice("You can only print to empty paper!"))
 		else
-			to_chat(usr, "<span class='notice'>You must be holding paper for the pda to print to!</span>")
+			to_chat(user, span_notice("You must be holding paper for the pda to print to!"))
 
 
-/datum/data/pda/app/notekeeper/proc/changetonote(var/noteindex)
+/datum/data/pda/app/notekeeper/proc/changetonote(noteindex)
 	// save note to current slot, then load another slot
 	storednotes[currentnote] = note
 	storedtitles[currentnote] = notetitle
@@ -206,10 +206,10 @@
 	icon = "user"
 	template = "pda_manifest"
 
-/datum/data/pda/app/manifest/update_ui(mob/user as mob, list/data)
-	if(data_core)
-		data_core.get_manifest_list()
-	data["manifest"] = PDA_Manifest
+/datum/data/pda/app/manifest/update_ui(mob/user, list/data)
+	if(GLOB.data_core)
+		GLOB.data_core.get_manifest_list()
+	data["manifest"] = GLOB.PDA_Manifest
 
 /datum/data/pda/app/manifest/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
 	if(..())
@@ -221,40 +221,8 @@
 	template = "pda_atmos_scan"
 	category = "Utilities"
 
-/datum/data/pda/app/atmos_scanner/update_ui(mob/user as mob, list/data)
-	var/list/results = list()
-	var/turf/T = get_turf(user)
-	if(!isnull(T))
-		var/datum/gas_mixture/environment = T.return_air()
-		var/pressure = environment.return_pressure()
-		var/total_moles = environment.total_moles
-		if (total_moles)
-			var/o2_level = environment.gas["oxygen"]/total_moles
-			var/n2_level = environment.gas["nitrogen"]/total_moles
-			var/co2_level = environment.gas["carbon_dioxide"]/total_moles
-			var/phoron_level = environment.gas["phoron"]/total_moles
-			var/unknown_level =  1-(o2_level+n2_level+co2_level+phoron_level)
-
-			// entry is what the element is describing
-			// Type identifies which unit or other special characters to use
-			// Val is the information reported
-			// Bad_high/_low are the values outside of which the entry reports as dangerous
-			// Poor_high/_low are the values outside of which the entry reports as unideal
-			// Values were extracted from the template itself
-			results = list(
-						list("entry" = "Pressure", "units" = "kPa", "val" = "[round(pressure,0.1)]", "bad_high" = 120, "poor_high" = 110, "poor_low" = 95, "bad_low" = 80),
-						list("entry" = "Temperature", "units" = "\u00B0C", "val" = "[round(environment.temperature-T0C,0.1)]", "bad_high" = 35, "poor_high" = 25, "poor_low" = 15, "bad_low" = 5),
-						list("entry" = "Oxygen", "units" = "kPa", "val" = "[round(o2_level*100,0.1)]", "bad_high" = 140, "poor_high" = 135, "poor_low" = 19, "bad_low" = 17),
-						list("entry" = "Nitrogen", "units" = "kPa", "val" = "[round(n2_level*100,0.1)]", "bad_high" = 105, "poor_high" = 85, "poor_low" = 50, "bad_low" = 40),
-						list("entry" = "Carbon Dioxide", "units" = "kPa", "val" = "[round(co2_level*100,0.1)]", "bad_high" = 10, "poor_high" = 5, "poor_low" = 0, "bad_low" = 0),
-						list("entry" = "Phoron", "units" = "kPa", "val" = "[round(phoron_level*100,0.01)]", "bad_high" = 0.5, "poor_high" = 0, "poor_low" = 0, "bad_low" = 0),
-						list("entry" = "Other", "units" = "kPa", "val" = "[round(unknown_level, 0.01)]", "bad_high" = 1, "poor_high" = 0.5, "poor_low" = 0, "bad_low" = 0)
-						)
-
-	if(isnull(results))
-		results = list(list("entry" = "pressure", "units" = "kPa", "val" = "0", "bad_high" = 120, "poor_high" = 110, "poor_low" = 95, "bad_low" = 80))
-
-	data["aircontents"] = results
+/datum/data/pda/app/atmos_scanner/update_ui(mob/user, list/data)
+	data["aircontents"] = get_gas_mixture_default_scan_data(get_turf(user))
 
 /datum/data/pda/app/news
 	name = "News"
@@ -263,7 +231,7 @@
 
 	var/newsfeed_channel
 
-/datum/data/pda/app/news/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/news/update_ui(mob/user, list/data)
 	data["feeds"] = compile_news()
 	data["latest_news"] = get_recent_news()
 	if(newsfeed_channel)
@@ -280,7 +248,7 @@
 
 /datum/data/pda/app/news/proc/compile_news()
 	var/list/feeds = list()
-	for(var/datum/feed_channel/channel in news_network.network_channels)
+	for(var/datum/feed_channel/channel in GLOB.news_network.network_channels)
 		var/list/messages = list()
 		if(!channel.censored)
 			var/index = 0
@@ -312,9 +280,11 @@
 	var/list/news = list()
 
 	// Compile all the newscasts
-	for(var/datum/feed_channel/channel in news_network.network_channels)
+	for(var/datum/feed_channel/channel in GLOB.news_network.network_channels)
 		if(!channel.censored)
+			var/index = 0
 			for(var/datum/feed_message/FM in channel.messages)
+				index++
 				var/body = replacetext(FM.body, "\n", "<br>")
 				news[++news.len] = list(
 							"channel" = channel.channel_name,
@@ -324,7 +294,8 @@
 							"time_stamp" = FM.time_stamp,
 							"has_image" = (FM.img != null),
 							"caption" = FM.caption,
-							"time" = FM.post_time
+							"time" = FM.post_time,
+							"index" = index
 							)
 
 	// Cut out all but the youngest three
@@ -334,3 +305,25 @@
 		news.Swap(1, 3) // List is sorted in ascending order of timestamp, we want descending
 
 	return news
+
+/datum/data/pda/app/goals
+	name = "Departmental Goals"
+	icon = "list-check"
+	template = "pda_depgoals"
+
+/datum/data/pda/app/goals/update_ui(mob/user, list/data)
+	data["goals"] = get_goals()
+
+/datum/data/pda/app/goals/proc/get_goals()
+	var/list/goals = list()
+
+	for(var/category in SSdepartmentgoals.active_department_goals)
+		var/list/dept_goal = SSdepartmentgoals.active_department_goals[category]
+		for(var/datum/goal/goal in dept_goal)
+			goals += list(list(
+				"name" = goal.name,
+				"description" = goal.goal_text,
+				"count" = FLOOR((goal.current_count / goal.goal_count) * 100, 1),
+				"ref" = REF(goal)
+			))
+	return goals

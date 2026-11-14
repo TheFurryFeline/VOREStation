@@ -1,44 +1,66 @@
 //Due to how large this one is it gets its own file
 /datum/job/chaplain
-	title = "Chaplain"
+	title = JOB_CHAPLAIN
 	flag = CHAPLAIN
 	departments = list(DEPARTMENT_CIVILIAN)
 	department_flag = CIVILIAN
-	faction = "Station"
+	faction = FACTION_STATION
 	total_positions = 1
 	spawn_positions = 1
-	supervisors = "the Head of Personnel"
+	pto_type = PTO_CIVILIAN
+	supervisors = "the " + JOB_HEAD_OF_PERSONNEL
 	selection_color = "#515151"
-	access = list(access_morgue, access_chapel_office, access_crematorium, access_maint_tunnels)
-	minimal_access = list(access_chapel_office, access_crematorium)
+	access = list(ACCESS_MORGUE, ACCESS_CHAPEL_OFFICE, ACCESS_CREMATORIUM, ACCESS_MAINT_TUNNELS)
+	minimal_access = list(ACCESS_CHAPEL_OFFICE, ACCESS_CREMATORIUM)
 
-	outfit_type = /decl/hierarchy/outfit/job/chaplain
-	job_description = "The Chaplain ministers to the spiritual needs of the crew."
-	alt_titles = list("Counselor" = /datum/alt_title/counselor)
+	outfit_type = /datum/decl/hierarchy/outfit/job/chaplain
+	job_description = "The " + JOB_CHAPLAIN + " ministers to the spiritual needs of the crew."
+	alt_titles = list(JOB_ALT_MISSIONARY = /datum/alt_title/missionary, JOB_ALT_PREACHER = /datum/alt_title/preacher, JOB_ALT_PRIEST = /datum/alt_title/priest,
+							JOB_ALT_NUN = /datum/alt_title/nun, JOB_ALT_MONK = /datum/alt_title/monk, JOB_ALT_COUNSELOR = /datum/alt_title/counselor,
+						JOB_ALT_GURU = /datum/alt_title/guru)
 
 // Chaplain Alt Titles
 /datum/alt_title/counselor
-	title = "Counselor"
-	title_blurb = "The Counselor attends to the emotional needs of the crew, without a specific medicinal or spiritual focus."
+	title = JOB_ALT_COUNSELOR
+	title_blurb = "The " + JOB_ALT_COUNSELOR + " attends to the emotional needs of the crew, without a specific medicinal or spiritual focus."
 
-/datum/job/chaplain/equip(var/mob/living/carbon/human/H, var/alt_title, var/ask_questions = TRUE)
+/datum/alt_title/guru
+	title = JOB_ALT_GURU
+	title_blurb = "The " + JOB_ALT_GURU + " primarily tries to offer spiritual guidance to those who come seeking it."
+
+/datum/alt_title/missionary
+	title = JOB_ALT_MISSIONARY
+
+/datum/alt_title/preacher
+	title = JOB_ALT_PREACHER
+
+/datum/alt_title/priest
+	title = JOB_ALT_PRIEST
+
+/datum/alt_title/nun
+	title = JOB_ALT_NUN
+
+/datum/alt_title/monk
+	title = JOB_ALT_MONK
+
+/datum/job/chaplain/equip(mob/living/carbon/human/H, alt_title, ask_questions = TRUE)
 	. = ..()
 	if(!.)
 		return
 	if(!ask_questions)
 		return
 
-	var/obj/item/weapon/storage/bible/B = locate(/obj/item/weapon/storage/bible) in H
-	var/obj/item/weapon/card/id/I = locate(/obj/item/weapon/card/id) in H
+	var/obj/item/storage/bible/B = locate(/obj/item/storage/bible) in H
+	var/obj/item/card/id/I = locate(/obj/item/card/id) in H
 
 	if(!B || !I)
 		return
 
 	INVOKE_ASYNC(src, PROC_REF(religion_prompts), H, B, I)
 
-/datum/job/chaplain/proc/religion_prompts(mob/living/carbon/human/H, obj/item/weapon/storage/bible/B, obj/item/weapon/card/id/I)
+/datum/job/chaplain/proc/religion_prompts(mob/living/carbon/human/H, obj/item/storage/bible/B, obj/item/card/id/I)
 	var/religion_name = "Unitarianism"
-	var/new_religion = sanitize(input(H, "You are the crew services officer. Would you like to change your religion? Default is Unitarianism", "Name change", religion_name), MAX_NAME_LEN)
+	var/new_religion = tgui_input_text(H, "You are the crew services officer. Would you like to change your religion? Default is Unitarianism", "Name change", religion_name, MAX_NAME_LEN)
 	if(!new_religion)
 		new_religion = religion_name
 
@@ -79,12 +101,12 @@
 			B.name = "The Holy Book of [new_religion]"
 
 	var/deity_name = "Hashem"
-	var/new_deity = sanitize(input(H, "Would you like to change your deity? Default is Hashem", "Name change", deity_name), MAX_NAME_LEN)
+	var/new_deity = tgui_input_text(H, "Would you like to change your deity? Default is Hashem", "Name change", deity_name, MAX_NAME_LEN)
 
 	if((length(new_deity) == 0) || (new_deity == "Hashem"))
 		new_deity = deity_name
 
-	var/new_title = sanitize(input(H, "Would you like to change your title?", "Title Change", I.assignment), MAX_NAME_LEN)
+	var/new_title = tgui_input_text(H, "Would you like to change your title?", "Title Change", I.assignment, MAX_NAME_LEN)
 
 	var/list/all_jobs = get_job_datums()
 
@@ -103,7 +125,7 @@
 	B.deity_name = H.mind.my_religion.deity
 	I.assignment = H.mind.my_religion.title
 	I.name = text("[I.registered_name]'s ID Card ([I.assignment])")
-	data_core.manifest_modify(I.registered_name, I.assignment, I.rank)
+	GLOB.data_core.manifest_modify(I.registered_name, I.assignment, I.rank)
 
 /datum/religion
 	var/religion = "Unitarianism"
@@ -111,10 +133,10 @@
 	var/bible_name = "Bible"
 	var/bible_icon_state = "bible"
 	var/bible_item_state = "bible"
-	var/title = "Chaplain"
+	var/title = JOB_CHAPLAIN
 	var/configured = FALSE
 
-/datum/religion/New(var/r, var/d, var/bn, var/bis, var/bits, var/t)
+/datum/religion/New(r, d, bn, bis, bits, t)
 	. = ..()
 	religion = r
 	deity = d

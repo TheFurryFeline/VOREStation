@@ -6,11 +6,11 @@ GLOBAL_LIST_EMPTY(gyrotrons)
 	icon = 'icons/obj/machines/power/fusion.dmi'
 	desc = "It is a heavy duty industrial gyrotron suited for powering fusion reactors."
 	icon_state = "emitter-off"
-	req_access = list(access_engine)
+	req_access = list(ACCESS_ENGINE)
 	use_power = USE_POWER_IDLE
 	active_power_usage = 50000
 
-	circuit = /obj/item/weapon/circuitboard/gyrotron
+	circuit = /obj/item/circuitboard/gyrotron
 
 	var/id_tag
 	var/rate = 3
@@ -21,7 +21,7 @@ GLOBAL_LIST_EMPTY(gyrotrons)
 	anchored = TRUE
 	state = 2
 
-/obj/machinery/power/emitter/gyrotron/Initialize()
+/obj/machinery/power/emitter/gyrotron/Initialize(mapload)
 	GLOB.gyrotrons += src
 	default_apply_parts()
 	return ..()
@@ -30,7 +30,7 @@ GLOBAL_LIST_EMPTY(gyrotrons)
 	GLOB.gyrotrons -= src
 	return ..()
 
-/obj/machinery/power/emitter/gyrotron/proc/set_beam_power(var/new_power)
+/obj/machinery/power/emitter/gyrotron/proc/set_beam_power(new_power)
 	mega_energy = new_power
 	update_active_power_usage(mega_energy * initial(active_power_usage))
 
@@ -51,10 +51,9 @@ GLOBAL_LIST_EMPTY(gyrotrons)
 	else
 		icon_state = "emitter-off"
 
-/obj/machinery/power/emitter/gyrotron/attackby(var/obj/item/W, var/mob/user)
-	if(istype(W, /obj/item/device/multitool))
-		var/new_ident = tgui_input_text(usr, "Enter a new ident tag.", "Gyrotron", id_tag, MAX_NAME_LEN)
-		new_ident = sanitize(new_ident,MAX_NAME_LEN)
+/obj/machinery/power/emitter/gyrotron/attackby(obj/item/W, mob/user)
+	if(istype(W, /obj/item/multitool))
+		var/new_ident = tgui_input_text(user, "Enter a new ident tag.", "Gyrotron", id_tag, MAX_NAME_LEN)
 		if(new_ident && user.Adjacent(src))
 			id_tag = new_ident
 		return

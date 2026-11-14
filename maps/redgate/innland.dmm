@@ -1,4 +1,28 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"aa" = (
+/obj/structure/ghost_pod/ghost_activated/maint_lurker/redgate,
+/turf/simulated/floor/outdoors/grass/seasonal,
+/area/redgate/wilds)
+"ab" = (
+/obj/structure/table/marble,
+/obj/item/storage/fancy/candle_box,
+/obj/item/storage/box/matches,
+/turf/simulated/floor/lino,
+/area/redgate/structure/powered)
+"ac" = (
+/obj/machinery/light{
+	dir = 4
+	},
+/turf/unsimulated/floor/steel{
+	icon_state = "white"
+	},
+/area/redgate/structure/powered)
+"ad" = (
+/obj/structure/sign/poster{
+	dir = 8
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
 "ae" = (
 /turf/simulated/floor/beach/sand{
 	outdoors = 1
@@ -7,30 +31,69 @@
 "af" = (
 /turf/simulated/wall/wood,
 /area/redgate/structure/powered)
+"ag" = (
+/obj/item/storage/fancy/candle_box,
+/obj/item/storage/fancy/candle_box,
+/obj/item/storage/fancy/whitecandle_box,
+/obj/item/storage/fancy/blackcandle_box,
+/obj/item/storage/box/matches,
+/obj/item/storage/box/matches,
+/obj/structure/closet/walllocker_double/kitchen/east{
+	name = "Candles"
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"ah" = (
+/obj/machinery/light/small{
+	dir = 4
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"ai" = (
+/obj/machinery/light/small{
+	dir = 4
+	},
+/turf/simulated/floor/outdoors/grass/seasonal{
+	base_desc = "Soft, plush green grass. It feels nice under your feet~"
+	},
+/area/redgate/structure/powered)
 "aj" = (
 /obj/structure/table/woodentable,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"ak" = (
+/obj/machinery/light/small,
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"al" = (
+/obj/structure/sink/kitchen{
+	name = "sink";
+	pixel_y = -9;
+	dir = 1
 	},
+/turf/simulated/floor/plating,
 /area/redgate/structure/powered)
 "am" = (
 /turf/simulated/floor/carpet/bcarpet,
 /area/redgate/structure/powered)
-"ap" = (
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
+"an" = (
+/obj/effect/step_trigger/teleporter/innland_to_bedrooms{
+	dir = 1
 	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"ap" = (
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"aq" = (
+/obj/effect/step_trigger/teleporter/innland_to_lower,
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "ar" = (
 /obj/structure/closet/crate/bin{
 	anchored = 1
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "at" = (
 /mob/living/simple_mob/vore/alienanimals/teppi,
@@ -40,37 +103,289 @@
 /obj/effect/fake_sun,
 /turf/simulated/mineral/ignore_cavegen,
 /area/redgate/wilds)
+"av" = (
+/turf/simulated/wall/wood,
+/area/redgate/structure/powered/bed2)
+"aw" = (
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"ax" = (
+/obj/machinery/light/small,
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"ay" = (
+/obj/structure/closet/crate/bin{
+	anchored = 1
+	},
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"az" = (
+/obj/structure/closet/secure_closet/personal,
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"aA" = (
+/turf/simulated/wall/wood,
+/area/redgate/structure/powered/bed1)
+"aB" = (
+/obj/structure/closet/crate/bin{
+	anchored = 1
+	},
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aC" = (
+/obj/structure/bed/chair/comfy/black{
+	dir = 4
+	},
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aD" = (
+/obj/machinery/light/small,
+/obj/structure/table/woodentable,
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aE" = (
+/obj/structure/bed/chair/comfy/black{
+	dir = 8
+	},
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aF" = (
+/obj/structure/bed/double/padded{
+	dir = 1
+	},
+/obj/item/bedsheet/bluedouble{
+	dir = 1
+	},
+/obj/structure/curtain/black,
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
 "aG" = (
 /obj/structure/flora/pottedplant/fern,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
+"aH" = (
+/obj/machinery/door/airlock{
+	name = "Bedroom";
+	id_tag = "bedroom1"
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered/bed1)
+"aI" = (
+/obj/machinery/button/remote/airlock{
+	dir = 4;
+	id = "bedroom1";
+	name = "Door Control";
+	pixel_x = -27;
+	pixel_y = 25;
+	specialfunctions = 4
+	},
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aJ" = (
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
 "aK" = (
 /obj/structure/flora/pottedplant/minitree,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "aL" = (
 /turf/simulated/floor/reinforced,
 /area/redgate/wilds)
 "aM" = (
-/turf/simulated/floor/carpet/purcarpet,
+/obj/structure/sign/directions/dorms{
+	dir = 1;
+	pixel_y = 25
+	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "aN" = (
 /obj/structure/flora/ausbushes/ywflowers,
 /turf/simulated/floor/outdoors/grass/seasonal,
 /area/redgate/wilds)
+"aO" = (
+/obj/machinery/button/remote/airlock{
+	dir = 8;
+	id = "bedroom2";
+	name = "Door Control";
+	pixel_x = 27;
+	pixel_y = -25;
+	specialfunctions = 4
+	},
+/obj/machinery/light_switch{
+	dir = 8;
+	pixel_y = -34;
+	pixel_x = 27
+	},
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"aP" = (
+/obj/machinery/door/airlock{
+	name = "Bedroom";
+	id_tag = "bedroom2"
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered/bed2)
 "aQ" = (
 /obj/structure/flora/ausbushes/ppflowers,
 /turf/simulated/floor/outdoors/grass/seasonal,
 /area/redgate/wilds)
+"aR" = (
+/obj/machinery/light_switch{
+	dir = 4;
+	pixel_y = 5;
+	pixel_x = -27
+	},
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aS" = (
+/obj/structure/bed/double/padded,
+/obj/item/bedsheet/reddouble,
+/obj/structure/curtain/black,
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aT" = (
+/obj/item/storage/fancy/candle_box,
+/obj/item/storage/box/matches,
+/obj/structure/closet/walllocker_double/kitchen/north{
+	name = "Candles"
+	},
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"aU" = (
+/obj/structure/bed/chair/comfy/black{
+	dir = 4
+	},
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"aV" = (
+/obj/machinery/light/small{
+	dir = 1
+	},
+/obj/structure/table/woodentable,
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"aW" = (
+/obj/structure/bed/chair/comfy/black{
+	dir = 8
+	},
+/turf/simulated/floor/carpet/blue,
+/area/redgate/structure/powered/bed2)
+"aX" = (
+/obj/structure/closet/secure_closet/personal,
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aY" = (
+/obj/machinery/light/small{
+	dir = 1
+	},
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"aZ" = (
+/obj/item/storage/fancy/candle_box,
+/obj/item/storage/box/matches,
+/obj/structure/closet/walllocker_double/kitchen/north{
+	name = "Candles"
+	},
+/turf/simulated/floor/carpet,
+/area/redgate/structure/powered/bed1)
+"ba" = (
+/turf/simulated/wall/wood,
+/area/redgate/structure/powered/bed4)
+"bb" = (
+/obj/structure/bed/chair/comfy/black{
+	dir = 4
+	},
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"bc" = (
+/obj/machinery/light/small,
+/obj/structure/table/woodentable,
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"bd" = (
+/obj/structure/bed/chair/comfy/black{
+	dir = 8
+	},
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"be" = (
+/obj/structure/closet/crate/bin{
+	anchored = 1
+	},
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"bf" = (
+/turf/simulated/wall/wood,
+/area/redgate/structure/powered/bed3)
+"bg" = (
+/obj/structure/closet/secure_closet/personal,
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
 "bh" = (
 /turf/simulated/floor/reinforced,
 /area/redgate/structure/powered)
+"bi" = (
+/obj/structure/closet/crate/bin{
+	anchored = 1
+	},
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
+"bj" = (
+/obj/machinery/light/small,
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
+"bk" = (
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
+"bl" = (
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"bm" = (
+/obj/machinery/button/remote/airlock{
+	dir = 8;
+	id = "bedroom4";
+	name = "Door Control";
+	pixel_x = 27;
+	pixel_y = 25;
+	specialfunctions = 4
+	},
+/obj/machinery/light_switch{
+	dir = 8;
+	pixel_y = 35;
+	pixel_x = 27
+	},
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"bn" = (
+/obj/machinery/door/airlock{
+	name = "Bedroom";
+	id_tag = "bedroom4"
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered/bed4)
+"bo" = (
+/obj/structure/bed/double/padded,
+/obj/item/bedsheet/purpledouble,
+/obj/structure/curtain/black,
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
+"bp" = (
+/obj/structure/bed/double/padded{
+	dir = 1
+	},
+/obj/item/bedsheet/browndouble{
+	dir = 1
+	},
+/obj/structure/curtain/black,
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"bq" = (
+/obj/machinery/door/airlock{
+	name = "Bedroom";
+	id_tag = "bedroom3"
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered/bed3)
 "br" = (
 /obj/structure/redgate/away,
 /turf/simulated/floor/reinforced,
@@ -95,10 +410,7 @@
 /obj/machinery/light/small{
 	dir = 1
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "bu" = (
 /obj/machinery/portable_atmospherics/hydroponics,
@@ -111,16 +423,72 @@
 /obj/machinery/light,
 /turf/simulated/floor/tiled,
 /area/redgate/structure/powered)
+"bv" = (
+/obj/machinery/button/remote/airlock{
+	dir = 4;
+	id = "bedroom3";
+	name = "Door Control";
+	pixel_x = -27;
+	pixel_y = -25;
+	specialfunctions = 4
+	},
+/obj/machinery/light_switch{
+	dir = 4;
+	pixel_y = -34;
+	pixel_x = -27
+	},
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
+"bw" = (
+/obj/item/storage/fancy/candle_box,
+/obj/item/storage/box/matches,
+/obj/structure/closet/walllocker_double/kitchen/north{
+	name = "Candles"
+	},
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"bx" = (
+/obj/machinery/light/small{
+	dir = 1
+	},
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
 "by" = (
 /obj/structure/bed/chair/wood/wings{
 	dir = 8
 	},
 /obj/machinery/light/small,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
+"bz" = (
+/obj/structure/closet/secure_closet/personal,
+/turf/simulated/floor/carpet/brown,
+/area/redgate/structure/powered/bed4)
+"bA" = (
+/obj/machinery/light/small{
+	dir = 1
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"bB" = (
+/obj/structure/bed/chair/comfy/black{
+	dir = 4
+	},
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
+"bC" = (
+/obj/machinery/light/small{
+	dir = 1
+	},
+/obj/structure/table/woodentable,
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
+"bD" = (
+/obj/structure/bed/chair/comfy/black{
+	dir = 8
+	},
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
 "bE" = (
 /obj/machinery/light/small{
 	dir = 1
@@ -141,6 +509,57 @@
 	base_desc = "Thick, green grass... who knows what's hiding in it!"
 	},
 /area/redgate/structure/powered)
+"bH" = (
+/obj/item/storage/fancy/candle_box,
+/obj/item/storage/box/matches,
+/obj/structure/closet/walllocker_double/kitchen/north{
+	name = "Candles"
+	},
+/turf/simulated/floor/carpet/purcarpet,
+/area/redgate/structure/powered/bed3)
+"bI" = (
+/obj/machinery/light/small{
+	dir = 8
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"bJ" = (
+/obj/structure/sign/directions/roomnum{
+	pixel_y = 8
+	},
+/turf/simulated/wall/wood,
+/area/redgate/structure/powered/bed1)
+"bK" = (
+/obj/structure/sign/directions/roomnum{
+	dir = 1;
+	pixel_y = -8
+	},
+/turf/simulated/wall/wood,
+/area/redgate/structure/powered/bed2)
+"bL" = (
+/obj/machinery/light/small{
+	dir = 4
+	},
+/obj/structure/extinguisher_cabinet{
+	dir = 4;
+	pixel_x = -30
+	},
+/turf/unsimulated/floor/wood,
+/area/redgate/structure/powered)
+"bM" = (
+/obj/structure/sign/directions/roomnum{
+	dir = 8;
+	pixel_y = 8
+	},
+/turf/simulated/wall/wood,
+/area/redgate/structure/powered/bed4)
+"bN" = (
+/obj/structure/sign/directions/roomnum{
+	dir = 4;
+	pixel_y = -8
+	},
+/turf/simulated/wall/wood,
+/area/redgate/structure/powered/bed3)
 "bO" = (
 /turf/simulated/mineral/floor/ignore_cavegen/cave{
 	desc = "It's finely packed dirt. It is soft, and comfortable to walk on.";
@@ -222,10 +641,10 @@
 /area/redgate/structure/powered)
 "cV" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/paper_bin{
+/obj/item/paper_bin{
 	pixel_y = 4
 	},
-/obj/item/weapon/pen{
+/obj/item/pen{
 	pixel_y = 4
 	},
 /turf/simulated/floor/carpet/bcarpet,
@@ -280,16 +699,10 @@
 /obj/effect/floor_decal/spline/plain{
 	dir = 1
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "dg" = (
-/obj/structure/sink/kitchen{
-	name = "sink";
-	pixel_y = 20
-	},
+/obj/machinery/telecomms/relay/preset/station,
 /turf/simulated/floor/plating,
 /area/redgate/structure/powered)
 "dh" = (
@@ -313,36 +726,30 @@
 /area/redgate/structure/powered)
 "dm" = (
 /obj/machinery/recharge_station,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "dn" = (
 /obj/structure/sign/poster{
 	dir = 1
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "do" = (
 /obj/structure/mopbucket,
-/obj/item/weapon/reagent_containers/glass/bucket,
-/obj/item/weapon/mop,
+/obj/item/reagent_containers/glass/bucket,
+/obj/item/mop,
 /turf/simulated/floor/plating,
 /area/redgate/structure/powered)
 "dp" = (
 /obj/structure/table/steel,
-/obj/item/weapon/reagent_containers/spray/cleaner,
-/obj/item/weapon/reagent_containers/spray/cleaner,
-/obj/item/weapon/grenade/chem_grenade/cleaner,
-/obj/item/weapon/grenade/chem_grenade/cleaner,
-/obj/item/weapon/grenade/chem_grenade/cleaner,
-/obj/item/weapon/grenade/chem_grenade/cleaner,
-/obj/item/weapon/reagent_containers/spray/cleaner,
-/obj/item/weapon/reagent_containers/spray/cleaner,
+/obj/item/reagent_containers/spray/cleaner,
+/obj/item/reagent_containers/spray/cleaner,
+/obj/item/grenade/chem_grenade/cleaner,
+/obj/item/grenade/chem_grenade/cleaner,
+/obj/item/grenade/chem_grenade/cleaner,
+/obj/item/grenade/chem_grenade/cleaner,
+/obj/item/reagent_containers/spray/cleaner,
+/obj/item/reagent_containers/spray/cleaner,
 /obj/machinery/light/small{
 	dir = 4
 	},
@@ -362,21 +769,18 @@
 /area/redgate/structure/powered)
 "dv" = (
 /obj/structure/table/steel,
-/obj/item/weapon/storage/box/lights/mixed,
-/obj/item/weapon/storage/box/lights/mixed,
-/obj/item/weapon/storage/box/lights/mixed,
-/obj/item/weapon/storage/box/lights/mixed,
-/obj/item/weapon/storage/laundry_basket,
+/obj/item/storage/box/lights/mixed,
+/obj/item/storage/box/lights/mixed,
+/obj/item/storage/box/lights/mixed,
+/obj/item/storage/box/lights/mixed,
+/obj/item/storage/laundry_basket,
 /turf/simulated/floor/plating,
 /area/redgate/structure/powered)
 "dA" = (
 /obj/structure/bed/chair/wood/wings{
 	dir = 4
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "dB" = (
 /obj/machinery/portable_atmospherics/hydroponics,
@@ -395,27 +799,20 @@
 /obj/structure/bed/chair/wood/wings{
 	dir = 8
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "dD" = (
 /obj/structure/extinguisher_cabinet{
-	dir = 1;
 	pixel_y = 32
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "dE" = (
 /obj/structure/table/marble,
-/obj/item/weapon/book/manual/barman_recipes,
-/obj/item/weapon/reagent_containers/food/drinks/flask/vacuumflask,
-/obj/item/weapon/reagent_containers/glass/rag,
-/obj/item/weapon/reagent_containers/glass/rag,
+/obj/item/book/manual/barman_recipes,
+/obj/item/reagent_containers/food/drinks/flask/vacuumflask,
+/obj/item/reagent_containers/glass/rag,
+/obj/item/reagent_containers/glass/rag,
 /obj/machinery/light{
 	dir = 4
 	},
@@ -426,10 +823,10 @@
 /obj/effect/floor_decal/corner/grey/diagonal{
 	dir = 4
 	},
-/obj/item/weapon/reagent_containers/food/condiment/enzyme{
+/obj/item/reagent_containers/food/condiment/enzyme{
 	layer = 5
 	},
-/obj/item/weapon/reagent_containers/dropper,
+/obj/item/reagent_containers/dropper,
 /obj/structure/sign/poster,
 /turf/unsimulated/floor/steel{
 	icon_state = "white"
@@ -449,22 +846,22 @@
 /area/redgate/structure/powered)
 "dL" = (
 /obj/structure/closet/crate/freezer,
-/obj/item/weapon/storage/box/monkeycubes,
-/obj/item/weapon/storage/box/monkeycubes/neaeracubes,
-/obj/item/weapon/storage/box/monkeycubes/sarucubes,
-/obj/item/weapon/storage/box/monkeycubes/sobakacubes,
-/obj/item/weapon/storage/box/monkeycubes/sparracubes,
-/obj/item/weapon/storage/box/monkeycubes/stokcubes,
-/obj/item/weapon/storage/box/monkeycubes/wolpincubes,
-/obj/item/weapon/storage/box/donkpockets{
+/obj/item/storage/box/monkeycubes,
+/obj/item/storage/box/monkeycubes/neaeracubes,
+/obj/item/storage/box/monkeycubes/sarucubes,
+/obj/item/storage/box/monkeycubes/sobakacubes,
+/obj/item/storage/box/monkeycubes/sparracubes,
+/obj/item/storage/box/monkeycubes/stokcubes,
+/obj/item/storage/box/monkeycubes/wolpincubes,
+/obj/item/storage/box/donkpockets{
 	pixel_x = 3;
 	pixel_y = 3
 	},
-/obj/item/weapon/storage/box/donkpockets{
+/obj/item/storage/box/donkpockets{
 	pixel_x = 3;
 	pixel_y = 3
 	},
-/obj/item/weapon/storage/box/donkpockets{
+/obj/item/storage/box/donkpockets{
 	pixel_x = 3;
 	pixel_y = 3
 	},
@@ -490,16 +887,12 @@
 /area/redgate/wilds)
 "dR" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/reagent_containers/food/snacks/grilledcheese,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/obj/item/reagent_containers/food/snacks/grilledcheese,
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "dS" = (
 /obj/machinery/door/airlock/glass{
-	name = "Kitchen";
-	req_access = null
+	name = "Kitchen"
 	},
 /turf/unsimulated/floor/steel{
 	icon_state = "white"
@@ -515,8 +908,7 @@
 /area/redgate/structure/powered)
 "dU" = (
 /obj/machinery/door/airlock/freezer{
-	name = "Kitchen cold room";
-	req_access = null
+	name = "Kitchen cold room"
 	},
 /turf/unsimulated/floor/steel{
 	icon_state = "white"
@@ -529,11 +921,8 @@
 /area/redgate/structure/powered)
 "ea" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/reagent_containers/food/snacks/roastbeef,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/obj/item/reagent_containers/food/snacks/roastbeef,
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "eb" = (
 /obj/effect/floor_decal/corner/grey/diagonal{
@@ -573,24 +962,21 @@
 /area/redgate/structure/powered)
 "eh" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/reagent_containers/food/condiment/small/saltshaker{
+/obj/item/reagent_containers/food/condiment/small/saltshaker{
 	pixel_x = -3
 	},
-/obj/item/weapon/reagent_containers/food/condiment/small/peppermill{
+/obj/item/reagent_containers/food/condiment/small/peppermill{
 	pixel_x = 3
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "ei" = (
 /obj/structure/table/marble,
 /obj/effect/floor_decal/corner/grey/diagonal{
 	dir = 4
 	},
-/obj/item/weapon/material/knife/butch,
-/obj/item/weapon/reagent_containers/glass/beaker{
+/obj/item/material/knife/butch,
+/obj/item/reagent_containers/glass/beaker{
 	pixel_x = 5
 	},
 /turf/unsimulated/floor/steel{
@@ -613,10 +999,10 @@
 /obj/structure/table/standard{
 	name = "plastic table frame"
 	},
-/obj/item/weapon/material/knife,
-/obj/item/weapon/material/minihoe,
-/obj/item/weapon/reagent_containers/glass/bucket,
-/obj/item/weapon/reagent_containers/glass/bucket,
+/obj/item/material/knife,
+/obj/item/material/minihoe,
+/obj/item/reagent_containers/glass/bucket,
+/obj/item/reagent_containers/glass/bucket,
 /turf/unsimulated/floor/steel,
 /area/redgate/structure/powered)
 "el" = (
@@ -631,10 +1017,7 @@
 	dir = 4;
 	pixel_x = -30
 	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "eo" = (
 /obj/effect/floor_decal/spline/plain{
@@ -679,7 +1062,7 @@
 /turf/unsimulated/floor/steel,
 /area/redgate/structure/powered)
 "ev" = (
-/obj/item/weapon/stool/padded,
+/obj/item/stool/padded,
 /obj/effect/floor_decal/spline/plain{
 	dir = 8
 	},
@@ -687,10 +1070,10 @@
 /area/redgate/structure/powered)
 "ew" = (
 /obj/structure/table/marble,
-/obj/item/weapon/reagent_containers/food/condiment/small/saltshaker{
+/obj/item/reagent_containers/food/condiment/small/saltshaker{
 	pixel_x = -3
 	},
-/obj/item/weapon/reagent_containers/food/condiment/small/peppermill{
+/obj/item/reagent_containers/food/condiment/small/peppermill{
 	pixel_x = 3
 	},
 /turf/simulated/floor/lino,
@@ -704,25 +1087,21 @@
 /obj/effect/floor_decal/corner/grey/diagonal{
 	dir = 4
 	},
-/obj/item/weapon/book/manual/chef_recipes,
+/obj/item/book/manual/chef_recipes,
 /turf/unsimulated/floor/steel{
 	icon_state = "white"
 	},
 /area/redgate/structure/powered)
 "ez" = (
 /obj/machinery/door/airlock/glass{
-	name = "Kitchen";
-	req_access = null
+	name = "Kitchen"
 	},
 /turf/unsimulated/floor/steel,
 /area/redgate/structure/powered)
 "eE" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/reagent_containers/food/snacks/meatballsoup,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/obj/item/reagent_containers/food/snacks/meatballsoup,
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "eF" = (
 /turf/simulated/floor/lino,
@@ -732,7 +1111,7 @@
 /obj/effect/floor_decal/corner/grey/diagonal{
 	dir = 4
 	},
-/obj/item/weapon/material/kitchen/rollingpin,
+/obj/item/material/kitchen/rollingpin,
 /turf/unsimulated/floor/steel{
 	icon_state = "white"
 	},
@@ -743,15 +1122,12 @@
 /area/redgate/structure/powered)
 "eN" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/reagent_containers/food/snacks/meatsteak,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/obj/item/reagent_containers/food/snacks/meatsteak,
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "eO" = (
 /obj/structure/table/marble,
-/obj/item/weapon/reagent_containers/glass/rag,
+/obj/item/reagent_containers/glass/rag,
 /turf/simulated/floor/lino,
 /area/redgate/structure/powered)
 "eP" = (
@@ -779,10 +1155,7 @@
 /area/redgate/structure/powered)
 "eR" = (
 /obj/structure/sign/poster,
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "eS" = (
 /obj/structure/table/marble,
@@ -795,7 +1168,9 @@
 /turf/simulated/floor/lino,
 /area/redgate/structure/powered)
 "eU" = (
-/obj/machinery/vending/boozeomat,
+/obj/machinery/vending/boozeomat{
+	req_access = null
+	},
 /turf/unsimulated/floor/steel{
 	icon_state = "white"
 	},
@@ -804,22 +1179,24 @@
 /obj/effect/floor_decal/corner/grey/diagonal,
 /obj/structure/closet/chefcloset,
 /obj/item/glass_jar,
-/obj/item/device/retail_scanner/civilian,
-/obj/item/weapon/soap/nanotrasen,
-/obj/item/device/destTagger{
+/obj/item/retail_scanner/civilian,
+/obj/item/soap/nanotrasen,
+/obj/item/destTagger{
 	pixel_x = 4;
 	pixel_y = 3
 	},
-/obj/item/weapon/packageWrap,
-/obj/item/weapon/packageWrap,
-/obj/item/weapon/packageWrap,
+/obj/item/packageWrap,
+/obj/item/packageWrap,
+/obj/item/packageWrap,
 /turf/simulated/floor/tiled/white,
 /area/redgate/structure/powered)
 "eW" = (
 /obj/effect/floor_decal/corner/grey/diagonal{
 	dir = 4
 	},
-/obj/structure/closet/secure_closet/freezer/kitchen,
+/obj/structure/closet/secure_closet/freezer/kitchen{
+	req_access = null
+	},
 /turf/unsimulated/floor/steel{
 	icon_state = "white"
 	},
@@ -841,7 +1218,7 @@
 /obj/machinery/door/airlock{
 	name = "Tavern"
 	},
-/turf/unsimulated/floor/steel,
+/turf/unsimulated/floor/wood,
 /area/redgate/structure/powered)
 "ff" = (
 /obj/structure/railing{
@@ -907,13 +1284,6 @@
 	name = "the end"
 	},
 /area/redgate/wilds)
-"la" = (
-/obj/machinery/light/small{
-	dir = 1
-	},
-/obj/machinery/telecomms/relay/preset/station,
-/turf/simulated/floor/carpet/purcarpet,
-/area/redgate/structure/powered)
 "lb" = (
 /turf/simulated/mineral/ignore_cavegen/cave,
 /area/redgate/wilds)
@@ -935,10 +1305,10 @@
 	dir = 4
 	},
 /obj/structure/table/marble,
-/obj/item/weapon/reagent_containers/food/condiment/small/peppermill{
+/obj/item/reagent_containers/food/condiment/small/peppermill{
 	pixel_x = 3
 	},
-/obj/item/weapon/reagent_containers/food/condiment/small/saltshaker{
+/obj/item/reagent_containers/food/condiment/small/saltshaker{
 	pixel_x = -3
 	},
 /obj/structure/extinguisher_cabinet{
@@ -951,16 +1321,6 @@
 "mB" = (
 /obj/structure/bonfire/permanent,
 /turf/simulated/floor/reinforced,
-/area/redgate/structure/powered)
-"pX" = (
-/obj/structure/table/woodentable,
-/obj/structure/sign/poster{
-	dir = 1
-	},
-/turf/unsimulated/floor/steel{
-	icon = 'icons/turf/floors_vr.dmi';
-	icon_state = "wood"
-	},
 /area/redgate/structure/powered)
 "ub" = (
 /turf/simulated/floor/water,
@@ -1144,18 +1504,18 @@ kw
 "}
 (2,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+ba
+ba
+ba
+ba
+af
+av
+av
+av
+av
+af
+kw
 lb
 lb
 lb
@@ -1286,18 +1646,18 @@ kw
 "}
 (3,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bl
+bp
+bl
+bb
+af
+aT
+aw
+aF
+aw
+af
+kw
 lb
 lb
 lb
@@ -1428,18 +1788,18 @@ kw
 "}
 (4,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bw
+bl
+bl
+bc
+af
+aU
+aw
+aw
+ax
+af
+kw
 lb
 lb
 lb
@@ -1570,18 +1930,18 @@ kw
 "}
 (5,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bx
+bl
+bl
+bd
+af
+aV
+aw
+aw
+ay
+af
+kw
 lb
 lb
 lb
@@ -1712,20 +2072,20 @@ kw
 "}
 (6,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bz
+bl
+bm
+be
+af
+aW
+aO
+aw
+az
+af
+kw
+kw
+kw
 lb
 lb
 lb
@@ -1854,20 +2214,20 @@ kw
 "}
 (7,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+ba
+ba
+bn
+bM
+af
+bK
+aP
+av
+av
+af
+af
+af
+kw
 lb
 lb
 lb
@@ -1996,20 +2356,20 @@ kw
 "}
 (8,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bA
+ap
+ap
+ap
+bL
+ap
+ap
+ap
+bI
+ap
+aq
+af
+kw
 lb
 lb
 lb
@@ -2138,20 +2498,20 @@ kw
 "}
 (9,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bN
+bq
+bf
+bf
+af
+aA
+aA
+aH
+bJ
+af
+af
+af
+kw
 lb
 lb
 lb
@@ -2280,20 +2640,20 @@ kw
 "}
 (10,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bB
+bv
+bk
+bg
+af
+aX
+aR
+aI
+aB
+af
+kw
+kw
+kw
 lb
 lb
 lb
@@ -2422,18 +2782,18 @@ kw
 "}
 (11,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bC
+bk
+bk
+bi
+af
+aY
+aJ
+aJ
+aC
+af
+kw
 lb
 lb
 lb
@@ -2564,18 +2924,18 @@ kw
 "}
 (12,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bD
+bk
+bk
+bj
+af
+aZ
+aJ
+aJ
+aD
+af
+kw
 lb
 lb
 lb
@@ -2706,18 +3066,18 @@ kw
 "}
 (13,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bH
+bk
+bo
+bk
+af
+aJ
+aS
+aJ
+aE
+af
+kw
 lb
 lb
 lb
@@ -2848,18 +3208,18 @@ kw
 "}
 (14,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+af
+bf
+bf
+bf
+bf
+af
+aA
+aA
+aA
+aA
+af
+kw
 lb
 lb
 lb
@@ -2990,18 +3350,18 @@ kw
 "}
 (15,1,1) = {"
 kw
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
-lb
+kw
+kw
+kw
+kw
+kw
+kw
+kw
+kw
+kw
+kw
+kw
+kw
 lb
 lb
 lb
@@ -3455,10 +3815,10 @@ cQ
 aL
 br
 aL
-cQ
-ct
-ct
-cQ
+ge
+ge
+ge
+ge
 ge
 ge
 cQ
@@ -3604,9 +3964,9 @@ cQ
 ge
 ge
 cQ
-cQ
-af
-dA
+xW
+cR
+ad
 ap
 ap
 ap
@@ -3745,10 +4105,10 @@ ct
 cQ
 ge
 ge
-cQ
-cQ
-af
-pX
+ge
+ve
+fe
+ap
 ap
 ap
 dA
@@ -3888,9 +4248,9 @@ dd
 ge
 dd
 cQ
-cQ
-af
-dC
+ai
+cR
+ap
 ap
 ap
 eh
@@ -4741,13 +5101,13 @@ am
 af
 dn
 ap
-ap
-ap
+ah
+ag
 ap
 ar
 aG
 ep
-ex
+ab
 dE
 eF
 eT
@@ -5308,7 +5668,7 @@ dc
 Ha
 df
 ap
-ap
+ak
 af
 Ug
 dT
@@ -5446,11 +5806,11 @@ ge
 cQ
 af
 af
-cR
+af
 af
 af
 aM
-aM
+ap
 af
 dT
 dT
@@ -5587,12 +5947,12 @@ cQ
 ge
 cQ
 cQ
-cQ
-cQ
 af
-la
-aM
-aM
+ap
+an
+ah
+ap
+ap
 dl
 dT
 dT
@@ -5729,8 +6089,8 @@ cQ
 ge
 ge
 cQ
-cQ
-cQ
+af
+af
 af
 af
 af
@@ -6018,7 +6378,7 @@ cQ
 af
 dh
 cy
-cy
+al
 dl
 dK
 dV
@@ -6163,7 +6523,7 @@ dp
 dv
 dl
 dL
-dV
+ac
 ed
 dl
 dM
@@ -18130,7 +18490,7 @@ cs
 cs
 cs
 cs
-cs
+aa
 cs
 cs
 cs

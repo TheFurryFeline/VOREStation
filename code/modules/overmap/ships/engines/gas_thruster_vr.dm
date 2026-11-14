@@ -4,7 +4,7 @@
 	desc = "Advanced rocket nozzle, expelling gas at hypersonic velocities to propel the ship."
 	icon = 'icons/turf/shuttle_parts64.dmi'
 	icon_state = "engine_off"
-	
+
 	volume_per_burn = 30
 	charge_per_burn = 6000
 	boot_time = 70
@@ -19,7 +19,7 @@
 	var/node_connect = dir
 	var/turf/one_step = get_step(src,node_connect)
 
-	for(var/obj/machinery/atmospherics/target in get_step(one_step,node_connect))
+	for(var/obj/machinery/atmospherics/target in get_prioritized_nodes(get_step(one_step,node_connect)))
 		if(can_be_node(target, 1))
 			node = target
 			break
@@ -39,7 +39,7 @@
 	desc = "Enormous rocket nozzle, expelling gas at hypersonic velocities to propel the ship."
 	icon = 'icons/turf/shuttle_parts96.dmi'
 	icon_state = "engine_off"
-	
+
 	volume_per_burn = 50
 	charge_per_burn = 10000
 	boot_time = 100
@@ -62,7 +62,7 @@
 	var/turf/one_step = get_step(src,node_connect)
 	var/turf/two_step = get_step(one_step,node_connect)
 
-	for(var/obj/machinery/atmospherics/target in get_step(two_step,node_connect))
+	for(var/obj/machinery/atmospherics/target in get_prioritized_nodes(get_step(two_step,node_connect)))
 		if(can_be_node(target, 1))
 			node = target
 			break

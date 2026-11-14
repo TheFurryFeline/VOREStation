@@ -1,4 +1,4 @@
-/turf/simulated/var/zone/zone
+/turf/simulated/var/datum/zone/zone
 /turf/simulated/var/open_directions
 
 /turf/var/needs_air_update = 0
@@ -11,7 +11,7 @@
 		vis_contents -= graphic_remove
 
 /turf/proc/update_air_properties()
-	var/block = c_airblock(src)
+	var/block = self_airblock()
 	if(block & AIR_BLOCKED)
 		//dbg(blocked)
 		return 1
@@ -41,9 +41,8 @@
 		if(istype(unsim, /turf/simulated))
 
 			var/turf/simulated/sim = unsim
-			if(air_master.has_valid_zone(sim))
-
-				air_master.connect(sim, src)
+			if(HAS_VALID_ZONE(sim))
+				SSair.connect(sim, src)
 
 /*
 	Simple heuristic for determining if removing the turf from it's zone will not partition the zone (A very bad thing).
@@ -60,7 +59,7 @@
 	var/unconnected_dirs = check_dirs
 
 	#ifdef MULTIZAS
-	var/to_check = cornerdirsz
+	var/to_check = GLOB.cornerdirsz
 	#else
 	var/to_check = cornerdirs
 	#endif
@@ -70,7 +69,7 @@
 		if((dir & check_dirs) == dir)
 			//check that they are connected by the corner turf
 			var/connected_dirs = get_zone_neighbours(get_step(src, dir))
-			if(connected_dirs && (dir & reverse_dir[connected_dirs]) == dir)
+			if(connected_dirs && (dir & GLOB.reverse_dir[connected_dirs]) == dir)
 				unconnected_dirs &= ~dir //they are, so unflag the cardinals in question
 
 	//it is safe to remove src from the zone if all cardinals are connected by corner turfs
@@ -81,9 +80,9 @@
 	. = 0
 	if(istype(T) && T.zone)
 		#ifdef MULTIZAS
-		var/to_check = cardinalz
+		var/to_check = GLOB.cardinalz
 		#else
-		var/to_check = cardinal
+		var/to_check = GLOB.cardinal
 		#endif
 		for(var/dir in to_check)
 			var/turf/simulated/other = get_step(T, dir)
@@ -96,14 +95,14 @@
 		c_copy_air()
 		zone = null //Easier than iterating through the list at the zone.
 
-	var/s_block = c_airblock(src)
+	var/s_block = self_airblock()
 	if(s_block & AIR_BLOCKED)
 		#ifdef ZASDBG
 		if(verbose) to_world("Self-blocked.")
 		//dbg(blocked)
 		#endif
 		if(zone)
-			var/zone/z = zone
+			var/datum/zone/z = zone
 
 			if(can_safely_remove_from_zone()) //Helps normal airlocks avoid rebuilding zones all the time
 				z.remove(src)
@@ -160,9 +159,9 @@
 		if(istype(unsim, /turf/simulated))
 
 			var/turf/simulated/sim = unsim
-			sim.open_directions |= reverse_dir[d]
+			sim.open_directions |= GLOB.reverse_dir[d]
 
-			if(air_master.has_valid_zone(sim))
+			if(HAS_VALID_ZONE(sim))
 
 				//Might have assigned a zone, since this happens for each direction.
 				if(!zone)
@@ -195,7 +194,7 @@
 					if(verbose) to_world("Connecting to [sim.zone]")
 					#endif
 
-					air_master.connect(src, sim)
+					SSair.connect(src, sim)
 
 
 			#ifdef ZASDBG
@@ -210,8 +209,8 @@
 			if(!postponed) postponed = list()
 			postponed.Add(unsim)
 
-	if(!air_master.has_valid_zone(src)) //Still no zone, make a new one.
-		var/zone/newzone = new/zone()
+	if(!HAS_VALID_ZONE(src)) //Still no zone, make a new one.
+		var/datum/zone/newzone = new/datum/zone()
 		newzone.add(src)
 
 	#ifdef ZASDBG
@@ -223,7 +222,7 @@
 	//At this point, a zone should have happened. If it hasn't, don't add more checks, fix the bug.
 
 	for(var/turf/T in postponed)
-		air_master.connect(src, T)
+		SSair.connect(src, T)
 
 /turf/proc/post_update_air_properties()
 	if(connections) connections.update_all()
@@ -238,7 +237,7 @@
 	//Create gas mixture to hold data for passing
 	var/datum/gas_mixture/GM = new
 
-	GM.adjust_multi("oxygen", oxygen, "carbon_dioxide", carbon_dioxide, "nitrogen", nitrogen, "phoron", phoron)
+	GM.adjust_multi(GAS_O2, oxygen, GAS_CO2, carbon_dioxide, GAS_N2, nitrogen, GAS_PHORON, phoron, GAS_N2O, nitrous_oxide, GAS_CH4, methane)
 	GM.temperature = temperature
 
 	return GM
@@ -246,12 +245,14 @@
 /turf/remove_air(amount as num)
 	var/datum/gas_mixture/GM = new
 
-	var/sum = oxygen + carbon_dioxide + nitrogen + phoron
+	var/sum = oxygen + carbon_dioxide + nitrogen + phoron + nitrous_oxide + methane
 	if(sum>0)
-		GM.gas["oxygen"] = (oxygen/sum)*amount
-		GM.gas["carbon_dioxide"] = (carbon_dioxide/sum)*amount
-		GM.gas["nitrogen"] = (nitrogen/sum)*amount
-		GM.gas["phoron"] = (phoron/sum)*amount
+		GM.gas[GAS_O2] 		= (oxygen / sum) * amount
+		GM.gas[GAS_CO2] 	= (carbon_dioxide / sum) * amount
+		GM.gas[GAS_N2] 		= (nitrogen / sum) * amount
+		GM.gas[GAS_PHORON] 	= (phoron / sum) * amount
+		GM.gas[GAS_N2O] 	= (nitrous_oxide / sum) * amount
+		GM.gas[GAS_CH4] 	= (methane / sum) * amount
 
 	GM.temperature = temperature
 	GM.update_values()
@@ -279,7 +280,7 @@
 /turf/simulated/return_air()
 	if(zone)
 		if(!zone.invalid)
-			air_master.mark_zone_update(zone)
+			SSair.mark_zone_update(zone)
 			return zone.air
 		else
 			if(!air)
@@ -294,7 +295,7 @@
 /turf/proc/make_air()
 	air = new/datum/gas_mixture
 	air.temperature = temperature
-	air.adjust_multi("oxygen", oxygen, "carbon_dioxide", carbon_dioxide, "nitrogen", nitrogen, "phoron", phoron)
+	air.adjust_multi(GAS_O2, oxygen, GAS_CO2, carbon_dioxide, GAS_N2, nitrogen, GAS_PHORON, phoron, GAS_N2O, nitrous_oxide, GAS_CH4, methane)
 	air.group_multiplier = 1
 	air.volume = CELL_VOLUME
 

@@ -11,6 +11,8 @@
 	var/carbon_dioxide = 0
 	var/nitrogen = 0
 	var/phoron = 0
+	var/nitrous_oxide = 0
+	var/methane = 0
 
 	//Properties for airtight tiles (/wall)
 	var/thermal_conductivity = 0.05
@@ -24,17 +26,68 @@
 	var/icon_old = null
 	var/pathweight = 1          // How much does it cost to pathfind over this turf?
 	var/blessed = 0             // Has the turf been blessed?
+	var/dig_exhaustion_chance = 60 // Chance that the digging loot will be exhausted, if set to TURF_DIG_LOOT_EXHAUSTED then the turf is exhausted of loot. if set to TURF_DIG_LOOT_ENDLESS it will never run out.
 
 	var/list/decals
 
 	var/movement_cost = 0       // How much the turf slows down movement, if any.
 
-	var/list/footstep_sounds = null
-
 	var/block_tele = FALSE      // If true, most forms of teleporting to or from this turf tile will fail.
 	var/can_build_into_floor = FALSE // Used for things like RCDs (and maybe lattices/floor tiles in the future), to see if a floor should replace it.
 	var/list/dangerous_objects // List of 'dangerous' objs that the turf holds that can cause something bad to happen when stepped on, used for AI mobs.
 	var/tmp/changing_turf
+
+	var/blocks_nonghost_incorporeal = FALSE
+	var/footstep
+	var/barefootstep
+	var/heavyfootstep
+	var/clawfootstep
+
+/turf/simulated/floor
+	footstep = FOOTSTEP_FLOOR
+	barefootstep = FOOTSTEP_HARD_BAREFOOT
+	heavyfootstep = FOOTSTEP_GENERIC_HEAVY
+	clawfootstep = FOOTSTEP_HARD_CLAW
+
+/turf/simulated/floor/wood
+	footstep = FOOTSTEP_WOOD
+	barefootstep = FOOTSTEP_WOOD_BAREFOOT
+	clawfootstep = FOOTSTEP_WOOD_CLAW
+
+/turf/simulated/floor/carpet
+	footstep = FOOTSTEP_CARPET
+	barefootstep = FOOTSTEP_CARPET_BAREFOOT
+	clawfootstep = FOOTSTEP_CARPET_BAREFOOT
+
+/turf/simulated/floor/plating
+	footstep = FOOTSTEP_PLATING
+	barefootstep = FOOTSTEP_HARD_BAREFOOT
+	clawfootstep = FOOTSTEP_HARD_CLAW
+
+/turf/simulated/mineral
+	footstep = FOOTSTEP_SAND
+	barefootstep = FOOTSTEP_SAND
+	clawfootstep = FOOTSTEP_SAND
+
+/turf/simulated/floor/outdoors
+	footstep = FOOTSTEP_SAND
+	barefootstep = FOOTSTEP_SAND
+	clawfootstep = FOOTSTEP_SAND
+
+/turf/simulated/floor/outdoors/grass
+	footstep = FOOTSTEP_GRASS
+	barefootstep = FOOTSTEP_GRASS
+	clawfootstep = FOOTSTEP_GRASS
+
+/turf/simulated/floor/water
+	footstep = FOOTSTEP_WATER
+	barefootstep = FOOTSTEP_WATER
+	clawfootstep = FOOTSTEP_WATER
+
+/turf/simulated/floor/lava
+	footstep = FOOTSTEP_LAVA
+	barefootstep = FOOTSTEP_LAVA
+	clawfootstep = FOOTSTEP_LAVA
 
 /turf/Initialize(mapload)
 	. = ..()
@@ -58,11 +111,14 @@
 	if(Be)
 		Be.multiz_turf_new(src, UP)
 
+	if(uses_integrity)
+		atom_integrity = max_integrity
+
 /turf/Destroy()
 	if (!changing_turf)
 		stack_trace("Improper turf qdel. Do not qdel turfs directly.")
 	changing_turf = FALSE
-	cleanbot_reserved_turfs -= src
+	GLOB.cleanbot_reserved_turfs -= src
 	if(connections)
 		connections.erase_all()
 	..()
@@ -84,6 +140,17 @@
 /turf/attack_hand(mob/user)
 	//QOL feature, clicking on turf can toggle doors, unless pulling something
 	if(!user.pulling)
+		/* For use downstream
+		if(istype(fire, /obj/fire/lingering)) // Allow patting out lingering fires
+			fire.firelevel -= rand(0.1, 1.1)
+			if(fire.firelevel <= 0)
+				visible_message("\The [user] extinguishes the flames!")
+				fire = null
+				qdel(fire)
+			else
+				visible_message("\The [user] tries to extinguish the flames!")
+			return TRUE
+		*/
 		var/obj/machinery/door/airlock/AL = locate(/obj/machinery/door/airlock) in src.contents
 		if(AL)
 			AL.attack_hand(user)
@@ -109,15 +176,24 @@
 		step(user.pulling, get_dir(user.pulling.loc, src))
 	return 1
 
-/turf/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W, /obj/item/weapon/storage))
-		var/obj/item/weapon/storage/S = W
+/turf/attackby(obj/item/W, mob/user)
+	// Check if this turf can be dug up, check initial because we remove the flag when we've exhausted all loot, but still want to keep dig functionality
+	if((flags & TURF_CAN_DIG_SHOVEL) && !density && istype(W, /obj/item/shovel))
+		handle_turf_dig(user, W)
+		return TRUE
+	// Collect objects on turf if the bag supports scooping stuff up
+	if(istype(W, /obj/item/storage))
+		var/obj/item/storage/S = W
 		if(S.use_to_pickup && S.collection_mode)
 			S.gather_all(src, user)
 	return ..()
 
+/turf/attack_robot(mob/user)
+	if(!isAI(user))
+		attack_hand(user)
+
 // Hits a mob on the tile.
-/turf/proc/attack_tile(obj/item/weapon/W, mob/living/user)
+/turf/proc/attack_tile(obj/item/W, mob/living/user)
 	if(!istype(W))
 		return FALSE
 
@@ -140,18 +216,18 @@
 	user.do_attack_animation(src, no_attack_icons = TRUE)
 
 	if(!success) // Nothing got hit.
-		user.visible_message("<span class='warning'>\The [user] swipes \the [W] over \the [src].</span>")
+		user.visible_message(span_warning("\The [user] swipes \the [W] over \the [src]."))
 		playsound(src, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
 	return success
 
 /turf/MouseDrop_T(atom/movable/O as mob|obj, mob/user as mob)
 	var/turf/T = get_turf(user)
 	var/area/A = T.loc
-	if((istype(A) && !(A.has_gravity)) || (istype(T,/turf/space)))
+	if((istype(A) && !(A.get_gravity())) || (istype(T,/turf/space)))
 		return
-	if(istype(O, /obj/screen))
+	if(istype(O, /atom/movable/screen))
 		return
-	if(user.restrained() || user.stat || user.stunned || user.paralysis || (!user.lying && !istype(user, /mob/living/silicon/robot)))
+	if(user.restrained() || user.stat || user.stunned || user.paralysis || (!user.lying && !isrobot(user)) || LAZYLEN(user.grabbed_by) || user.is_paralyzed())
 		return
 	if((!(istype(O, /atom/movable)) || O.anchored || !Adjacent(user) || !Adjacent(O) || !user.Adjacent(O)))
 		return
@@ -159,7 +235,7 @@
 		return
 	if(isanimal(user) && O != user)
 		return
-	if (do_after(user, 25 + (5 * user.weakened)) && !(user.stat))
+	if (do_after(user, 25 + (5 * user.weakened), target = O) && !(user.stat))
 		step_towards(O, src)
 		if(ismob(O))
 			animate(O, transform = turn(O.transform, 20), time = 2)
@@ -182,9 +258,6 @@
 
 //There's a lot of QDELETED() calls here if someone can figure out how to optimize this but not runtime when something gets deleted by a Bump/CanPass/Cross call, lemme know or go ahead and fix this mess - kevinz000
 /turf/Enter(atom/movable/mover, atom/oldloc)
-	if(movement_disabled && usr.ckey != movement_disabled_exception)
-		to_chat(usr, "<span class='warning'>Movement is admin-disabled.</span>") //This is to identify lag problems
-		return
 	// Do not call ..()
 	// Byond's default turf/Enter() doesn't have the behaviour we want with Bump()
 	// By default byond will call Bump() on the first dense object in contents
@@ -242,7 +315,7 @@
 	for(var/obj/O in src)
 		O.hide(O.hides_under_flooring() && !is_plating())
 
-/turf/proc/AdjacentTurfs(var/check_blockage = TRUE)
+/turf/proc/AdjacentTurfs(check_blockage = TRUE)
 	. = list()
 	for(var/turf/T as anything in (trange(1,src) - src))
 		if(check_blockage)
@@ -252,7 +325,7 @@
 		else
 			. += T
 
-/turf/proc/CardinalTurfs(var/check_blockage = TRUE)
+/turf/proc/CardinalTurfs(check_blockage = TRUE)
 	. = list()
 	for(var/turf/T as anything in AdjacentTurfs(check_blockage))
 		if(T.x == src.x || T.y == src.y)
@@ -282,31 +355,20 @@
 			return 1
 	return 0
 
-//expects an atom containing the reagents used to clean the turf
-/turf/proc/clean(atom/source, mob/user)
-	if(source.reagents.has_reagent("water", 1) || source.reagents.has_reagent("cleaner", 1))
-		clean_blood()
-		if(istype(src, /turf/simulated))
-			var/turf/simulated/T = src
-			T.dirt = 0
-		for(var/obj/effect/O in src)
-			if(istype(O,/obj/effect/rune) || istype(O,/obj/effect/decal/cleanable) || istype(O,/obj/effect/overlay))
-				qdel(O)
-	else
-		to_chat(user, "<span class='warning'>\The [source] is too dry to wash that.</span>")
-	source.reagents.trans_to_turf(src, 1, 10)	//10 is the multiplier for the reaction effect. probably needed to wet the floor properly.
-
 /turf/proc/update_blood_overlays()
 	return
 
 // Called when turf is hit by a thrown object
-/turf/hitby(atom/movable/AM as mob|obj, var/speed)
-	if(src.density)
+/turf/hitby(atom/movable/source, datum/thrownthing/throwingdatum)
+	if(!density)
+		return
+
+	if(!get_gravity(source)) //Checked a different codebase for reference. Turns out it's only supposed to happen in no-gravity
 		spawn(2)
-			step(AM, turn(AM.last_move, 180))
-		if(isliving(AM))
-			var/mob/living/M = AM
-			M.turf_collision(src, speed)
+			step(source, turn(source.last_move, 180)) //This makes it float away after hitting a wall in 0G
+	if(isliving(source))
+		var/mob/living/M = source
+		M.turf_collision(src, throwingdatum?.speed)
 
 /turf/AllowDrop()
 	return TRUE
@@ -314,41 +376,53 @@
 /turf/proc/can_engrave()
 	return FALSE
 
-/turf/proc/try_graffiti(var/mob/vandal, var/obj/item/tool)
+/turf/proc/try_graffiti(mob/vandal, obj/item/tool, click_parameters)
 
 	if(!tool || !tool.sharp || !can_engrave())
 		return FALSE
 
-	if(jobban_isbanned(vandal, "Graffiti"))
-		to_chat(vandal, SPAN_WARNING("You are banned from leaving persistent information across rounds."))
+	if(jobban_isbanned(vandal, JOB_GRAFFITI))
+		to_chat(vandal, span_warning("You are banned from leaving persistent information across rounds."))
 		return
 
 	var/too_much_graffiti = 0
 	for(var/obj/effect/decal/writing/W in src)
 		too_much_graffiti++
 	if(too_much_graffiti >= 5)
-		to_chat(vandal, "<span class='warning'>There's too much graffiti here to add more.</span>")
+		to_chat(vandal, span_warning("There's too much graffiti here to add more."))
 		return FALSE
 
-	var/message = sanitize(tgui_input_text(usr, "Enter a message to engrave.", "Graffiti"), trim = TRUE)
+	var/message = tgui_input_text(vandal, "Enter a message to engrave.", "Graffiti", "", MAX_MESSAGE_LEN)
 	if(!message)
 		return FALSE
 
 	if(!vandal || vandal.incapacitated() || !Adjacent(vandal) || !tool.loc == vandal)
 		return FALSE
 
-	vandal.visible_message("<span class='warning'>\The [vandal] begins carving something into \the [src].</span>")
+	vandal.visible_message(span_warning("\The [vandal] begins carving something into \the [src]."))
 
-	if(!do_after(vandal, max(20, length(message)), src))
+	if(!do_after(vandal, max(2 SECONDS, length(message)), target = src))
 		return FALSE
 
-	vandal.visible_message("<span class='danger'>\The [vandal] carves some graffiti into \the [src].</span>")
+	vandal.visible_message(span_danger("\The [vandal] carves some graffiti into \the [src]."))
 	var/obj/effect/decal/writing/graffiti = new(src)
 	graffiti.message = message
 	graffiti.author = vandal.ckey
 
+	if(click_parameters)
+		var/list/mouse_control = params2list(click_parameters)
+		var/p_x = 0
+		var/p_y = 0
+		if(mouse_control["icon-x"])
+			p_x = text2num(mouse_control["icon-x"]) - 16
+		if(mouse_control["icon-y"])
+			p_y = text2num(mouse_control["icon-y"]) - 16
+
+		graffiti.pixel_x = p_x
+		graffiti.pixel_y = p_y
+
 	if(lowertext(message) == "elbereth")
-		to_chat(vandal, "<span class='notice'>You feel much safer.</span>")
+		to_chat(vandal, span_notice("You feel much safer."))
 
 	return TRUE
 
@@ -379,7 +453,7 @@
 // This is all the way up here since its the common ancestor for things that need to get replaced with a floor when an RCD is used on them.
 // More specialized turfs like walls should instead override this.
 // The code for applying lattices/floor tiles onto lattices could also utilize something similar in the future.
-/turf/rcd_values(mob/living/user, obj/item/weapon/rcd/the_rcd, passed_mode)
+/turf/rcd_values(mob/living/user, obj/item/rcd/the_rcd, passed_mode)
 	if(density || !can_build_into_floor)
 		return FALSE
 	if(passed_mode == RCD_FLOORWALL)
@@ -394,23 +468,230 @@
 			)
 	return FALSE
 
-/turf/rcd_act(mob/living/user, obj/item/weapon/rcd/the_rcd, passed_mode)
+/turf/rcd_act(mob/living/user, obj/item/rcd/the_rcd, passed_mode)
 	if(passed_mode == RCD_FLOORWALL)
-		to_chat(user, span("notice", "You build a floor."))
+		to_chat(user, span_notice("You build a floor."))
 		ChangeTurf(/turf/simulated/floor/airless, preserve_outdoors = TRUE)
 		return TRUE
 	return FALSE
 
+/turf/occult_act(mob/living/user)
+	to_chat(user, span_cult("You consecrate the floor."))
+	ChangeTurf(/turf/simulated/floor/cult, preserve_outdoors = TRUE)
+	return TRUE
 
 // We're about to be the A-side in a turf translation
-/turf/proc/pre_translate_A(var/turf/B)
+/turf/proc/pre_translate_A(turf/B)
 	return
 // We're about to be the B-side in a turf translation
-/turf/proc/pre_translate_B(var/turf/A)
+/turf/proc/pre_translate_B(turf/A)
 	return
 // We were the the A-side in a turf translation
-/turf/proc/post_translate_A(var/turf/B)
+/turf/proc/post_translate_A(turf/B)
 	return
 // We were the the B-side in a turf translation
-/turf/proc/post_translate_B(var/turf/A)
+/turf/proc/post_translate_B(turf/A)
 	return
+
+/turf/proc/add_vomit_floor(mob/living/M, toxvomit = NONE, purge = TRUE)
+
+	var/obj/effect/decal/cleanable/vomit/V = new /obj/effect/decal/cleanable/vomit(src, M.GetSpreadableViruses())
+
+	if (QDELETED(V))
+		V = locate() in src
+	if(!V)
+		return
+	if(toxvomit == VOMIT_PURPLE)
+		V.icon_state = "vomitpurp_1"
+		V.random_icon_states = list("vomitpurp_1", "vomitpurp_2", "vomitpurp_3", "vomitpurp_4")
+	else if (toxvomit == VOMIT_TOXIC)
+		V.icon_state = "vomittox_1"
+		V.random_icon_states = list("vomittox_1", "vomittox_2", "vomittox_3", "vomittox_4")
+	else if (toxvomit == VOMIT_NANITE)
+		V.name = "metallic slurry"
+		V.desc = "A puddle of metallic slury that looks vaguely like very fine sand. It almost seems like it's moving..."
+		V.icon_state = "vomitnanite_1"
+		V.random_icon_states = list("vomitnanite_1", "vomitnanite_2", "vomitnanite_3", "vomitnanite_4")
+	if(purge && ishuman(M))
+		var/mob/living/carbon/human/H = M
+		if(H.ingested)
+			clear_reagents_to_vomit_pool(H, V)
+
+/proc/clear_reagents_to_vomit_pool(mob/living/carbon/human/H, obj/effect/decal/cleanable/vomit/V)
+	H.ingested.trans_to(V, H.ingested.total_volume / 10)
+	for(var/datum/reagent/R in H.ingested.reagent_list)
+		H.ingested.remove_reagent(R, min(R.volume, 10))
+
+/**
+* 	Called when this turf is being washed. Washing a turf will also wash any mopable floor decals
+*/
+/turf/wash(clean_types)
+	. = ..()
+
+	if(istype(src, /turf/simulated))
+		var/turf/simulated/T = src
+		if(T.dirt > 0)
+			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_WASHED_FLOOR)
+		T.dirt = 0
+
+	for(var/am in src)
+		if(am == src)
+			continue
+		var/atom/movable/movable_content = am
+		if(!ismopable(movable_content))
+			continue
+		movable_content.wash(clean_types)
+
+/// Used during turf_cascade subsystem to determine additional effects when spreading, and directions it may spread
+/turf/proc/conversion_cascade_act(list/already_marked_turfs)
+	var/list/expanding_turfs = list()
+
+	for(var/expand_dir in GLOB.cardinalz)
+		var/turf/next_turf = get_step(src, expand_dir)
+		if(next_turf && next_turf.type != type && !(next_turf in already_marked_turfs)) // Yes in already_marked_turfs is expensive, but less expensive than 6 dupes per turf potentially in the loop
+			expanding_turfs += next_turf
+
+	return expanding_turfs
+
+// v v v MOVE ALL OF THESE TO turf/open IF/WHEN THAT EVER EXISTS v v v
+
+/turf/handle_slip(mob/living/M, weaken_amount, obj/slipped_on, lube, slip_dist = 0, stun_amount, force_drop)
+	if(!M || !isliving(M))
+		return FALSE
+	if(M.hovering || M.flying)
+		return FALSE
+	if(!get_gravity(src))
+		return FALSE
+
+
+	var/obj/buckled_obj
+	if(M.buckled)
+		buckled_obj = M.buckled
+		if(!(lube & GALOSHES_DONT_HELP) || !M.buckled) //can't slip while buckled unless it's lube. //But stay on steeds.
+			return FALSE
+	else
+		if(!(lube & SLIP_WHEN_CRAWLING) && !(lube & SLIDE_RECURSIVE) && (M.lying || !(M.status_flags & CANWEAKEN))) // can't slip unbuckled mob if they're lying
+			return FALSE
+		if(M.m_intent == I_WALK && (lube & NO_SLIP_WHEN_WALKING))
+			return FALSE
+
+	//Unlucky with slippery
+	if(HAS_TRAIT(M, TRAIT_UNLUCKY)) //Adds onto the existing slide.
+		slip_dist += rand(1,5)
+
+	//Stop rotation lock, it'll affect slide direction if we dont stop this
+	M.facing_dir = null
+
+	if(M.slip_timer || M.slipping)
+		if(lube & SLIDE_RECURSIVE)
+			playsound(M.loc, 'sound/misc/slip.ogg', 25, 1, -1)
+			if(M.slip_timer)
+				deltimer(M.slip_timer) //Remove it here so it can be set anew
+				M.slip_timer = null
+			slip_dist = max(M.slipping, slip_dist) //Extend Slips
+		else //Slipping, slip isnt recursive, slip is blocked.
+			return FALSE
+	else
+		to_chat(M, span_notice("You slipped[ slipped_on ? " on the [slipped_on.name]" : ""]!"))
+		playsound(M.loc, 'sound/misc/slip.ogg', clamp(15 + (2.5 * weaken_amount), 25, 75), 1, -1) //Slip volume scales with slip strength
+
+	if(HAS_TRAIT(M, SLIP_REFLEX_TRAIT) && !M.lying)
+		if(prob(100 / max(slip_dist, 1))) // Longer slip distance is, the less of a chance you have to
+			if(world.time >= M.next_emote)
+				M.emote("sflip")
+				M.slip_timer = VARSET_IN(M, slip_timer, null, 2)
+				M.slipping = 0
+				// Because we're stopping here, but we're still slipping, send the signal for it now.
+				SEND_SIGNAL(M, COMSIG_ON_LIVING_SLIP, M, weaken_amount, slipped_on, lube, slip_dist, force_drop)
+				return TRUE
+
+	// Gets called here so that you dont have issues with non-recursive slips glugging up mob information with stuff about the current slip.
+	// If you need that information, you should be able to extrapolate it from the parameters forwarded to the signal.
+	SEND_SIGNAL(M, COMSIG_ON_LIVING_SLIP, M, weaken_amount, slipped_on, lube, slip_dist, force_drop)
+
+	//At this point, we're getting into doing the actual slip
+	if(force_drop)
+		M.drop_both_hands()
+		/* //Later.
+		for(var/obj/item/I in C.held_items)
+			M.accident(I)
+		*/
+
+	var/olddir = M.dir
+	M.moving_diagonally = 0 //If this was part of diagonal move slipping will stop it.
+	if((slip_dist > 0) || (lube & SLIDE_RECURSIVE))
+		M.Weaken(max(FLOOR(weaken_amount / 2, 1), (slip_dist + 2) / 10)) //to ensure they stay weakened for atleast the duration of the slide
+	else
+		M.Weaken(max(FLOOR(weaken_amount / 2, 1), 0)) //Atleast 2 seconds on a recursive slip.
+
+	M.Stun(stun_amount)
+	M.stop_pulling()
+
+	if(buckled_obj)
+		buckled_obj.unbuckle_mob(M)
+		slip_dist = 1
+		M.slipping = slip_dist
+
+
+	if(slip_dist > 0)
+		M.slip_timer = addtimer(CALLBACK(src, PROC_REF(slip_slide), M, slip_dist, olddir, lube), 1, TIMER_DELETE_ME|TIMER_STOPPABLE)
+	else
+		M.slip_timer = VARSET_IN(M, slip_timer, null, 2) //Non sliding slip time
+
+	/* // Im doing my own thing, maybe forced movement can be a thing later, though.
+	if(lube & SLIDE)
+		new /datum/forced_movement(M, get_ranged_target_turf(M, olddir, 4), 1, FALSE, CALLBACK(C, PROC_REF(spin), 1, 1))
+	else if(lube & SLIDE_RECURSIVE)
+		if(M.force_moving) //If we're already slipping extend it
+			qdel(M.force_moving)
+		new /datum/forced_movement(M, get_ranged_target_turf(M, olddir, 1), 1, FALSE)	//spinning would be bad for ice, fucks up the next dir
+	*/
+	return TRUE
+
+/turf/proc/slip_slide(mob/M, slip_dist = 1, dir, lube) // Weee!!!
+	if(!M)
+		return
+	if(!dir)
+		dir = M.dir
+
+	var/old_mob_dir = M.dir //so the spin completes
+	//Spinning would be bad, but we move anyways, which sets the dir back the right way, so it ends up looking a bit jank, but ultimately works with recursive slips anyhow. Funny!
+	M.spin(1, 1) // this will sleep(), Scary... (but it shouldnt be blocking so it's fine probably)
+	M.slipping = slip_dist
+	if(slip_dist <= 0 || !isturf(M.loc))
+		if(M.slip_timer)
+			deltimer(M.slip_timer)
+		M.slip_timer = VARSET_IN(M, slip_timer, null, 2)
+		M.slipping = 0 //Just in case.
+		return
+
+	slip_dist-- //decrement the slip_dist for the next slip.
+	//We need to prepare the timer prior to doing the step or recursive slips break, since it checks the timer to interupt this process..
+	var/turf/T = get_turf(M)
+	M.slip_timer = addtimer(CALLBACK(T, PROC_REF(slip_slide), M, slip_dist, dir, lube), 1, TIMER_DELETE_ME|TIMER_STOPPABLE)
+
+	if(!step(M, dir)) //Do the movement. if it fails, the slide ends here.
+		if(M.slip_timer)
+			deltimer(M.slip_timer)
+		M.slip_timer = VARSET_IN(M, slip_timer, null, 2) //"Slipping" after the slide ends for the purposes of recursive slip catches
+		M.slipping = 0
+		return
+
+	M.dir = old_mob_dir //lets the spin continue so you go wheeee!
+
+	//After the slip, send a signal. This trigger spontvore, too.
+	SEND_SIGNAL(M, COMSIG_AFTER_LIVING_SLIDE, M, slip_dist, dir, lube)
+
+
+/turf/proc/MakeSlippery(wet_setting = TURF_WET_WATER, min_wet_time = 0, wet_time_to_add = 0, max_wet_time = MAXIMUM_WET_TIME, permanent)
+	if(density) //Bandaid for lack of turf/open. I guess override if a specific case of a dense turf being wettable needs to exist.
+		return
+	AddComponent(/datum/component/wet_floor, wet_setting, min_wet_time, wet_time_to_add, max_wet_time, permanent)
+
+/turf/proc/MakeDry(wet_setting = TURF_WET_WATER, immediate = FALSE, amount = INFINITY)
+	SEND_SIGNAL(src, COMSIG_TURF_MAKE_DRY, wet_setting, immediate, amount)
+
+/turf/proc/ClearWet()//Nuclear option of immediately removing slipperyness from the tile instead of the natural drying over time
+	qdel(GetComponent(/datum/component/wet_floor))
+
+// ^ ^ ^ MOVE ALL OF THESE TO turf/open IF/WHEN WE GET IT ^ ^ ^

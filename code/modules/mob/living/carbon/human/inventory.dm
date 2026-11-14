@@ -3,9 +3,6 @@ Add fingerprints to items when we put them in our hands.
 This saves us from having to call add_fingerprint() any time something is put in a human's hands programmatically.
 */
 
-/mob/living/carbon/human
-	var/list/worn_clothing = list()	//Contains all CLOTHING items worn
-
 /mob/living/carbon/human/verb/quick_equip()
 	set name = "quick-equip"
 	set hidden = 1
@@ -14,7 +11,7 @@ This saves us from having to call add_fingerprint() any time something is put in
 		var/mob/living/carbon/human/H = src
 		var/obj/item/I = H.get_active_hand()
 		if(!I)
-			to_chat(H, "<span class='notice'>You are not holding anything to equip.</span>")
+			to_chat(H, span_notice("You are not holding anything to equip."))
 			return
 
 		var/moved = FALSE
@@ -29,7 +26,7 @@ This saves us from having to call add_fingerprint() any time something is put in
 
 		// No?! Well, give up.
 		if(!moved)
-			to_chat(H, "<span class='warning'>You are unable to equip that.</span>")
+			to_chat(H, span_warning("You are unable to equip that."))
 
 		// Update hand icons
 		else
@@ -40,8 +37,8 @@ This saves us from having to call add_fingerprint() any time something is put in
 
 /mob/living/carbon/human/equip_to_storage(obj/item/newitem, user_initiated = FALSE)
 	// Try put it in their belt first
-	if(istype(src.belt,/obj/item/weapon/storage))
-		var/obj/item/weapon/storage/wornbelt = src.belt
+	if(istype(src.belt,/obj/item/storage))
+		var/obj/item/storage/wornbelt = src.belt
 		if(wornbelt.can_be_inserted(newitem, 1))
 			if(user_initiated)
 				wornbelt.handle_item_insertion(newitem)
@@ -109,8 +106,6 @@ This saves us from having to call add_fingerprint() any time something is put in
 		if(slot_tie)
 			return 1
 
-/obj/item/var/suitlink = 1 //makes belt items require a jumpsuit- set individual items to suitlink = 0 to allow wearing on belt slot without suit
-
 /mob/living/carbon/human/u_equip(obj/W as obj)
 	if(!W)	return 0
 
@@ -127,9 +122,6 @@ This saves us from having to call add_fingerprint() any time something is put in
 			drop_from_inventory(l_store)
 		if (wear_id)
 			drop_from_inventory(wear_id)
-		if (belt && belt.suitlink == 1)
-			worn_clothing -= belt
-			drop_from_inventory(belt)
 		worn_clothing -= w_uniform
 		w_uniform = null
 		update_inv_w_uniform()
@@ -222,13 +214,12 @@ This saves us from having to call add_fingerprint() any time something is put in
 	else
 		return 0
 
-	update_action_buttons()
 	return 1
 
 
 
 //This is an UNSAFE proc. Use mob_can_equip() before calling this one! Or rather use equip_to_slot_if_possible() or advanced_equip_to_slot_if_possible()
-/mob/living/carbon/human/equip_to_slot(obj/item/W as obj, slot)
+/mob/living/carbon/human/equip_to_slot(obj/item/W, slot)
 
 	if(!slot)
 		return
@@ -240,6 +231,7 @@ This saves us from having to call add_fingerprint() any time something is put in
 		return
 
 	W.loc = src
+	has_unequipped(W, TRUE, slot) //TG calls attempt_insert -> transferItemToLoc -> doUnEquip -> has_unequipped. This is where we do it instead since we don't have storage datums.
 	switch(slot)
 		if(slot_back)
 			src.back = W
@@ -368,25 +360,16 @@ This saves us from having to call add_fingerprint() any time something is put in
 		update_inv_r_hand()
 
 	W.hud_layerise()
-
-	if(W.action_button_name)
-		update_action_buttons()
-
-	if(W.zoom)
-		W.zoom()
-
 	W.in_inactive_hand(src)
 
-	//VOREStation Addition Start
 	if(istype(W, /obj/item))
 		var/obj/item/I = W
 		I.equip_special()
-	//VOREStation Addition End
 
 	return 1
 
 //Checks if a given slot can be accessed at this time, either to equip or unequip I
-/mob/living/carbon/human/slot_is_accessible(var/slot, var/obj/item/I, mob/user=null)
+/mob/living/carbon/human/slot_is_accessible(slot, obj/item/I, mob/user=null)
 	var/obj/item/covering = null
 	var/check_flags = 0
 
@@ -401,11 +384,11 @@ This saves us from having to call add_fingerprint() any time something is put in
 			covering = src.wear_suit
 
 	if(covering && (covering.body_parts_covered & (I.body_parts_covered|check_flags)))
-		to_chat(user, "<span class='warning'>\The [covering] is in the way.</span>")
+		to_chat(user, span_warning("\The [covering] is in the way."))
 		return 0
 	return 1
 
-/mob/living/carbon/human/get_equipped_item(var/slot)
+/mob/living/carbon/human/get_equipped_item(slot)
 	switch(slot)
 		if(slot_back)       return back
 		if(slot_legcuffed)  return legcuffed
@@ -442,3 +425,13 @@ This saves us from having to call add_fingerprint() any time something is put in
 		. += l_hand
 	if(r_hand)
 		. += r_hand
+
+/mob/living/carbon/human/proc/drop_all_clothing(remove_underwear = FALSE)
+	for(var/obj/item/equipped_thing in worn_clothing)
+		if(istype(equipped_thing,/obj/item/clothing/accessory/collar/shock/bluespace))
+			continue
+		drop_from_inventory(equipped_thing)
+	if(remove_underwear)
+		for(var/datum/category_group/underwear/UWC in GLOB.global_underwear.categories)
+			hide_underwear[UWC.name] = TRUE
+		update_underwear(1)

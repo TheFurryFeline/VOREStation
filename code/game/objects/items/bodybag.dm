@@ -7,13 +7,39 @@
 	icon_state = "bodybag_folded"
 	w_class = ITEMSIZE_SMALL
 
+	//Used for cryogenic bodybags
+	var/obj/item/reagent_containers/syringe/syringe
+	var/cryogenic = FALSE
+	var/robotic = FALSE
+
 /obj/item/bodybag/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+
+	if(cryogenic)
+		var/obj/structure/closet/body_bag/cryobag/R = new /obj/structure/closet/body_bag/cryobag(user.loc)
+		R.add_fingerprint(user)
+		if(syringe)
+			R.syringe = syringe
+			syringe = null
+		qdel(src)
+		return
+	if(robotic)
+		var/obj/structure/closet/body_bag/cryobag/robobag/R = new /obj/structure/closet/body_bag/cryobag/robobag(user.loc)
+		R.add_fingerprint(user)
+		if(syringe)
+			R.syringe = syringe
+			syringe = null
+		qdel(src)
+		return
 	var/obj/structure/closet/body_bag/R = new /obj/structure/closet/body_bag(user.loc)
 	R.add_fingerprint(user)
 	qdel(src)
+	return
 
 
-/obj/item/weapon/storage/box/bodybags
+/obj/item/storage/box/bodybags
 	name = "body bags"
 	desc = "This box contains body bags."
 	icon_state = "bodybags"
@@ -29,10 +55,11 @@
 	var/item_path = /obj/item/bodybag
 	density = FALSE
 	storage_capacity = (MOB_MEDIUM * 2) - 1
-	var/contains_body = 0
+	var/contains_body = FALSE
+	var/has_label = FALSE
 
-/obj/structure/closet/body_bag/attackby(var/obj/item/W as obj, mob/user as mob)
-	if (istype(W, /obj/item/weapon/pen))
+/obj/structure/closet/body_bag/attackby(obj/item/W as obj, mob/user as mob)
+	if (istype(W, /obj/item/pen))
 		var/t = tgui_input_text(user, "What would you like the label to be?", text("[]", src.name), null, MAX_NAME_LEN	)
 		if (user.get_active_hand() != W)
 			return
@@ -42,6 +69,7 @@
 		if (t)
 			src.name = "body bag - "
 			src.name += t
+			has_label = TRUE
 			add_overlay("bodybag_label")
 		else
 			src.name = "body bag"
@@ -50,10 +78,11 @@
 	else if(W.has_tool_quality(TOOL_WIRECUTTER))
 		to_chat(user, "You cut the tag off the bodybag")
 		src.name = "body bag"
+		has_label = FALSE
 		cut_overlays()
 		return
 
-/obj/structure/closet/body_bag/store_mobs(var/stored_units)
+/obj/structure/closet/body_bag/store_mobs(stored_units)
 	contains_body = ..()
 	return contains_body
 
@@ -87,7 +116,7 @@
 		occupants += H
 	return occupants
 
-/obj/structure/closet/body_bag/proc/update(var/broadcast=0)
+/obj/structure/closet/body_bag/proc/update(broadcast=0)
 	if(istype(loc, /obj/structure/morgue))
 		var/obj/structure/morgue/M = loc
 		M.update(broadcast)
@@ -96,13 +125,11 @@
 	if(opened)
 		icon_state = "open"
 	else
-		icon_state = "closed_unlocked"
+		icon_state = "base"
 
 	cut_overlays()
-	/* Ours don't have toetags
 	if(has_label)
 		add_overlay("bodybag_label")
-	*/
 
 
 /obj/item/bodybag/cryobag
@@ -112,16 +139,7 @@
 	icon = 'icons/obj/closets/cryobag.dmi'
 	icon_state = "bodybag_folded"
 	item_state = "bodybag_cryo_folded"
-	origin_tech = list(TECH_BIO = 4)
-	var/obj/item/weapon/reagent_containers/syringe/syringe
-
-/obj/item/bodybag/cryobag/attack_self(mob/user)
-	var/obj/structure/closet/body_bag/cryobag/R = new /obj/structure/closet/body_bag/cryobag(user.loc)
-	R.add_fingerprint(user)
-	if(syringe)
-		R.syringe = syringe
-		syringe = null
-	qdel(src)
+	cryogenic = TRUE
 
 /obj/structure/closet/body_bag/cryobag
 	name = "stasis bag"
@@ -132,12 +150,12 @@
 	store_misc = 0
 	store_items = 0
 	var/used = 0
-	var/obj/item/weapon/tank/tank = null
-	var/tank_type = /obj/item/weapon/tank/stasis/oxygen
+	var/obj/item/tank/tank = null
+	var/tank_type = /obj/item/tank/stasis/oxygen
 	var/stasis_level = 3 //Every 'this' life ticks are applied to the mob (when life_ticks%stasis_level == 1)
-	var/obj/item/weapon/reagent_containers/syringe/syringe
+	var/obj/item/reagent_containers/syringe/syringe
 
-/obj/structure/closet/body_bag/cryobag/Initialize()
+/obj/structure/closet/body_bag/cryobag/Initialize(mapload)
 	tank = new tank_type(null) //It's in nullspace to prevent ejection when the bag is opened.
 	..()
 
@@ -176,6 +194,7 @@
 		syringe = null
 
 /obj/structure/closet/body_bag/cryobag/Entered(atom/movable/AM)
+	ADD_TRAIT(AM, TRAIT_STASIS, REF(src))
 	if(ishuman(AM))
 		var/mob/living/carbon/human/H = AM
 		H.Stasis(stasis_level)
@@ -190,6 +209,7 @@
 	..()
 
 /obj/structure/closet/body_bag/cryobag/Exited(atom/movable/AM)
+	REMOVE_TRAIT(AM, TRAIT_STASIS, REF(src))
 	if(ishuman(AM))
 		var/mob/living/carbon/human/H = AM
 		H.Stasis(0)
@@ -206,7 +226,7 @@
 		return tank.air_contents
 	..()
 
-/obj/structure/closet/body_bag/cryobag/proc/inject_occupant(var/mob/living/carbon/human/H)
+/obj/structure/closet/body_bag/cryobag/proc/inject_occupant(mob/living/carbon/human/H)
 	if(!syringe)
 		return
 
@@ -216,9 +236,9 @@
 /obj/structure/closet/body_bag/cryobag/examine(mob/user)
 	. = ..()
 	if(Adjacent(user)) //The bag's rather thick and opaque from a distance.
-		. += "<span class='info'>You peer into \the [src].</span>"
+		. += span_info("You peer into \the [src].")
 		if(syringe)
-			. += "<span class='info'>It has a syringe added to it.</span>"
+			. += span_info("It has a syringe added to it.")
 		for(var/mob/living/L in contents)
 			. += L.examine(user)
 
@@ -226,17 +246,17 @@
 	if(opened)
 		..()
 	else //Allows the bag to respond to a health analyzer by analyzing the mob inside without needing to open it.
-		if(istype(W,/obj/item/device/healthanalyzer))
-			var/obj/item/device/healthanalyzer/analyzer = W
+		if(istype(W,/obj/item/healthanalyzer))
+			var/obj/item/healthanalyzer/analyzer = W
 			for(var/mob/living/L in contents)
 				analyzer.attack(L,user)
 
-		else if(istype(W,/obj/item/weapon/reagent_containers/syringe))
+		else if(istype(W,/obj/item/reagent_containers/syringe))
 			if(syringe)
-				to_chat(user,"<span class='warning'>\The [src] already has an injector! Remove it first.</span>")
+				to_chat(user,span_warning("\The [src] already has an injector! Remove it first."))
 			else
-				var/obj/item/weapon/reagent_containers/syringe/syringe = W
-				to_chat(user,"<span class='info'>You insert \the [syringe] into \the [src], and it locks into place.</span>")
+				var/obj/item/reagent_containers/syringe/syringe = W
+				to_chat(user,span_info("You insert \the [syringe] into \the [src], and it locks into place."))
 				user.unEquip(syringe)
 				src.syringe = syringe
 				syringe.loc = null
@@ -247,10 +267,10 @@
 		else if(W.has_tool_quality(TOOL_SCREWDRIVER))
 			if(syringe)
 				if(used)
-					to_chat(user,"<span class='warning'>The injector cannot be removed now that the stasis bag has been used!</span>")
+					to_chat(user,span_warning("The injector cannot be removed now that the stasis bag has been used!"))
 				else
 					syringe.forceMove(src.loc)
-					to_chat(user,"<span class='info'>You pry \the [syringe] out of \the [src].</span>")
+					to_chat(user,span_info("You pry \the [syringe] out of \the [src]."))
 					syringe = null
 
 		else

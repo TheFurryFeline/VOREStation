@@ -96,15 +96,14 @@
 
 ///Setter for the byond luminosity var
 /turf/proc/set_luminosity(new_luminosity, force)
-	if((is_outdoors() && !force) || outdoors_adjacent)
-		if(check_for_sun()) //If another system handles our lighting, don't interfere
-			return
+	if(((is_outdoors() && !force) || outdoors_adjacent) && (z in GLOB.fake_sunlight_zs)) //Special exception for fakesun lit tiles
+		return
 
 	luminosity = new_luminosity
 
 ///Checks planets and fake_suns to see if our turf should be handled by either
 /turf/proc/check_for_sun()
-	if((SSplanets && SSplanets.z_to_planet.len >= z && SSplanets.z_to_planet[z]) || (z in fake_sunlight_zs))
+	if((SSplanets && SSplanets.z_to_planet.len >= z && SSplanets.z_to_planet[z]) || (z in GLOB.fake_sunlight_zs))
 		return TRUE
 	return FALSE
 
@@ -128,7 +127,7 @@
 
 
 /turf/proc/change_area(area/old_area, area/new_area)
-	if(SSlighting.subsystem_initialized)
+	if(SSlighting.initialized)
 		if (new_area.dynamic_lighting != old_area.dynamic_lighting)
 			if (new_area.dynamic_lighting)
 				lighting_build_overlay()
@@ -138,19 +137,3 @@
 /turf/proc/has_dynamic_lighting()
 	var/area/A = loc
 	return (IS_DYNAMIC_LIGHTING(src) && IS_DYNAMIC_LIGHTING(A))
-
-/turf/proc/generate_missing_corners()
-
-	if (!lighting_corner_NE)
-		lighting_corner_NE = new/datum/lighting_corner(src, NORTH|EAST)
-
-	if (!lighting_corner_SE)
-		lighting_corner_SE = new/datum/lighting_corner(src, SOUTH|EAST)
-
-	if (!lighting_corner_SW)
-		lighting_corner_SW = new/datum/lighting_corner(src, SOUTH|WEST)
-
-	if (!lighting_corner_NW)
-		lighting_corner_NW = new/datum/lighting_corner(src, NORTH|WEST)
-
-	lighting_corners_initialised = TRUE

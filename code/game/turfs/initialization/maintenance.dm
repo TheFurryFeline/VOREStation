@@ -1,5 +1,7 @@
-/datum/turf_initializer/maintenance/InitializeTurf(var/turf/simulated/T)
+/datum/turf_initializer/maintenance/InitializeTurf(turf/simulated/T)
 	if(T.density)
+		return
+	if(!T.can_dirty)
 		return
 	// Quick and dirty check to avoid placing things inside windows
 	if(locate(/obj/structure/grille, T))
@@ -22,23 +24,22 @@
 	if(prob(25))	// Keep in mind that only "corners" get any sort of web
 		attempt_web(T, cardinal_turfs)
 
-var/global/list/random_junk
 /datum/turf_initializer/maintenance/proc/junk()
 	if(prob(25))
 		return /obj/effect/decal/cleanable/generic
-	if(!random_junk)
-		random_junk = subtypesof(/obj/item/trash)
-		random_junk += typesof(/obj/item/trash/cigbutt)
-		random_junk += /obj/effect/decal/cleanable/spiderling_remains
-		random_junk += /obj/effect/decal/remains/mouse
-		random_junk += /obj/effect/decal/remains/robot
-		random_junk -= /obj/item/trash/plate
-		random_junk -= /obj/item/trash/snack_bowl
-		random_junk -= /obj/item/trash/syndi_cakes
-		random_junk -= /obj/item/trash/tray
-	return pick(random_junk)
+	if(!LAZYLEN(GLOB.random_junk))
+		GLOB.random_junk = subtypesof(/obj/item/trash)
+		GLOB.random_junk += typesof(/obj/item/trash/cigbutt)
+		GLOB.random_junk += /obj/effect/decal/cleanable/spiderling_remains
+		GLOB.random_junk += /obj/effect/decal/remains/mouse
+		GLOB.random_junk += /obj/effect/decal/remains/robot
+		GLOB.random_junk -= /obj/item/trash/plate
+		GLOB.random_junk -= /obj/item/trash/snack_bowl
+		GLOB.random_junk -= /obj/item/trash/syndi_cakes
+		GLOB.random_junk -= /obj/item/trash/tray
+	return pick(GLOB.random_junk)
 
-/datum/turf_initializer/maintenance/proc/dirty_neighbors(var/list/cardinal_turfs)
+/datum/turf_initializer/maintenance/proc/dirty_neighbors(list/cardinal_turfs)
 	var/how_dirty = 0
 	for(var/turf/simulated/T in cardinal_turfs)
 		// Considered dirty if more than halfway to visible dirt
@@ -46,7 +47,7 @@ var/global/list/random_junk
 			how_dirty++
 	return how_dirty
 
-/datum/turf_initializer/maintenance/proc/attempt_web(var/turf/simulated/T)
+/datum/turf_initializer/maintenance/proc/attempt_web(turf/simulated/T)
 	var/turf/north_turf = get_step(T, NORTH)
 	if(!north_turf || !north_turf.density)
 		return
@@ -59,3 +60,21 @@ var/global/list/random_junk
 			if(dir == EAST)
 				new /obj/effect/decal/cleanable/cobweb2(T)
 			return
+
+/datum/turf_initializer/maintenance/shallow/InitializeTurf(turf/simulated/dirty)
+	if(dirty.density)
+		return
+	if(!dirty.can_dirty)
+		return
+	// Quick and dirty check to avoid placing things inside windows
+	if(locate(/obj/structure/grille, dirty))
+		return
+
+	var/cardinal_turfs = dirty.CardinalTurfs()
+
+	dirty.dirt = rand(10, 50) + rand(10, 50)
+	// If a neighbor is dirty, then we get dirtier.
+	var/how_dirty = dirty_neighbors(cardinal_turfs)
+	for(var/i = 0; i < how_dirty; i++)
+		dirty.dirt += rand(0,10)
+	dirty.update_dirt()

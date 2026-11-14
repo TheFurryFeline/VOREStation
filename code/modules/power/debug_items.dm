@@ -10,18 +10,18 @@
 	if(show_extended_information)
 		. += show_info(user)
 
-/obj/machinery/power/debug_items/proc/show_info(var/mob/user)
+/obj/machinery/power/debug_items/proc/show_info(mob/user)
 	var/list/extra_info = list()
 	if(!powernet)
-		extra_info += "<span class='filter_notice'>This device is not connected to a powernet</span>"
+		extra_info += span_filter_notice("This device is not connected to a powernet")
 		return
 
-	extra_info += "<span class='filter_notice'>Connected to powernet: [powernet]</span>"
-	extra_info += "<span class='filter_notice'>Available power: [num2text(powernet.avail, 20)] W</span>"
-	extra_info += "<span class='filter_notice'>Load: [num2text(powernet.viewload, 20)] W</span>"
-	extra_info += "<span class='filter_notice'>Has alert: [powernet.problem ? "YES" : "NO"]</span>"
-	extra_info += "<span class='filter_notice'>Cables: [powernet.cables.len]</span>"
-	extra_info += "<span class='filter_notice'>Nodes: [powernet.nodes.len]</span>"
+	extra_info += span_filter_notice("Connected to powernet: [powernet]")
+	extra_info += span_filter_notice("Available power: [num2text(powernet.avail, 20)] W")
+	extra_info += span_filter_notice("Load: [num2text(powernet.viewload, 20)] W")
+	extra_info += span_filter_notice("Has alert: [powernet.problem ? "YES" : "NO"]")
+	extra_info += span_filter_notice("Cables: [powernet.cables.len]")
+	extra_info += span_filter_notice("Nodes: [powernet.nodes.len]")
 
 	return extra_info
 
@@ -34,9 +34,9 @@
 /obj/machinery/power/debug_items/infinite_generator/process()
 	add_avail(power_generation_rate)
 
-/obj/machinery/power/debug_items/infinite_generator/show_info(var/mob/user)
+/obj/machinery/power/debug_items/infinite_generator/show_info(mob/user)
 	. = ..()
-	. += "<span class='filter_notice'>Generator is providing [num2text(power_generation_rate, 20)] W</span>"
+	. += span_filter_notice("Generator is providing [num2text(power_generation_rate, 20)] W")
 
 
 // A cable powersink, without the explosion/network alarms normal powersink causes.
@@ -49,10 +49,10 @@
 /obj/machinery/power/debug_items/infinite_cable_powersink/process()
 	last_used = draw_power(power_usage_rate)
 
-/obj/machinery/power/debug_items/infinite_cable_powersink/show_info(var/mob/user)
+/obj/machinery/power/debug_items/infinite_cable_powersink/show_info(mob/user)
 	. = ..()
-	. += "<span class='filter_notice'>Power sink is demanding [num2text(power_usage_rate, 20)] W</span>"
-	. += "<span class='filter_notice'>[num2text(last_used, 20)] W was actually used last tick</span>"
+	. += span_filter_notice("Power sink is demanding [num2text(power_usage_rate, 20)] W")
+	. += span_filter_notice("[num2text(last_used, 20)] W was actually used last tick")
 
 
 /obj/machinery/power/debug_items/infinite_apc_powersink
@@ -61,7 +61,7 @@
 	use_power = USE_POWER_ACTIVE
 	active_power_usage = 0
 
-/obj/machinery/power/debug_items/infinite_apc_powersink/show_info(var/mob/user)
+/obj/machinery/power/debug_items/infinite_apc_powersink/show_info(mob/user)
 	. = ..()
-	. += "<span class='filter_notice'>Dummy load is using [num2text(active_power_usage, 20)] W</span>"
-	. += "<span class='filter_notice'>Powered: [powered() ? "YES" : "NO"]</span>"
+	. += span_filter_notice("Dummy load is using [num2text(active_power_usage, 20)] W")
+	. += span_filter_notice("Powered: [powered() ? "YES" : "NO"]")

@@ -23,7 +23,7 @@
 	icon_living = "skeleton"
 	icon_dead = "skeleton_dead"
 
-	faction = "space skeleton"
+	faction = FACTION_SPACE_SKELETON
 	maxHealth = 100
 	health = 100
 	movement_cooldown = 1
@@ -54,11 +54,11 @@
 	maxbodytemp = 900
 
 	loot_list = list(
-		/obj/item/weapon/bone = 25,
-		/obj/item/weapon/bone/skull = 25,
-		/obj/item/weapon/bone/ribs = 25,
-		/obj/item/weapon/bone/arm = 25,
-		/obj/item/weapon/bone/leg = 25
+		/obj/item/bone = 25,
+		/obj/item/bone/skull = 25,
+		/obj/item/bone/ribs = 25,
+		/obj/item/bone/arm = 25,
+		/obj/item/bone/leg = 25
 		)
 
 	speak_emote = list("rattles")
@@ -75,6 +75,7 @@
 	vore_default_contamination_flavor = "Wet"
 	vore_default_contamination_color = "grey"
 	vore_default_item_mode = IM_DIGEST
+	can_be_drop_prey = FALSE
 
 /mob/living/simple_mob/vore/alienanimals/skeleton/alt
 	icon_state = "altskeleton"
@@ -86,8 +87,8 @@
 	emote_see = list("spins its head around", "shuffles","shambles","practices on the xylophone","drinks some milk","looks at you. Its hollow, bottomless sockets gaze into you greedily.")
 	emote_hear = list("rattles","makes a spooky sound","cackles madly","plinks","clacks")
 
-/mob/living/simple_mob/vore/alienanimals/skeleton/init_vore()
-	..()
+/mob/living/simple_mob/vore/alienanimals/skeleton/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stomach"
 	B.desc = "You're not sure quite how, but you've found your way inside of the skeleton's stomach! It's cramped and cold and sounds heavily of xylophones!"

@@ -19,11 +19,11 @@
 	..()
 	switch(severity)
 		if(EVENT_LEVEL_MUNDANE)
-			command_announcement.Announce("A minor electrical storm has been detected near the [location_name()]. Please watch out for possible electrical discharges.", "[location_name()] Sensor Array")
+			GLOB.command_announcement.Announce("A minor electrical storm has been detected near the [location_name()]. Please watch out for possible electrical discharges.", "[location_name()] Sensor Array", ANNOUNCER_MSG_ELECTRICAL_STORM)
 		if(EVENT_LEVEL_MODERATE)
-			command_announcement.Announce("The [location_name()] is about to pass through an electrical storm. Please secure sensitive electrical equipment until the storm passes.", "[location_name()] Sensor Array")
+			GLOB.command_announcement.Announce("The [location_name()] is about to pass through an electrical storm. Please secure sensitive electrical equipment until the storm passes.", "[location_name()] Sensor Array", ANNOUNCER_MSG_ELECTRICAL_STORM)
 		if(EVENT_LEVEL_MAJOR)
-			command_announcement.Announce("Alert. A strong electrical storm has been detected in proximity of the [location_name()]. It is recommended to immediately secure sensitive electrical equipment until the storm passes.", "[location_name()] Sensor Array")
+			GLOB.command_announcement.Announce("Alert. A strong electrical storm has been detected in proximity of the [location_name()]. It is recommended to immediately secure sensitive electrical equipment until the storm passes.", "[location_name()] Sensor Array", ANNOUNCER_MSG_ELECTRICAL_STORM)
 
 /datum/event/electrical_storm/start()
 	..()
@@ -37,7 +37,7 @@
 	..()
 	// See if shields can stop it first
 	var/list/shields = list()
-	for(var/obj/machinery/power/shield_generator/G in global.machines)
+	for(var/obj/machinery/power/shield_generator/G in GLOB.machines)
 		if((G.z in affecting_z) && G.running && G.check_flag(MODEFLAG_EM))
 			shields += G
 	if(shields.len)
@@ -46,7 +46,7 @@
 		if(shield_gen.deal_shield_damage(30 * severity, SHIELD_DAMTYPE_EM) <= SHIELD_BREACHED_MINOR)
 			return
 	if(!valid_apcs.len)
-		//	log_debug("No valid APCs found for electrical storm event ship=[victim]!")		// Let's not spam poor people with debug logs on (me)
+		//	log_game("No valid APCs found for electrical storm event ship=[victim]!")		// Let's not spam poor people with debug logs on (me)
 		return
 	var/list/picked_apcs = list()
 	for(var/i=0, i< severity * 2, i++) // up to 2/4/6 APCs per tick depending on severity
@@ -54,14 +54,18 @@
 	for(var/obj/machinery/power/apc/T in picked_apcs)
 		affect_apc(T)
 
-/datum/event/electrical_storm/proc/affect_apc(var/obj/machinery/power/apc/T)
+/datum/event/electrical_storm/proc/affect_apc(obj/machinery/power/apc/T)
 	// Main breaker is turned off. Consider this APC protected.
 	if(!T.operating)
 		return
 
 	// Decent chance to overload lighting circuit.
-	if(prob(3 * severity))
-		T.overload_lighting()
+	if(prob(8 * severity))	//over double the original chance (3), because it's now only a one-in-four to blow the lights out entirely
+		if(prob(75))	//flicker 'em
+			for(var/obj/machinery/light/L in T.area)
+				L.flicker(15)
+		else	//blast 'em!
+			T.overload_lighting()
 
 	// Relatively small chance to emag the apc as apc_damage event does.
 	if(prob(0.2 * severity))

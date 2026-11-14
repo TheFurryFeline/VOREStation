@@ -1,23 +1,21 @@
 //--------------------------------------------
 // Pipe colors
 //
-// Add them here and to the pipe_colors list
+// Add them here and to the GLOB.pipe_colors list
 //  to automatically add them to all relevant
 //  atmospherics devices.
 //--------------------------------------------
 
-var/global/list/pipe_colors = list("grey" = PIPE_COLOR_GREY, "red" = PIPE_COLOR_RED, "blue" = PIPE_COLOR_BLUE, "cyan" = PIPE_COLOR_CYAN, "green" = PIPE_COLOR_GREEN, "yellow" = PIPE_COLOR_YELLOW, "black" = PIPE_COLOR_BLACK, "purple" = PIPE_COLOR_PURPLE)
-
-/proc/pipe_color_lookup(var/color)
-	for(var/C in pipe_colors)
-		if(color == pipe_colors[C])
+/proc/pipe_color_lookup(color)
+	for(var/C in GLOB.pipe_colors)
+		if(color == GLOB.pipe_colors[C])
 			return "[C]"
 
-/proc/pipe_color_check(var/color)
+/proc/pipe_color_check(color)
 	if(!color)
 		return 1
-	for(var/C in pipe_colors)
-		if(color == pipe_colors[C])
+	for(var/C in GLOB.pipe_colors)
+		if(color == GLOB.pipe_colors[C])
 			return 1
 	return 0
 
@@ -40,7 +38,7 @@ var/global/list/pipe_colors = list("grey" = PIPE_COLOR_GREY, "red" = PIPE_COLOR_
 /datum/pipe_icon_manager/New()
 	check_icons()
 
-/datum/pipe_icon_manager/proc/get_atmos_icon(var/device, var/dir, var/color, var/state)
+/datum/pipe_icon_manager/proc/get_atmos_icon(device, dir, color, state)
 	check_icons()
 
 	device = "[device]"
@@ -97,10 +95,10 @@ var/global/list/pipe_colors = list("grey" = PIPE_COLOR_GREY, "red" = PIPE_COLOR_
 		var/image/I = image('icons/atmos/pipes.dmi', icon_state = state)
 		pipe_icons[cache_name] = I
 
-		for(var/pipe_color in pipe_colors)
+		for(var/pipe_color in GLOB.pipe_colors)
 			I = image('icons/atmos/pipes.dmi', icon_state = state)
-			I.color = pipe_colors[pipe_color]
-			pipe_icons[state + "[pipe_colors[pipe_color]]"] = I
+			I.color = GLOB.pipe_colors[pipe_color]
+			pipe_icons[state + "[GLOB.pipe_colors[pipe_color]]"] = I
 
 	pipe = new ('icons/atmos/heat.dmi')
 	for(var/state in pipe.IconStates())
@@ -130,10 +128,10 @@ var/global/list/pipe_colors = list("grey" = PIPE_COLOR_GREY, "red" = PIPE_COLOR_
 		if(findtext(state, "core") || findtext(state, "4way"))
 			var/image/I = image('icons/atmos/manifold.dmi', icon_state = state)
 			manifold_icons[state] = I
-			for(var/pipe_color in pipe_colors)
+			for(var/pipe_color in GLOB.pipe_colors)
 				I = image('icons/atmos/manifold.dmi', icon_state = state)
-				I.color = pipe_colors[pipe_color]
-				manifold_icons[state + pipe_colors[pipe_color]] = I
+				I.color = GLOB.pipe_colors[pipe_color]
+				manifold_icons[state + GLOB.pipe_colors[pipe_color]] = I
 
 /datum/pipe_icon_manager/proc/gen_device_icons()
 	if(!device_icons)
@@ -178,13 +176,13 @@ var/global/list/pipe_colors = list("grey" = PIPE_COLOR_GREY, "red" = PIPE_COLOR_
 
 		var/cache_name = state
 
-		for(var/D in cardinal)
+		for(var/D in GLOB.cardinal)
 			var/image/I = image('icons/atmos/pipe_underlays.dmi', icon_state = state, dir = D)
 			underlays[cache_name + "[D]"] = I
-			for(var/pipe_color in pipe_colors)
+			for(var/pipe_color in GLOB.pipe_colors)
 				I = image('icons/atmos/pipe_underlays.dmi', icon_state = state, dir = D)
-				I.color = pipe_colors[pipe_color]
-				underlays[state + "[D]" + "[pipe_colors[pipe_color]]"] = I
+				I.color = GLOB.pipe_colors[pipe_color]
+				underlays[state + "[D]" + "[GLOB.pipe_colors[pipe_color]]"] = I
 
 /*
 	Leaving the old icon manager code commented out for now, as we may want to rewrite the new code to cleanly
@@ -210,7 +208,7 @@ var/global/list/pipe_colors = list("grey" = PIPE_COLOR_GREY, "red" = PIPE_COLOR_
 		if(state == "")
 			continue
 
-		for(var/D in cardinal)
+		for(var/D in GLOB.cardinal)
 			var/image/I = image('icons/atmos/pipe_underlays.dmi', icon_state = state, dir = D)
 			switch(state)
 				if("intact")
@@ -243,39 +241,39 @@ var/global/list/pipe_colors = list("grey" = PIPE_COLOR_GREY, "red" = PIPE_COLOR_
 					pipe_underlays_exposed["[D]"] = I
 				if("pipe_intact-scrubbers")
 					pipe_underlays_intact["[D]"] = I
-			for(var/pipe_color in pipe_colors)
+			for(var/pipe_color in GLOB.pipe_colors)
 				I = image('icons/atmos/pipe_underlays.dmi', icon_state = state, dir = D)
-				I.color = pipe_colors[pipe_color]
+				I.color = GLOB.pipe_colors[pipe_color]
 				switch(state)
 					if("intact")
-						underlays_intact["[D]" + pipe_colors[pipe_color]] = I
+						underlays_intact["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("exposed")
-						underlays_exposed["[D]" + pipe_colors[pipe_color]] = I
+						underlays_exposed["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("down")
-						underlays_down["[D]" + pipe_colors[pipe_color]] = I
+						underlays_down["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("pipe_exposed")
-						pipe_underlays_exposed["[D]" + pipe_colors[pipe_color]] = I
+						pipe_underlays_exposed["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("pipe_intact")
-						pipe_underlays_intact["[D]" + pipe_colors[pipe_color]] = I
+						pipe_underlays_intact["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("intact-supply")
-						underlays_intact["[D]" + pipe_colors[pipe_color]] = I
+						underlays_intact["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("exposed-supply")
-						underlays_exposed["[D]" + pipe_colors[pipe_color]] = I
+						underlays_exposed["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("down-supply")
-						underlays_down["[D]" + pipe_colors[pipe_color]] = I
+						underlays_down["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("pipe_exposed-supply")
-						pipe_underlays_exposed["[D]" + pipe_colors[pipe_color]] = I
+						pipe_underlays_exposed["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("pipe_intact-supply")
-						pipe_underlays_intact["[D]" + pipe_colors[pipe_color]] = I
+						pipe_underlays_intact["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("intact-scrubbers")
-						underlays_intact["[D]" + pipe_colors[pipe_color]] = I
+						underlays_intact["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("exposed-scrubbers")
-						underlays_exposed["[D]" + pipe_colors[pipe_color]] = I
+						underlays_exposed["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("down-scrubbers")
-						underlays_down["[D]" + pipe_colors[pipe_color]] = I
+						underlays_down["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("pipe_exposed-scrubbers")
-						pipe_underlays_exposed["[D]" + pipe_colors[pipe_color]] = I
+						pipe_underlays_exposed["[D]" + GLOB.pipe_colors[pipe_color]] = I
 					if("pipe_intact-scrubbers")
-						pipe_underlays_intact["[D]" + pipe_colors[pipe_color]] = I
+						pipe_underlays_intact["[D]" + GLOB.pipe_colors[pipe_color]] = I
 
 */

@@ -31,7 +31,7 @@
 	var/powered = 0		//set if vehicle is powered and should use fuel when moving
 	var/move_delay = 1	//set this to limit the speed of the vehicle
 
-	var/obj/item/weapon/cell/cell
+	var/obj/item/cell/cell
 	var/charge_use = 5	//set this to adjust the amount of power the vehicle uses per move
 
 	var/paint_color = "#666666" //For vehicles with special paint overlays.
@@ -45,8 +45,8 @@
 //-------------------------------------------
 // Standard procs
 //-------------------------------------------
-/obj/vehicle/New()
-	..()
+/obj/vehicle/Initialize(mapload)
+	. = ..()
 	//spawn the cell you want in each vehicle
 
 /obj/vehicle/Destroy()
@@ -69,17 +69,20 @@
 		riding_datum.restore_position(buckled_mob)
 		riding_datum.handle_vehicle_offsets() // So the person in back goes to the front.
 
-/obj/vehicle/Move(var/newloc, var/direction, var/movetime)
-	if(world.time < l_move_time + move_delay) //This AND the riding datum move speed limit?
-		return
+/obj/vehicle/Move(atom/newloc, direct = 0, movetime)
+	var/turf/newturf = newloc
+	var/zmove = (newturf && z != newturf.z)
 
-	if(mechanical && on && powered && cell.charge < charge_use)
+	if(!zmove && world.time < l_move_time + move_delay) //This AND the riding datum move speed limit?
+		return FALSE
+
+	if(!zmove && mechanical && on && powered && cell.charge < charge_use)
 		turn_off()
-		return
+		return FALSE
 
 	. = ..()
 
-	if(mechanical && on && powered)
+	if(!zmove && mechanical && on && powered)
 		cell.use(charge_use)
 
 	//Dummy loads do not have to be moved as they are just an overlay
@@ -88,23 +91,23 @@
 	if(load && !(load in buckled_mobs) && !istype(load, /datum/vehicle_dummy_load))
 		load.forceMove(loc)
 
-/obj/vehicle/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W, /obj/item/weapon/hand_labeler))
+/obj/vehicle/attackby(obj/item/W as obj, mob/user as mob)
+	if(istype(W, /obj/item/hand_labeler))
 		return
 	if(mechanical)
 		if(W.has_tool_quality(TOOL_SCREWDRIVER))
 			if(!locked)
 				open = !open
 				update_icon()
-				to_chat(user, "<span class='notice'>Maintenance panel is now [open ? "opened" : "closed"].</span>")
+				to_chat(user, span_notice("Maintenance panel is now [open ? "opened" : "closed"]."))
 				playsound(src, W.usesound, 50, 1)
 		else if(W.has_tool_quality(TOOL_CROWBAR) && cell && open)
 			remove_cell(user)
 
-		else if(istype(W, /obj/item/weapon/cell) && !cell && open)
+		else if(istype(W, /obj/item/cell) && !cell && open)
 			insert_cell(W, user)
 		else if(W.has_tool_quality(TOOL_WELDER))
-			var/obj/item/weapon/weldingtool/T = W.get_welder()
+			var/obj/item/weldingtool/T = W.get_welder()
 			if(T.welding)
 				if(health < maxhealth)
 					if(open)
@@ -113,25 +116,25 @@
 						playsound(src, T.usesound, 50, 1)
 						user.visible_message(span_red("[user] repairs [src]!"),span_blue("You repair [src]!"))
 					else
-						to_chat(user, "<span class='notice'>Unable to repair with the maintenance panel closed.</span>")
+						to_chat(user, span_notice("Unable to repair with the maintenance panel closed."))
 				else
-					to_chat(user, "<span class='notice'>[src] does not need a repair.</span>")
+					to_chat(user, span_notice("[src] does not need a repair."))
 			else
-				to_chat(user, "<span class='notice'>Unable to repair while [src] is off.</span>")
+				to_chat(user, span_notice("Unable to repair while [src] is off."))
 
-	else if(hasvar(W,"force") && hasvar(W,"damtype"))
+	else if(W.force && W.damtype)
 		user.setClickCooldown(user.get_attack_speed(W))
 		switch(W.damtype)
-			if("fire")
+			if(BURN)
 				health -= W.force * fire_dam_coeff
-			if("brute")
+			if(BRUTE)
 				health -= W.force * brute_dam_coeff
 		..()
 		healthcheck()
 	else
 		..()
 
-/obj/vehicle/bullet_act(var/obj/item/projectile/Proj)
+/obj/vehicle/bullet_act(obj/item/projectile/Proj)
 	health -= Proj.get_structure_damage()
 	..()
 	healthcheck()
@@ -158,8 +161,9 @@
 				return
 	return
 
-/obj/vehicle/emp_act(severity)
-	if(!mechanical)
+/obj/vehicle/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF || !mechanical)
 		return
 
 	var/was_on = on
@@ -169,7 +173,7 @@
 	pulse2.icon_state = "empdisable"
 	pulse2.name = "emp sparks"
 	pulse2.anchored = TRUE
-	pulse2.set_dir(pick(cardinal))
+	pulse2.set_dir(pick(GLOB.cardinal))
 
 	spawn(10)
 		qdel(pulse2)
@@ -214,7 +218,7 @@
 	set_light(0)
 	update_icon()
 
-/obj/vehicle/emag_act(var/remaining_charges, mob/user as mob)
+/obj/vehicle/emag_act(remaining_charges, mob/user as mob)
 	if(!mechanical)
 		return FALSE
 
@@ -222,15 +226,15 @@
 		emagged = 1
 		if(locked)
 			locked = 0
-			to_chat(user, "<span class='warning'>You bypass [src]'s controls.</span>")
+			to_chat(user, span_warning("You bypass [src]'s controls."))
 		return TRUE
 
 /obj/vehicle/proc/explode()
-	src.visible_message(span_red("<B>[src] blows apart!</B>"), 1)
+	src.visible_message(span_bolddanger("[src] blows apart!"), 1)
 	var/turf/Tsec = get_turf(src)
 
 	//stuns people who are thrown off a train that has been blown up
-	if(istype(load, /mob/living))
+	if(isliving(load))
 		var/mob/living/M = load
 		M.apply_effects(5, 5)
 
@@ -273,7 +277,7 @@
 		turn_on()
 		return
 
-/obj/vehicle/proc/insert_cell(var/obj/item/weapon/cell/C, var/mob/living/carbon/human/H)
+/obj/vehicle/proc/insert_cell(obj/item/cell/C, mob/living/carbon/human/H)
 	if(!mechanical)
 		return
 	if(cell)
@@ -285,21 +289,21 @@
 	C.forceMove(src)
 	cell = C
 	powercheck()
-	to_chat(usr, "<span class='notice'>You install [C] in [src].</span>")
+	to_chat(H, span_notice("You install [C] in [src]."))
 
-/obj/vehicle/proc/remove_cell(var/mob/living/carbon/human/H)
+/obj/vehicle/proc/remove_cell(mob/living/carbon/human/H)
 	if(!mechanical)
 		return
 	if(!cell)
 		return
 
-	to_chat(usr, "<span class='notice'>You remove [cell] from [src].</span>")
+	to_chat(H, span_notice("You remove [cell] from [src]."))
 	cell.forceMove(get_turf(H))
 	H.put_in_hands(cell)
 	cell = null
 	powercheck()
 
-/obj/vehicle/proc/RunOver(var/mob/living/M)
+/obj/vehicle/proc/RunOver(mob/living/M)
 	return		//write specifics for different vehicles
 
 //-------------------------------------------
@@ -309,7 +313,7 @@
 // the vehicle load() definition before
 // calling this parent proc.
 //-------------------------------------------
-/obj/vehicle/proc/load(var/atom/movable/C, var/mob/living/user)
+/obj/vehicle/proc/load(atom/movable/C, mob/living/user)
 	//This loads objects onto the vehicle so they can still be interacted with.
 	//Define allowed items for loading in specific vehicle definitions.
 	if(!isturf(C.loc)) //To prevent loading things from someone's inventory, which wouldn't get handled properly.
@@ -336,13 +340,13 @@
 			C.pixel_y += load_offset_y
 		C.layer = layer + 0.1
 
-	if(ismob(C))
+	if(ismob(C) && user)
 		user_buckle_mob(C, user)
 
 	return 1
 
 
-/obj/vehicle/proc/unload(var/mob/user, var/direction)
+/obj/vehicle/proc/unload(mob/user, direction)
 	if(!load)
 		return
 
@@ -360,7 +364,7 @@
 	//if these all result in the same turf as the vehicle or nullspace, pick a new turf with open space
 	if(!dest || dest == get_turf(src))
 		var/list/options = new()
-		for(var/test_dir in alldirs)
+		for(var/test_dir in GLOB.alldirs)
 			var/new_dir = get_step_to(src, get_step(src, test_dir))
 			if(new_dir && load.Adjacent(new_dir))
 				options += new_dir
@@ -398,11 +402,11 @@
 /obj/vehicle/proc/update_stats()
 	return
 
-/obj/vehicle/attack_generic(var/mob/user, var/damage, var/attack_message)
+/obj/vehicle/attack_generic(mob/user, damage, attack_message)
 	if(!damage)
 		return
-	visible_message("<span class='danger'>[user] [attack_message] the [src]!</span>")
-	user.attack_log += text("\[[time_stamp()]\] [span_red("attacked [src.name]")]")
+	visible_message(span_danger("[user] [attack_message] the [src]!"))
+	add_attack_logs(user, src, "attacked")
 	user.do_attack_animation(src)
 	src.health -= damage
 	if(mechanical && prob(10))
@@ -410,7 +414,7 @@
 	spawn(1) healthcheck()
 	return 1
 
-/obj/vehicle/take_damage(var/damage)
+/obj/vehicle/take_damage(damage)
 	if(!damage)
 		return
 	src.health -= damage

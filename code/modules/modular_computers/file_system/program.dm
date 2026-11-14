@@ -38,7 +38,7 @@
 	/// Name of the tgui interface
 	var/tgui_id
 
-/datum/computer_file/program/New(var/obj/item/modular_computer/comp = null)
+/datum/computer_file/program/New(obj/item/modular_computer/comp = null)
 	..()
 	if(comp && istype(comp))
 		computer = comp
@@ -66,19 +66,19 @@
 		computer.update_icon()
 
 // Attempts to create a log in global ntnet datum. Returns 1 on success, 0 on fail.
-/datum/computer_file/program/proc/generate_network_log(var/text)
+/datum/computer_file/program/proc/generate_network_log(text)
 	if(computer)
 		return computer.add_log(text)
 	return 0
 
-/datum/computer_file/program/proc/is_supported_by_hardware(var/hardware_flag = 0, var/loud = 0, var/mob/user = null)
+/datum/computer_file/program/proc/is_supported_by_hardware(hardware_flag = 0, loud = 0, mob/user = null)
 	if(!(hardware_flag & usage_flags))
 		if(loud && computer && user)
-			to_chat(user, "<span class='warning'>\The [computer] flashes: \"Hardware Error - Incompatible software\".</span>")
+			to_chat(user, span_warning("\The [computer] flashes: \"Hardware Error - Incompatible software\"."))
 		return 0
 	return 1
 
-/datum/computer_file/program/proc/get_signal(var/specific_action = 0)
+/datum/computer_file/program/proc/get_signal(specific_action = 0)
 	if(computer)
 		return computer.get_ntnet_status(specific_action)
 	return 0
@@ -100,8 +100,9 @@
 
 // Check if the user can run program. Only humans can operate computer. Automatically called in run_program()
 // User has to wear their ID or have it inhand for ID Scan to work.
-// Can also be called manually, with optional parameter being access_to_check to scan the user's ID
-/datum/computer_file/program/proc/can_run(var/mob/living/user, var/loud = 0, var/access_to_check)
+// Can also be called manually, with optional parameter being access_to_check to scan the user's ID.
+// explicit_card can be passed by callers that already have a card reference (e.g. the laptop's inserted card).
+/datum/computer_file/program/proc/can_run(mob/living/user, loud = 0, access_to_check, obj/item/card/id/explicit_card)
 	// Defaults to required_access
 	if(!access_to_check)
 		access_to_check = required_access
@@ -109,22 +110,24 @@
 		return 1
 
 	// Admin override - allows operation of any computer as aghosted admin, as if you had any required access.
-	if(istype(user, /mob/observer/dead) && check_rights(R_ADMIN|R_EVENT, 0, user))
+	if(isobserver(user) && check_rights_for(user.client, R_ADMIN|R_EVENT|R_DEBUG))
 		return 1
 
 	if(!istype(user))
 		return 0
 
-	var/obj/item/weapon/card/id/I = user.GetIdCard()
+	// Resolve the card to check: caller-supplied card first, then the user's worn/held ID,
+	// then fall back to whatever is inserted in the computer's card slot.
+	var/obj/item/card/id/I = explicit_card || user.GetIdCard() || computer?.card_slot?.stored_card
 	if(!I)
 		if(loud)
-			to_chat(user, "<span class='notice'>\The [computer] flashes an \"RFID Error - Unable to scan ID\" warning.</span>")
+			to_chat(user, span_notice("\The [computer] flashes an \"RFID Error - Unable to scan ID\" warning."))
 		return 0
 
-	if(access_to_check in I.access)
+	if(access_to_check in I.GetAccess())
 		return 1
 	else if(loud)
-		to_chat(user, "<span class='notice'>\The [computer] flashes an \"Access Denied\" warning.</span>")
+		to_chat(user, span_notice("\The [computer] flashes an \"Access Denied\" warning."))
 
 // This attempts to retrieve header data for NanoUIs. If implementing completely new device of different type than existing ones
 // always include the device here in this proc. This proc basically relays the request to whatever is running the program.
@@ -135,12 +138,15 @@
 
 // This is performed on program startup. May be overriden to add extra logic. Remember to include ..() call. Return 1 on success, 0 on failure.
 // When implementing new program based device, use this to run the program.
-/datum/computer_file/program/proc/run_program(var/mob/living/user)
+/datum/computer_file/program/proc/run_program(mob/living/user)
 	if(can_run(user, 1) || !requires_access_to_run)
 		computer.active_program = src
 		if(tguimodule_path)
 			TM = new tguimodule_path(src)
-			TM.using_access = user.GetAccess()
+			// Prefer the card inserted into the computer's card slot for access checks;
+			// fall back to the user's own access if no card is slotted.
+			var/obj/item/card/id/auth_card = computer?.card_slot?.stored_card
+			TM.using_access = auth_card ? auth_card.GetAccess() : user.GetAccess()
 		if(requires_ntnet && network_destination)
 			generate_network_log("Connection opened to [network_destination].")
 		program_state = PROGRAM_STATE_ACTIVE
@@ -148,7 +154,7 @@
 	return 0
 
 // Use this proc to kill the program. Designed to be implemented by each program if it requires on-quit logic, such as the NTNRC client.
-/datum/computer_file/program/proc/kill_program(var/forced = 0)
+/datum/computer_file/program/proc/kill_program(forced = 0)
 	program_state = PROGRAM_STATE_KILLED
 	if(network_destination)
 		generate_network_log("Connection to [network_destination] closed.")
@@ -206,10 +212,10 @@
 				ui.close()
 				return 1
 			if("PC_minimize")
-				var/mob/user = usr
 				if(!computer.active_program)
 					return
 
+				var/mob/user = ui.user
 				computer.idle_threads.Add(computer.active_program)
 				program_state = PROGRAM_STATE_BACKGROUND // Should close any existing UIs
 
@@ -217,26 +223,5 @@
 				computer.update_icon()
 				ui.close()
 
-				if(user && istype(user))
+				if(istype(user))
 					computer.tgui_interact(user) // Re-open the UI on this computer. It should show the main screen now.
-
-
-
-// Relays the call to nano module, if we have one
-/datum/computer_file/program/proc/check_eye(var/mob/user)
-	if(TM)
-		return TM.check_eye(user)
-	else
-		return -1
-
-/datum/computer_file/program/apply_visual(mob/M)
-	if(TM)
-		return TM.apply_visual(M)
-
-/datum/computer_file/program/remove_visual(mob/M)
-	if(TM)
-		return TM.remove_visual(M)
-
-/datum/computer_file/program/proc/relaymove(var/mob/M, direction)
-	if(TM)
-		return TM.relaymove(M, direction)

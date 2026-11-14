@@ -1,11 +1,8 @@
 //handles setting lastKnownIP and computer_id for use by the ban systems as well as checking for multikeying
 /mob/proc/update_Login_details()
 	//Multikey checks and logging
-	lastKnownIP	= client.address
-	computer_id	= client.computer_id
-	log_access_in(client)
-	if(config.log_access)
-		for(var/mob/M in player_list)
+	if(CONFIG_GET(flag/log_access))
+		for(var/mob/M in GLOB.player_list)
 			if(M == src)	continue
 			if( M.key && (M.key != key) )
 				var/matches
@@ -14,31 +11,34 @@
 				if( (client.connection != "web") && (M.computer_id == client.computer_id) )
 					if(matches)	matches += " and "
 					matches += "ID ([client.computer_id])"
-					if(!config.disable_cid_warn_popup)
-						tgui_alert_async(usr, "You appear to have logged in with another key this round, which is not permitted. Please contact an administrator if you believe this message to be in error.")
+					if(!CONFIG_GET(flag/disable_cid_warn_popup))
+						tgui_alert_async(src, "You appear to have logged in with another key this round, which is not permitted. Please contact an administrator if you believe this message to be in error.")
 				if(matches)
 					if(M.client)
-						message_admins("[span_red("<B>Notice: </B>")][span_blue("[key_name_admin(src)] has the same [matches] as [key_name_admin(M)].")]", 1)
-						log_adminwarn("Notice: [key_name(src)] has the same [matches] as [key_name(M)].")
+						message_admins("[span_red(span_bold("Notice:"))] [span_blue("[key_name_admin(src)] has the same [matches] as [key_name_admin(M)].")]", 1)
+						log_admin_private("Notice: [key_name(src)] has the same [matches] as [key_name(M)].")
 					else
-						message_admins("[span_red("<B>Notice: </B>")][span_blue("[key_name_admin(src)] has the same [matches] as [key_name_admin(M)] (no longer logged in). ")]", 1)
-						log_adminwarn("Notice: [key_name(src)] has the same [matches] as [key_name(M)] (no longer logged in).")
+						message_admins("[span_red(span_bold("Notice:"))] [span_blue("[key_name_admin(src)] has the same [matches] as [key_name_admin(M)] (no longer logged in). ")]", 1)
+						log_admin_private("Notice: [key_name(src)] has the same [matches] as [key_name(M)] (no longer logged in).")
 
 /mob/Login()
+	if(!client)
+		return FALSE
 
-	player_list |= src
+	client.persistent_client.set_mob(src)
+
+	GLOB.player_list |= src
+	lastKnownIP	= client.address
+	computer_id	= client.computer_id
+	log_access("Mob Login: [key_name(src)] was assigned to a [type] ([tag])")
 	update_Login_details()
 	world.update_status()
 
 	client.images = null				//remove the images such as AIs being unable to see runes
 	client.screen = list()				//remove hud items just in case
-	if(hud_used)	qdel(hud_used)		//remove the hud objects
-	hud_used = new /datum/hud(src)
-
-	if(client.prefs && client.prefs.client_fps)
-		client.fps = client.prefs.client_fps
-	else
-		client.fps = 0 // Results in using the server FPS
+	if(hud_used)
+		qdel(hud_used)		//remove the hud objects
+	new /datum/hud(src)
 
 	next_move = 1
 	disconnect_time = null				//VOREStation Addition: clear the disconnect time
@@ -46,12 +46,9 @@
 	..()
 	SEND_SIGNAL(src, COMSIG_MOB_LOGIN)
 
-	if(loc && !isturf(loc))
-		client.eye = loc
-		client.perspective = EYE_PERSPECTIVE
-	else
-		client.eye = src
-		client.perspective = MOB_PERSPECTIVE
+	client.perspective = MOB_PERSPECTIVE
+	client.eye = src
+
 	add_click_catcher()
 	update_client_color()
 
@@ -60,15 +57,17 @@
 	if(!vis_enabled)
 		vis_enabled = list()
 	client.screen += plane_holder.plane_masters
+	if(GLOB.global_vantag_hud)
+		vantag_hud = TRUE
 	recalculate_vis()
 
 	// AO support
-	var/ao_enabled = client.is_preference_enabled(/datum/client_preference/ambient_occlusion)
+	var/ao_enabled = client.prefs?.read_preference(/datum/preference/toggle/ambient_occlusion)
 	plane_holder.set_ao(VIS_OBJS, ao_enabled)
 	plane_holder.set_ao(VIS_MOBS, ao_enabled)
 
 	// Status indicators
-	var/status_enabled = client.is_preference_enabled(/datum/client_preference/status_indicators)
+	var/status_enabled = client.prefs?.read_preference(/datum/preference/toggle/status_indicators)
 	plane_holder.set_vis(VIS_STATUS, status_enabled)
 
 	//set macro to normal incase it was overriden (like cyborg currently does)
@@ -83,4 +82,23 @@
 
 	if(cloaked && cloaked_selfimage)
 		client.images += cloaked_selfimage
+
+	if(client)
+		for(var/datum/action/A as anything in persistent_client.player_actions)
+			A.Grant(src)
+
+		for(var/datum/callback/CB as anything in persistent_client.post_login_callbacks)
+			CB.Invoke()
+
+	log_mob_tag("TAG: [tag] NEW OWNER: [key_name(src)]")
 	SEND_SIGNAL(src, COMSIG_MOB_CLIENT_LOGIN, client)
+	SEND_SIGNAL(client, COMSIG_CLIENT_MOB_LOGIN, src)
+	client.init_verbs()
+
+	set_listening(LISTENING_PLAYER)
+	GLOB.tickets.ClientLogin(client, TRUE)
+
+	if(GLOB.custom_event_msg && GLOB.custom_event_msg != "")
+		to_chat(src, "<h1 class='alert'>Custom Event</h1>")
+		to_chat(src, "<h2 class='alert'>A custom event is taking place. OOC Info:</h2>")
+		to_chat(src, span_alert("[GLOB.custom_event_msg]") + "\n")

@@ -7,7 +7,7 @@
 	icon_state = "steel"
 	initial_flooring = null
 
-/turf/simulated/floor/fixed/attackby(var/obj/item/C, var/mob/user)
+/turf/simulated/floor/fixed/attackby(obj/item/C, mob/user)
 	if(istype(C, /obj/item/stack) && !istype(C, /obj/item/stack/cable_coil))
 		return
 	return ..()
@@ -20,4 +20,3 @@
 
 /turf/simulated/floor/fixed/set_flooring()
 	return
-

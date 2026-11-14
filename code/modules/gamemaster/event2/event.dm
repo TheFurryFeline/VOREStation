@@ -102,12 +102,12 @@ This allows for events that have their announcement happen after the end itself.
 
 /datum/event2/event/proc/find_random_areas(list/specific_areas = list(), ignore_occupancy = FALSE)
 	if(!LAZYLEN(specific_areas))
-		specific_areas = global.the_station_areas.Copy()
+		specific_areas = GLOB.the_station_areas.Copy()
 
 	var/list/area/grand_list_of_areas = get_all_existing_areas_of_types(specific_areas)
 	. = list()
 	for(var/area/A as anything in shuffle(grand_list_of_areas))
-		if(A.forbid_events)
+		if(A.flag_check(AREA_FORBID_EVENTS))
 			continue
 		if(!(A.z in get_location_z_levels()))
 			continue

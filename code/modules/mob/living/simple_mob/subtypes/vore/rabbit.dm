@@ -14,7 +14,7 @@
 	icon_rest = "rabbit_brown_rest"
 	icon = 'icons/mob/vore.dmi'
 
-	faction = "rabbit"
+	faction = FACTION_RABBIT
 	maxHealth = 30
 	health = 30
 
@@ -33,7 +33,7 @@
 	ai_holder_type = /datum/ai_holder/simple_mob/passive
 
 	meat_amount = 3
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
+	meat_type = /obj/item/reagent_containers/food/snacks/meat
 
 	// Vore vars
 	vore_active = 1
@@ -43,13 +43,15 @@
 	vore_default_mode = DM_HOLD
 	vore_icons = SA_ICON_LIVING
 
+	allow_mind_transfer = TRUE
+
 	var/body_color 				//brown, black and white, leave blank for random
 
 	var/grumpiness = 0 			// This determines how grumpy we are. Pet us to increase it, leave us alone to decrease.
 	var/last_pet				// This tracks the last time someone patted us.
 	var/grump_decay = 5 SECONDS // This is how quickly our grumpiness decays.
 
-/mob/living/simple_mob/vore/rabbit/New()
+/mob/living/simple_mob/vore/rabbit/Initialize(mapload)
 	. = ..()
 
 	if(!body_color)
@@ -90,6 +92,18 @@
 		var/pounce_chance = CanPounceTarget(user)
 		if(pounce_chance)
 			PounceTarget(user, pounce_chance)
+
+/mob/living/simple_mob/vore/rabbit/load_default_bellies()
+	. = ..()
+
+	var/obj/belly/B = vore_selected
+	B.name = "stomach"
+	B.desc = "With a sudden pounce, the rabbit begins swallowing you down with ease! A pink maw and surprisingly unintimidating teeth give way to the thing's pink, tight throat, until you're crammed down inside it's gut! Unless you happen to be drastically smaller than it, the inside of this thing's gut is incredibly cramped, as the fleshy pink walls undulate over your form. It's clearly still able to move with you inside somehow, despite the tiny size of the thing, as gastric sounds flood your ears. You've been bested by a RABBIT of all things!"
+	B.vore_sound = "Tauric Swallow"
+	B.release_sound = "Pred Escape"
+	B.fancy_vore = TRUE
+	B.belly_fullscreen_color = "#b15aac"
+	B.belly_fullscreen = "VBOanim_belly1"
 
 /datum/say_list/rabbit
 	speak = list("chrrrs.")

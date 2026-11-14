@@ -15,8 +15,8 @@
 	var/owner_follows_eye = 0
 
 	see_in_dark = 7
-	status_flags = GODMODE
 	plane = PLANE_AI_EYE
+	invisibility = INVISIBILITY_EYE
 
 	var/mob/owner = null
 	var/list/visibleChunks = list()
@@ -25,6 +25,10 @@
 	var/datum/visualnet/visualnet
 	var/use_static = TRUE
 	var/static_visibility_range = 16
+
+/mob/observer/eye/Initialize(mapload)
+	. = ..()
+	AddElement(/datum/element/godmode)
 
 /mob/observer/eye/Destroy()
 	if(owner)
@@ -54,15 +58,13 @@
 
 // Use this when setting the eye's location.
 // It will also stream the chunk that the new loc is in.
-/mob/observer/eye/proc/setLoc(var/T)
+/mob/observer/eye/proc/setLoc(T)
 	if(owner)
 		T = get_turf(T)
 		if(T != loc)
 			loc = T
 
-			if(owner.client)
-				owner.client.eye = src
-
+			owner.reset_perspective(src)
 			if(owner_follows_eye)
 				visualnet.updateVisibility(owner, 0)
 				owner.loc = loc
@@ -85,11 +87,11 @@
 		return
 
 	return eyeobj.EyeMove(n, direct)
-	
+
 /mob/observer/eye/proc/GetViewerClient()
-    if(owner)
-        return owner.client
-    return null
+	if(owner)
+		return owner.client
+	return null
 
 /mob/observer/eye/EyeMove(n, direct)
 	var/initial = initial(sprint)

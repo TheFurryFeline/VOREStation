@@ -5,19 +5,25 @@
 	flags = PHORONGUARD
 	item_state_slots = list(slot_r_hand_str = "magboots", slot_l_hand_str = "magboots")
 	species_restricted = null
-	center_of_mass = list("x" = 17,"y" = 12)
+	center_of_mass_x = 17
+	center_of_mass_y = 12
 	force = 3
 	overshoes = 1
 	shoes_under_pants = -1	//These things are huge
 	preserve_item = 1
 	var/magpulse = 0
 	var/icon_base = "magboots"
-	action_button_name = "Toggle Magboots"
-	var/obj/item/clothing/shoes/shoes = null	//Undershoes
-	var/mob/living/carbon/human/wearer = null	//For shoe procs
+	///The message that gets shown when we enable the magboots.
+	var/mag_enable = "You enable the mag-pulse traction system."
+	///The message that gets shown when we disable the magboots.
+	var/mag_disable = "You disable the mag-pulse traction system."
+	///If the magboots can be removed when enabled or not.
+	var/unremovable_when_enabled = FALSE
+	actions_types = list(/datum/action/item_action/toggle_magboots)
 	step_volume_mod = 1.3
 	drop_sound = 'sound/items/drop/metalboots.ogg'
 	pickup_sound = 'sound/items/pickup/toolbox.ogg'
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/shoes/magboots/proc/set_slowdown()
 	slowdown = shoes? max(SHOES_SLOWDOWN, shoes.slowdown): SHOES_SLOWDOWN	//So you can't put on magboots to make you walk faster.
@@ -25,58 +31,82 @@
 		slowdown += 3
 
 /obj/item/clothing/shoes/magboots/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(magpulse)
 		item_flags &= ~NOSLIP
-		magpulse = 0
+		magpulse = FALSE
 		set_slowdown()
 		force = 3
 		if(icon_base) icon_state = "[icon_base]0"
-		to_chat(user, "You disable the mag-pulse traction system.")
+		to_chat(user, mag_disable)
+		if(unremovable_when_enabled)
+			canremove = TRUE
 	else
+		//Checks to ensure if they're unremovable we're actually wearing them when we turn them on.
+		if(unremovable_when_enabled)
+			if(!ishuman(user))
+				return
+			var/mob/living/carbon/human/H = user
+			if(H.shoes != src)
+				to_chat(user, "You will have to put on the [src] before you can do that.")
+				return
+			canremove = FALSE
+
 		item_flags |= NOSLIP
-		magpulse = 1
+		magpulse = TRUE
 		set_slowdown()
 		force = 5
 		if(icon_base) icon_state = "[icon_base]1"
 		playsound(src, 'sound/effects/magnetclamp.ogg', 20)
-		to_chat(user, "You enable the mag-pulse traction system.")
+		to_chat(user, mag_enable)
 	user.update_inv_shoes()	//so our mob-overlays update
-	user.update_action_buttons()
+	user.update_mob_action_buttons()
 
-/obj/item/clothing/shoes/magboots/mob_can_equip(mob/user, slot, disable_warning = FALSE)
+/obj/item/clothing/shoes/magboots/mob_can_equip(mob/user, slot, disable_warning = FALSE, ignore_obstruction, go_over_slot = TRUE)
+
 	var/mob/living/carbon/human/H = user
 
 	if(H.shoes)
 		shoes = H.shoes
-		if(shoes.overshoes)
-			if(slot && slot == slot_shoes)
+		if(istype(shoes, /obj/item/clothing/shoes) && shoes.overshoes)
+			if(slot && slot == slot_shoes && !disable_warning)
 				to_chat(user, "You are unable to wear \the [src] as \the [H.shoes] are in the way.")
 			shoes = null
-			return 0
-		H.drop_from_inventory(shoes)	//Remove the old shoes so you can put on the magboots.
-		shoes.forceMove(src)
+			return FALSE
+		shoes = null
+	return ..()
 
-	if(!..())
-		if(shoes) 	//Put the old shoes back on if the check fails.
-			if(H.equip_to_slot_if_possible(shoes, slot_shoes))
-				src.shoes = null
-		return 0
+/obj/item/clothing/shoes/magboots/equipped(mob/user, slot)
 
-	if (shoes)
-		if(slot && slot == slot_shoes)
-			to_chat(user, "You slip \the [src] on over \the [shoes].")
+	var/mob/living/carbon/human/H = user
+	if(slot && slot != slot_shoes)
+		return ..()
 	set_slowdown()
-	wearer = H
-	return 1
-
-/obj/item/clothing/shoes/magboots/dropped()
+	wearer = WEAKREF(H)
 	..()
-	var/mob/living/carbon/human/H = wearer
-	if(shoes)
-		if(!H.equip_to_slot_if_possible(shoes, slot_shoes))
-			shoes.forceMove(get_turf(src))
-		src.shoes = null
+
+/obj/item/clothing/shoes/magboots/dropped(mob/user, equipping, slot)
+	..()
 	wearer = null
+
+	var/mob/living/carbon/human/H = user
+	if(!ishuman(H))
+		return
+
+	//Equipping shoes. If you put it so you can put your shoes somewhere BUT your shoe slot, make sure this shit works.
+	if(equipping && (slot == slot_shoes))
+		if(H.shoes && H.shoes != src)
+			shoes = H.shoes
+			H.unEquip(shoes, TRUE, src)
+			to_chat(user, "You slip \the [src] on over \the [shoes].")
+		return
+
+	if(shoes)
+		if(!H.equip_to_slot_if_possible(shoes, slot_shoes, FALSE, TRUE, TRUE, TRUE))
+			shoes.forceMove(get_turf(src))
+		shoes = null
 
 /obj/item/clothing/shoes/magboots/examine(mob/user)
 	. = ..()
@@ -88,39 +118,24 @@
 	name = "vox magclaws"
 	item_state = "boots-vox"
 	icon_state = "boots-vox"
+	icon_base = null
+	mag_enable = "You dig your claws deeply into the flooring, bracing yourself."
+	mag_disable = "You relax your deathgrip on the flooring."
+	unremovable_when_enabled = TRUE
 	flags = PHORONGUARD
 	species_restricted = list(SPECIES_VOX)
+	actions_types = list(/datum/action/item_action/toggle_magclaws)
 
-	action_button_name = "Toggle the magclaws"
-
-/obj/item/clothing/shoes/magboots/vox/attack_self(mob/user)
-	if(src.magpulse)
-		item_flags &= ~NOSLIP
-		magpulse = 0
-		canremove = TRUE
-		to_chat(user, "You relax your deathgrip on the flooring.")
-	else
-		//make sure these can only be used when equipped.
-		if(!ishuman(user))
-			return
-		var/mob/living/carbon/human/H = user
-		if (H.shoes != src)
-			to_chat(user, "You will have to put on the [src] before you can do that.")
-			return
-
-		item_flags |= NOSLIP
-		magpulse = 1
-		canremove = FALSE	//kinda hard to take off magclaws when you are gripping them tightly.
-		to_chat(user, "You dig your claws deeply into the flooring, bracing yourself.")
-	user.update_action_buttons()
+/obj/item/clothing/shoes/magboots/vox/set_slowdown()
+	return //voxboots suffer no slowdown penalties!
 
 //In case they somehow come off while enabled.
-/obj/item/clothing/shoes/magboots/vox/dropped(mob/user as mob)
+/obj/item/clothing/shoes/magboots/vox/dropped(mob/user, equipping, slot)
 	..()
-	if(src.magpulse)
-		user.visible_message("The [src] go limp as they are removed from [usr]'s feet.", "The [src] go limp as they are removed from your feet.")
+	if(magpulse)
+		user.visible_message("The [src] go limp as they are removed from [user]'s feet.", "The [src] go limp as they are removed from your feet.")
 		item_flags &= ~NOSLIP
-		magpulse = 0
+		magpulse = FALSE
 		canremove = TRUE
 
 /obj/item/clothing/shoes/magboots/vox/examine(mob/user)

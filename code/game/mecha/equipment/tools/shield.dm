@@ -2,7 +2,6 @@
 	name = "linear combat shield"
 	desc = "A shield generator that forms a rectangular, unidirectionally projectile-blocking wall in front of the exosuit."
 	icon_state = "shield"
-	origin_tech = list(TECH_PHORON = 3, TECH_MAGNET = 6, TECH_ILLEGAL = 4)
 	equip_cooldown = 5
 	energy_drain = 20
 	range = 0
@@ -15,12 +14,11 @@
 
 	equip_type = EQUIP_HULL
 
-/obj/item/mecha_parts/mecha_equipment/combat_shield/New()
-	..()
+/obj/item/mecha_parts/mecha_equipment/combat_shield/Initialize(mapload)
+	. = ..()
 	my_shield = new my_shield_type
 	my_shield.shield_regen_delay = equip_cooldown
 	my_shield.my_tool = src
-	return
 
 /obj/item/mecha_parts/mecha_equipment/combat_shield/critfail()
 	..()
@@ -35,7 +33,7 @@
 	my_shield.my_mecha = null
 	qdel(my_shield)
 	my_shield = null
-	..()
+	. = ..()
 
 /obj/item/mecha_parts/mecha_equipment/combat_shield/add_equip_overlay(obj/mecha/M as obj)
 	..()
@@ -72,11 +70,11 @@
 		if(my_shield.active)
 			set_ready_state(FALSE)
 			step_delay = 4
-			log_message("Activated.")
+			src.mecha_log_message("Activated.")
 		else
 			set_ready_state(TRUE)
 			step_delay = 1
-			log_message("Deactivated.")
+			src.mecha_log_message("Deactivated.")
 
 /obj/item/mecha_parts/mecha_equipment/combat_shield/Topic(href, href_list)
 	..()
@@ -86,4 +84,4 @@
 
 /obj/item/mecha_parts/mecha_equipment/combat_shield/get_equip_info()
 	if(!chassis) return
-	return "<span style=\"color:[equip_ready?"#0f0":"#f00"];\">*</span>&nbsp;[src.name] - <a href='?src=\ref[src];toggle_shield=1'>[my_shield.active?"Dea":"A"]ctivate</a>"
+	return (equip_ready ? span_green("*") : span_red("*")) + "&nbsp;[src.name] - <a href='byond://?src=\ref[src];toggle_shield=1'>[my_shield.active?"Dea":"A"]ctivate</a>"

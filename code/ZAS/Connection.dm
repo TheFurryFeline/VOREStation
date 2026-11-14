@@ -5,7 +5,7 @@
 /*
 
 Overview:
-	Connections are made between turfs by air_master.connect(). They represent a single point where two zones converge.
+	Connections are made between turfs by SSair.connect(). They represent a single point where two zones converge.
 
 Class Vars:
 	A - Always a simulated turf.
@@ -49,66 +49,66 @@ Class Procs:
 
 */
 
-/connection/var/turf/simulated/A
-/connection/var/turf/simulated/B
-/connection/var/zone/zoneA
-/connection/var/zone/zoneB
+/datum/connection/var/turf/simulated/A
+/datum/connection/var/turf/simulated/B
+/datum/connection/var/datum/zone/zoneA
+/datum/connection/var/datum/zone/zoneB
 
-/connection/var/connection_edge/edge
+/datum/connection/var/datum/connection_edge/edge
 
-/connection/var/state = 0
+/datum/connection/var/state = 0
 
-/connection/New(turf/simulated/A, turf/simulated/B)
+/datum/connection/New(turf/simulated/A, turf/simulated/B)
 	#ifdef ZASDBG
-	ASSERT(air_master.has_valid_zone(A))
-	//ASSERT(air_master.has_valid_zone(B))
+	ASSERT(HAS_VALID_ZONE(A))
+	//ASSERT(HAS_VALID_ZONE(B))
 	#endif
 	src.A = A
 	src.B = B
 	zoneA = A.zone
 	if(!istype(B))
 		mark_space()
-		edge = air_master.get_edge(A.zone,B)
+		edge = SSair.get_edge(A.zone,B)
 		edge.add_connection(src)
 	else
 		zoneB = B.zone
-		edge = air_master.get_edge(A.zone,B.zone)
+		edge = SSair.get_edge(A.zone,B.zone)
 		edge.add_connection(src)
 
-/connection/proc/mark_direct()
+/datum/connection/proc/mark_direct()
 	if(!direct())
 		state |= CONNECTION_DIRECT
 		edge.direct++
 	//to_world("Marked direct.")
 
-/connection/proc/mark_indirect()
+/datum/connection/proc/mark_indirect()
 	if(direct())
 		state &= ~CONNECTION_DIRECT
 		edge.direct--
 	//to_world("Marked indirect.")
 
-/connection/proc/mark_space()
+/datum/connection/proc/mark_space()
 	state |= CONNECTION_SPACE
 
-/connection/proc/direct()
+/datum/connection/proc/direct()
 	return (state & CONNECTION_DIRECT)
 
-/connection/proc/valid()
+/datum/connection/proc/valid()
 	return !(state & CONNECTION_INVALID)
 
-/connection/proc/erase()
+/datum/connection/proc/erase()
 	edge.remove_connection(src)
 	state |= CONNECTION_INVALID
 	//to_world("Connection Erased: [state]")
 
-/connection/proc/update()
+/datum/connection/proc/update()
 	//to_world("Updated, \...")
 	if(!istype(A,/turf/simulated))
 		//to_world("Invalid A.")
 		erase()
 		return
 
-	var/block_status = air_master.air_blocked(A,B)
+	var/block_status = SSair.air_blocked(A,B)
 	if(block_status & AIR_BLOCKED)
 		//to_world("Blocked connection.")
 		erase()
@@ -133,7 +133,7 @@ Class Procs:
 				return
 			else
 				edge.remove_connection(src)
-				edge = air_master.get_edge(A.zone, B)
+				edge = SSair.get_edge(A.zone, B)
 				edge.add_connection(src)
 				zoneA = A.zone
 
@@ -155,7 +155,7 @@ Class Procs:
 		//to_world("Zones changed, \...")
 		if(A.zone && B.zone)
 			edge.remove_connection(src)
-			edge = air_master.get_edge(A.zone, B.zone)
+			edge = SSair.get_edge(A.zone, B.zone)
 			edge.add_connection(src)
 			zoneA = A.zone
 			zoneB = B.zone

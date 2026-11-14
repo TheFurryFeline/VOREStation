@@ -35,14 +35,14 @@
 	chassis.proc_res["dyndomove"] = src
 	ion_trail.start()
 	occupant_message("Activated")
-	log_message("Activated")
+	src.mecha_log_message("Activated")
 
 /obj/item/mecha_parts/mecha_equipment/tool/jetpack/proc/turn_off()
 	set_ready_state(TRUE)
 	chassis.proc_res["dyndomove"] = null
 	ion_trail.stop()
 	occupant_message("Deactivated")
-	log_message("Deactivated")
+	src.mecha_log_message("Deactivated")
 
 /obj/item/mecha_parts/mecha_equipment/tool/jetpack/proc/dyndomove(direction)
 	if(!action_checks())
@@ -50,7 +50,7 @@
 	var/move_result = 0
 	if(direction == UP || direction == DOWN)
 		if(!chassis.can_ztravel())
-			chassis.occupant_message("<span class='warning'>Your vehicle lacks the capacity to move in that direction!</span>")
+			chassis.occupant_message(span_warning("Your vehicle lacks the capacity to move in that direction!"))
 			return FALSE
 
 		//We're using locs because some mecha are 2x2 turfs. So thicc!
@@ -58,16 +58,16 @@
 
 		for(var/turf/T in chassis.locs)
 			if(!T.CanZPass(chassis,direction))
-				chassis.occupant_message("<span class='warning'>You can't move that direction from here!</span>")
+				chassis.occupant_message(span_warning("You can't move that direction from here!"))
 				result = FALSE
 				break
 			var/turf/dest = (direction == UP) ? GetAbove(chassis) : GetBelow(chassis)
 			if(!dest)
-				chassis.occupant_message("<span class='notice'>There is nothing of interest in this direction.</span>")
+				chassis.occupant_message(span_notice("There is nothing of interest in this direction."))
 				result = FALSE
 				break
 			if(!dest.CanZPass(chassis,direction))
-				chassis.occupant_message("<span class='warning'>There's something blocking your movement in that direction!</span>")
+				chassis.occupant_message(span_warning("There's something blocking your movement in that direction!"))
 				result = FALSE
 				break
 		if(result)
@@ -80,8 +80,8 @@
 				if(!chassis.check_for_support())
 					chassis.float_direction = direction
 					chassis.start_process(MECHA_PROC_MOVEMENT)
-					chassis.log_message("<span class='warning'>Movement control lost. Inertial movement started.</span>")
-			if(chassis.do_after(get_step_delay()))
+					chassis.mecha_log_message(span_warning("Movement control lost. Inertial movement started."))
+			if(chassis.do_after_action(get_step_delay()))
 				chassis.can_move = 1
 			return 1
 		return 0
@@ -117,7 +117,7 @@
 
 /obj/item/mecha_parts/mecha_equipment/tool/jetpack/get_equip_info()
 	if(!chassis) return
-	return "<span style=\"color:[equip_ready?"#0f0":"#f00"];\">*</span>&nbsp;[src.name] \[<a href=\"?src=\ref[src];toggle=1\">Toggle</a>\]"
+	return (equip_ready ? span_green("*") : span_red("*")) + "&nbsp;[src.name] \[<a href=\"?src=\ref[src];toggle=1\">Toggle</a>\]"
 
 /obj/item/mecha_parts/mecha_equipment/tool/jetpack/Topic(href,href_list)
 	..()

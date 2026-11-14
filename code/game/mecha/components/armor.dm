@@ -1,10 +1,10 @@
 
 /obj/item/mecha_parts/component/armor
 	name = "mecha plating"
+	desc = "Plates of armor meant to shield a mech. What? Did you expect anything else?"
 	icon = 'icons/mecha/mech_component.dmi'
 	icon_state = "armor"
 	w_class = ITEMSIZE_HUGE
-	origin_tech = list(TECH_DATA = 1, TECH_ENGINEERING = 2)
 
 	component_type = MECH_ARMOR
 
@@ -112,7 +112,7 @@
 		"bomb"=0.8
 		)
 
-/obj/item/mecha_parts/component/armor/military/attach(var/obj/mecha/target, var/mob/living/user)
+/obj/item/mecha_parts/component/armor/military/attach(obj/mecha/target, mob/living/user)
 	. = ..()
 	if(.)
 		var/typepass = FALSE
@@ -149,7 +149,7 @@
 		"bomb"=1
 		)
 
-/obj/item/mecha_parts/component/armor/marshal/attach(var/obj/mecha/target, var/mob/living/user)
+/obj/item/mecha_parts/component/armor/marshal/attach(obj/mecha/target, mob/living/user)
 	. = ..()
 	if(.)
 		var/typepass = FALSE
@@ -200,7 +200,7 @@
 		"bomb"=0.7
 		)
 
-/obj/item/mecha_parts/component/armor/military/marauder/attach(var/obj/mecha/target, var/mob/living/user)
+/obj/item/mecha_parts/component/armor/military/marauder/attach(obj/mecha/target, mob/living/user)
 	. = ..()
 	if(.)
 		var/typepass = FALSE
@@ -225,7 +225,7 @@
 		"bomb"=0.7
 		)
 
-/obj/item/mecha_parts/component/armor/alien/attach(var/obj/mecha/target, var/mob/living/user)
+/obj/item/mecha_parts/component/armor/alien/attach(obj/mecha/target, mob/living/user)
 	. = ..()
 	if(.)
 		if(istype(target, /obj/mecha/combat/phazon/janus))
@@ -236,3 +236,18 @@
 
 		else
 			step_delay = initial(step_delay)
+
+
+/obj/item/mecha_parts/component/armor/fighter
+	name = "fighter plating"
+	step_delay = 0
+	emp_resistance = 2
+	required_type = list(/obj/mecha/combat/fighter)
+	damage_absorption = list(
+		"brute"=0.8,
+		"fire"=0.8,
+		"bullet"=1,
+		"laser"=1,
+		"energy"=0.8,
+		"bomb"=0.5
+		)

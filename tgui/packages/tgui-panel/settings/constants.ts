@@ -4,10 +4,16 @@
  * @license MIT
  */
 
+export const THEMES = ['light', 'dark', 'vchatlight', 'vchatdark'] as const;
+
 export const SETTINGS_TABS = [
   {
     id: 'general',
     name: 'General',
+  },
+  {
+    id: 'adminSettings',
+    name: 'Admin',
   },
   {
     id: 'limits',
@@ -25,7 +31,19 @@ export const SETTINGS_TABS = [
     id: 'chatPage',
     name: 'Chat Tabs',
   },
-];
+  {
+    id: 'statPanel',
+    name: 'Stat Panel',
+  },
+  {
+    id: 'ttsSettings',
+    name: 'TTS/Accessibility',
+  },
+  {
+    id: 'websocket',
+    name: 'Websocket',
+  },
+] as const;
 
 export const FONTS_DISABLED = 'Default';
 
@@ -41,6 +59,6 @@ export const FONTS = [
   'Trebuchet MS',
   'Courier New',
   'Lucida Console',
-];
+] as const;
 
 export const MAX_HIGHLIGHT_SETTINGS = 10;

@@ -10,7 +10,7 @@
 	canmove = 0
 	stunned = 1
 	icon = null
-	invisibility = 101
+	invisibility = INVISIBILITY_ABSTRACT
 	for(var/t in organs)
 		qdel(t)
 	var/atom/movable/overlay/animation = new /atom/movable/overlay( loc )
@@ -33,34 +33,30 @@
 	for(var/obj/item/W in src)
 		drop_from_inventory(W)
 	set_species(species.primitive_form)
-	dna.SetSEState(MONKEYBLOCK,1)
-	dna.SetSEValueRange(MONKEYBLOCK,0xDAC, 0xFFF)
 
-	to_chat(src, "<B>You are now [species.name]. </B>")
+	to_chat(src, span_infoplain(span_bold("You are now [species.name]. ")))
 	qdel(animation)
 
 	return src
 
-/mob/new_player/AIize(var/move = TRUE)
+/mob/new_player/AIize(move = TRUE)
 	spawning = 1
 	return ..()
 
-/mob/living/carbon/human/AIize(var/move = TRUE) // 'move' argument needs defining here too because BYOND is dumb
+/mob/living/carbon/human/AIize(move = TRUE) // 'move' argument needs defining here too because BYOND is dumb
 	if (transforming)
 		return
 	for(var/t in organs)
 		qdel(t)
 
-	//VOREStation Edit Start - Hologram examine flavor
 	var/mob/living/silicon/ai/O = ..(move)
 	if(O)
 		O.flavor_text = O.client?.prefs?.flavor_texts["general"]
 		return O
-	//VOREStation Edit End
 
 	return ..(move)
 
-/mob/living/carbon/AIize(var/move = TRUE)
+/mob/living/carbon/AIize(move = TRUE)
 	if (transforming)
 		return
 	for(var/obj/item/W in src)
@@ -68,48 +64,48 @@
 	transforming = 1
 	canmove = 0
 	icon = null
-	invisibility = 101
+	invisibility = INVISIBILITY_ABSTRACT
 	return ..()
 
-/mob/proc/AIize(var/move = TRUE)
+/mob/proc/AIize(move = TRUE)
 	if(client)
 		src << sound(null, repeat = 0, wait = 0, volume = 85, channel = 1) // stop the jams for AIs
 
 	var/newloc = loc
 	if(move)
 		var/obj/loc_landmark
-		for(var/obj/effect/landmark/start/sloc in landmarks_list)
-			if (sloc.name != "AI")
+		for(var/obj/effect/landmark/start/sloc in GLOB.landmarks_list)
+			if (sloc.name != JOB_AI)
 				continue
 			if ((locate(/mob/living) in sloc.loc) || (locate(/obj/structure/AIcore) in sloc.loc))
 				continue
 			loc_landmark = sloc
 		if (!loc_landmark)
-			for(var/obj/effect/landmark/tripai in landmarks_list)
+			for(var/obj/effect/landmark/tripai in GLOB.landmarks_list)
 				if (tripai.name == "tripai")
 					if((locate(/mob/living) in tripai.loc) || (locate(/obj/structure/AIcore) in tripai.loc))
 						continue
 					loc_landmark = tripai
 		if (!loc_landmark)
 			to_chat(src, "Oh god sorry we can't find an unoccupied AI spawn location, so we're spawning you on top of someone.")
-			for(var/obj/effect/landmark/start/sloc in landmarks_list)
-				if (sloc.name == "AI")
+			for(var/obj/effect/landmark/start/sloc in GLOB.landmarks_list)
+				if (sloc.name == JOB_AI)
 					loc_landmark = sloc
 
 		newloc = loc_landmark.loc
 
-	var/mob/living/silicon/ai/O = new (newloc, using_map.default_law_type,,1)//No MMI but safety is in effect.
-	O.invisibility = 0
+	var/mob/living/silicon/ai/O = new (newloc, FALSE, using_map.default_law_type, null, 1)//No MMI but safety is in effect.
+	O.invisibility = INVISIBILITY_NONE
 	O.aiRestorePowerRoutine = 0
 
 	if(mind)
 		mind.transfer_to(O)
-		O.mind.original = O
+		O.mind.original_character = WEAKREF(O)
 	else
 		O.key = key
 
 	//Languages
-	add_language("Robot Talk", 1)
+	add_language(LANGUAGE_ROBOT_TALK, 1)
 	add_language(LANGUAGE_GALCOM, 1)
 	add_language(LANGUAGE_SOL_COMMON, 1)
 	add_language(LANGUAGE_UNATHI, 1)
@@ -151,33 +147,33 @@
 	transforming = 1
 	canmove = 0
 	icon = null
-	invisibility = 101
+	invisibility = INVISIBILITY_ABSTRACT
 	for(var/t in organs)
 		qdel(t)
 
-	var/mob/living/silicon/robot/O = new /mob/living/silicon/robot( loc )
+	var/mob/living/silicon/robot/O = new /mob/living/silicon/robot(loc)
 
 	O.gender = gender
-	O.invisibility = 0
+	O.invisibility = INVISIBILITY_NONE
 
 	if(mind)		//TODO
 		mind.transfer_to(O)
-		if(O.mind.assigned_role == "Cyborg")
-			O.mind.original = O
+		if(O.mind.assigned_role == JOB_CYBORG)
+			O.mind.original_character = WEAKREF(O)
 		else if(mind && mind.special_role)
 			O.mind.store_memory("In case you look at this after being borged, the objectives are only here until I find a way to make them not show up for you, as I can't simply delete them without screwing up round-end reporting. --NeoFite")
 	else
 		O.key = key
 
 	O.loc = loc
-	O.job = "Cyborg"
-	if(O.mind.assigned_role == "Cyborg")
-		if(O.mind.role_alt_title == "Robot")
-			O.mmi = new /obj/item/device/mmi/digital/posibrain(O)
-		else if(O.mind.role_alt_title == "Drone")
-			O.mmi = new /obj/item/device/mmi/digital/robot(O)
+	O.job = JOB_CYBORG
+	if(O.mind.assigned_role == JOB_CYBORG)
+		if(O.mind.role_alt_title == JOB_ALT_ROBOT)
+			O.mmi = new /obj/item/mmi/digital/posibrain(O)
+		else if(O.mind.role_alt_title == JOB_ALT_DRONE)
+			O.mmi = new /obj/item/mmi/digital/robot(O)
 		else
-			O.mmi = new /obj/item/device/mmi(O)
+			O.mmi = new /obj/item/mmi(O)
 
 		O.mmi.transfer_identity(src)
 
@@ -188,9 +184,9 @@
 		O.resize(B.size_multiplier, animate = TRUE, ignore_prefs = TRUE)
 		O.fuzzy = B.fuzzy
 		O.custom_speech_bubble = B.custom_speech_bubble
+		O.custom_footstep = B.custom_footstep
 
-	callHook("borgify", list(O))
-	O.namepick()
+	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_BORGIFY, O)
 
 	spawn(0)	// Mobs still instantly del themselves, thus we need to spawn or O will never be returned
 		qdel(src)
@@ -206,7 +202,7 @@
 	transforming = 1
 	canmove = 0
 	icon = null
-	invisibility = 101
+	invisibility = INVISIBILITY_ABSTRACT
 	for(var/t in organs)
 		qdel(t)
 
@@ -216,7 +212,7 @@
 	new_xeno.a_intent = I_HURT
 	new_xeno.key = key
 
-	to_chat(new_xeno, "<B>You are now an alien.</B>")
+	to_chat(new_xeno, span_infoplain(span_bold("You are now an alien.")))
 	qdel(src)
 	return
 
@@ -230,7 +226,7 @@
 	transforming = 1
 	canmove = 0
 	icon = null
-	invisibility = 101
+	invisibility = INVISIBILITY_ABSTRACT
 	for(var/t in organs)	//this really should not be necessary
 		qdel(t)
 
@@ -238,17 +234,17 @@
 	new_corgi.a_intent = I_HURT
 	new_corgi.key = key
 
-	to_chat(new_corgi, "<B>You are now a Corgi. Yap Yap!</B>")
+	to_chat(new_corgi, span_infoplain(span_bold("You are now a Corgi. Yap Yap!")))
 	qdel(src)
 	return
 
-/mob/living/carbon/human/Animalize()
+/mob/living/carbon/human/Animalize(mob/user)
 
 	var/list/mobtypes = typesof(/mob/living/simple_mob)
-	var/mobpath = tgui_input_list(usr, "Which type of mob should [src] turn into?", "Choose a type", mobtypes)
+	var/mobpath = tgui_input_list(user, "Which type of mob should [src] turn into?", "Choose a type", mobtypes)
 
 	if(!safe_animal(mobpath))
-		to_chat(usr, span_red("Sorry but this mob type is currently unavailable."))
+		to_chat(user, span_red("Sorry but this mob type is currently unavailable."))
 		return
 
 	if(transforming)
@@ -260,7 +256,7 @@
 	transforming = 1
 	canmove = 0
 	icon = null
-	invisibility = 101
+	invisibility = INVISIBILITY_ABSTRACT
 
 	for(var/t in organs)
 		qdel(t)
@@ -276,13 +272,13 @@
 		qdel(src)
 	return
 
-/mob/proc/Animalize()
+/mob/proc/Animalize(mob/user)
 
 	var/list/mobtypes = typesof(/mob/living/simple_mob)
-	var/mobpath = tgui_input_list(usr, "Which type of mob should [src] turn into?", "Choose a type", mobtypes)
+	var/mobpath = tgui_input_list(user, "Which type of mob should [src] turn into?", "Choose a type", mobtypes)
 
 	if(!safe_animal(mobpath))
-		to_chat(usr, span_red("Sorry but this mob type is currently unavailable."))
+		to_chat(user, span_red("Sorry but this mob type is currently unavailable."))
 		return
 
 	var/mob/new_mob = new mobpath(src.loc)
@@ -298,7 +294,7 @@
  * This proc is here to force coders to manually place their mob in this list, hopefully tested.
  * This also gives a place to explain -why- players shouldnt be turn into certain mobs and hopefully someone can fix them.
  */
-/mob/proc/safe_animal(var/MP)
+/mob/proc/safe_animal(MP)
 
 //Bad mobs! - Remember to add a comment explaining what's wrong with the mob
 	if(!MP)

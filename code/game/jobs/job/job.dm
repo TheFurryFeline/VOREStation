@@ -7,7 +7,7 @@
 	var/list/access = list()              // Useful for servers which either have fewer players, so each person needs to fill more than one role, or servers which like to give more access, so players can't hide forever in their super secure departments (I'm looking at you, chemistry!)
 	var/flag = 0 	                      // Bitflags for the job
 	var/department_flag = 0
-	var/faction = "None"	              // Players will be allowed to spawn in as jobs that are set to "Station"
+	var/faction = FACTION_NONE            // Players will be allowed to spawn in as jobs that are set to FACTION_STATION
 	var/total_positions = 0               // How many players can be this job
 	var/spawn_positions = 0               // How many players can spawn in as this job
 	var/current_positions = 0             // How many players have this job
@@ -39,18 +39,47 @@
 	// Description of the job's role and minimum responsibilities.
 	var/job_description = "This Job doesn't have a description! Please report it!"
 
+	//Requires a ckey to be whitelisted in jobwhitelist.txt
+	var/whitelist_only = 0
+
+	//Does not display this job on the occupation setup screen
+	var/latejoin_only = 0
+
+	//Every hour playing this role gains this much time off. (Can be negative for off duty jobs!)
+	var/timeoff_factor = 3
+
+	//What type of PTO is that job earning?
+	var/pto_type
+
+	//Disallow joining as this job midround from off-duty position via going on-duty
+	var/disallow_jobhop = FALSE
+
+	//Time required in the department as other jobs before playing this one (in hours)
+	var/dept_time_required = 0
+
+	//Do we forbid ourselves from earning PTO?
+	var/playtime_only = FALSE
+
+	var/requestable = TRUE
+
+	VAR_PROTECTED/list/mail_goodies = null		  // Goodies that can be received via the mail system
+	VAR_PROTECTED/exclusive_mail_goodies = FALSE	  // If this job's mail goodies compete with generic goodies.
+	VAR_PROTECTED/mail_color = "#FFF"
+
+	var/list/symptoms // A list of symptoms that this job might have when we roll a dormant diseas.
+
 /datum/job/New()
 	. = ..()
 	department_accounts = department_accounts || departments_managed
 
-/datum/job/proc/equip(var/mob/living/carbon/human/H, var/alt_title)
-	var/decl/hierarchy/outfit/outfit = get_outfit(H, alt_title)
+/datum/job/proc/equip(mob/living/carbon/human/H, alt_title)
+	var/datum/decl/hierarchy/outfit/outfit = get_outfit(H, alt_title)
 	if(!outfit)
 		return FALSE
 	. = outfit.equip(H, title, alt_title)
 	return 1
 
-/datum/job/proc/get_outfit(var/mob/living/carbon/human/H, var/alt_title)
+/datum/job/proc/get_outfit(mob/living/carbon/human/H, alt_title)
 	if(alt_title && alt_titles)
 		var/datum/alt_title/A = alt_titles[alt_title]
 		if(A && initial(A.title_outfit))
@@ -58,13 +87,13 @@
 	. = . || outfit_type
 	. = outfit_by_type(.)
 
-/datum/job/proc/setup_account(var/mob/living/carbon/human/H)
+/datum/job/proc/setup_account(mob/living/carbon/human/H)
 	if(!account_allowed || (H.mind && H.mind.initial_account))
 		return
 
 	var/income = 1
 	if(H.client)
-		switch(H.client.prefs.economic_status)
+		switch(H.client.prefs.read_preference(/datum/preference/choiced/human/economic_status))
 			if(CLASS_UPPER)		income = 1.30
 			if(CLASS_UPMID)		income = 1.15
 			if(CLASS_MIDDLE)	income = 1
@@ -77,28 +106,28 @@
 	var/datum/money_account/M = create_account(H.real_name, money_amount, null, offmap_spawn)
 	if(H.mind)
 		var/remembered_info = ""
-		remembered_info += "<b>Your account number is:</b> #[M.account_number]<br>"
-		remembered_info += "<b>Your account pin is:</b> [M.remote_access_pin]<br>"
-		remembered_info += "<b>Your account funds are:</b> $[M.money]<br>"
+		remembered_info += span_bold("Your account number is:") + " #[M.account_number]<br>"
+		remembered_info += span_bold("Your account pin is:") + " [M.remote_access_pin]<br>"
+		remembered_info += span_bold("Your account funds are:") + " $[M.money]<br>"
 
 		if(M.transaction_log.len)
 			var/datum/transaction/T = M.transaction_log[1]
-			remembered_info += "<b>Your account was created:</b> [T.time], [T.date] at [T.source_terminal]<br>"
+			remembered_info += span_bold("Your account was created:") + " [T.time], [T.date] at [T.source_terminal]<br>"
 		H.mind.store_memory(remembered_info)
 
 		H.mind.initial_account = M
 
-	to_chat(H, "<span class='notice'><b>Your account number is: [M.account_number], your account pin is: [M.remote_access_pin]</b></span>")
+	to_chat(H, span_boldnotice("Your account number is: [M.account_number], your account pin is: [M.remote_access_pin]"))
 
 // overrideable separately so AIs/borgs can have cardborg hats without unneccessary new()/qdel()
-/datum/job/proc/equip_preview(mob/living/carbon/human/H, var/alt_title)
-	var/decl/hierarchy/outfit/outfit = get_outfit(H, alt_title)
+/datum/job/proc/equip_preview(mob/living/carbon/human/H, alt_title)
+	var/datum/decl/hierarchy/outfit/outfit = get_outfit(H, alt_title)
 	if(!outfit)
 		return FALSE
 	. = outfit.equip_base(H, title, alt_title)
 
 /datum/job/proc/get_access()
-	if(!config || config.jobs_have_minimal_access)
+	if(!config || CONFIG_GET(flag/jobs_have_minimal_access))
 		return src.minimal_access.Copy()
 	else
 		return src.access.Copy()
@@ -108,18 +137,18 @@
 	return (available_in_days(C) == 0) //Available in 0 days = available right now = player is old enough to play.
 
 /datum/job/proc/available_in_days(client/C)
-	if(C && config.use_age_restriction_for_jobs && isnum(C.player_age) && isnum(minimal_player_age))
+	if(C && CONFIG_GET(flag/use_age_restriction_for_jobs) && isnum(C.player_age) && isnum(minimal_player_age))
 		return max(0, minimal_player_age - C.player_age)
 	return 0
 
-/datum/job/proc/apply_fingerprints(var/mob/living/carbon/human/target)
+/datum/job/proc/apply_fingerprints(mob/living/carbon/human/target)
 	if(!istype(target))
 		return 0
 	for(var/obj/item/item in target.contents)
 		apply_fingerprints_to_item(target, item)
 	return 1
 
-/datum/job/proc/apply_fingerprints_to_item(var/mob/living/carbon/human/holder, var/obj/item/item)
+/datum/job/proc/apply_fingerprints_to_item(mob/living/carbon/human/holder, obj/item/item)
 	item.add_fingerprint(holder,1)
 	if(item.contents.len)
 		for(var/obj/item/sub_item in item.contents)
@@ -128,10 +157,10 @@
 /datum/job/proc/is_position_available()
 	return (current_positions < total_positions) || (total_positions == -1)
 
-/datum/job/proc/has_alt_title(var/mob/H, var/supplied_title, var/desired_title)
+/datum/job/proc/has_alt_title(mob/H, supplied_title, desired_title)
 	return (supplied_title == desired_title) || (H.mind && H.mind.role_alt_title == desired_title)
 
-/datum/job/proc/get_description_blurb(var/alt_title)
+/datum/job/proc/get_description_blurb(alt_title)
 	var/list/message = list()
 	message |= job_description
 
@@ -144,7 +173,7 @@
 	return message
 
 /datum/job/proc/get_job_icon()
-	if(!job_master.job_icons[title])
+	if(!SSjob.job_icon_cache[title])
 		var/mob/living/carbon/human/dummy/mannequin/mannequin = get_mannequin("#job_icon")
 		dress_mannequin(mannequin)
 		mannequin.dir = SOUTH
@@ -152,11 +181,11 @@
 		var/icon/preview_icon = getFlatIcon(mannequin)
 
 		preview_icon.Scale(preview_icon.Width() * 2, preview_icon.Height() * 2) // Scaling here to prevent blurring in the browser.
-		job_master.job_icons[title] = preview_icon
+		SSjob.job_icon_cache[title] = preview_icon
 
-	return job_master.job_icons[title]
+	return SSjob.job_icon_cache[title]
 
-/datum/job/proc/dress_mannequin(var/mob/living/carbon/human/dummy/mannequin/mannequin)
+/datum/job/proc/dress_mannequin(mob/living/carbon/human/dummy/mannequin/mannequin)
 	mannequin.delete_inventory(TRUE)
 	equip_preview(mannequin)
 	if(mannequin.back)
@@ -168,19 +197,54 @@
 ///Will first check based on brain type, then based on species.
 /datum/job/proc/get_min_age(species_name, brain_type)
 	return minimum_character_age // VOREStation Edit - Minimum character age by rules is 18, return default which is standard for all species
-    //return (brain_type && LAZYACCESS(min_age_by_species, brain_type)) || LAZYACCESS(min_age_by_species, species_name) || minimum_character_age //VOREStation Removal
+	//return (brain_type && LAZYACCESS(min_age_by_species, brain_type)) || LAZYACCESS(min_age_by_species, species_name) || minimum_character_age //VOREStation Removal
 
 /datum/job/proc/get_ideal_age(species_name, brain_type)
 	return ideal_character_age // VOREStation Edit - Minimum character age by rules is 18, return default which is standard for all species
 	//return (brain_type && LAZYACCESS(ideal_age_by_species, brain_type)) || LAZYACCESS(ideal_age_by_species, brain_type) || ideal_character_age //VOREStation Removal
 
-/datum/job/proc/is_species_banned(species_name, brain_type)
-	return FALSE // VOREStation Edit - Any species can be any job.
-	/* VOREStation Removal
-	if(banned_job_species == null)
-		return
-	if(species_name in banned_job_species)
-		return TRUE
-	if(brain_type in banned_job_species)
-		return TRUE
-	*/
+/datum/job/proc/update_limit(comperator)
+	return
+
+// Check client-specific availability rules.
+/datum/job/proc/player_has_enough_pto(client/C)
+	return timeoff_factor >= 0 || (C && LAZYACCESS(C.department_hours, pto_type) > 0)
+
+/datum/job/proc/player_has_enough_playtime(client/C)
+	return (available_in_playhours(C) == 0)
+
+/datum/job/proc/available_in_playhours(client/C)
+	if(C && CONFIG_GET(flag/use_playtime_restriction_for_jobs) && dept_time_required)
+		if(isnum(C.play_hours[pto_type])) // Has played that department before
+			return max(0, dept_time_required - C.play_hours[pto_type])
+		else // List doesn't have that entry, maybe never played, maybe invalid PTO type (you should fix that...)
+			return dept_time_required // Could be 0, too, which is fine! They can play that
+	return 0
+
+// Special treatment for some the more complicated heads
+
+// Captain gets every department combined
+/datum/job/captain/available_in_playhours(client/C)
+	if(C && CONFIG_GET(flag/use_playtime_restriction_for_jobs) && dept_time_required)
+		var/remaining_time_needed = dept_time_required
+		for(var/key in C.play_hours)
+			if(isnum(C.play_hours[key]) && !(key == PTO_TALON))
+				remaining_time_needed = max(0, remaining_time_needed - C.play_hours[key])
+		return remaining_time_needed
+	return 0
+
+// HoP gets civilian, cargo, and exploration combined
+/datum/job/hop/available_in_playhours(client/C)
+	if(C && CONFIG_GET(flag/use_playtime_restriction_for_jobs) && dept_time_required)
+		var/remaining_time_needed = dept_time_required
+		if(isnum(C.play_hours[PTO_CIVILIAN]))
+			remaining_time_needed = max(0, remaining_time_needed - C.play_hours[PTO_CIVILIAN])
+		if(isnum(C.play_hours[PTO_CARGO]))
+			remaining_time_needed = max(0, remaining_time_needed - C.play_hours[PTO_CARGO])
+		if(isnum(C.play_hours[PTO_EXPLORATION]))
+			remaining_time_needed = max(0, remaining_time_needed - C.play_hours[PTO_EXPLORATION])
+		return remaining_time_needed
+	return 0
+
+/datum/job/proc/get_request_reasons()
+	return list()

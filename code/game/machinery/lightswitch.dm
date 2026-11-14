@@ -11,14 +11,15 @@
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 10
 	power_channel = LIGHT
-	blocks_emissive = FALSE
+	blocks_emissive = EMISSIVE_BLOCK_NONE
 	vis_flags = VIS_HIDE // They have an emissive that looks bad in openspace due to their wall-mounted nature
+	flags = WALL_ITEM
 	var/on = 1
 	var/area/area = null
 	var/otherarea = null
 	var/image/overlay
 
-/obj/machinery/light_switch/Initialize()
+/obj/machinery/light_switch/Initialize(mapload)
 	. = ..()
 
 	area = get_area(src)
@@ -71,6 +72,9 @@
 	area.power_change()
 	GLOB.lights_switched_on_roundstat++
 
+/obj/machinery/light_switch/allow_pai_interaction(mob/living/silicon/pai/user, proximity_flag)
+	return proximity_flag
+
 /obj/machinery/light_switch/power_change()
 
 	if(!otherarea)
@@ -81,9 +85,17 @@
 
 		update_icon()
 
-/obj/machinery/light_switch/emp_act(severity)
-	if(stat & (BROKEN|NOPOWER))
-		..(severity)
+/obj/machinery/light_switch/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF || stat & (BROKEN|NOPOWER))
 		return
 	power_change()
-	..(severity)
+
+//Breakers for event maps
+
+/obj/machinery/light_switch/breaker
+	name = "lights breaker"
+	desc = "A breaker for controlling power to the lights connected to the circuit."
+	icon = 'icons/obj/power_breaker.dmi'
+	icon_state = "light1"
+	on = 0

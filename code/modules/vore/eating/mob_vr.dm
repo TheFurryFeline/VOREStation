@@ -6,7 +6,7 @@
 	var/resizable = TRUE				// Can other people resize you? (Usually ignored for self-resizes)
 	var/digest_leave_remains = FALSE	// Will this mob leave bones/skull/etc after the melty demise?
 	var/allowmobvore = TRUE				// Will simplemobs attempt to eat the mob?
-	var/allow_inbelly_spawning = FALSE	// Will we even bother with attempts of someone to spawn in in one of our bellies?
+	var/allowtemp = TRUE				// Can they be affected by belly temperature?
 	var/obj/belly/vore_selected			// Default to no vore capability.
 	var/list/vore_organs = list()		// List of vore containers inside a mob
 	var/absorbed = FALSE				// If a mob is absorbed into another
@@ -14,18 +14,29 @@
 	var/vore_smell = null				// What the character smells like
 	var/noisy = FALSE					// Toggle audible hunger.
 	var/permit_healbelly = TRUE
-	var/stumble_vore = TRUE				//Enabled by default since you have to enable drop pred/prey to do this anyway
-	var/slip_vore = TRUE				//Enabled by default since you have to enable drop pred/prey to do this anyway
-	var/drop_vore = TRUE				//Enabled by default since you have to enable drop pred/prey to do this anyway
-	var/throw_vore = TRUE				//Enabled by default since you have to enable drop pred/prey to do this anyway
-	var/food_vore = TRUE				//Enabled by default since you have to enable drop pred/prey to do this anyway
+	var/stumble_vore = TRUE
+	var/slip_vore = TRUE
+	var/drop_vore = TRUE
+	var/throw_vore = TRUE
+	var/food_vore = TRUE
+	var/obj/belly/spont_belly_front = null
+	var/obj/belly/spont_belly_rear = null
+	var/obj/belly/spont_belly_left = null
+	var/obj/belly/spont_belly_right = null
+	var/consume_liquid_belly = FALSE	//starting off because if someone is into that, they'll toggle it first time they get the error. Otherway around would be more pref breaky.
+	var/digest_pain = TRUE
 	var/can_be_drop_prey = FALSE
 	var/can_be_drop_pred = FALSE
+	var/can_be_afk_prey = TRUE
+	var/can_be_afk_pred = TRUE
 	var/allow_spontaneous_tf = FALSE	// Obviously.
 	var/show_vore_fx = TRUE				// Show belly fullscreens
 	var/selective_preference = DM_DEFAULT	// Preference for selective bellymode
-	var/text_warnings = TRUE 			// Allows us to dismiss the text limit warning messages after viewing it once per round
+	var/size_strip_preference = SIZESTRIP_NONE	// Preference for size change stripping
 	var/eating_privacy_global = FALSE 	// Makes eating attempt/success messages only reach for subtle range if true, overwritten by belly-specific var
+	var/vore_death_privacy = FALSE		// Chooses whether to announce prey death when digested to ghosts.
+	var/allow_mimicry = TRUE 	// Allows mimicking their character
+	var/allow_mind_transfer = FALSE			//Allows ones mind to be taken over or swapped
 	var/nutrition_message_visible = TRUE
 	var/list/nutrition_messages = list(
 							"They are starving! You can hear their stomach snarling from across the room!",
@@ -50,3 +61,49 @@
 							"They have a very fat frame with a bulging potbelly, squishy rolls of pudge, very wide hips, and plump set of jiggling thighs.",
 							"They are incredibly obese. Their massive potbelly sags over their waistline while their fat ass would probably require two chairs to sit down comfortably!",
 							"They are so morbidly obese, you wonder how they can even stand, let alone waddle around the station. They can't get any fatter without being immobilized.")
+
+	var/vore_capacity = 0				// Maximum capacity, -1 for unlimited
+	var/vore_capacity_ex = list("stomach" = 0) //expanded list of capacities
+	var/vore_fullness = 0				// How "full" the belly is (controls icons)
+	var/list/vore_fullness_ex = list("stomach" = 0) // Expanded list of fullness
+	var/belly_size_multiplier = 1
+	var/vore_sprite_multiply = list("stomach" = FALSE, "taur belly" = FALSE)
+	var/vore_sprite_color = list("stomach" = "#000", "taur belly" = "#000")
+
+	var/list/vore_icon_bellies = list("stomach")
+	var/updating_fullness = FALSE
+	var/obj/belly/previewing_belly
+
+	var/vore_icons = 0					// Bitfield for which fields we have vore icons for.
+	var/vore_eyes = FALSE				// For mobs with fullness specific eye overlays.
+
+	var/obj/soulgem/soulgem				// Soulcatcher. Needs to be up-ported sometime.
+
+	var/receive_reagents = FALSE			//Pref for people to avoid others transfering reagents into them.
+	var/give_reagents = FALSE				//Pref for people to avoid others taking reagents from them.
+	var/apply_reagents = TRUE				//Pref for people to avoid having stomach reagents applied to them
+	var/latejoin_vore = FALSE				//If enabled, latejoiners can spawn into this, assuming they have a client
+	var/latejoin_prey = FALSE				//If enabled, latejoiners can spawn ontop of and instantly eat the victim
+	var/noisy_full = FALSE					//Enables belching when a mob has overeaten
+	var/phase_vore = TRUE					//Enabled by default since you have to enable drop pred/prey to do this anyway
+	var/strip_pref = TRUE					//Enables the ability for worn items to be stripped
+	var/contaminate_pref = TRUE				//Enables the ability for worn items to be digested/contaminated.
+	var/no_latejoin_vore_warning = FALSE	//Auto accepts pred spwan notifications (roundbased / saveable)
+	var/no_latejoin_prey_warning = FALSE	//Auto accepts prey spawn notifications (roundbased / saveable)
+	var/no_latejoin_vore_warning_time = 15	//Time until accepting prey
+	var/no_latejoin_prey_warning_time = 15	//Time until accepting pred
+	var/no_latejoin_vore_warning_persists = FALSE	//Do we save it?
+	var/no_latejoin_prey_warning_persists = FALSE	//Do we save it?
+	var/belly_rub_target = null
+	var/soulcatcher_pref_flags = NONE			//Default disabled
+	var/persistend_edit_mode = FALSE
+	var/vore_pref_type_flags = ALL // Set to all by default to allow mobs to be devoured in all ways. Players should adjust to their liking
+
+	var/voice_freq = 42500	// Preference for character voice frequency
+	var/emote_sound_mode = EMOTE_SOUND_VOICE_FREQ
+	var/list/voice_sounds_list = list()	// The sound list containing our voice sounds!
+	var/enabled = TRUE //Pauses a mob if disabled (Prevents life ticks from happening)
+	var/died_in_vr = FALSE //For virtual reality sleepers
+	var/last_move_time = 0 //For movement smoothing
+
+	var/max_voreoverlay_alpha = 255

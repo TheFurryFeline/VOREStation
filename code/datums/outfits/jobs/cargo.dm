@@ -1,30 +1,46 @@
-/decl/hierarchy/outfit/job/cargo
-	l_ear = /obj/item/device/radio/headset/headset_cargo
-	hierarchy_type = /decl/hierarchy/outfit/job/cargo
+/datum/decl/hierarchy/outfit/job/cargo
+	hierarchy_type = /datum/decl/hierarchy/outfit/job/cargo
 
-/decl/hierarchy/outfit/job/cargo/qm
+	headset = /obj/item/radio/headset/cargo
+	headset_alt = /obj/item/radio/headset/alt/cargo
+	headset_earbud = /obj/item/radio/headset/earbud/cargo
+
+/datum/decl/hierarchy/outfit/job/cargo/qm
 	name = OUTFIT_JOB_NAME("Cargo")
 	uniform = /obj/item/clothing/under/rank/cargo
-	l_ear = /obj/item/device/radio/headset/headset_qm //VOREStation Add
 	shoes = /obj/item/clothing/shoes/brown
 	glasses = /obj/item/clothing/glasses/sunglasses
-	l_hand = /obj/item/weapon/clipboard
-	id_type = /obj/item/weapon/card/id/cargo/head
-	pda_type = /obj/item/device/pda/quartermaster
+	l_hand = /obj/item/clipboard
+	id_type = /obj/item/card/id/cargo/head
+	pda_type = /obj/item/pda/quartermaster
 
-/decl/hierarchy/outfit/job/cargo/cargo_tech
+	headset = /obj/item/radio/headset/qm
+	headset_alt = /obj/item/radio/headset/alt/qm
+	headset_earbud = /obj/item/radio/headset/earbud/qm
+
+/datum/decl/hierarchy/outfit/job/cargo/cargo_tech
 	name = OUTFIT_JOB_NAME("Cargo technician")
 	uniform = /obj/item/clothing/under/rank/cargotech
-	id_type = /obj/item/weapon/card/id/cargo
-	pda_type = /obj/item/device/pda/cargo
+	id_type = /obj/item/card/id/cargo
+	pda_type = /obj/item/pda/cargo
 
-/decl/hierarchy/outfit/job/cargo/mining
+/datum/decl/hierarchy/outfit/job/cargo/mining
 	name = OUTFIT_JOB_NAME("Shaft miner")
 	uniform = /obj/item/clothing/under/rank/miner
-	l_ear = /obj/item/device/radio/headset/headset_mine
-	backpack = /obj/item/weapon/storage/backpack/industrial
-	satchel_one  = /obj/item/weapon/storage/backpack/satchel/eng
-	id_type = /obj/item/weapon/card/id/cargo/miner
-	pda_type = /obj/item/device/pda/shaftminer
-	backpack_contents = list(/obj/item/weapon/tool/crowbar = 1, /obj/item/weapon/storage/bag/ore = 1)
+	backpack = /obj/item/storage/backpack/industrial
+	satchel_one  = /obj/item/storage/backpack/satchel/eng
+	id_type = /obj/item/card/id/cargo/miner
+	pda_type = /obj/item/pda/shaftminer
+	backpack_contents = list(/obj/item/tool/crowbar = 1, /obj/item/ore_bag = 1, /obj/item/mining_voucher = 1)
 	flags = OUTFIT_HAS_BACKPACK|OUTFIT_EXTENDED_SURVIVAL
+
+	headset = /obj/item/radio/headset/miner
+	headset_alt = /obj/item/radio/headset/miner
+	headset_earbud = /obj/item/radio/headset/miner
+
+/datum/decl/hierarchy/outfit/job/cargo/cargo_tech/mailman
+	name = OUTFIT_JOB_NAME(JOB_ALT_MAILMAN)
+	uniform = /obj/item/clothing/under/rank/mailman2
+	head = /obj/item/clothing/head/mailman2
+	pda_slot = slot_l_store
+	backpack_contents = list(/obj/item/storage/bag/mail = 1, /obj/item/mail_scanner = 1)

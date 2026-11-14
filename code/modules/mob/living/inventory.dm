@@ -2,14 +2,14 @@
 	var/hand = null
 	var/obj/item/l_hand = null
 	var/obj/item/r_hand = null
-	var/obj/item/weapon/back = null//Human/Monkey
-	var/obj/item/weapon/tank/internal = null//Human/Monkey
+	var/obj/item/back = null//Human/Monkey
+	var/obj/item/tank/internal = null//Human/Monkey
 	var/obj/item/clothing/mask/wear_mask = null//Carbon
 
 /mob/living/equip_to_storage(obj/item/newitem, user_initiated = FALSE)
 	// Try put it in their backpack
-	if(istype(src.back,/obj/item/weapon/storage))
-		var/obj/item/weapon/storage/backpack = src.back
+	if(istype(src.back,/obj/item/storage))
+		var/obj/item/storage/backpack = src.back
 		if(backpack.can_be_inserted(newitem, 1))
 			if(user_initiated)
 				backpack.handle_item_insertion(newitem)
@@ -18,13 +18,24 @@
 			return src.back
 
 	// Try to place it in any item that can store stuff, on the mob.
-	for(var/obj/item/weapon/storage/S in src.contents)
+	for(var/obj/item/storage/S in src.contents)
 		if (S.can_be_inserted(newitem, 1))
 			if(user_initiated)
 				S.handle_item_insertion(newitem)
 			else
 				newitem.forceMove(S)
 			return S
+
+	if(istype(src.back,/obj/item/rig))	//This would be much cooler if we had componentized storage datums
+		var/obj/item/rig/R = src.back
+		if(R.rig_storage)
+			var/obj/item/storage/backpack = R.rig_storage
+			if(backpack.can_be_inserted(newitem, 1))
+				if(user_initiated)
+					backpack.handle_item_insertion(newitem)
+				else
+					newitem.forceMove(src.back)
+				return backpack
 	return 0
 
 //Returns the thing in our active hand
@@ -38,7 +49,7 @@
 	else		return l_hand
 
 //Drops the item in our active hand. TODO: rename this to drop_active_hand or something
-/mob/living/drop_item(var/atom/Target)
+/mob/living/drop_item(atom/Target)
 	var/obj/item/item_dropped = null
 
 	if (hand)
@@ -48,7 +59,7 @@
 		item_dropped = r_hand
 		. = drop_r_hand(Target)
 
-	if (istype(item_dropped) && !QDELETED(item_dropped) && is_preference_enabled(/datum/client_preference/drop_sounds))
+	if (istype(item_dropped) && !QDELETED(item_dropped) && check_sound_preference(/datum/preference/toggle/drop_sounds))
 		addtimer(CALLBACK(src, PROC_REF(make_item_drop_sound), item_dropped), 1)
 
 /mob/proc/make_item_drop_sound(obj/item/I)
@@ -56,21 +67,21 @@
 		return
 
 	if(I.drop_sound)
-		playsound(I, I.drop_sound, 25, 0, preference = /datum/client_preference/drop_sounds)
+		playsound(I, I.drop_sound, 25, 0, preference = /datum/preference/toggle/drop_sounds)
 
 
 //Drops the item in our left hand
-/mob/living/drop_l_hand(var/atom/Target)
+/mob/living/drop_l_hand(atom/Target)
 	return drop_from_inventory(l_hand, Target)
 
 //Drops the item in our right hand
-/mob/living/drop_r_hand(var/atom/Target)
+/mob/living/drop_r_hand(atom/Target)
 	return drop_from_inventory(r_hand, Target)
 
 /mob/living/proc/hands_are_full()
 	return (r_hand && l_hand)
 
-/mob/living/proc/item_is_in_hands(var/obj/item/I)
+/mob/living/proc/item_is_in_hands(obj/item/I)
 	return (I == r_hand || I == l_hand)
 
 /mob/living/proc/update_held_icons()
@@ -79,7 +90,7 @@
 	if(r_hand)
 		r_hand.update_held_icon()
 
-/mob/living/proc/get_type_in_hands(var/T)
+/mob/living/proc/get_type_in_hands(T)
 	if(istype(l_hand, T))
 		return l_hand
 	if(istype(r_hand, T))
@@ -107,7 +118,7 @@
 		update_inv_wear_mask()
 	return
 
-/mob/living/get_equipped_item(var/slot)
+/mob/living/get_equipped_item(slot)
 	switch(slot)
 		if(slot_l_hand) return l_hand
 		if(slot_r_hand) return r_hand
@@ -115,21 +126,21 @@
 		if(slot_wear_mask) return wear_mask
 	return null
 
-/mob/living/ret_grab(var/list/L, var/mobchain_limit = 5)
+/mob/living/ret_grab(list/L, mobchain_limit = 5)
 	// We're the first!
 	if(!L)
 		L = list()
 
 	// Lefty grab!
-	if (istype(l_hand, /obj/item/weapon/grab))
-		var/obj/item/weapon/grab/G = l_hand
+	if (istype(l_hand, /obj/item/grab))
+		var/obj/item/grab/G = l_hand
 		L |= G.affecting
 		if(mobchain_limit-- > 0)
 			G.affecting?.ret_grab(L, mobchain_limit) // Recurse! They can update the list. It's the same instance as ours.
 
 	// Righty grab!
-	if (istype(r_hand, /obj/item/weapon/grab))
-		var/obj/item/weapon/grab/G = r_hand
+	if (istype(r_hand, /obj/item/grab))
+		var/obj/item/grab/G = r_hand
 		L |= G.affecting
 		if(mobchain_limit-- > 0)
 			G.affecting?.ret_grab(L, mobchain_limit) // Same as lefty!
@@ -142,35 +153,43 @@
 	set category = "Object"
 	set src = usr
 
+	if(ismecha(loc))
+		return
+
+	if(INCAPACITATED_IGNORING(src, INCAPABLE_GRAB))
+		return
+
+	if(stat || paralysis || stunned)
+		return
+
+	if(restrained())
+		return
+
 	if(!checkClickCooldown())
 		return
 
 	setClickCooldown(1)
 
-	if(istype(loc,/obj/mecha)) return
-
-	if(hand)
-		var/obj/item/W = l_hand
-		if (W)
-			W.attack_self(src)
-			update_inv_l_hand()
-	else
-		var/obj/item/W = r_hand
-		if (W)
-			W.attack_self(src)
-			update_inv_r_hand()
+	var/obj/item/inhand = get_active_hand()
+	if(inhand)
+		inhand.attack_self(src)
+		update_inv_active_hand()
 	return
 
-/mob/living/abiotic(var/full_body = 0)
+/* Disable abiotic lockout
+/mob/living/abiotic(full_body = 0)
 	if(full_body && ((src.l_hand && !( src.l_hand.abstract )) || (src.r_hand && !( src.r_hand.abstract )) || (src.back || src.wear_mask)))
 		return 1
 
 	if((src.l_hand && !( src.l_hand.abstract )) || (src.r_hand && !( src.r_hand.abstract )))
 		return 1
 	return 0
+*/
 
 // This handles the drag-open inventory panel.
 /mob/living/MouseDrop(atom/over_object)
+	if(over_object?.is_incorporeal())
+		return
 	var/mob/living/L = over_object
 	if(istype(L) && L != src && L == usr && Adjacent(L))
 		show_inventory_panel(L)
@@ -264,7 +283,16 @@
 	data["slots"] = slots
 
 	data["internals"] = host.internals
-	data["internalsValid"] = istype(host.wear_mask, /obj/item/clothing/mask) && istype(host.back, /obj/item/weapon/tank)
+	var/internals_valid = FALSE
+	if(istype(host.wear_mask, /obj/item/clothing/mask))
+		if(istype(host.back, /obj/item/tank) || istype(host.l_hand, /obj/item/tank) || istype(host.r_hand, /obj/item/tank))
+			internals_valid = TRUE
+		else if(ishuman(host))
+			var/mob/living/carbon/human/human_host = host
+			if(istype(human_host.r_store, /obj/item/tank) || istype(human_host.l_store, /obj/item/tank) || istype(human_host.s_store, /obj/item/tank) || istype(human_host.belt, /obj/item/tank))
+				internals_valid = TRUE
+
+	data["internalsValid"] = internals_valid
 
 	return data
 
@@ -294,9 +322,14 @@
 
 	switch(action)
 		if("targetSlot")
-			H.handle_strip(params["slot"], usr)
+			H.handle_strip(params["slot"], ui.user)
 			return TRUE
 
+
+/datum/inventory_panel/human/ui_assets(mob/user)
+	return list(
+		get_asset_datum(/datum/asset/simple/inventory)
+	)
 
 /datum/inventory_panel/human/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
 	var/list/data = list() // We don't inherit TGUI data because humans are soooo different.
@@ -307,40 +340,41 @@
 	if(istype(H.w_uniform, /obj/item/clothing/under))
 		suit = H.w_uniform
 
-
 	var/list/slots = list()
 	for(var/entry in H.species.hud.gear)
 		var/list/slot_ref = H.species.hud.gear[entry]
 		if((slot_ref["slot"] in list(slot_l_store, slot_r_store)))
 			continue
 		var/obj/item/thing_in_slot = H.get_equipped_item(slot_ref["slot"])
-		slots.Add(list(list(
+		UNTYPED_LIST_ADD(slots, list(
 			"name" = slot_ref["name"],
 			"item" = thing_in_slot,
+			"icon" = thing_in_slot ? icon2base64(icon(thing_in_slot.icon, thing_in_slot.icon_state, frame = 1)) : null,
 			"act" = "targetSlot",
 			"params" = list("slot" = slot_ref["slot"]),
-		)))
+		))
 	data["slots"] = slots
-
 
 	var/list/specialSlots = list()
 	if(H.species.hud.has_hands)
-		specialSlots.Add(list(list(
+		UNTYPED_LIST_ADD(specialSlots, list(
 			"name" = "Left Hand",
 			"item" = H.l_hand,
+			"icon" = H.l_hand ? icon2base64(icon(H.l_hand.icon, H.l_hand.icon_state, frame = 1)) : null,
 			"act" = "targetSlot",
 			"params" = list("slot" = slot_l_hand),
-		)))
-		specialSlots.Add(list(list(
+		))
+		UNTYPED_LIST_ADD(specialSlots, list(
 			"name" = "Right Hand",
 			"item" = H.r_hand,
+			"icon" = H.r_hand ? icon2base64(icon(H.r_hand.icon, H.r_hand.icon_state, frame = 1)) : null,
 			"act" = "targetSlot",
 			"params" = list("slot" = slot_r_hand),
-		)))
+		))
 	data["specialSlots"] = specialSlots
 
 	data["internals"] = H.internals
-	data["internalsValid"] = (istype(H.wear_mask, /obj/item/clothing/mask) || istype(H.head, /obj/item/clothing/head/helmet/space)) && (istype(H.back, /obj/item/weapon/tank) || istype(H.belt, /obj/item/weapon/tank) || istype(H.s_store, /obj/item/weapon/tank))
+	data["internalsValid"] = (istype(H.wear_mask, /obj/item/clothing/mask) || istype(H.head, /obj/item/clothing/head/helmet/space)) && (istype(H.back, /obj/item/tank) || istype(H.belt, /obj/item/tank) || istype(H.s_store, /obj/item/tank))
 
 	data["sensors"] = FALSE
 	if(istype(suit) && suit.has_sensor == 1)

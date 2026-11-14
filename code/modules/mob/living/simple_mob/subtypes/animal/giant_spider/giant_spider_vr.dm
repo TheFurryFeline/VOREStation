@@ -24,7 +24,7 @@
 
 	poison_chance = 15
 	poison_per_bite = 2
-	poison_type = "psilocybin"
+	poison_type = REAGENT_ID_PSILOCYBIN
 
 	ai_holder_type = /datum/ai_holder/simple_mob/ranged/electric_spider
 
@@ -54,6 +54,12 @@
 	meat_amount = 15
 
 	egg_type = /obj/effect/spider/eggcluster/royal
+
+/mob/living/simple_mob/animal/giant_spider/webslinger/event
+	ai_holder_type = /datum/ai_holder/simple_mob/event
+
+/mob/living/simple_mob/animal/giant_spider/nurse/queen/event
+	ai_holder_type = /datum/ai_holder/simple_mob/event
 
 /mob/living/simple_mob/animal/giant_spider/nurse
 	var/can_lay_eggs = TRUE

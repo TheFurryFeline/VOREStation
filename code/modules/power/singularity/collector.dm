@@ -1,6 +1,4 @@
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:33
-var/global/list/rad_collectors = list()
-
 /obj/machinery/power/rad_collector
 	name = "Radiation Collector Array"
 	desc = "A device which uses Hawking Radiation and phoron to produce power."
@@ -8,40 +6,44 @@ var/global/list/rad_collectors = list()
 	icon_state = "ca"
 	anchored = FALSE
 	density = TRUE
-	req_access = list(access_engine_equip)
+	req_access = list(ACCESS_ENGINE_EQUIP)
 //	use_power = 0
-	var/obj/item/weapon/tank/phoron/P = null
+	var/obj/item/tank/phoron/P = null
 	var/last_power = 0
 	var/last_power_new = 0
 	var/active = 0
 	var/locked = 0
 	var/drainratio = 1
+	rad_insulation = RAD_EXTREME_INSULATION //It sucks up the radiation. If you're standing behind it, you're pretty safe.
 
-/obj/machinery/power/rad_collector/New()
-	..()
-	rad_collectors += src
+/obj/machinery/power/rad_collector/Initialize(mapload)
+	. = ..()
+	GLOB.rad_collectors += src
+	AddElement(/datum/element/climbable)
+	RegisterSignal(src, COMSIG_IN_RANGE_OF_IRRADIATION, PROC_REF(process_rads))
 
 /obj/machinery/power/rad_collector/Destroy()
-	rad_collectors -= src
+	GLOB.rad_collectors -= src
+	UnregisterSignal(src, COMSIG_IN_RANGE_OF_IRRADIATION)
 	return ..()
 
-/obj/machinery/power/rad_collector/process()
+/obj/machinery/power/rad_collector/proc/process_rads(datum/source, datum/radiation_pulse_information/pulse_information, insulation_to_target)
+	SIGNAL_HANDLER
 	//so that we don't zero out the meter if the SM is processed first.
 	last_power = last_power_new
 	last_power_new = 0
 
-
 	if(P && active)
-		var/rads = SSradiation.get_rads_at_turf(get_turf(src))
-		if(rads)
-			receive_pulse(rads * 5) //Maths is hard
+		if(pulse_information)
+			var/rads = RAD_SOLVE_MOBRADS(pulse_information.strength, calculate_recieved_radiation_intensity(pulse_information, get_dist_euclidean(get_turf(pulse_information.source_ref.resolve()), get_turf(src)), insulation_to_target))
+			if(rads > 0)
+				receive_pulse(rads)
 
-	if(P)
-		if(P.air_contents.gas["phoron"] == 0)
-			investigate_log("<font color='red'>out of fuel</font>.","singulo")
-			eject()
-		else
-			P.air_contents.adjust_gas("phoron", -0.001*drainratio)
+			if(P.air_contents.gas[GAS_PHORON] == 0)
+				investigate_log(span_red("out of fuel") + ".","singulo")
+				eject()
+			else
+				P.air_contents.adjust_gas(GAS_PHORON, -0.0001*drainratio)
 	return
 
 
@@ -51,7 +53,7 @@ var/global/list/rad_collectors = list()
 			toggle_power()
 			user.visible_message("[user.name] turns the [src.name] [active? "on":"off"].", \
 			"You turn the [src.name] [active? "on":"off"].")
-			investigate_log("turned [active?"<font color='green'>on</font>":"<font color='red'>off</font>"] by [user.key]. [P?"Fuel: [round(P.air_contents.gas["phoron"]/0.29)]%":"<font color='red'>It is empty</font>"].","singulo")
+			investigate_log("turned [active?span_green("on"): span_red("off")] by [user.key]. [P?"Fuel: [round(P.air_contents.gas[GAS_PHORON]/0.29)]%":span_red("It is empty")].","singulo")
 			return
 		else
 			to_chat(user, span_red("The controls are locked!"))
@@ -59,7 +61,7 @@ var/global/list/rad_collectors = list()
 
 
 /obj/machinery/power/rad_collector/attackby(obj/item/W, mob/user)
-	if(istype(W, /obj/item/weapon/tank/phoron))
+	if(istype(W, /obj/item/tank/phoron))
 		if(!src.anchored)
 			to_chat(user, span_red("The [src] needs to be secured to the floor first."))
 			return 1
@@ -89,7 +91,7 @@ var/global/list/rad_collectors = list()
 		else
 			disconnect_from_network()
 		return 1
-	else if(istype(W, /obj/item/weapon/card/id)||istype(W, /obj/item/device/pda))
+	else if(istype(W, /obj/item/card/id)||istype(W, /obj/item/pda))
 		if (src.allowed(user))
 			if(active)
 				src.locked = !src.locked
@@ -116,7 +118,7 @@ var/global/list/rad_collectors = list()
 
 /obj/machinery/power/rad_collector/proc/eject()
 	locked = 0
-	var/obj/item/weapon/tank/phoron/Z = src.P
+	var/obj/item/tank/phoron/Z = src.P
 	if (!Z)
 		return
 	Z.loc = get_turf(src)
@@ -127,12 +129,15 @@ var/global/list/rad_collectors = list()
 	else
 		update_icons()
 
-/obj/machinery/power/rad_collector/proc/receive_pulse(var/pulse_strength)
+// Continuing here, SM giving us ~170 rads per pulse, a phoron canister full of 30 mols, and * 20 we get:
+// 102000W per collector...So 10 collectors will give us ~1MW.
+/obj/machinery/power/rad_collector/proc/receive_pulse(pulse_strength)
 	if(P && active)
 		var/power_produced = 0
-		power_produced = P.air_contents.gas["phoron"]*pulse_strength*20
-		add_avail(power_produced)
-		last_power_new = power_produced
+		power_produced = P.air_contents.gas[GAS_PHORON] * pulse_strength * 100 // Matches old rad code numbers, tested at a resting singo at 115Bq with a full basic tank ~= 100000W
+		if(power_produced)
+			add_avail(power_produced)
+			last_power_new = power_produced
 		return
 	return
 

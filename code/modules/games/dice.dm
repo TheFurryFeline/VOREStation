@@ -1,4 +1,4 @@
-/obj/item/weapon/dice
+/obj/item/dice
 	name = "d6"
 	desc = "A dice with six sides."
 	icon = 'icons/obj/dice.dmi'
@@ -11,18 +11,19 @@
 	var/tamper_proof = FALSE //Set to TRUE if the die needs to be unable to be weighted, such as for events
 	attack_verb = list("diced")
 
-/obj/item/weapon/dice/New()
+/obj/item/dice/Initialize(mapload)
+	. = ..()
 	icon_state = "[name][rand(1,sides)]"
 
-/obj/item/weapon/dice/attackby(obj/item/weapon/W, mob/user)
+/obj/item/dice/attackby(obj/item/W, mob/user)
 	..()
-	if(W.has_tool_quality(TOOL_WELDER) || istype(W, /obj/item/weapon/flame/lighter))
+	if(W.has_tool_quality(TOOL_WELDER) || istype(W, /obj/item/flame/lighter))
 		if(cheater)
-			to_chat(user, "<span class='warning'>Wait, this [name] is already weighted!</span>")
+			to_chat(user, span_warning("Wait, this [name] is already weighted!"))
 		else if(tamper_proof)
-			to_chat(user, "<span class='warning'>This [name] is proofed against tampering!</span>")
+			to_chat(user, span_warning("This [name] is proofed against tampering!"))
 		else
-			var/to_weight = input("What should the [name] be weighted towards? You can't undo this later, only change the number!","Set the desired result") as null|num
+			var/to_weight = tgui_input_number(user, "What should the [name] be weighted towards? You can't undo this later, only change the number!","Set the desired result", 1, 6, 1)
 			if(isnull(to_weight) || (to_weight < 1) || (to_weight > sides)) //You must input a number higher than 0 and no greater than the number of sides
 				return 0
 			else
@@ -30,11 +31,11 @@
 				desc = "[initial(desc)] It looks a little misshapen, somehow..."
 				loaded = to_weight
 
-/obj/item/weapon/dice/AltClick(mob/user)
+/obj/item/dice/click_alt(mob/user)
 	..()
 	if(cheater)
 		if(!loaded)
-			var/to_weight = input("What should the [name] be weighted towards?","Set the desired result") as null|num
+			var/to_weight = tgui_input_number(user, "What should the [name] be weighted towards?","Set the desired result", 1, sides, 1)
 			if(isnull(to_weight) || (to_weight < 1) || (to_weight > sides) ) //You must input a number higher than 0 and no greater than the number of sides
 				return 0
 			else
@@ -44,56 +45,59 @@
 			to_chat(user, "You set the [name] to roll randomly again.")
 			loaded = null
 
-/obj/item/weapon/dice/loaded
+/obj/item/dice/loaded
 	description_info = "This is a loaded die! To change the number it's weighted to, alt-click it. To put it back to normal, alt-click it again."
 	cheater = TRUE
 
-/obj/item/weapon/dice/d4
+/obj/item/dice/d4
 	name = "d4"
 	desc = "A dice with four sides."
 	icon_state = "d44"
 	sides = 4
 	result = 4
 
-/obj/item/weapon/dice/d8
+/obj/item/dice/d8
 	name = "d8"
 	desc = "A dice with eight sides."
 	icon_state = "d88"
 	sides = 8
 	result = 8
 
-/obj/item/weapon/dice/d10
+/obj/item/dice/d10
 	name = "d10"
 	desc = "A dice with ten sides."
 	icon_state = "d1010"
 	sides = 10
 	result = 10
 
-/obj/item/weapon/dice/d12
+/obj/item/dice/d12
 	name = "d12"
 	desc = "A dice with twelve sides."
 	icon_state = "d1212"
 	sides = 12
 	result = 12
 
-/obj/item/weapon/dice/d20
+/obj/item/dice/d20
 	name = "d20"
 	desc = "A dice with twenty sides."
 	icon_state = "d2020"
 	sides = 20
 	result = 20
 
-/obj/item/weapon/dice/d100
+/obj/item/dice/d100
 	name = "d100"
 	desc = "A dice with ten sides. This one is for the tens digit."
 	icon_state = "d10010"
 	sides = 10
 	result = 10
 
-/obj/item/weapon/dice/attack_self(mob/user as mob)
+/obj/item/dice/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	rollDice(user, 0)
 
-/obj/item/weapon/dice/proc/rollDice(mob/user as mob, var/silent = 0)
+/obj/item/dice/proc/rollDice(mob/user, silent = FALSE)
 	result = rand(1, sides)
 	if(loaded)
 		if(cheater)
@@ -102,6 +106,9 @@
 		else if(prob(75)) //makeshift weighted dice don't always work
 			result = loaded
 	icon_state = "[name][result]"
+	var/result_override = SEND_SIGNAL(user, COMSIG_MOB_ROLLED_DICE, src, silent, result) //We can override dice rolls!
+	if(result_override)
+		result = result_override
 
 	if(!silent)
 		var/comment = ""
@@ -110,15 +117,42 @@
 		else if(sides == 20 && result == 1)
 			comment = "Ouch, bad luck."
 
-		user.visible_message("<span class='notice'>[user] has thrown [src]. It lands on [result]. [comment]</span>", \
-							 "<span class='notice'>You throw [src]. It lands on a [result]. [comment]</span>", \
-							 "<span class='notice'>You hear [src] landing on a [result]. [comment]</span>")
+		user.visible_message(span_notice("[user] has thrown [src]. It lands on [result]. [comment]"), \
+								span_notice("You throw [src]. It lands on a [result]. [comment]"), \
+								span_notice("You hear [src] landing on a [result]. [comment]"))
+
+/obj/item/dice/verb/set_dice_verb()
+	set category = "Object"
+	set name = "Set Face"
+	set desc = "Turn the dice to a specific face."
+	set src in view(1)
+
+	var/mob/living/carbon/user = usr
+	if(!istype(user))
+		return
+
+	set_dice(user)
+
+/obj/item/dice/proc/set_dice(mob/user)
+	if(user.stat || !Adjacent(user))
+		return
+	var/to_value = tgui_input_number(user, "What face should \the [src] be turned to?","Set die face", 1, sides, 1)
+	if(!to_value)
+		return
+
+	result = to_value
+	icon_state = "[name][result]"
+	user.visible_message(span_notice("\The [user] turned \the [src] to the face reading [result] manually."))
+
+/obj/item/dice/item_ctrl_click(mob/user)
+	set_dice(user)
+
 
 /*
  * Dice packs
  */
 
-/obj/item/weapon/storage/pill_bottle/dice	//7d6
+/obj/item/storage/pill_bottle/dice	//7d6
 	name = "bag of dice"
 	desc = "It's a small bag with dice inside."
 	icon = 'icons/obj/dice.dmi'
@@ -126,12 +160,12 @@
 	drop_sound = 'sound/items/drop/hat.ogg'
 	pickup_sound = 'sound/items/pickup/hat.ogg'
 
-/obj/item/weapon/storage/pill_bottle/dice/New()
-	..()
+/obj/item/storage/pill_bottle/dice/Initialize(mapload)
+	. = ..()
 	for(var/i = 1 to 7)
-		new /obj/item/weapon/dice( src )
+		new /obj/item/dice(src)
 
-/obj/item/weapon/storage/pill_bottle/dice_nerd	//DnD dice
+/obj/item/storage/pill_bottle/dice_nerd	//DnD dice
 	name = "bag of gaming dice"
 	desc = "It's a small bag with gaming dice inside."
 	icon = 'icons/obj/dice.dmi'
@@ -139,21 +173,21 @@
 	drop_sound = 'sound/items/drop/hat.ogg'
 	pickup_sound = 'sound/items/pickup/hat.ogg'
 
-/obj/item/weapon/storage/pill_bottle/dice_nerd/New()
-	..()
-	new /obj/item/weapon/dice/d4( src )
-	new /obj/item/weapon/dice( src )
-	new /obj/item/weapon/dice/d8( src )
-	new /obj/item/weapon/dice/d10( src )
-	new /obj/item/weapon/dice/d12( src )
-	new /obj/item/weapon/dice/d20( src )
-	new /obj/item/weapon/dice/d100( src )
+/obj/item/storage/pill_bottle/dice_nerd/Initialize(mapload)
+	. = ..()
+	new /obj/item/dice/d4(src)
+	new /obj/item/dice(src)
+	new /obj/item/dice/d8(src)
+	new /obj/item/dice/d10(src)
+	new /obj/item/dice/d12(src)
+	new /obj/item/dice/d20(src)
+	new /obj/item/dice/d100(src)
 
 /*
  *Liar's Dice cup
  */
 
-/obj/item/weapon/storage/dicecup
+/obj/item/storage/dicecup
 	name = "dice cup"
 	desc = "A cup used to conceal and hold dice."
 	icon = 'icons/obj/dice.dmi'
@@ -161,33 +195,37 @@
 	w_class = ITEMSIZE_SMALL
 	storage_slots = 5
 	can_hold = list(
-		/obj/item/weapon/dice,
+		/obj/item/dice,
 		)
+	special_handling = TRUE
 
-/obj/item/weapon/storage/dicecup/attack_self(mob/user as mob)
-	user.visible_message("<span class='notice'>[user] shakes [src].</span>", \
-							 "<span class='notice'>You shake [src].</span>", \
-							 "<span class='notice'>You hear dice rolling.</span>")
+/obj/item/storage/dicecup/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+	user.visible_message(span_notice("[user] shakes [src]."), \
+							span_notice("You shake [src]."), \
+							span_notice("You hear dice rolling."))
 	rollCup(user)
 
-/obj/item/weapon/storage/dicecup/proc/rollCup(mob/user as mob)
-	for(var/obj/item/weapon/dice/I in src.contents)
-		var/obj/item/weapon/dice/D = I
+/obj/item/storage/dicecup/proc/rollCup(mob/user)
+	for(var/obj/item/dice/I in src.contents)
+		var/obj/item/dice/D = I
 		D.rollDice(user, 1)
 
-/obj/item/weapon/storage/dicecup/proc/revealDice(var/mob/viewer)
-	for(var/obj/item/weapon/dice/I in src.contents)
-		var/obj/item/weapon/dice/D = I
+/obj/item/storage/dicecup/proc/revealDice(mob/viewer)
+	for(var/obj/item/dice/I in src.contents)
+		var/obj/item/dice/D = I
 		to_chat(viewer, "The [D.name] shows a [D.result].")
 
-/obj/item/weapon/storage/dicecup/verb/peekAtDice()
+/obj/item/storage/dicecup/verb/peekAtDice()
 	set category = "Object"
 	set name = "Peek at Dice"
 	set desc = "Peek at the dice under your cup."
 
 	revealDice(usr)
 
-/obj/item/weapon/storage/dicecup/verb/revealDiceHand()
+/obj/item/storage/dicecup/verb/revealDiceHand()
 
 	set category = "Object"
 	set name = "Reveal Dice"
@@ -198,7 +236,44 @@
 		revealDice(player)
 
 
-/obj/item/weapon/storage/dicecup/loaded/New()
-	..()
+/obj/item/storage/dicecup/loaded/Initialize(mapload)
+	. = ..()
 	for(var/i = 1 to 5)
-		new /obj/item/weapon/dice( src )
+		new /obj/item/dice(src)
+
+/obj/item/dice/d20/cursed
+	name = "d20"
+	desc = "A dice with twenty sides."
+	icon_state = "d2020"
+	sides = 20
+	result = 20
+
+	///If the dice will apply the major version of unlucky or not.
+	var/evil = TRUE
+
+
+/obj/item/dice/d20/cursed/rollDice(mob/user, silent = FALSE)
+	..()
+	if(result == 1)
+		to_chat(user, span_cult("You feel extraordinarily unlucky..."))
+		if(evil)
+			user.AddComponent(
+			/datum/component/omen,\
+			incidents_left = 1,\
+			luck_mod = 1,\
+			damage_mod = 1,\
+			evil = TRUE,\
+			safe_disposals = FALSE,\
+			vorish = TRUE,\
+			)
+
+		else
+			user.AddComponent(
+			/datum/component/omen,\
+			incidents_left = 1,\
+			luck_mod = 0.3,\
+			damage_mod = 1,\
+			evil = FALSE,\
+			safe_disposals = FALSE,\
+			vorish = TRUE,\
+			)

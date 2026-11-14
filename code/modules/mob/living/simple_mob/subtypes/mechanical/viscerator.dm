@@ -27,12 +27,13 @@
 	icon_living = "viscerator_attack"
 	hovering = TRUE // Won't trigger landmines.
 
-	faction = "syndicate"
+	faction = FACTION_SYNDICATE
 	maxHealth = 15
 	health = 15
 	movement_cooldown = -2
 
-	pass_flags = PASSTABLE
+	pass_flags = PASSTABLE | PASSMOB
+	a_intent = I_HURT
 	mob_swap_flags = 0
 	mob_push_flags = 0
 
@@ -45,9 +46,13 @@
 	attack_sound = 'sound/weapons/bladeslice.ogg'
 	attacktext = list("cut", "sliced")
 
-	organ_names = /decl/mob_organ_names/viscerator
+	organ_names = /datum/decl/mob_organ_names/viscerator
 
 	ai_holder_type = /datum/ai_holder/simple_mob/melee/evasive
+
+/mob/living/simple_mob/mechanical/viscerator/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/swarming)
 
 /mob/living/simple_mob/mechanical/viscerator/death()
 	..(null,"is smashed into pieces!")
@@ -58,14 +63,14 @@
 /mob/living/simple_mob/mechanical/viscerator/mercenary/IIsAlly(mob/living/L)
 	. = ..()
 	if(!. && isliving(L)) // Not friendly, see if they're a baddie first.
-		if(L.mind && mercs.is_antagonist(L.mind))
+		if(L.mind && GLOB.mercs.is_antagonist(L.mind))
 			return TRUE
 
 // Similar to above but for raiders.
 /mob/living/simple_mob/mechanical/viscerator/raider/IIsAlly(mob/living/L)
 	. = ..()
 	if(!. && isliving(L)) // Not friendly, see if they're a baddie first.
-		if(L.mind && raiders.is_antagonist(L.mind))
+		if(L.mind && GLOB.raiders.is_antagonist(L.mind))
 			return TRUE
 
 // Variant that is neutral, and thus on the station's side. It checks records.
@@ -73,7 +78,7 @@
 	icon_state = "viscerator_b_attack"
 	icon_living = "viscerator_b_attack"
 
-	faction = "station"
+	faction = FACTION_STATION
 	maxHealth = 20
 	health = 20
 
@@ -96,5 +101,5 @@
 	base_attack_cooldown = 10 // One attack a second or so.
 	movement_cooldown = -1
 
-/decl/mob_organ_names/viscerator
+/datum/decl/mob_organ_names/viscerator
 	hit_zones = list("chassis", "rotor blades", "sensor array")

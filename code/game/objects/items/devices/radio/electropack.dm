@@ -1,4 +1,4 @@
-/obj/item/device/radio/electropack
+/obj/item/radio/electropack
 	name = "electropack"
 	desc = "Dance my monkeys! DANCE!!!"
 	icon_state = "electropack0"
@@ -7,25 +7,26 @@
 			slot_r_hand_str = 'icons/mob/items/righthand_storage.dmi',
 			)
 	item_state = "electropack"
-	frequency = 1449
+	frequency = AMAG_ELE_FREQ
 	slot_flags = SLOT_BACK
 	w_class = ITEMSIZE_HUGE
 
-	matter = list(MAT_STEEL = 10000,MAT_GLASS = 2500)
+	matter = list(MAT_STEEL = MATERIAL_COST(5),MAT_GLASS = MATERIAL_COST(1.25))
 
 	var/code = 2
+	electric_pack = TRUE
 
-/obj/item/device/radio/electropack/attack_hand(mob/living/user as mob)
+/obj/item/radio/electropack/attack_hand(mob/living/user as mob)
 	if(src == user.back)
-		to_chat(user, "<span class='notice'>You need help taking this off!</span>")
+		to_chat(user, span_notice("You need help taking this off!"))
 		return
 	..()
 
-/obj/item/device/radio/electropack/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/item/radio/electropack/attackby(obj/item/W as obj, mob/user as mob)
 	..()
 	if(istype(W, /obj/item/clothing/head/helmet))
 		if(!b_stat)
-			to_chat(user, "<span class='notice'>[src] is not ready to be attached!</span>")
+			to_chat(user, span_notice("[src] is not ready to be attached!"))
 			return
 		var/obj/item/assembly/shock_kit/A = new /obj/item/assembly/shock_kit( user )
 		A.icon = 'icons/obj/assemblies.dmi'
@@ -43,11 +44,11 @@
 		user.put_in_hands(A)
 		A.add_fingerprint(user)
 
-/obj/item/device/radio/electropack/Topic(href, href_list)
+/obj/item/radio/electropack/Topic(href, href_list)
 	//..()
 	if(usr.stat || usr.restrained())
 		return
-	if(((istype(usr, /mob/living/carbon/human) && ((!( ticker ) || (ticker && ticker.mode != "monkey")) && usr.contents.Find(src))) || (usr.contents.Find(master) || (in_range(src, usr) && istype(loc, /turf)))))
+	if(((ishuman(usr) && ((!( SSticker ) || (SSticker && SSticker.mode != "monkey")) && usr.contents.Find(src))) || (usr.contents.Find(master) || (in_range(src, usr) && istype(loc, /turf)))))
 		usr.set_machine(src)
 		if(href_list["freq"])
 			var/new_frequency = sanitize_frequency(frequency + text2num(href_list["freq"]))
@@ -81,7 +82,7 @@
 		return
 	return
 
-/obj/item/device/radio/electropack/receive_signal(datum/signal/signal)
+/obj/item/radio/electropack/receive_signal(datum/signal/signal)
 	if(!signal || signal.encryption != code)
 		return
 
@@ -90,12 +91,10 @@
 		var/turf/T = M.loc
 		if(istype(T, /turf))
 			if(!M.moved_recently && M.last_move)
-				M.moved_recently = 1
+				M.moved_recently = TRUE
 				step(M, M.last_move)
-				sleep(50)
-				if(M)
-					M.moved_recently = 0
-		to_chat(M, "<span class='danger'>You feel a sharp shock!</span>")
+				addtimer(VARSET_CALLBACK(M, moved_recently, FALSE), 5 SECONDS, TIMER_DELETE_ME)
+		to_chat(M, span_danger("You feel a sharp shock!"))
 		var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
 		s.set_up(3, 1, M)
 		s.start()
@@ -106,13 +105,15 @@
 		master.receive_signal()
 	return
 
-/obj/item/device/radio/electropack/attack_self(mob/user as mob, flag1)
-
-	if(!istype(user, /mob/living/carbon/human))
+/obj/item/radio/electropack/attack_self(mob/user, flag1)
+	. = ..(user)
+	if(.)
+		return TRUE
+	if(!ishuman(user))
 		return
 	user.set_machine(src)
-	var/dat = {"<TT>
-<A href='?src=\ref[src];power=1'>Turn [on ? "Off" : "On"]</A><BR>
+	var/dat = {"<html><TT>
+<A href='byond://?src=\ref[src];power=1'>Turn [on ? "Off" : "On"]</A><BR>
 <B>Frequency/Code</B> for electropack:<BR>
 Frequency:
 <A href='byond://?src=\ref[src];freq=-10'>-</A>
@@ -125,7 +126,7 @@ Code:
 <A href='byond://?src=\ref[src];code=-1'>-</A> [code]
 <A href='byond://?src=\ref[src];code=1'>+</A>
 <A href='byond://?src=\ref[src];code=5'>+</A><BR>
-</TT>"}
+</TT></html>"}
 	user << browse(dat, "window=radio")
 	onclose(user, "radio")
 	return

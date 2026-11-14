@@ -91,7 +91,7 @@
 /obj/structure/noticeboard{
 	pixel_x = 32
 	},
-/obj/item/weapon/paper/gateway/arynthilake,
+/obj/item/paper/gateway/arynthilake,
 /turf/simulated/floor/tiled/eris/steel/orangecorner,
 /area/gateway/arynthilake/engine)
 "iR" = (
@@ -139,9 +139,7 @@
 	light_range = 5
 	},
 /turf/simulated/floor/beach/sand/desert,
-/area/gateway/arynthilake/underground/intocave{
-	enter_message = "There is some light filtering from the center of this patch of sand. You could probably climb up from there."
-	})
+/area/gateway/arynthilake/underground/intocave/entry)
 "oL" = (
 /turf/simulated/floor/tiled/eris/steel/techfloor,
 /area/gateway/arynthilake/engine)
@@ -211,7 +209,7 @@
 /area/gateway/arynthilake/engine)
 "xP" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/device/mapping_unit,
+/obj/item/mapping_unit,
 /turf/simulated/floor/tiled/eris/steel/orangecorner,
 /area/gateway/arynthilake/engine)
 "yv" = (
@@ -376,7 +374,7 @@
 /area/gateway/arynthilake/engine)
 "Wd" = (
 /obj/structure/table/rack/shelf/steel,
-/obj/item/weapon/cell/void,
+/obj/item/cell/void,
 /obj/random/tool,
 /obj/random/tool,
 /obj/random/tech_supply,
@@ -419,9 +417,7 @@
 /area/gateway/arynthilake/engine)
 "ZX" = (
 /turf/simulated/floor/beach/sand/desert,
-/area/gateway/arynthilake/underground/intocave{
-	enter_message = "There is some light filtering from the center of this patch of sand. You could probably climb up from there."
-	})
+/area/gateway/arynthilake/underground/intocave/entry)
 
 (1,1,1) = {"
 bX

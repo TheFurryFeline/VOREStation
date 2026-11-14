@@ -32,13 +32,16 @@ Buildable meters
 	var/mirrored = FALSE
 /obj/item/pipe/quaternary
 	dispenser_class = PIPE_ONEDIR
+/obj/item/pipe/directional/tank // lorge
+	w_class = ITEMSIZE_COST_HUGE
+	dispenser_class = PIPE_DIRECTIONAL
 
 /**
  * Call constructor with:
  * @param loc Location
  * @pipe_type
  */
-/obj/item/pipe/Initialize(var/mapload, var/_pipe_type, var/_dir, var/obj/machinery/atmospherics/make_from)
+/obj/item/pipe/Initialize(mapload, _pipe_type, _dir, obj/machinery/atmospherics/make_from)
 	if(make_from)
 		make_from_existing(make_from)
 	else
@@ -48,7 +51,8 @@ Buildable meters
 	update()
 	pixel_x += rand(-5, 5)
 	pixel_y += rand(-5, 5)
-	return ..()
+	AddElement(/datum/element/rotatable)
+	. = ..()
 
 /obj/item/pipe/proc/make_from_existing(obj/machinery/atmospherics/make_from)
 	set_dir(make_from.dir)
@@ -65,7 +69,7 @@ Buildable meters
 	if(make_from.mirrored)
 		do_a_flip()
 
-/obj/item/pipe/dropped()
+/obj/item/pipe/dropped(mob/user, equipping, slot)
 	if(loc)
 		setPipingLayer(piping_layer)
 	return ..()
@@ -78,16 +82,16 @@ Buildable meters
 	// Do it the Polaris way
 	switch(piping_layer)
 		if(PIPING_LAYER_SCRUBBER)
-			color = PIPE_COLOR_RED
+			// color = PIPE_COLOR_RED
 			name = "[initial(fakeA.name)] scrubber fitting"
 		if(PIPING_LAYER_SUPPLY)
-			color = PIPE_COLOR_BLUE
+			// color = PIPE_COLOR_BLUE
 			name = "[initial(fakeA.name)] supply fitting"
 		if(PIPING_LAYER_FUEL)
-			color = PIPE_COLOR_YELLOW
+			// color = PIPE_COLOR_YELLOW
 			name = "[initial(fakeA.name)] fuel fitting"
 		if(PIPING_LAYER_AUX)
-			color = PIPE_COLOR_CYAN
+			// color = PIPE_COLOR_CYAN
 			name = "[initial(fakeA.name)] aux fitting"
 	// Or if we were to do it the TG way...
 	// pixel_x = PIPE_PIXEL_OFFSET_X(piping_layer)
@@ -121,16 +125,10 @@ Buildable meters
 	var/obj/machinery/atmospherics/fakeA = pipe_type
 	icon_state = "[initial(fakeA.pipe_state)][mirrored ? "m" : ""]"
 
-/obj/item/pipe/verb/rotate_clockwise()
-	set category = "Object"
-	set name = "Rotate Pipe Clockwise"
-	set src in view(1)
-
-	if ( usr.stat || usr.restrained() || !usr.canmove )
-		return
-
-	src.set_dir(turn(src.dir, 270))
-	fixdir()
+/obj/item/pipe/handle_rotation_verbs(angle, mob/user)
+	. = ..()
+	if(.)
+		fixdir()
 
 // Don't let pulling a pipe straighten it out.
 /obj/item/pipe/binary/bendable/Move()
@@ -150,10 +148,13 @@ Buildable meters
 		set_dir(EAST)
 
 /obj/item/pipe/trinary/flippable/fixdir()
-	if(dir in cornerdirs)
+	if(dir in GLOB.cornerdirs)
 		set_dir(turn(dir, 45))
 
 /obj/item/pipe/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	set_dir(turn(dir,-90))
 	fixdir()
 
@@ -165,12 +166,12 @@ Buildable meters
 	else
 		return ..()
 
-/obj/item/pipe/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
+/obj/item/pipe/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_WRENCH))
 		return wrench_act(user, W)
 	return ..()
 
-/obj/item/pipe/proc/wrench_act(var/mob/living/user, var/obj/item/weapon/tool/wrench/W)
+/obj/item/pipe/proc/wrench_act(mob/living/user, obj/item/tool/wrench/W)
 	if(!isturf(loc))
 		return TRUE
 
@@ -181,12 +182,12 @@ Buildable meters
 	var/flags = initial(fakeA.pipe_flags)
 	for(var/obj/machinery/atmospherics/M in loc)
 		if((M.pipe_flags & flags & PIPING_ONE_PER_TURF))	//Only one dense/requires density object per tile, eg connectors/cryo/heater/coolers.
-			to_chat(user, "<span class='warning'>Something is hogging the tile!</span>")
+			to_chat(user, span_warning("Something is hogging the tile!"))
 			return TRUE
 		if((M.piping_layer != piping_layer) && !((M.pipe_flags | flags) & PIPING_ALL_LAYER)) // Pipes on different layers can't block each other unless they are ALL_LAYER
 			continue
 		if(M.get_init_dirs() & SSmachines.get_init_dirs(pipe_type, dir))	// matches at least one direction on either type of pipe
-			to_chat(user, "<span class='warning'>There is already a pipe at that location!</span>")
+			to_chat(user, span_warning("There is already a pipe at that location!"))
 			return TRUE
 	// no conflicts found
 
@@ -195,15 +196,15 @@ Buildable meters
 	// TODO - Evaluate and remove the "need at least one thing to connect to" thing ~Leshana
 	// With how the pipe code works, at least one end needs to be connected to something, otherwise the game deletes the segment.
 	if (QDELETED(A))
-		to_chat(user, "<span class='warning'>There's nothing to connect this pipe section to!</span>")
+		to_chat(user, span_warning("There's nothing to connect this pipe section to!"))
 		return TRUE
 	transfer_fingerprints_to(A)
 
 	playsound(src, W.usesound, 50, 1)
 	user.visible_message( \
 		"[user] fastens \the [src].", \
-		"<span class='notice'>You fasten \the [src].</span>", \
-		"<span class='italics'>You hear ratcheting.</span>")
+		span_notice("You fasten \the [src]."), \
+		span_warningplain("You hear ratcheting."))
 
 	qdel(src)
 
@@ -254,29 +255,53 @@ Buildable meters
 	w_class = ITEMSIZE_LARGE
 	var/piping_layer = PIPING_LAYER_DEFAULT
 
-/obj/item/pipe_meter/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
+/obj/item/pipe_meter/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_WRENCH))
 		return wrench_act(user, W)
 	return ..()
 
-/obj/item/pipe_meter/proc/wrench_act(var/mob/living/user, var/obj/item/weapon/tool/wrench/W)
+/obj/item/pipe_meter/proc/wrench_act(mob/living/user, obj/item/tool/wrench/W)
 	var/obj/machinery/atmospherics/pipe/pipe
 	for(var/obj/machinery/atmospherics/pipe/P in loc)
 		if(P.piping_layer == piping_layer)
 			pipe = P
 			break
 	if(!pipe)
-		to_chat(user, "<span class='warning'>You need to fasten it to a pipe!</span>")
+		to_chat(user, span_warning("You need to fasten it to a pipe!"))
 		return TRUE
 	new /obj/machinery/meter(loc, piping_layer)
 	playsound(src, W.usesound, 50, 1)
-	to_chat(user, "<span class='notice'>You fasten the meter to the pipe.</span>")
+	to_chat(user, span_notice("You fasten the meter to the pipe."))
 	qdel(src)
 
-/obj/item/pipe_meter/dropped()
+/obj/item/pipe_meter/dropped(mob/user, equipping, slot)
 	. = ..()
 	if(loc)
 		setAttachLayer(piping_layer)
 
 /obj/item/pipe_meter/proc/setAttachLayer(new_layer = PIPING_LAYER_DEFAULT)
 	piping_layer = new_layer
+
+/obj/item/pipe_gsensor
+	name = "gas sensor"
+	desc = "A sensor that can be hooked to a computer."
+	icon = 'icons/obj/stationobjs.dmi'
+	icon_state = "gsensor0"
+	item_state = "buildpipe"
+	w_class = ITEMSIZE_LARGE
+	var/label = null
+	var/id_tag
+	var/output = 3
+
+/obj/item/pipe_gsensor/attackby(obj/item/W, mob/user)
+	if(W.has_tool_quality(TOOL_WRENCH))
+		return wrench_act(user, W)
+	return ..()
+
+/obj/item/pipe_gsensor/proc/wrench_act(mob/living/user, obj/item/tool/wrench/W)
+	var/obj/machinery/air_sensor/air_sensor = new /obj/machinery/air_sensor(loc)
+	air_sensor.id_tag = id_tag
+	air_sensor.output = output
+	playsound(src, W.usesound, 50, 1)
+	to_chat(user, span_notice("You fasten the meter to the pipe."))
+	qdel(src)

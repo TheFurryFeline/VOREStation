@@ -30,13 +30,13 @@ The receiving atom will receive the origin atom (the atom that sent the message)
 It's suggested to start with an if or switch statement for the message, to determine what to do.
 */
 
-var/global/list/all_exonet_connections = list()
+GLOBAL_LIST_EMPTY(all_exonet_connections)
 
 /datum/exonet_protocol
 	var/address = "" //Resembles IPv6, but with only five 'groups', e.g. XXXX:XXXX:XXXX:XXXX:XXXX
 	var/atom/movable/holder = null
 
-/datum/exonet_protocol/New(var/atom/holder)
+/datum/exonet_protocol/New(atom/holder)
 	src.holder = holder
 	..()
 
@@ -48,7 +48,7 @@ var/global/list/all_exonet_connections = list()
 // Proc: make_address()
 // Parameters: 1 (string - used to make into a hash that will be part of the new address)
 // Description: Allocates a new address based on the string supplied.  It results in consistant addresses for each round assuming it is not already taken..
-/datum/exonet_protocol/proc/make_address(var/string)
+/datum/exonet_protocol/proc/make_address(string)
 	if(string)
 		var/new_address = null
 		while(new_address == find_address(new_address)) //Collision test.
@@ -59,26 +59,25 @@ var/global/list/all_exonet_connections = list()
 
 			new_address = "[addr_0]:[addr_1]"
 			string = "[string]0" //If we did get a collision, this should make the next attempt not have one.
-			sleep(1)
 		address = new_address
-		all_exonet_connections |= src
+		GLOB.all_exonet_connections |= src
 
 
 // Proc: make_arbitrary_address()
 // Parameters: 1 (new_address - the desired address)
 // Description: Allocates that specific address, if it is available.
-/datum/exonet_protocol/proc/make_arbitrary_address(var/new_address)
+/datum/exonet_protocol/proc/make_arbitrary_address(new_address)
 	if(new_address)
 		if(new_address == find_address(new_address) )	//Collision test.
 			return 0
 		address = new_address
-		all_exonet_connections |= src
+		GLOB.all_exonet_connections |= src
 		return 1
 
 // Proc: hexadecimal_to_EPv2()
 // Parameters: 1 (hex - a string of hexadecimals to convert)
 // Description: Helper proc to add colons to a string in the right places.
-/proc/hexadecimal_to_EPv2(var/hex)
+/proc/hexadecimal_to_EPv2(hex)
 	if(!hex)
 		return null
 	var/addr_1 = copytext(hex,1,5)
@@ -94,14 +93,14 @@ var/global/list/all_exonet_connections = list()
 // Description: Deallocates the address, freeing it for use.
 /datum/exonet_protocol/proc/remove_address()
 	address = ""
-	all_exonet_connections.Remove(src)
+	GLOB.all_exonet_connections.Remove(src)
 
 
 // Proc: find_address()
 // Parameters: 1 (target_address - the desired address to find)
 // Description: Searches the global list all_exonet_connections for a specific address, and returns it if found, otherwise returns null.
-/datum/exonet_protocol/proc/find_address(var/target_address)
-	for(var/datum/exonet_protocol/exonet in all_exonet_connections)
+/datum/exonet_protocol/proc/find_address(target_address)
+	for(var/datum/exonet_protocol/exonet in GLOB.all_exonet_connections)
 		if(exonet.address == target_address)
 			return exonet.address
 	return null
@@ -109,8 +108,8 @@ var/global/list/all_exonet_connections = list()
 // Proc: get_atom_from_address()
 // Parameters: 1 (target_address - the desired address to find)
 // Description: Searches an address for the atom it is attached for, otherwise returns null.
-/datum/exonet_protocol/proc/get_atom_from_address(var/target_address)
-	for(var/datum/exonet_protocol/exonet in all_exonet_connections)
+/datum/exonet_protocol/proc/get_atom_from_address(target_address)
+	for(var/datum/exonet_protocol/exonet in GLOB.all_exonet_connections)
 		if(exonet.address == target_address)
 			return exonet.holder
 	return null
@@ -119,13 +118,13 @@ var/global/list/all_exonet_connections = list()
 // Parameters: 3 (target_address - the desired address to send the message to, data_type - text stating what the content is meant to be used for,
 // 		content - the actual 'message' being sent to the address)
 // Description: Sends the message to target_address, by calling receive_message() on the desired datum.  Returns true if the message is recieved.
-/datum/exonet_protocol/proc/send_message(var/target_address, var/data_type, var/content)
+/datum/exonet_protocol/proc/send_message(target_address, data_type, content)
 	if(!address)
 		return FALSE
 	var/obj/machinery/exonet_node/node = get_exonet_node()
 	if(!node) // Telecomms went boom, ion storm, etc.
 		return FALSE
-	for(var/datum/exonet_protocol/exonet in all_exonet_connections)
+	for(var/datum/exonet_protocol/exonet in GLOB.all_exonet_connections)
 		if(exonet.address == target_address)
 			node.write_log(src.address, target_address, data_type, content)
 			return exonet.receive_message(holder, address, data_type, content)
@@ -134,12 +133,12 @@ var/global/list/all_exonet_connections = list()
 // Parameters: 4 (origin_atom - the origin datum's holder, origin_address - the address the message originated from,
 // 		data_type - text stating what the content is meant to be used for, content - the actual 'message' being sent from origin_atom)
 // Description: Called when send_message() successfully reaches the intended datum.  By default, calls receive_exonet_message() on the holder atom.
-/datum/exonet_protocol/proc/receive_message(var/atom/origin_atom, var/origin_address, var/data_type, var/content)
+/datum/exonet_protocol/proc/receive_message(atom/origin_atom, origin_address, data_type, content)
 	holder.receive_exonet_message(origin_atom, origin_address, data_type, content)
 	return TRUE // for send_message()
 
 // Proc: receive_exonet_message()
 // Parameters: 3 (origin_atom - the origin datum's holder, origin_address - the address the message originated from, message - the message that was sent)
 // Description: Override this to make your atom do something when a message is received.
-/atom/proc/receive_exonet_message(var/atom/origin_atom, var/origin_address, var/message, var/text)
+/atom/proc/receive_exonet_message(atom/origin_atom, origin_address, message, text)
 	return

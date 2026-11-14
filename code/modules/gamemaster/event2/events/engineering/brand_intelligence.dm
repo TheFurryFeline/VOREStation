@@ -6,7 +6,7 @@
 	event_type = /datum/event2/event/brand_intelligence
 
 /datum/event2/meta/brand_intelligence/get_weight()
-	return 10 + (metric.count_people_in_department(DEPARTMENT_ENGINEERING) * 20)
+	return 10 + (GLOB.metric.count_people_in_department(DEPARTMENT_ENGINEERING) * 20)
 
 
 
@@ -19,13 +19,13 @@
 	var/last_malware_spread_time = null
 
 /datum/event2/event/brand_intelligence/set_up()
-	for(var/obj/machinery/vending/V in machines)
+	for(var/obj/machinery/vending/V in GLOB.machines)
 		if(!(V.z in using_map.station_levels))
 			continue
 		vending_machines += V
 
 	if(!vending_machines.len)
-		log_debug("Could not find any vending machines on station Z levels. Aborting.")
+		log_game("Brand intelligence event: Could not find any vending machines on station Z levels. Aborting.")
 		abort()
 		return
 
@@ -33,8 +33,8 @@
 
 /datum/event2/event/brand_intelligence/announce()
 	if(prob(90))
-		command_announcement.Announce("An ongoing mass upload of malware for vendors has been detected onboard \the [location_name()], \
-		which appears to transmit to nearby vendors. The original infected machine is believed to be \a [vender_zero].", "Vendor Service Alert")
+		GLOB.command_announcement.Announce("An ongoing mass upload of malware for vendors has been detected onboard \the [location_name()], \
+		which appears to transmit to nearby vendors. The original infected machine is believed to be \a [vender_zero].", "Vendor Service Alert", ANNOUNCER_MSG_VENDORVIRUS)
 
 /datum/event2/event/brand_intelligence/start()
 	infect_vender(vender_zero)
@@ -50,12 +50,12 @@
 
 		// Every time Vender Zero infects, it says something.
 		vender_zero.speak(pick("Try our aggressive new marketing strategies!", \
-								 "You should buy products to feed your lifestyle obsession!", \
-								 "Consume!", \
-								 "Your money can buy happiness!", \
-								 "Engage direct marketing!", \
-								 "Advertising is legalized lying! But don't let that put you off our great deals!", \
-								 "You don't want to buy anything? Yeah, well I didn't want to buy your mom either."))
+									"You should buy products to feed your lifestyle obsession!", \
+									"Consume!", \
+									"Your money can buy happiness!", \
+									"Engage direct marketing!", \
+									"Advertising is legalized lying! But don't let that put you off our great deals!", \
+									"You don't want to buy anything? Yeah, well I didn't want to buy your mom either."))
 
 
 /datum/event2/event/brand_intelligence/should_end()
@@ -70,7 +70,7 @@
 		return
 	// Otherwise Vender Zero was taken out in some form.
 	if(vender_zero)
-		vender_zero.visible_message(span("notice", "\The [vender_zero]'s network activity light flickers wildly \
+		vender_zero.visible_message(span_notice("\The [vender_zero]'s network activity light flickers wildly \
 		for a few seconds as a small screen reads: 'Rolling out firmware reset to networked machines'."))
 	for(var/obj/machinery/vending/vender in infected_vending_machines)
 		cure_vender(vender)

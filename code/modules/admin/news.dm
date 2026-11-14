@@ -11,24 +11,18 @@
 			return TRUE
 	return FALSE
 
-/client/proc/modify_server_news()
-	set name = "Modify Public News"
-	set category = "Server"
-
-	if(!check_rights(0))
-		return
-
+ADMIN_VERB(modify_server_news, R_SERVER|R_EVENT, "Modify Public News", "Modify the public news message.", ADMIN_CATEGORY_SERVER_GAME)
 	var/savefile/F = new(NEWSFILE)
 	if(F)
 		var/title = F["title"]
 		var/body = html2paper_markup(F["body"])
-		var/new_title = sanitize(tgui_input_text(src,"Write a good title for the news update.  Note: HTML is NOT supported.","Write News", title), extra = 0)
+		var/new_title = tgui_input_text(user, "Write a good title for the news update. Note: HTML is NOT supported.", "Write News", title, MAX_MESSAGE_LEN)
 		if(!new_title)
 			return
-		var/new_body = sanitize(tgui_input_text(src,"Write the body of the news update here. Note: HTML is NOT supported, however paper markup is supported.  \n\
+		var/new_body = tgui_input_text(user, "Write the body of the news update here. Note: HTML is NOT supported, however paper markup is supported.  \n\
 		Hitting enter will automatically add a line break.  \n\
 		Valid markup includes: \[b\], \[i\], \[u\], \[large\], \[h1\], \[h2\], \[h3\]\ \[*\], \[hr\], \[small\], \[list\], \[table\], \[grid\], \
-		\[row\], \[cell\], \[logo\], \[sglogo\].","Write News", body, multiline = TRUE, prevent_enter = TRUE), extra = 0)
+		\[row\], \[cell\], \[logo\], \[talogo\], \[sglogo\].","Write News", body, MAX_MESSAGE_LEN, TRUE, prevent_enter = TRUE)
 
 		new_body = paper_markup2html(new_body)
 
@@ -36,16 +30,16 @@
 			return
 		F["title"] << new_title
 		F["body"] << new_body
-		F["author"] << key
+		F["author"] << user.key
 		F["timestamp"] << time2text(world.realtime, "DDD, MMM DD YYYY")
-		message_admins("[key] modified the news to read:<br>[new_title]<br>[new_body]")
+		message_admins("[user.key] modified the news to read:<br>[new_title]<br>[new_body]")
 
 /proc/get_server_news()
 	var/savefile/F = new(NEWSFILE)
 	if(F)
 		return F
 // This is used when submitting the news input, so the safe markup can get past sanitize.
-/proc/paper_markup2html(var/text)
+/proc/paper_markup2html(text)
 	text = replacetext(text, "\n", "<br>")
 	text = replacetext(text, "\[center\]", "<center>")
 	text = replacetext(text, "\[/center\]", "</center>")
@@ -77,12 +71,13 @@
 	text = replacetext(text, "\[/grid\]", "</td></tr></table>")
 	text = replacetext(text, "\[row\]", "</td><tr>")
 	text = replacetext(text, "\[cell\]", "<td>")
-	text = replacetext(text, "\[logo\]", "<img src = ntlogo.png>") // Not sure if these would get used but why not
-	text = replacetext(text, "\[sglogo\]", "<img src = sglogo.png>")
+	text = replacetext(text, "\[logo\]", "<img src=\ref['html/images/ntlogo.png']>") // Not sure if these would get used but why not
+	text = replacetext(text, "\[talogo\]", "<img src=\ref['html/images/talonlogo.png']>")
+	text = replacetext(text, "\[sglogo\]", "<img src=\ref['html/images/sglogo.png']>")
 	return text
 
 // This is used when reading text that went through paper_markup2html(), to reverse it so that edits don't need to replace everything once more to avoid sanitization.
-/proc/html2paper_markup(var/text)
+/proc/html2paper_markup(text)
 	text = replacetext(text, "<br>", "\[br\]")
 	text = replacetext(text, "<center>", "\[center\]")
 	text = replacetext(text, "</center>", "\[/center\]")
@@ -114,8 +109,9 @@
 	text = replacetext(text, "</td></tr></table>", "\[/grid\]")
 	text = replacetext(text, "</td><tr>", "\[row\]")
 	text = replacetext(text, "<td>", "\[cell\]")
-	text = replacetext(text, "<img src = ntlogo.png>", "\[logo\]") // Not sure if these would get used but why not
-	text = replacetext(text, "<img src = sglogo.png>", "\[sglogo\]")
+	text = replacetext(text, "<img src=\ref['html/images/ntlogo.png']>", "\[logo\]") // Not sure if these would get used but why not
+	text = replacetext(text, "<img src=\ref['html/images/talonlogo.png']>", "\[talogo\]")
+	text = replacetext(text, "<img src=\ref['html/images/sglogo.png']>", "\[sglogo\]")
 	return text
 
 #undef NEWSFILE

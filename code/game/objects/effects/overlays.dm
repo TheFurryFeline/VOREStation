@@ -10,9 +10,9 @@
 	plane = ABOVE_OBJ_PLANE
 	var/tmp/atom/BeamSource
 
-/obj/effect/overlay/beam/New()
-	..()
-	spawn(10) qdel(src)
+/obj/effect/overlay/beam/Initialize(mapload)
+	. = ..()
+	QDEL_IN(src, 1 SECOND)
 
 /obj/effect/overlay/palmtree_r
 	name = "Palm tree"
@@ -53,8 +53,8 @@
 	layer = ABOVE_MOB_LAYER
 	mouse_opacity = 0
 
-/obj/effect/overlay/wallrot/New()
-	..()
+/obj/effect/overlay/wallrot/Initialize(mapload)
+	. = ..()
 	pixel_x += rand(-10, 10)
 	pixel_y += rand(-10, 10)
 
@@ -67,10 +67,10 @@
 
 // Todo: Add a version that gradually reaccumulates over time by means of alpha transparency. -Spades
 /obj/effect/overlay/snow/attackby(obj/item/W as obj, mob/user as mob)
-	if (istype(W, /obj/item/weapon/shovel))
-		user.visible_message("<span class='notice'>[user] begins to shovel away \the [src].</span>")
-		if(do_after(user, 40))
-			to_chat(user, "<span class='notice'>You have finished shoveling!</span>")
+	if (istype(W, /obj/item/shovel))
+		user.visible_message(span_notice("[user] begins to shovel away \the [src]."))
+		if(do_after(user, 4 SECONDS, target = src))
+			to_chat(user, span_notice("You have finished shoveling!"))
 			qdel(src)
 		return
 
@@ -144,7 +144,7 @@
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	alpha = 0
 	vis_flags = NONE
-	blocks_emissive = FALSE
+	blocks_emissive = EMISSIVE_BLOCK_NONE
 
 /obj/effect/overlay/light_visible/Destroy(force)
 	if(!force)
@@ -161,11 +161,11 @@
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	vis_flags = NONE
 	alpha = 110
-	blocks_emissive = FALSE
+	blocks_emissive = EMISSIVE_BLOCK_NONE
 
 	var/static/matrix/normal_transform
 
-/obj/effect/overlay/light_cone/Initialize()
+/obj/effect/overlay/light_cone/Initialize(mapload)
 	. = ..()
 	apply_standard_transform()
 

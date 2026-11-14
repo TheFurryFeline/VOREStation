@@ -8,27 +8,27 @@
 	w_class = ITEMSIZE_NORMAL
 	plane = PLATING_PLANE
 
-/obj/structure/lattice/Initialize()
+/obj/structure/lattice/Initialize(mapload)
 	. = ..()
 
-	if(!(istype(src.loc, /turf/space) || istype(src.loc, /turf/simulated/open) || istype(src.loc, /turf/simulated/mineral) || istype(src.loc, /turf/simulated/shuttle/plating/airless/carry)))
+	if(!(isopenturf(src.loc) || ismineralturf(src.loc) || istype(src.loc, /turf/simulated/shuttle/plating/airless/carry)))
 		return INITIALIZE_HINT_QDEL
 
 	for(var/obj/structure/lattice/LAT in src.loc)
 		if(LAT != src)
-			log_debug("Found multiple lattices at '[log_info_line(loc)]'") //VOREStation Edit, why was this a runtime, it's harmless
+			// log_mapping("Found multiple lattices at '[log_info_line(loc)]'") // We do this on map lint level. This messes with random seed genned maps where such can happen in rare cases
 			return INITIALIZE_HINT_QDEL
 	icon = 'icons/obj/smoothlattice.dmi'
 	icon_state = "latticeblank"
 	updateOverlays()
-	for (var/dir in cardinal)
+	for (var/dir in GLOB.cardinal)
 		var/obj/structure/lattice/L
 		if(locate(/obj/structure/lattice, get_step(src, dir)))
 			L = locate(/obj/structure/lattice, get_step(src, dir))
 			L.updateOverlays()
 
 /obj/structure/lattice/Destroy()
-	for (var/dir in cardinal)
+	for (var/dir in GLOB.cardinal)
 		var/obj/structure/lattice/L
 		if(locate(/obj/structure/lattice, get_step(src, dir)))
 			L = locate(/obj/structure/lattice, get_step(src, dir))
@@ -50,7 +50,6 @@
 			return
 		if(3.0)
 			return
-		else
 	return
 
 /obj/structure/lattice/attackby(obj/item/C as obj, mob/user as mob)
@@ -60,24 +59,16 @@
 		T.attackby(C, user) //BubbleWrap - hand this off to the underlying turf instead
 		return
 	if(C.has_tool_quality(TOOL_WELDER))
-		var/obj/item/weapon/weldingtool/WT = C.get_welder()
+		var/obj/item/weldingtool/WT = C.get_welder()
 		if(WT.welding == 1)
 			if(WT.remove_fuel(0, user))
-				to_chat(user, "<span class='notice'>Slicing lattice joints ...</span>")
-			new /obj/item/stack/rods(src.loc)
+				to_chat(user, span_notice("Slicing lattice joints ..."))
+			new /obj/item/stack/rods(src.loc, 1) //VOREstation Edit: Return the same amount of rods used to build this.
 			qdel(src)
 		return
-	if(istype(C, /obj/item/stack/rods))
-		var/obj/item/stack/rods/R = C
-		if(R.get_amount() < 2)
-			to_chat(user, "<span class='notice'>You need at least two rods to form a catwalk here.</span>")
-		else
-			to_chat(user, "<span class='notice'>You start connecting \the [R.name] to \the [src.name] ...</span>")
-			if(do_after(user, 5 SECONDS))
-				R.use(2) //2023-02-27 bugfix to prevent rods being used without catwalk creation
-				src.alpha = 0 // Note: I don't know why this is set, Eris did it, just trusting for now. ~Leshana
-				new /obj/structure/catwalk(src.loc)
-				qdel(src)
+	if(istype(C, /obj/item/stack/rods)) //VOREstation Edit: Modernizes upgrading lattices into catwalks.
+		upgrade(C, user)
+		//VOREstation Edit End
 		return
 	return
 
@@ -89,7 +80,7 @@
 
 		var/dir_sum = 0
 
-		for (var/direction in cardinal)
+		for (var/direction in GLOB.cardinal)
 			if(locate(/obj/structure/lattice, get_step(src, direction)))
 				dir_sum += direction
 			else
@@ -98,3 +89,11 @@
 
 		icon_state = "lattice[dir_sum]"
 		return
+
+//Vorestation Edit: Moves upgrading lattices to their own proc for other stuff to call. Also makes them instant.
+/obj/structure/lattice/proc/upgrade(obj/item/stack/rods/R, mob/user)
+	to_chat(user, span_notice("You start connecting \the [R.name] to \the [src.name] ..."))
+	R.use(1)
+	src.alpha = 0 // Note: I don't know why this is set, Eris did it, just trusting for now. ~Leshana
+	new /obj/structure/catwalk(src.loc)
+	qdel(src)

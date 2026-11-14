@@ -68,8 +68,9 @@
 	icon_living = "guard"
 	icon_dead = "guard_dead"
 	has_eye_glow = TRUE
-
-	faction = "spiders"
+	density = FALSE
+	minbodytemp = 175
+	faction = FACTION_SPIDERS
 	maxHealth = 200
 	health = 200
 	pass_flags = PASSTABLE
@@ -83,7 +84,7 @@
 	response_disarm = "gently pushes aside"
 	response_harm   = "punches"
 
-	organ_names = /decl/mob_organ_names/spider
+	organ_names = /datum/decl/mob_organ_names/spider
 
 
 	melee_damage_lower = 18
@@ -99,17 +100,17 @@
 	speak_emote = list("chitters")
 
 	meat_amount = 5
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/xenomeat/spidermeat
+	meat_type = /obj/item/reagent_containers/food/snacks/xenomeat/spidermeat
 
 	say_list_type = /datum/say_list/spider
 
 	tame_items = list(
-	/obj/item/weapon/reagent_containers/food/snacks/xenomeat = 10,
-	/obj/item/weapon/reagent_containers/food/snacks/crabmeat = 40,
-	/obj/item/weapon/reagent_containers/food/snacks/meat = 20
+	/obj/item/reagent_containers/food/snacks/xenomeat = 10,
+	/obj/item/reagent_containers/food/snacks/crabmeat = 40,
+	/obj/item/reagent_containers/food/snacks/meat = 20
 	)
 
-	var/poison_type = "spidertoxin"	// The reagent that gets injected when it attacks.
+	var/poison_type = REAGENT_ID_SPIDERTOXIN	// The reagent that gets injected when it attacks.
 	var/poison_chance = 10			// Chance for injection to occur.
 	var/poison_per_bite = 5			// Amount added per injection.
 
@@ -117,7 +118,30 @@
 		/obj/item/stack/material/chitin = 1\
 		)
 
-/mob/living/simple_mob/animal/giant_spider/apply_melee_effects(var/atom/A)
+	allow_mind_transfer = TRUE
+	can_be_drop_prey = FALSE
+	species_sounds = "Spider"
+	pain_emote_1p = list("chitter", "click")
+	pain_emote_3p = list("chitters", "clicks")
+
+	var/warning_warmup = 2 SECONDS // How long the leap telegraphing is.
+	var/warning_sound = 'sound/weapons/spiderlunge.ogg'
+
+	no_pull_when_living = TRUE
+
+	export_research_value = TECHWEB_TIER_1_POINTS
+	export_research_diminished_max = 3
+
+/mob/living/simple_mob/animal/giant_spider/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/swarming)
+
+/mob/living/simple_mob/animal/giant_spider/CanPass(atom/movable/mover, turf/target)
+	if(isliving(mover) && !istype(mover, /mob/living/simple_mob/animal/giant_spider) && mover.density == TRUE && stat != DEAD)
+		return FALSE
+	return ..()
+
+/mob/living/simple_mob/animal/giant_spider/apply_melee_effects(atom/A)
 	if(isliving(A))
 		var/mob/living/L = A
 		if(L.reagents)
@@ -128,7 +152,7 @@
 // Does actual poison injection, after all checks passed.
 /mob/living/simple_mob/animal/giant_spider/proc/inject_poison(mob/living/L, target_zone)
 	if(prob(poison_chance))
-		to_chat(L, "<span class='warning'>You feel a tiny prick.</span>")
+		to_chat(L, span_warning("You feel a tiny prick."))
 		L.reagents.add_reagent(poison_type, poison_per_bite)
 
 /mob/living/simple_mob/animal/giant_spider/proc/make_spiderling()
@@ -145,5 +169,54 @@
 	if(poison_per_bite)
 		poison_per_bite *= 1.3
 
-/decl/mob_organ_names/spider
+// A different type of much weaker bite with different effects for event spawned spiders before becoming hostile
+/mob/living/simple_mob/animal/giant_spider/proc/warning_bite(mob/living/A)
+	set waitfor = FALSE
+	set_AI_busy(TRUE)
+
+	// Telegraph, since getting bitten suddenly feels bad.
+	do_windup_animation(A, warning_warmup)
+	addtimer(CALLBACK(src, PROC_REF(warning_leap), A), warning_warmup) // For the telegraphing.
+
+/mob/living/simple_mob/animal/giant_spider/proc/warning_leap(mob/living/A)
+	// Do the actual leap.
+	status_flags |= LEAPING // Lets us pass over everything.
+	visible_message(span_danger("\The [src] leaps at \the [A]!"))
+	throw_at(get_step(get_turf(A), get_turf(src)), 4, 1, src)
+	playsound(src, warning_sound, 75, 1)
+
+	addtimer(CALLBACK(src, PROC_REF(warning_finish), A), 0.5 SECONDS) // For the throw to complete. It won't hold up the AI ticker due to waitfor being false.
+
+/mob/living/simple_mob/animal/giant_spider/proc/warning_finish(mob/living/A)
+	if(status_flags & LEAPING)
+		status_flags &= ~LEAPING // Revert special passage ability.
+
+	. = FALSE
+
+	// Now for the bite.
+	var/mob/living/victim = null
+	for(var/mob/living/L in oview(1,src)) // So player-controlled spiders only need to click the tile to stun them.
+		if(L == src)
+			continue
+
+		if(ishuman(L))
+			var/mob/living/carbon/human/H = L
+			if(H.check_shields(damage = 0, damage_source = src, attacker = src, def_zone = null, attack_text = "the leap"))
+				continue // We were blocked.
+
+		victim = L
+		break
+
+	if(victim?.reagents)
+		victim.reagents.add_reagent(REAGENT_ID_WARNINGTOXIN, poison_per_bite)
+		victim.AdjustWeakened(2)
+		victim.visible_message(span_danger("\The [src] has bitten \the [victim]!"))
+		to_chat(victim, span_critical("\The [src] bites you and retreats!"))
+		. = TRUE
+
+	step_away(src,victim,3)
+
+	set_AI_busy(FALSE)
+
+/datum/decl/mob_organ_names/spider
 	hit_zones = list("cephalothorax", "abdomen", "left forelegs", "right forelegs", "left hind legs", "right hind legs", "pedipalp", "mouthparts")

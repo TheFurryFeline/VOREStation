@@ -24,7 +24,7 @@
 	var/number = 0 // This is used to make the slime semi-unique for indentification.
 	var/harmless = FALSE // Set to true when pacified. Makes the slime harmless, not get hungry, and not be able to grow/reproduce.
 
-/mob/living/simple_mob/slime/xenobio/Initialize(mapload, var/mob/living/simple_mob/slime/xenobio/my_predecessor)
+/mob/living/simple_mob/slime/xenobio/Initialize(mapload, mob/living/simple_mob/slime/xenobio/my_predecessor)
 	ASSERT(ispath(ai_holder_type, /datum/ai_holder/simple_mob/xenobio_slime))
 	number = rand(1, 1000)
 	update_name()
@@ -41,7 +41,7 @@
 	return ..()
 
 // Called when a slime makes another slime by splitting. The predecessor slime will be deleted shortly afterwards.
-/mob/living/simple_mob/slime/xenobio/proc/inherit_information(var/mob/living/simple_mob/slime/xenobio/predecessor)
+/mob/living/simple_mob/slime/xenobio/proc/inherit_information(mob/living/simple_mob/slime/xenobio/predecessor)
 	if(!predecessor)
 		return
 
@@ -132,10 +132,14 @@
 
 /mob/living/simple_mob/slime/xenobio/update_mood()
 	var/old_mood = mood
+	var/pacified = FALSE //Tracks if we are currently pacified (and if we can be drop prey or not)
+	var/obedient = 0
 	if(incapacitated(INCAPACITATION_DISABLED))
 		mood = "sad"
+		pacified = TRUE
 	else if(harmless)
 		mood = ":33"
+		pacified = TRUE
 	else if(has_AI())
 		var/datum/ai_holder/simple_mob/xenobio_slime/AI = ai_holder
 		if(AI.rabid)
@@ -144,13 +148,36 @@
 			mood = "mischevous"
 		else if(AI.discipline)
 			mood = "pout"
+			pacified = TRUE
 		else
 			mood = ":3"
+			pacified = TRUE
+		obedient = AI.obedience
 	else
 		mood = ":3"
+		pacified = TRUE
+	if(obedient < 5)
+		pacified = FALSE //We are not obedient enough to be considered pacified.
+
+	if(!client) //Only update if we don't have a client.
+		if(faction != FACTION_SLIME) //We have had a loyalty potion used on us.
+			update_allowed_vore_types(TRUE)
+		else if(old_mood == "angry") //We were recently angry, so we're still upset and won't let you eat us no matter what! (Unless we had a docility potion put on us, making us harmless)
+			update_allowed_vore_types(FALSE, harmless)
+		else
+			update_allowed_vore_types(pacified, harmless)
 
 	if(old_mood != mood)
 		update_icon()
+
+/mob/living/simple_mob/slime/proc/update_allowed_vore_types(allowed, harmless)
+	if(harmless) // If we're harmless, we should always be able to be eaten.
+		allowed = TRUE
+	can_be_drop_prey = allowed
+	stumble_vore = allowed
+	slip_vore = allowed
+	drop_vore = allowed
+	throw_vore = allowed
 
 /mob/living/simple_mob/slime/xenobio/proc/enrage()
 	if(harmless)
@@ -172,7 +199,7 @@
 		var/datum/ai_holder/simple_mob/xenobio_slime/AI = ai_holder
 		AI.pacify()
 
-	faction = "neutral"
+	faction = FACTION_NEUTRAL
 
 	// If for whatever reason the mob AI (or player) decides to try to attack something anyways.
 	melee_damage_upper = 0
@@ -187,20 +214,20 @@
 	set desc = "This will let you evolve from baby to adult slime."
 
 	if(stat)
-		to_chat(src, span("warning", "I must be conscious to do this..."))
+		to_chat(src, span_warning("I must be conscious to do this..."))
 		return
 
 	if(harmless)
-		to_chat(src, span("warning", "I have been pacified. I cannot evolve..."))
+		to_chat(src, span_warning("I have been pacified. I cannot evolve..."))
 		return
 
 	if(!is_adult)
 		if(amount_grown >= 10)
 			make_adult()
 		else
-			to_chat(src, span("warning", "I am not ready to evolve yet..."))
+			to_chat(src, span_warning("I am not ready to evolve yet..."))
 	else
-		to_chat(src, span("warning", "I have already evolved..."))
+		to_chat(src, span_warning("I have already evolved..."))
 
 
 /mob/living/simple_mob/slime/xenobio/verb/reproduce()
@@ -208,11 +235,11 @@
 	set desc = "This will make you split into four new slimes."
 
 	if(stat)
-		to_chat(src, span("warning", "I must be conscious to do this..."))
+		to_chat(src, span_warning("I must be conscious to do this..."))
 		return
 
 	if(harmless)
-		to_chat(src, span("warning", "I have been pacified. I cannot reproduce..."))
+		to_chat(src, span_warning("I have been pacified. I cannot reproduce..."))
 		return
 
 	if(is_adult)
@@ -237,7 +264,7 @@
 					free_tiles++
 
 			if(free_tiles < split_amount-1) // Three free tiles are needed, as four slimes are made and the 4th tile is from the center tile that the current slime occupies.
-				to_chat(src, span("warning", "It is too cramped here to reproduce..."))
+				to_chat(src, span_warning("It is too cramped here to reproduce..."))
 				return
 
 			var/list/babies = list()
@@ -252,12 +279,12 @@
 				new_slime.key = src.key
 			qdel(src)
 		else
-			to_chat(src, span("warning", "I am not ready to reproduce yet..."))
+			to_chat(src, span_warning("I am not ready to reproduce yet..."))
 	else
-		to_chat(src, span("warning", "I have not evolved enough to reproduce yet..."))
+		to_chat(src, span_warning("I have not evolved enough to reproduce yet..."))
 
 // Used when reproducing or dying.
-/mob/living/simple_mob/slime/xenobio/proc/make_new_slime(var/desired_type, var/no_step)
+/mob/living/simple_mob/slime/xenobio/proc/make_new_slime(desired_type, no_step)
 	var/t = src.type
 	if(desired_type)
 		t = desired_type
@@ -293,7 +320,7 @@
 
 	return results
 
-/mob/living/simple_mob/slime/xenobio/get_description_info()
+/mob/living/simple_mob/slime/xenobio/get_description_info(list/additional_information)
 	var/list/lines = list()
 	var/intro_line = "Slimes are generally the test subjects of Xenobiology, with different colors having different properties.  \
 	They can be extremely dangerous if not handled properly."
@@ -304,7 +331,7 @@
 	for(var/potential_color in slime_mutation)
 		var/mob/living/simple_mob/slime/S = potential_color
 		rewards.Add(initial(S.slime_color))
-	var/reward_line = "This color of slime can mutate into [english_list(rewards)] colors, when it reproduces.  It will do so when it has eatten enough."
+	var/reward_line = "This color of slime can mutate into [english_list(rewards)] colors, when it reproduces. It will do so when it has eatten enough."
 	lines.Add(reward_line)
 	lines.Add(null)
 

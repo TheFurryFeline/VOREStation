@@ -1,9 +1,11 @@
 /obj/item/clothing/suit/storage
-	var/obj/item/weapon/storage/internal/pockets
+	name = DEVELOPER_WARNING_NAME
+	var/obj/item/storage/internal/pockets
+	description_info = "This item has storage space."
 
-/obj/item/clothing/suit/storage/New()
-	..()
-	pockets = new/obj/item/weapon/storage/internal(src)
+/obj/item/clothing/suit/storage/Initialize(mapload)
+	. = ..()
+	pockets = new/obj/item/storage/internal(src)
 	pockets.max_w_class = ITEMSIZE_SMALL		//fit only pocket sized items
 	pockets.max_storage_space = ITEMSIZE_COST_SMALL * 2
 
@@ -23,12 +25,9 @@
 	..()
 	pockets.attackby(W, user)
 
-/obj/item/clothing/suit/storage/emp_act(severity)
-	pockets.emp_act(severity)
-	..()
-
 //Jackets with buttons, used for labcoats, IA jackets, First Responder jackets, and brown jackets.
 /obj/item/clothing/suit/storage/toggle
+	name = DEVELOPER_WARNING_NAME
 	flags_inv = HIDEHOLSTER
 	var/open = 0	//0 is closed, 1 is open, -1 means it won't be able to toggle
 
@@ -56,6 +55,7 @@
 
 
 /obj/item/clothing/suit/storage/hooded/toggle
+	name = DEVELOPER_WARNING_NAME
 	flags_inv = HIDEHOLSTER
 	var/open = 0	//0 is closed, 1 is open, -1 means it won't be able to toggle
 
@@ -91,9 +91,9 @@
 	icon_state = "[toggleicon][open ? "_open" : ""][hood_up ? "_t" : ""]"
 
 //New Vest 4 pocket storage and badge toggles, until suit accessories are a thing.
-/obj/item/clothing/suit/storage/vest/heavy/New()
-	..()
-	pockets = new/obj/item/weapon/storage/internal(src)
+/obj/item/clothing/suit/storage/vest/heavy/Initialize(mapload)
+	. = ..()
+	pockets = new/obj/item/storage/internal(src)
 	pockets.max_w_class = ITEMSIZE_SMALL
 	pockets.max_storage_space = ITEMSIZE_COST_SMALL * 4
 
@@ -119,3 +119,16 @@
 		return
 	update_clothing_icon()
 
+/obj/item/clothing/suit/storage/tailcoat
+	name = "victorian tailcoat"
+	desc = "A fancy victorian tailcoat."
+	icon_state = "tailcoat"
+
+/obj/item/clothing/suit/storage/victcoat
+	name = "ladies black victorian coat"
+	desc = "A fancy victorian coat."
+	icon_state = "ladiesvictoriancoat"
+
+/obj/item/clothing/suit/storage/victcoat/red
+	name = "ladies red victorian coat"
+	icon_state = "ladiesredvictoriancoat"

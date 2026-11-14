@@ -1,7 +1,7 @@
 SUBSYSTEM_DEF(media_tracks)
 	name = "Media Tracks"
 	flags = SS_NO_FIRE
-	init_order = INIT_ORDER_MEDIA_TRACKS
+	init_stage = INITSTAGE_EARLY
 
 	/// Every track, including secret
 	var/list/all_tracks = list()
@@ -10,43 +10,43 @@ SUBSYSTEM_DEF(media_tracks)
 	/// Lobby music tracks
 	var/list/lobby_tracks = list()
 
-/datum/controller/subsystem/media_tracks/Initialize(timeofday)
+/datum/controller/subsystem/media_tracks/Initialize()
 	load_tracks()
 	sort_tracks()
-	return ..()
+	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/media_tracks/proc/load_tracks()
-	for(var/filename in config.jukebox_track_files)
+	for(var/filename in CONFIG_GET(str_list/jukebox_track_files))
 		report_progress("Loading jukebox track: [filename]")
 
 		if(!fexists(filename))
-			error("File not found: [filename]")
+			log_world("## ERROR File not found: [filename]")
 			continue
 
 		var/list/jsonData = json_decode(file2text(filename))
 
 		if(!istype(jsonData))
-			error("Failed to read tracks from [filename], json_decode failed.")
+			log_world("## ERROR Failed to read tracks from [filename], json_decode failed.")
 			continue
 
 		for(var/entry in jsonData)
 
 			// Critical problems that will prevent the track from working
 			if(!istext(entry["url"]))
-				error("Jukebox entry in [filename]: bad or missing 'url'. Tracks must have a URL.")
+				log_world("## ERROR Jukebox entry in [filename]: bad or missing 'url'. Tracks must have a URL.")
 				continue
 			if(!istext(entry["title"]))
-				error("Jukebox entry in [filename]: bad or missing 'title'. Tracks must have a title.")
+				log_world("## ERROR Jukebox entry in [filename]: bad or missing 'title'. Tracks must have a title.")
 				continue
 			if(!isnum(entry["duration"]))
-				error("Jukebox entry in [filename]: bad or missing 'duration'. Tracks must have a duration (in deciseconds).")
+				log_world("## ERROR Jukebox entry in [filename]: bad or missing 'duration'. Tracks must have a duration (in deciseconds).")
 				continue
 
 			// Noncritical problems, we can keep going anyway, but warn so it can be fixed
 			if(!istext(entry["artist"]))
-				warning("Jukebox entry in [filename], [entry["title"]]: bad or missing 'artist'. Please consider crediting the artist.")
+				WARNING("Jukebox entry in [filename], [entry["title"]]: bad or missing 'artist'. Please consider crediting the artist.")
 			if(!istext(entry["genre"]))
-				warning("Jukebox entry in [filename], [entry["title"]]: bad or missing 'genre'. Please consider adding a genre.")
+				WARNING("Jukebox entry in [filename], [entry["title"]]: bad or missing 'genre'. Please consider adding a genre.")
 
 			var/datum/track/T = new(entry["url"], entry["title"], entry["duration"], entry["artist"], entry["genre"])
 
@@ -99,11 +99,11 @@ SUBSYSTEM_DEF(media_tracks)
 	if(islist(json))
 		for(var/song in json)
 			if(!islist(song))
-				to_chat(C, "<span class='warning'>Song appears to be malformed.</span>")
+				to_chat(C, span_warning("Song appears to be malformed."))
 				continue
 			var/list/songdata = song
 			if(!songdata["url"] || !songdata["title"] || !songdata["duration"])
-				to_chat(C, "<span class='warning'>URL, Title, or Duration was missing from a song. Skipping.</span>")
+				to_chat(C, span_warning("URL, Title, or Duration was missing from a song. Skipping."))
 				continue
 			var/datum/track/T = new(songdata["url"], songdata["title"], songdata["duration"], songdata["artist"], songdata["genre"], songdata["secret"], songdata["lobby"])
 			all_tracks += T
@@ -130,7 +130,7 @@ SUBSYSTEM_DEF(media_tracks)
 		return
 
 	var/secret = tgui_alert(C, "Optional: Mark track as secret?", "Track Secret", list("Yes", "Cancel", "No"))
-	if(secret == "Cancel")
+	if(!secret || secret == "Cancel")
 		return
 	else if(secret == "Yes")
 		secret = TRUE
@@ -138,7 +138,7 @@ SUBSYSTEM_DEF(media_tracks)
 		secret = FALSE
 
 	var/lobby = tgui_alert(C, "Optional: Mark track as lobby music?", "Track Lobby", list("Yes", "Cancel", "No"))
-	if(lobby == "Cancel")
+	if(!lobby || lobby == "Cancel")
 		return
 	else if(secret == "Yes")
 		secret = TRUE
@@ -172,7 +172,29 @@ SUBSYSTEM_DEF(media_tracks)
 			sort_tracks()
 			return
 
-	to_chat(C, "<span class='warning>Couldn't find a track matching the specified parameters.</span>")
+	to_chat(C, span_warning("Couldn't find a track matching the specified parameters."))
+
+/datum/controller/subsystem/media_tracks/proc/add_track(mob/user, new_url, new_title, new_duration, new_artist, new_genre, new_secret, new_lobby)
+	if(!check_rights(R_DEBUG|R_FUN))
+		return
+	var/datum/track/T = new(new_url, new_title, new_duration, new_artist, new_genre, new_secret, new_lobby)
+	all_tracks += T
+	report_progress("Media track added by [user]: [T.title]")
+	sort_tracks()
+	return
+
+/datum/controller/subsystem/media_tracks/proc/remove_track(mob/user, datum/track/T)
+	if(!check_rights(R_DEBUG|R_FUN))
+		return
+
+	if(!T)
+		return
+
+	report_progress("Media track removed by [user]: [T.title]")
+	all_tracks -= T
+	qdel(T)
+	sort_tracks()
+	return
 
 /datum/controller/subsystem/media_tracks/vv_get_dropdown()
 	. = ..()
@@ -184,7 +206,7 @@ SUBSYSTEM_DEF(media_tracks)
 	. = ..()
 	IF_VV_OPTION("add_track")
 		manual_track_add()
-		href_list["datumrefresh"] = "\ref[src]"
+		href_list[VV_HK_DATUM_REFRESH] = "\ref[src]"
 	IF_VV_OPTION("remove_track")
 		manual_track_remove()
-		href_list["datumrefresh"] = "\ref[src]"
+		href_list[VV_HK_DATUM_REFRESH] = "\ref[src]"

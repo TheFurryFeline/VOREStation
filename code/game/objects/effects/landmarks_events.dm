@@ -16,19 +16,19 @@ Admin verb is called by code\modules\admin\verbs\event_triggers.dm
 	var/isLoud = FALSE
 	var/isNarrate = FALSE
 
-/obj/effect/landmark/event_trigger/New()
-	..()
+/obj/effect/landmark/event_trigger/Initialize(mapload)
+	. = ..()
 	coordinates = "(X:[loc.x];Y:[loc.y];Z:[loc.z])"
 
 /obj/effect/landmark/event_trigger/proc/set_vars(mob/M)
-	var/new_name = sanitize(tgui_input_text(M, "Input Name for the trigger", "Naming", "Event Trigger"))
+	var/new_name = tgui_input_text(M, "Input Name for the trigger", "Naming", "Event Trigger", MAX_MESSAGE_LEN)
 	if(!new_name)
 		return
 	name = new_name
 	creator_ckey = M.ckey
-	if(!event_triggers[creator_ckey])
-		event_triggers[creator_ckey] = list()
-	event_triggers[creator_ckey] |= list(src)
+	if(!GLOB.event_triggers[creator_ckey])
+		GLOB.event_triggers[creator_ckey] = list()
+	GLOB.event_triggers[creator_ckey] |= list(src)
 	isTeamwork = (tgui_alert(M, "Notify rest of team?", "Teamwork", list("No", "Yes")) == "Yes" ? TRUE : FALSE)
 	if(!isTeamwork)
 		isLoud = (tgui_alert(M, "Should it make a bwoink when triggered for YOU?", "bwoink", list("No", "Yes")) == "Yes" ? TRUE : FALSE)
@@ -41,11 +41,12 @@ Admin verb is called by code\modules\admin\verbs\event_triggers.dm
 	log_admin("[M.ckey] has created a [isNarrate ? "Narrtion" : "Notification"] landmark trigger at [coordinates]")
 
 /obj/effect/landmark/event_trigger/Destroy()
-	if(event_triggers[creator_ckey])
-		event_triggers[creator_ckey] -= src
-	..()
+	if(GLOB.event_triggers[creator_ckey])
+		GLOB.event_triggers[creator_ckey] -= src
+	. = ..()
 
-/obj/effect/landmark/event_trigger/Crossed(var/atom/movable/AM)
+/obj/effect/landmark/event_trigger/Crossed(atom/movable/AM)
+	. = ..()
 	if(!isliving(AM))
 		return FALSE
 	var/mob/living/L = AM
@@ -70,7 +71,7 @@ Admin verb is called by code\modules\admin\verbs\event_triggers.dm
 	else
 		if(isLoud)
 			creator_reference << 'sound/effects/adminhelp.ogg'
-		to_chat(creator_reference, SPAN_WARNING("Player [L.name] ([L.ckey]) has triggered event \
+		to_chat(creator_reference, span_warning("Player [L.name] ([L.ckey]) has triggered event \
 			narrate landmark [name] of type [isNarrate ? "Narration" : "Notification"]. \n \
 			It [isRepeating ? "will be possible to trigger after [cooldown / (1 SECOND)] seconds" : "has self-deleted"] \n \
 			COORDINATES: [coordinates]"))
@@ -89,13 +90,13 @@ Admin verb is called by code\modules\admin\verbs\event_triggers.dm
 	var/isWarning = FALSE 	//For personal messages
 	isNarrate = TRUE
 
-/obj/effect/landmark/event_trigger/auto_narrate/New()
+/obj/effect/landmark/event_trigger/auto_narrate/Initialize(mapload)
+	. = ..()
 	message_range = world.view
-	..()
 
 /obj/effect/landmark/event_trigger/auto_narrate/set_vars(mob/M)
 	..()
-	message = encode_html_emphasis(sanitize(tgui_input_text(M, "What should the automatic narration say?", "Message"), encode = FALSE))
+	message = encode_html_emphasis(tgui_input_text(M, "What should the automatic narration say?", "Message", "", MAX_MESSAGE_LEN))
 	isPersonal_orVis_orAud = (tgui_alert(M, "Should it send directly to the player, or send to the turf?", "Target", list("Player", "Turf")) == "Player" ? 0 : 1)
 	if(isPersonal_orVis_orAud == 0)
 		isWarning = (tgui_alert(M, "Should it be a normal message or a big scary red text?", "Scary Red", list("Big Red", "Normal")) == "Big Red" ? TRUE : FALSE)
@@ -109,7 +110,7 @@ Admin verb is called by code\modules\admin\verbs\event_triggers.dm
 
 
 
-/obj/effect/landmark/event_trigger/auto_narrate/Crossed(var/atom/movable/AM)
+/obj/effect/landmark/event_trigger/auto_narrate/Crossed(atom/movable/AM)
 	. = ..()	//Checks if AM is mob/living and notifies admin(s)
 	if(!.)
 		return
@@ -118,7 +119,7 @@ Admin verb is called by code\modules\admin\verbs\event_triggers.dm
 	switch(isPersonal_orVis_orAud)
 		if(0)
 			if(isWarning)
-				to_chat(L, SPAN_DANGER(message))
+				to_chat(L, span_danger(message))
 			else
 				to_chat(L, message)
 		if(1)

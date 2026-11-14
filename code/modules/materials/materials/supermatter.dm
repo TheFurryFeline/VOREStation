@@ -1,11 +1,10 @@
 //R-UST port
 /datum/material/supermatter
-	name = "supermatter"
+	name = MAT_SUPERMATTER
 	icon_colour = "#FFFF00"
 	stack_type = /obj/item/stack/material/supermatter
 	shard_type = SHARD_SHARD
 	radioactivity = 20
-	stack_type = null
 	luminescence = 3
 	ignition_point = PHORON_MINIMUM_BURN_TEMPERATURE
 	icon_base = "stone"
@@ -15,8 +14,8 @@
 	sheet_singular_name = "crystal"
 	sheet_plural_name = "crystals"
 	is_fusion_fuel = 1
-	stack_origin_tech = list(TECH_MATERIAL = 8, TECH_PHORON = 5, TECH_BLUESPACE = 4)
 	flags = MATERIAL_UNMELTABLE
+	supply_conversion_value = 30
 
 /datum/material/supermatter/generate_recipes()
 	recipes = list(

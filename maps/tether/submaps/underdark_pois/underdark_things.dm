@@ -17,7 +17,7 @@
 // Adds Phoron Wolf
 /mob/living/simple_mob/vore/wolf/phoron
 
-	faction = "underdark"
+	faction = FACTION_UNDERDARK
 	movement_cooldown = -1.5
 
 	harm_intent_damage = 5
@@ -39,7 +39,7 @@
 // Underdark mob spawners
 /obj/tether_away_spawner/underdark_drone_swarm
 	name = "Underdark Drone Swarm Spawner"
-	faction = "underdark"
+	faction = FACTION_UNDERDARK
 	atmos_comp = TRUE
 	prob_spawn = 100
 	prob_fall = 10
@@ -50,7 +50,7 @@
 
 /obj/tether_away_spawner/underdark_normal
 	name = "Underdark Normal Spawner"
-	faction = "underdark"
+	faction = FACTION_UNDERDARK
 	atmos_comp = TRUE
 	prob_spawn = 100
 	prob_fall = 50
@@ -64,7 +64,7 @@
 
 /obj/tether_away_spawner/underdark_hard
 	name = "Underdark Hard Spawner"
-	faction = "underdark"
+	faction = FACTION_UNDERDARK
 	atmos_comp = TRUE
 	prob_spawn = 100
 	prob_fall = 50
@@ -77,7 +77,7 @@
 
 /obj/tether_away_spawner/underdark_boss
 	name = "Underdark Boss Spawner"
-	faction = "underdark"
+	faction = FACTION_UNDERDARK
 	atmos_comp = TRUE
 	prob_spawn = 100
 	prob_fall = 100
@@ -92,6 +92,17 @@ VIRGO3B_TURF_CREATE(/turf/simulated/mineral/floor/ignore_oregen)
 VIRGO3B_TURF_CREATE(/turf/simulated/mineral/ignore_cavegen)
 VIRGO3B_TURF_CREATE(/turf/simulated/mineral/floor/ignore_cavegen)
 
+//GasCracks, despite the pathnames these give them atmos that let you place them anywhere on 3B
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack)
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack/oxygen)
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack/nitrogen)
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack/carbon)
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack/nitro)
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack/phoron)
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack/air)
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack/terrible)
+VIRGO3B_TURF_CREATE(/turf/simulated/floor/gas_crack/random)
+
 //Vault2
 VIRGO3B_TURF_CREATE(/turf/simulated/floor/tiled/freezer)
 
@@ -102,7 +113,7 @@ VIRGO3B_TURF_CREATE(/turf/simulated/shuttle/floor/voidcraft)
 VIRGO3B_TURF_CREATE(/turf/simulated/floor/tiled/kafel_full/yellow)
 
 //Mechbay
-/obj/mecha/working/ripley/abandoned/Initialize()
-	..()
+/obj/mecha/working/ripley/abandoned/Initialize(mapload)
+	. = ..()
 	for(var/obj/item/mecha_parts/mecha_tracking/B in src.contents)	//Deletes the beacon so it can't be found easily
 		qdel(B)

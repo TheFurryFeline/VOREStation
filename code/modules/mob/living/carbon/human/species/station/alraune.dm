@@ -18,9 +18,9 @@
 	selects_bodytype = SELECTS_BODYTYPE_CUSTOM //VOREStation edit
 
 	body_temperature = T20C
-	breath_type = "oxygen"
-	poison_type = "phoron"
-	exhale_type = "oxygen"
+	breath_type = GAS_O2
+	poison_type = GAS_PHORON
+	exhale_type = GAS_O2
 	water_breather = TRUE  //eh, why not? Aquatic plants are a thing.
 
 	// Heat and cold resistances are 20 degrees broader on the level 1 range, level 2 is default, level 3 is much weaker, halfway between L2 and normal L3.
@@ -44,11 +44,14 @@
 	breath_heat_level_3 = 800 //lower incineration threshold though
 
 	spawn_flags = SPECIES_CAN_JOIN
-	flags = NO_SCAN | IS_PLANT | NO_MINOR_CUT
+	flags = NO_DNA | NO_SLEEVE | IS_PLANT | NO_MINOR_CUT
 	appearance_flags = HAS_HAIR_COLOR | HAS_LIPS | HAS_UNDERWEAR | HAS_SKIN_COLOR | HAS_EYE_COLOR
 
+	genders = list(MALE, FEMALE, NEUTER, PLURAL)
+
 	inherent_verbs = list(/mob/living/carbon/human/proc/alraune_fruit_select, //Give them the voremodes related to wrapping people in vines and sapping their fluids
-		/mob/living/carbon/human/proc/tie_hair)
+		/mob/living/carbon/human/proc/tie_hair,
+		/mob/living/proc/toggle_thorns)
 
 	color_mult = 1
 	icobase = 'icons/mob/human_races/r_human_vr.dmi'
@@ -93,7 +96,7 @@
 		)
 
 
-/datum/species/alraune/handle_environment_special(var/mob/living/carbon/human/H)
+/datum/species/alraune/handle_environment_special(mob/living/carbon/human/H)
 	if(H.inStasisNow()) // if they're in stasis, they won't need this stuff.
 		return
 
@@ -134,18 +137,18 @@
 	if(H.does_not_breathe)
 		H.failed_last_breath = 0
 		H.adjustOxyLoss(-5)
-		return // if somehow they don't breathe, abort breathing.
+		return ..()// if somehow they don't breathe, abort breathing.
 
 	if(!breath || (breath.total_moles == 0))
 		H.failed_last_breath = 1
-		if(H.health > config.health_threshold_crit)
+		if(H.health > H.get_crit_point())
 			H.adjustOxyLoss(ALRAUNE_MAX_OXYLOSS)
 		else
 			H.adjustOxyLoss(ALRAUNE_CRIT_MAX_OXYLOSS)
 
-		H.throw_alert("pressure", /obj/screen/alert/lowpressure)
+		H.throw_alert("pressure", /atom/movable/screen/alert/lowpressure)
 
-		return // skip air processing if there's no air
+		return ..() // skip air processing if there's no air
 	else
 		H.clear_alert("pressure")
 
@@ -169,7 +172,7 @@
 	var/failed_inhale = 0
 	var/failed_exhale = 0
 
-	inhaling = breath.gas["carbon_dioxide"]
+	inhaling = breath.gas[GAS_CO2]
 	poison = breath.gas[poison_type]
 	exhaling = breath.gas[exhale_type]
 
@@ -187,18 +190,18 @@
 		H.adjustOxyLoss(max(ALRAUNE_MAX_OXYLOSS*(1-ratio), 0))
 		failed_inhale = 1
 
-		H.throw_alert("oxy", /obj/screen/alert/not_enough_co2)
+		H.throw_alert("oxy", /atom/movable/screen/alert/not_enough_co2)
 	else
 		// We're in safe limits
 		H.clear_alert("oxy")
 
 	inhaled_gas_used = inhaling/6
-	breath.adjust_gas("carbon_dioxide", -inhaled_gas_used, update = 0) //update afterwards
+	breath.adjust_gas(GAS_CO2, -inhaled_gas_used, update = 0) //update afterwards
 	breath.adjust_gas_temp(exhale_type, inhaled_gas_used, H.bodytemperature, update = 0) //update afterwards
 
 	//Now we handle CO2.
 	if(inhale_pp > safe_exhaled_max * 0.7) // For a human, this would be too much exhaled gas in the air. But plants don't care.
-		H.throw_alert("co2", /obj/screen/alert/too_much_co2/plant) // Give them the alert on the HUD. They'll be aware when the good stuff is present.
+		H.throw_alert("co2", /atom/movable/screen/alert/too_much_co2/plant) // Give them the alert on the HUD. They'll be aware when the good stuff is present.
 	else
 		H.clear_alert("co2")
 
@@ -221,9 +224,9 @@
 	if(toxins_pp > safe_toxins_max)
 		var/ratio = (poison/safe_toxins_max) * 10
 		if(H.reagents)
-			H.reagents.add_reagent("toxin", CLAMP(ratio, MIN_TOXIN_DAMAGE, MAX_TOXIN_DAMAGE))
+			H.reagents.add_reagent(REAGENT_ID_TOXIN, CLAMP(ratio, MIN_TOXIN_DAMAGE, MAX_TOXIN_DAMAGE))
 			breath.adjust_gas(poison_type, -poison/6, update = 0) //update after
-		H.throw_alert("tox_in_air", /obj/screen/alert/tox_in_air)
+		H.throw_alert("tox_in_air", /atom/movable/screen/alert/tox_in_air)
 	else
 		H.clear_alert("tox_in_air")
 
@@ -260,27 +263,27 @@
 
 		if(breath.temperature <= breath_cold_level_1)
 			if(prob(20))
-				to_chat(H, "<span class='danger'>You feel icicles forming on your skin!</span>")
+				to_chat(H, span_danger("You feel icicles forming on your skin!"))
 		else if(breath.temperature >= breath_heat_level_1)
 			if(prob(20))
-				to_chat(H, "<span class='danger'>You feel yourself smouldering in the heat!</span>")
+				to_chat(H, span_danger("You feel yourself smouldering in the heat!"))
 
 		var/bodypart = pick(BP_L_FOOT,BP_R_FOOT,BP_L_LEG,BP_R_LEG,BP_L_ARM,BP_R_ARM,BP_L_HAND,BP_R_HAND,BP_TORSO,BP_GROIN,BP_HEAD)
 		if(breath.temperature >= breath_heat_level_1)
 			if(breath.temperature < breath_heat_level_2)
-				H.apply_damage(HEAT_GAS_DAMAGE_LEVEL_1, BURN, bodypart, used_weapon = "Excessive Heat")
+				H.apply_damage(HEAT_GAS_DAMAGE_LEVEL_1, BURN, bodypart)
 			else if(breath.temperature < breath_heat_level_3)
-				H.apply_damage(HEAT_GAS_DAMAGE_LEVEL_2, BURN, bodypart, used_weapon = "Excessive Heat")
+				H.apply_damage(HEAT_GAS_DAMAGE_LEVEL_2, BURN, bodypart)
 			else
-				H.apply_damage(HEAT_GAS_DAMAGE_LEVEL_3, BURN, bodypart, used_weapon = "Excessive Heat")
+				H.apply_damage(HEAT_GAS_DAMAGE_LEVEL_3, BURN, bodypart)
 
 		else if(breath.temperature <= breath_cold_level_1)
 			if(breath.temperature > breath_cold_level_2)
-				H.apply_damage(COLD_GAS_DAMAGE_LEVEL_1, BURN, bodypart, used_weapon = "Excessive Cold")
+				H.apply_damage(COLD_GAS_DAMAGE_LEVEL_1, BURN, bodypart)
 			else if(breath.temperature > breath_cold_level_3)
-				H.apply_damage(COLD_GAS_DAMAGE_LEVEL_2, BURN, bodypart, used_weapon = "Excessive Cold")
+				H.apply_damage(COLD_GAS_DAMAGE_LEVEL_2, BURN, bodypart)
 			else
-				H.apply_damage(COLD_GAS_DAMAGE_LEVEL_3, BURN, bodypart, used_weapon = "Excessive Cold")
+				H.apply_damage(COLD_GAS_DAMAGE_LEVEL_3, BURN, bodypart)
 
 
 		//breathing in hot/cold air also heats/cools you a bit
@@ -304,7 +307,7 @@
 		get_environment_discomfort(src,"cold")
 
 	breath.update_values()
-	return 1
+	..()
 
 /obj/item/organ/internal/brain/alraune
 	icon = 'icons/mob/species/alraune/organs.dmi'
@@ -338,7 +341,7 @@
 	name = "fruit gland"
 	desc = "A bulbous gourd-like structure."
 	organ_tag = A_FRUIT
-	var/generated_reagents = list("sugar" = 2) //This actually allows them. This could be anything, but sugar seems most fitting.
+	var/generated_reagents = list(REAGENT_ID_SUGAR = 2) //This actually allows them. This could be anything, but sugar seems most fitting.
 	var/usable_volume = 250 //Five fruit.
 	var/transfer_amount = 50
 	var/empty_message = list("Your have no fruit on you.", "You have a distinct lack of fruit..")
@@ -348,12 +351,27 @@
 	var/self_verb_descriptor = list("grab", "snatch", "pick")
 	var/short_emote_descriptor = list("picks", "grabs")
 	var/self_emote_descriptor = list("grab", "pick", "snatch")
-	var/fruit_type = "apple"
+	var/fruit_type = PLANT_APPLE
 	var/mob/living/organ_owner = null
 	var/gen_cost = 0.5
+	var/poison_reagent
 
-/obj/item/organ/internal/fruitgland/New()
-	..()
+	var/list/poison_options = list(
+								REAGENT_ID_MICROCILLIN,
+								REAGENT_ID_MACROCILLIN,
+								REAGENT_ID_NORMALCILLIN,
+								REAGENT_ID_NUMBENZYME,
+								REAGENT_ID_ANDROROVIR,
+								REAGENT_ID_GYNOROVIR,
+								REAGENT_ID_ANDROGYNOROVIR,
+								REAGENT_ID_STOXIN,
+								REAGENT_ID_RAINBOWTOXIN,
+								REAGENT_ID_PARALYSISTOXIN,
+								REAGENT_ID_PAINENZYME
+	)
+
+/obj/item/organ/internal/fruitgland/Initialize(mapload, internal)
+	. = ..()
 	create_reagents(usable_volume)
 
 
@@ -369,9 +387,9 @@
 
 	if(reagents)
 		if(reagents.total_volume == reagents.maximum_volume * 0.05)
-			to_chat(organ_owner, "<span class='notice'>[pick(empty_message)]</span>")
+			to_chat(organ_owner, span_notice("[pick(empty_message)]"))
 		else if(reagents.total_volume == reagents.maximum_volume && before_gen < reagents.maximum_volume)
-			to_chat(organ_owner, "<span class='warning'>[pick(full_message)]</span>")
+			to_chat(organ_owner, span_warning("[pick(full_message)]"))
 
 /obj/item/organ/internal/fruitgland/proc/do_generation()
 	organ_owner.adjust_nutrition(-gen_cost)
@@ -382,29 +400,29 @@
 /mob/living/carbon/human/proc/alraune_fruit_select() //So if someone doesn't want fruit/vegetables, they don't have to select one.
 	set name = "Select fruit"
 	set desc = "Select what fruit/vegetable you wish to grow."
-	set category = "Abilities"
+	set category = "Abilities.Alraune"
 	var/obj/item/organ/internal/fruitgland/fruit_gland
 	for(var/F in contents)
 		if(istype(F, /obj/item/organ/internal/fruitgland))
 			fruit_gland = F
 			break
 
-	if(fruit_gland)
-		var/selection = tgui_input_list(src, "Choose your character's fruit type. Choosing nothing will result in a default of apples.", "Fruit Type", acceptable_fruit_types)
-		if(selection)
-			fruit_gland.fruit_type = selection
-		verbs |= /mob/living/carbon/human/proc/alraune_fruit_pick
-		verbs -= /mob/living/carbon/human/proc/alraune_fruit_select
-		fruit_gland.organ_owner = src
-		fruit_gland.emote_descriptor = list("fruit right off of [fruit_gland.organ_owner]!", "a fruit from [fruit_gland.organ_owner]!")
-
-	else
-		to_chat(src, "<span class='notice'>You lack the organ required to produce fruit.</span>")
+	if(!fruit_gland)
+		to_chat(src, span_notice("You lack the organ required to produce fruit."))
 		return
+	var/selection = tgui_input_list(src, "Choose your character's fruit type. Choosing nothing will result in a default of apples.", "Fruit Type", GLOB.acceptable_fruit_types)
+	if(!selection)
+		return
+	fruit_gland.fruit_type = selection
+	add_verb(src, /mob/living/carbon/human/proc/alraune_fruit_pick)
+	add_verb(src, /mob/living/carbon/human/proc/alraune_fruit_reagent)
+	// remove_verb(src, /mob/living/carbon/human/proc/alraune_fruit_select)
+	fruit_gland.organ_owner = src
+	fruit_gland.emote_descriptor = list("fruit right off of [fruit_gland.organ_owner]!", "a fruit from [fruit_gland.organ_owner]!")
 
 /mob/living/carbon/human/proc/alraune_fruit_pick()
 	set name = "Pick Fruit"
-	set desc = "Pick fruit off of [src]."
+	set desc = "Pick fruit off of the fruit gland."
 	set category = "Object"
 	set src in view(1)
 
@@ -422,11 +440,16 @@
 			break
 	if (fruit_gland) //Do they have the gland?
 		if(fruit_gland.reagents.total_volume < fruit_gland.transfer_amount)
-			to_chat(src, "<span class='notice'>[pick(fruit_gland.empty_message)]</span>")
+			to_chat(src, span_notice("[pick(fruit_gland.empty_message)]"))
 			return
 
 		var/datum/seed/S = SSplants.seeds["[fruit_gland.fruit_type]"]
-		S.harvest(usr,0,0,1)
+
+		if(fruit_gland.poison_reagent)
+			S.harvest(usr,0,0,1,fruit_gland.poison_reagent,10)
+			log_admin("[src] played by [src.ckey] has produced a fruit containing [fruit_gland.poison_reagent]. It was picked by [usr].")
+		else
+			S.harvest(usr,0,0,1)
 
 		var/index = rand(0,2)
 
@@ -434,13 +457,41 @@
 			var/emote = fruit_gland.emote_descriptor[index]
 			var/verb_desc = fruit_gland.verb_descriptor[index]
 			var/self_verb_desc = fruit_gland.self_verb_descriptor[index]
-			usr.visible_message("<span class='notice'>[usr] [verb_desc] [emote]</span>",
-							"<span class='notice'>You [self_verb_desc] [emote]</span>")
+			usr.visible_message(span_notice("[usr] [verb_desc] [emote]"),
+							span_notice("You [self_verb_desc] [emote]"))
 		else
-			visible_message("<span class='notice'>[src] [pick(fruit_gland.short_emote_descriptor)] a fruit.</span>",
-								"<span class='notice'>You [pick(fruit_gland.self_emote_descriptor)] a fruit.</span>")
+			visible_message(span_notice("[src] [pick(fruit_gland.short_emote_descriptor)] a fruit."),
+								span_notice("You [pick(fruit_gland.self_emote_descriptor)] a fruit."))
 
 		fruit_gland.reagents.remove_any(fruit_gland.transfer_amount)
+
+/mob/living/carbon/human/proc/alraune_fruit_reagent()
+	set name = "Poison Fruit"
+	set desc = "Select a reagent to be placed in your fruit."
+	set category = "Abilities.Alraune"
+
+	if(!isliving(usr) || !usr.checkClickCooldown())
+		return
+
+	if(usr.incapacitated() || usr.stat > CONSCIOUS)
+		return
+
+	var/obj/item/organ/internal/fruitgland/fruit_gland
+	for(var/I in contents)
+		if(istype(I, /obj/item/organ/internal/fruitgland))
+			fruit_gland = I
+			break
+
+	if(fruit_gland)
+		var/poison_choice = tgui_input_list(src, "Choose which reagent to poison your fruit with! Be aware, this option is intended for use in scenes and ERP. This is not for use as pranks or to change the gender of unsuspecting crew, and you must be aware of the preferences of the people who eat it. Do not just leave it out unattended.", "Select reagent", fruit_gland.poison_options)
+		if(!poison_choice)
+			to_chat(src, span_notice("You have chosen no poison to add, any previously chosen poisons have been cleared and no poison will be added to produced fruits."))
+			fruit_gland.poison_reagent = null
+			return
+		else
+			fruit_gland.poison_reagent = poison_choice
+			to_chat(src, span_notice("Fruit that you produce will now contain [poison_choice]. Be aware of out of character consent."))
+			return
 
 //End of fruit gland code.
 

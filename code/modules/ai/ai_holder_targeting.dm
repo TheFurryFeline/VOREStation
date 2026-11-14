@@ -10,6 +10,7 @@
 	var/micro_hunt = FALSE					// Will target mobs at or under the micro_hunt_size size, requires vore_hostile to be true
 	var/micro_hunt_size = 0.25
 	var/belly_attack = TRUE					//Mobs attack if they are in a belly!
+	var/guard_limit = FALSE					//Mobs will not acquire targets unless they are in front of them.
 
 	var/atom/movable/target = null			// The thing (mob or object) we're trying to kill.
 	var/atom/movable/preferred_target = null// If set, and if given the chance, we will always prefer to target this over other options.
@@ -33,7 +34,7 @@
 // Step 1, find out what we can see.
 /datum/ai_holder/proc/list_targets()
 	. = ohearers(vision_range, holder)
-	. -= dview_mob // Not the dview mob!
+	. -= GLOB.dview_mob // Not the dview mob!
 
 	var/static/hostile_machines = typecacheof(list(/obj/machinery/porta_turret, /obj/mecha, /obj/structure/blob))
 
@@ -42,14 +43,17 @@
 			. += HM
 
 // Step 2, filter down possible targets to things we actually care about.
-/datum/ai_holder/proc/find_target(var/list/possible_targets, var/has_targets_list = FALSE)
+/datum/ai_holder/proc/find_target(list/possible_targets, has_targets_list = FALSE)
 	ai_log("find_target() : Entered.", AI_LOG_TRACE)
 	if(!hostile) // So retaliating mobs only attack the thing that hit it.
 		return null
 	. = list()
 	if(!has_targets_list)
 		possible_targets = list_targets()
-	for(var/possible_target in possible_targets)
+	for(var/atom/possible_target as anything in possible_targets)
+		if(guard_limit)
+			if((holder.dir == 1 && holder.y >= possible_target.y) || (holder.dir == 2 && holder.y <= possible_target.y) || (holder.dir == 4 && holder.x >= possible_target.x) || (holder.dir == 8 && holder.x <= possible_target.x)) //Ignore targets that are behind you
+				continue
 		if(can_attack(possible_target)) // Can we attack it?
 			. += possible_target
 
@@ -81,6 +85,8 @@
 		remove_target()
 
 	target = new_target
+
+	RegisterSignal(target, COMSIG_QDELETING, PROC_REF(remove_target))
 
 	if(target != null)
 		lose_target_time = 0
@@ -120,7 +126,7 @@
 			closest_targets += A
 	return closest_targets
 
-/datum/ai_holder/proc/can_attack(atom/movable/the_target, var/vision_required = TRUE)
+/datum/ai_holder/proc/can_attack(atom/movable/the_target, vision_required = TRUE)
 	ai_log("can_attack() : Entering.", AI_LOG_TRACE)
 	if(!can_see_target(the_target) && vision_required)
 		return FALSE
@@ -129,6 +135,8 @@
 			return FALSE
 	if(isliving(the_target))
 		var/mob/living/L = the_target
+		if(holder.IIsAlly(L))
+			return FALSE
 		if(ishuman(L) || issilicon(L))
 			if(L.key && !L.client)	// SSD players get a pass
 				return FALSE
@@ -150,14 +158,12 @@
 					return FALSE
 		//VOREStation add start
 		else if(forgive_resting && !isbelly(holder.loc))	//Doing it this way so we only think about the other conditions if the var is actually set
-			if((holder.health == holder.maxHealth) && !hostile && (L.resting || L.weakened || L.stunned))	//If our health is full, no one is fighting us, we can forgive
+			if((holder.health == holder.getMaxHealth()) && !hostile && (L.resting || L.weakened || L.stunned))	//If our health is full, no one is fighting us, we can forgive
 				var/mob/living/simple_mob/vore/eater = holder
 				if(!eater.will_eat(L))		//We forgive people we can eat by eating them
 					set_stance(STANCE_IDLE)
 					return FALSE	//Forgiven
 		//VOREStation add end
-		if(holder.IIsAlly(L))
-			return FALSE
 		return TRUE
 
 	if(istype(the_target, /obj/mecha))
@@ -189,6 +195,7 @@
 	ai_log("lose_target() : Entering.", AI_LOG_TRACE)
 	if(target)
 		ai_log("lose_target() : Had a target, setting to null and LTT.", AI_LOG_DEBUG)
+		UnregisterSignal(target, COMSIG_QDELETING, PROC_REF(remove_target))
 		target = null
 		lose_target_time = world.time
 
@@ -202,8 +209,10 @@
 
 // 'Hard' loss of target. Clean things up and return to idle.
 /datum/ai_holder/proc/remove_target()
+	SIGNAL_HANDLER
 	ai_log("remove_target() : Entering.", AI_LOG_TRACE)
 	if(target)
+		UnregisterSignal(target, COMSIG_QDELETING, PROC_REF(remove_target))
 		target = null
 
 	lose_target_time = 0
@@ -298,15 +307,15 @@
 	add_attacker(AM)
 
 // Checks to see if an atom attacked us lately
-/datum/ai_holder/proc/check_attacker(var/atom/movable/A)
+/datum/ai_holder/proc/check_attacker(atom/movable/A)
 	return (A.name in attackers)
 
 // We were attacked by this thing recently
-/datum/ai_holder/proc/add_attacker(var/atom/movable/A)
+/datum/ai_holder/proc/add_attacker(atom/movable/A)
 	attackers |= A.name
 
 // Forgive this attacker
-/datum/ai_holder/proc/remove_attacker(var/atom/movable/A)
+/datum/ai_holder/proc/remove_attacker(atom/movable/A)
 	attackers -= A.name
 
 // Causes targeting to prefer targeting the taunter if possible.
@@ -323,6 +332,10 @@
 	preferred_target = null
 
 /datum/ai_holder/proc/vore_check(mob/living/L)
+	if(isanimal(holder))
+		var/mob/living/simple_mob/M = holder
+		if(!M.voremob_loaded)	//init vore if it's not already
+			M.init_vore(TRUE)
 	if(!holder.vore_selected)	//We probably don't have a belly so don't even try
 		return FALSE
 	if(!isliving(L))	//We only want mob/living

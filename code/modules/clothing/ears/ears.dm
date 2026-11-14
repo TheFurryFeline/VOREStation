@@ -4,10 +4,12 @@
 /obj/item/clothing/ears/earmuffs
 	name = "earmuffs"
 	desc = "Protects your hearing from loud noises, and quiet ones as well."
+	icon = 'icons/obj/items.dmi'
 	icon_state = "earmuffs"
 	item_state_slots = list(slot_r_hand_str = "earmuffs", slot_l_hand_str = "earmuffs")
 	slot_flags = SLOT_EARS | SLOT_TWOEARS
 	ear_protection = 2
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/ears/earmuffs/headphones
 	name = "headphones"
@@ -21,7 +23,7 @@
 	set name = "Toggle Headphone Music"
 	set category = "Object"
 	set src in usr
-	if(!istype(usr, /mob/living)) return
+	if(!isliving(usr)) return
 	if(usr.stat) return
 
 	var/base_icon = copytext(icon_state,1,(length(icon_state) - 3 + headphones_on))
@@ -29,11 +31,11 @@
 	if(headphones_on)
 		icon_state = "[base_icon]_off"
 		headphones_on = 0
-		to_chat(usr, "<span class='notice'>You turn the music off.</span>")
+		to_chat(usr, span_notice("You turn the music off."))
 	else
 		icon_state = "[base_icon]_on"
 		headphones_on = 1
-		to_chat(usr, "<span class='notice'>You turn the music on.</span>")
+		to_chat(usr, span_notice("You turn the music on."))
 
 	update_clothing_icon()
 
@@ -41,12 +43,13 @@
 	Skrell tentacle wear
 */
 /obj/item/clothing/ears/skrell
-	name = "skrell tentacle wear"
+	name = DEVELOPER_WARNING_NAME // "skrell tentacle wear"
 	desc = "Some stuff worn by skrell to adorn their head tentacles."
 	icon = 'icons/inventory/ears/item.dmi'
 	w_class = ITEMSIZE_TINY
 	slot_flags = SLOT_EARS
 	species_restricted = list(SPECIES_SKRELL)
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/ears/skrell/chain
 	name = "Gold headtail chains"

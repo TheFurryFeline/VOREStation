@@ -3,8 +3,8 @@
 	name = SPECIES_XENO
 	name_plural = "Xenomorphs"
 
-	default_language = "Xenomorph"
-	language = "Hivemind"
+	default_language = LANGUAGE_XENOLINGUA
+	language = LANGUAGE_HIVEMIND
 	assisted_langs = list()
 	unarmed_types = list(/datum/unarmed_attack/claws/strong/xeno, /datum/unarmed_attack/bite/strong/xeno)
 	hud_type = /datum/hud_data/alien
@@ -24,7 +24,7 @@
 	cold_level_2 = -1
 	cold_level_3 = -1
 
-	flags =  NO_SCAN | NO_PAIN | NO_SLIP | NO_POISON | NO_MINOR_CUT | NO_INFECT | NO_DEFIB
+	flags =  NO_DNA | NO_SLEEVE | NO_PAIN | NO_SLIP | NO_POISON | NO_MINOR_CUT | NO_INFECT | NO_DEFIB | THICK_SKIN
 	spawn_flags = SPECIES_IS_RESTRICTED
 
 	reagent_tag = IS_XENOS
@@ -86,20 +86,20 @@
 /datum/species/xenos/get_random_name()
 	return "xenomorph [caste_name] ([alien_number])"
 
-/datum/species/xenos/can_understand(var/mob/other)
+/datum/species/xenos/can_understand(mob/other)
 	if(istype(other, /mob/living/carbon/alien/larva))
 		return TRUE
 	return FALSE
 
-/datum/species/xenos/hug(var/mob/living/carbon/human/H,var/mob/living/target)
-	H.visible_message("<span class='notice'>[H] caresses [target] with its scythe-like arm.</span>", \
-					"<span class='notice'>You caress [target] with your scythe-like arm.</span>")
+/datum/species/xenos/hug(mob/living/carbon/human/H,mob/living/target)
+	H.visible_message(span_notice("[H] caresses [target] with its scythe-like arm."), \
+					span_notice("You caress [target] with your scythe-like arm."))
 
-/datum/species/xenos/handle_post_spawn(var/mob/living/carbon/human/H)
+/datum/species/xenos/handle_post_spawn(mob/living/carbon/human/H)
 
 	if(H.mind)
-		H.mind.assigned_role = "Alien"
-		H.mind.special_role = "Alien"
+		H.mind.assigned_role = JOB_ALIEN
+		H.mind.special_role = JOB_ALIEN
 
 	alien_number++ //Keep track of how many aliens we've had so far.
 	H.real_name = "xenomorph [caste_name] ([alien_number])"
@@ -107,21 +107,21 @@
 
 	..()
 
-/datum/species/xenos/handle_environment_special(var/mob/living/carbon/human/H)
+/datum/species/xenos/handle_environment_special(mob/living/carbon/human/H)
 
 	var/turf/T = H.loc
 	if(!T) return
 	var/datum/gas_mixture/environment = T.return_air()
 	if(!environment) return
 
-	if(environment.gas["phoron"] > 0 || locate(/obj/effect/alien/weeds) in T)
+	if(environment.gas[GAS_PHORON] > 0 || locate(/obj/effect/alien/weeds) in T)
 		if(!regenerate(H))
 			var/obj/item/organ/internal/xenos/plasmavessel/P = H.internal_organs_by_name[O_PLASMA]
 			P.stored_plasma += weeds_plasma_rate
 			P.stored_plasma = min(max(P.stored_plasma,0),P.max_plasma)
 	..()
 
-/datum/species/xenos/proc/regenerate(var/mob/living/carbon/human/H)
+/datum/species/xenos/proc/regenerate(mob/living/carbon/human/H)
 	var/heal_rate = weeds_heal_rate
 	var/mend_prob = 10
 	if (!H.resting)
@@ -135,7 +135,7 @@
 		H.adjustOxyLoss(-heal_rate)
 		H.adjustToxLoss(-heal_rate)
 		if (prob(5))
-			to_chat(H, "<span class='alien'>You feel a soothing sensation come over you...</span>")
+			to_chat(H, span_alien("You feel a soothing sensation come over you..."))
 		return 1
 
 	//next internal organs
@@ -143,7 +143,7 @@
 		if(I.damage > 0)
 			I.damage = max(I.damage - heal_rate, 0)
 			if (prob(5))
-				to_chat(H, "<span class='alien'>You feel a soothing sensation within your [I.parent_organ]...</span>")
+				to_chat(H, span_alien("You feel a soothing sensation within your [I.parent_organ]..."))
 			return 1
 
 	//next mend broken bones, approx 10 ticks each
@@ -151,7 +151,7 @@
 		if (E.status & ORGAN_BROKEN)
 			if (prob(mend_prob))
 				if (E.mend_fracture())
-					to_chat(H, "<span class='alien'>You feel something mend itself inside your [E.name].</span>")
+					to_chat(H, span_alien("You feel something mend itself inside your [E.name]."))
 			return 1
 
 	return 0
@@ -181,7 +181,6 @@
 
 	inherent_verbs = list(
 		/mob/living/proc/ventcrawl,
-		/mob/living/carbon/human/proc/regurgitate,
 		/mob/living/carbon/human/proc/plant,
 		/mob/living/carbon/human/proc/transfer_plasma,
 		/mob/living/carbon/human/proc/evolve,
@@ -189,7 +188,7 @@
 		/mob/living/carbon/human/proc/corrosive_acid
 		)
 
-/datum/species/xenos/drone/handle_post_spawn(var/mob/living/carbon/human/H)
+/datum/species/xenos/drone/handle_post_spawn(mob/living/carbon/human/H)
 
 	var/mob/living/carbon/human/A = H
 	if(!istype(A))
@@ -223,7 +222,6 @@
 		/mob/living/carbon/human/proc/gut,
 		/mob/living/carbon/human/proc/leap,
 		/mob/living/carbon/human/proc/psychic_whisper,
-		/mob/living/carbon/human/proc/regurgitate
 		)
 
 /datum/species/xenos/sentinel
@@ -251,7 +249,6 @@
 	inherent_verbs = list(
 		/mob/living/proc/ventcrawl,
 		/mob/living/carbon/human/proc/tackle,
-		/mob/living/carbon/human/proc/regurgitate,
 		/mob/living/carbon/human/proc/transfer_plasma,
 		/mob/living/carbon/human/proc/corrosive_acid,
 		/mob/living/carbon/human/proc/neurotoxin,
@@ -290,7 +287,6 @@
 	inherent_verbs = list(
 		/mob/living/proc/ventcrawl,
 		/mob/living/carbon/human/proc/psychic_whisper,
-		/mob/living/carbon/human/proc/regurgitate,
 		/mob/living/carbon/human/proc/lay_egg,
 		/mob/living/carbon/human/proc/plant,
 		/mob/living/carbon/human/proc/transfer_plasma,
@@ -300,7 +296,7 @@
 		/mob/living/carbon/human/proc/resin
 		)
 
-/datum/species/xenos/queen/handle_login_special(var/mob/living/carbon/human/H)
+/datum/species/xenos/queen/handle_login_special(mob/living/carbon/human/H)
 	..()
 	// Make sure only one official queen exists at any point.
 	if(!alien_queen_exists(1,H))

@@ -1,7 +1,7 @@
 /*
  * Crowbar
  */
-/obj/item/weapon/tool/crowbar
+/obj/item/tool/crowbar
 	name = "crowbar"
 	desc = "Used to remove floors and to pry open doors."
 	icon = 'icons/obj/tools.dmi'
@@ -12,8 +12,7 @@
 	pry = 1
 	item_state = "crowbar"
 	w_class = ITEMSIZE_SMALL
-	origin_tech = list(TECH_ENGINEERING = 1)
-	matter = list(MAT_STEEL = 50)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.025))
 	attack_verb = list("attacked", "bashed", "battered", "bludgeoned", "whacked")
 	usesound = 'sound/items/crowbar.ogg'
 	drop_sound = 'sound/items/drop/crowbar.ogg'
@@ -21,12 +20,12 @@
 	toolspeed = 1
 	tool_qualities = list(TOOL_CROWBAR)
 
-/obj/item/weapon/tool/crowbar/red
+/obj/item/tool/crowbar/red
 	icon = 'icons/obj/tools.dmi'
 	icon_state = "red_crowbar"
 	item_state = "crowbar_red"
 
-/obj/item/weapon/tool/crowbar/old
+/obj/item/tool/crowbar/old
 	icon = 'icons/obj/tools.dmi'
 	icon_state = "old_crowbar"
 	item_state = "crowbar"
@@ -44,7 +43,7 @@
 	the tool aligned while in use."
 	value = CATALOGUER_REWARD_EASY
 
-/obj/item/weapon/tool/crowbar/alien
+/obj/item/tool/crowbar/alien
 	name = "alien crowbar"
 	desc = "A hard-light crowbar. It appears to pry by itself, without any effort required."
 	catalogue_data = list(/datum/category_item/catalogue/anomalous/precursor_a/alien_crowbar)
@@ -52,26 +51,17 @@
 	usesound = 'sound/weapons/sonic_jackhammer.ogg'
 	icon_state = "crowbar"
 	toolspeed = 0.1
-	origin_tech = list(TECH_COMBAT = 4, TECH_ENGINEERING = 4)
 
-/obj/item/weapon/tool/crowbar/hybrid
+/obj/item/tool/crowbar/hybrid
 	name = "strange crowbar"
 	desc = "A crowbar whose head seems to phase in and out of view."
 	catalogue_data = list(/datum/category_item/catalogue/anomalous/precursor_a/alien_crowbar)
 	icon_state = "hybcrowbar"
 	usesound = 'sound/weapons/sonic_jackhammer.ogg'
 	toolspeed = 0.4
-	origin_tech = list(TECH_COMBAT = 4, TECH_ENGINEERING = 3)
 	reach = 2
 
-/obj/item/weapon/tool/crowbar/cyborg
-	name = "hydraulic crowbar"
-	desc = "A hydraulic prying tool, compact but powerful. Designed to replace crowbars in industrial synthetics."
-	usesound = 'sound/items/jaws_pry.ogg'
-	force = 10
-	toolspeed = 0.5
-
-/obj/item/weapon/tool/crowbar/power
+/obj/item/tool/crowbar/power
 	name = "power pryer"
 	desc = "You shouldn't see this."
 	usesound = 'sound/items/jaws_pry.ogg'
@@ -82,7 +72,7 @@
  * Prybar
  */
 
-/obj/item/weapon/tool/prybar
+/obj/item/tool/prybar
 	name = "pry bar"
 	desc = "A steel bar with a wedge, designed specifically for opening unpowered doors in an emergency. It comes in a variety of configurations - collect them all!"
 	icon = 'icons/obj/tools_vr.dmi'
@@ -93,19 +83,18 @@
 	throwforce = 5
 	pry = 1
 	w_class = ITEMSIZE_SMALL
-	origin_tech = list(TECH_ENGINEERING = 1)
-	matter = list(MAT_STEEL = 30)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.015))
 	attack_verb = list("whapped", "smacked", "swatted", "thwacked", "hit")
 	usesound = 'sound/items/crowbar.ogg'
 	toolspeed = 1
 	var/random_color = TRUE
 
-/obj/item/weapon/tool/prybar/red
+/obj/item/tool/prybar/red
 	icon_state = "prybar_red"
 	item_state = "crowbar_red"
 	random_color = FALSE
 
-/obj/item/weapon/tool/prybar/New()
+/obj/item/tool/prybar/Initialize(mapload)
+	. = ..()
 	if(random_color)
 		icon_state = "prybar[pick("","_green","_aubergine","_blue")]"
-	. = ..()

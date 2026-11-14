@@ -4,11 +4,11 @@
 	maxHealth = 50
 	meat_amount = 0
 
-/mob/living/simple_mob/animal/passive/fish/koi/poisonous/Initialize()
+/mob/living/simple_mob/animal/passive/fish/koi/poisonous/Initialize(mapload)
 	. = ..()
 	create_reagents(60)
-	reagents.add_reagent("toxin", 45)
-	reagents.add_reagent("impedrezene", 15)
+	reagents.add_reagent(REAGENT_ID_TOXIN, 45)
+	reagents.add_reagent(REAGENT_ID_IMPEDREZENE, 15)
 
 /mob/living/simple_mob/animal/passive/fish/koi/poisonous/Life()
 	..()
@@ -20,44 +20,44 @@
 	..()
 	if(isliving(L) && Adjacent(L))
 		var/mob/living/M = L
-		visible_message("<span class='warning'>\The [src][is_dead()?"'s corpse":""] flails at [M]!</span>")
+		visible_message(span_warning("\The [src][is_dead()?"'s corpse":""] flails at [M]!"))
 		SpinAnimation(7,1)
 		if(prob(75))
 			if(sting(M))
-				to_chat(M, "<span class='warning'>You feel a tiny prick.</span>")
+				to_chat(M, span_warning("You feel a tiny prick."))
 		if(is_dead())
 			return
 		for(var/i = 1 to 3)
 			var/turf/T = get_step_away(src, M)
-			if(T && is_type_in_list(T, suitable_turf_types))
+			if(T && is_type_in_list(T, GLOB.suitable_fish_turf_types))
 				Move(T)
 			else
 				break
 			sleep(3)
 /*
-/mob/living/simple_mob/animal/passive/fish/koi/poisonous/react_to_attack(var/atom/A)
+/mob/living/simple_mob/animal/passive/fish/koi/poisonous/react_to_attack(atom/A)
 	if(isliving(A) && Adjacent(A))
 		var/mob/living/M = A
-		visible_message("<span class='warning'>\The [src][is_dead()?"'s corpse":""] flails at [M]!</span>")
+		visible_message(span_warning("\The [src][is_dead()?"'s corpse":""] flails at [M]!"))
 		SpinAnimation(7,1)
 		if(prob(75))
 			if(sting(M))
-				to_chat(M, "<span class='warning'>You feel a tiny prick.</span>")
+				to_chat(M, span_warning("You feel a tiny prick."))
 		if(is_dead())
 			return
 		for(var/i = 1 to 3)
 			var/turf/T = get_step_away(src, M)
-			if(T && is_type_in_list(T, suitable_turf_types))
+			if(T && is_type_in_list(T, GLOB.suitable_fish_turf_types))
 				Move(T)
 			else
 				break
 			sleep(3)
 */
-/mob/living/simple_mob/animal/passive/fish/koi/poisonous/proc/sting(var/mob/living/M)
+/mob/living/simple_mob/animal/passive/fish/koi/poisonous/proc/sting(mob/living/M)
 	if(!M.reagents)
 		return 0
-	M.reagents.add_reagent("toxin", 2)
-	M.reagents.add_reagent("impedrezene", 1)
+	M.reagents.add_reagent(REAGENT_ID_TOXIN, 2)
+	M.reagents.add_reagent(REAGENT_ID_IMPEDREZENE, 1)
 	return 1
 
 /mob/living/simple_mob/animal/passive/fish/measelshark
@@ -69,7 +69,7 @@
 	icon_living = "measelshark"
 	icon_dead = "measelshark-dead"
 	meat_amount = 8 //Big fish, tons of meat. Great for feasts.
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/sliceable/sharkchunk
+	meat_type = /obj/item/reagent_containers/food/snacks/sliceable/sharkchunk
 	vore_active = 1
 	vore_bump_chance = 100
 	vore_default_mode = DM_HOLD //docile shark

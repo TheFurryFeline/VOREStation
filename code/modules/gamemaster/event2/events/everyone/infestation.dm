@@ -3,7 +3,7 @@
 	departments = list(DEPARTMENT_EVERYONE)
 
 /datum/event2/meta/infestation/get_weight()
-	return metric.count_people_in_department(DEPARTMENT_EVERYONE) * 10
+	return GLOB.metric.count_people_in_department(DEPARTMENT_EVERYONE) * 10
 
 /datum/event2/meta/infestation/rodents
 	name = "infestation - rodents"
@@ -58,14 +58,14 @@
 /datum/event2/event/infestation/set_up()
 	turfs = find_random_turfs(max_vermin)
 	if(!turfs.len)
-		log_debug("Infestation event failed to find any valid turfs. Aborting.")
+		log_game("Infestation event failed to find any valid turfs. Aborting.")
 		abort()
 		return
 
 /datum/event2/event/infestation/announce()
 	var/turf/T = turfs[1]
-	command_announcement.Announce("Bioscans indicate that [vermin_string] have been breeding \
-	in \the [T.loc]. Clear them out, before this starts to affect productivity.", "Vermin infestation")
+	GLOB.command_announcement.Announce("Bioscans indicate that [vermin_string] have been breeding \
+	in \the [T.loc]. Clear them out, before this starts to affect productivity.", "Vermin infestation", ANNOUNCER_MSG_VERMIN_INFESTATION)
 
 
 /datum/event2/event/infestation/start()

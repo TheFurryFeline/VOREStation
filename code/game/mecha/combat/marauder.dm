@@ -10,7 +10,7 @@
 	deflect_chance = 25
 	max_temperature = 60000
 	infra_luminosity = 3
-	operation_req_access = list(access_cent_specops)
+	operation_req_access = list(ACCESS_CENT_SPECOPS)
 	wreckage = /obj/effect/decal/mecha_wreckage/marauder
 	add_req_access = 0
 	internal_damage_threshold = 25
@@ -52,7 +52,7 @@
 	catalogue_data = list(/datum/category_item/catalogue/technology/seraph)
 	icon_state = "seraph"
 	initial_icon = "seraph"
-	operation_req_access = list(access_cent_creed)
+	operation_req_access = list(ACCESS_CENT_CREED)
 	step_in = 3
 	health = 450
 	wreckage = /obj/effect/decal/mecha_wreckage/seraph
@@ -74,7 +74,7 @@
 	name = "Mauler"
 	icon_state = "mauler"
 	initial_icon = "mauler"
-	operation_req_access = list(access_syndicate)
+	operation_req_access = list(ACCESS_SYNDICATE)
 	wreckage = /obj/effect/decal/mecha_wreckage/mauler
 	mech_faction = MECH_FACTION_SYNDI
 
@@ -128,9 +128,9 @@
 	var/output = {"<div class='wr'>
 						<div class='header'>Special</div>
 						<div class='links'>
-						<a href='?src=\ref[src];toggle_thrusters=1'>Toggle thrusters</a><br>
-						<a href='?src=\ref[src];toggle_zoom=1'>Toggle zoom mode</a><br>
-						<a href='?src=\ref[src];smoke=1'>Smoke</a>
+						<a href='byond://?src=\ref[src];toggle_thrusters=1'>Toggle thrusters</a><br>
+						<a href='byond://?src=\ref[src];toggle_zoom=1'>Toggle zoom mode</a><br>
+						<a href='byond://?src=\ref[src];smoke=1'>Smoke</a>
 						</div>
 						</div>
 						"}
@@ -143,8 +143,8 @@
 
 	starting_equipment = null
 
-/obj/mecha/combat/marauder/old/New()
-	..()
+/obj/mecha/combat/marauder/old/Initialize(mapload)
+	. = ..()
 	health = 25
 	maxhealth = 300	//Just slightly worse.
 	cell.charge = rand(0, (cell.charge/2))

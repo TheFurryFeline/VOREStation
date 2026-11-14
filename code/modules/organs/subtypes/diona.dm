@@ -1,9 +1,9 @@
-/proc/spawn_diona_nymph(var/turf/target)
+/proc/spawn_diona_nymph(turf/target)
 	if(!istype(target))
 		return 0
 
 	//This is a terrible hack and I should be ashamed.
-	var/datum/seed/diona = SSplants.seeds["diona"]
+	var/datum/seed/diona = SSplants.seeds[PLANT_DIONA]
 	if(!diona)
 		return 0
 
@@ -11,10 +11,6 @@
 		var/mob/living/carbon/alien/diona/D = new(target)
 		var/datum/ghosttrap/plant/P = get_ghost_trap("living plant")
 		P.request_player(D, "A diona nymph has split off from its gestalt. ")
-		spawn(60)
-			if(D)
-				if(!D.ckey || !D.client)
-					D.death()
 		return
 
 /obj/item/organ/external/diona
@@ -24,6 +20,11 @@
 	joint = "structural ligament"
 	dislocated = -1
 
+/obj/item/organ/external/diona/robotize(company, skip_prosthetics, keep_organs)
+	for(var/obj/item/organ/thing in internal_organs) //otherwise we spawn dead due to order of operations.
+		thing.robotize()
+	..(company = company, skip_prosthetics = skip_prosthetics, keep_organs = TRUE) //always keep organs. Ideally, we remove all the organs but we can't remove it from the species list for some reason.
+
 /obj/item/organ/external/diona/chest
 	name = "core trunk"
 	organ_tag = BP_TORSO
@@ -32,8 +33,8 @@
 	min_broken_damage = 50
 	w_class = ITEMSIZE_HUGE
 	body_part = UPPER_TORSO
-	vital = 1
-	cannot_amputate = 1
+	vital = TRUE
+	cannot_amputate = TRUE
 	parent_organ = null
 	gendered_icon = 1
 
@@ -141,7 +142,7 @@
 	icon_state = "nymph"
 	organ_tag = "special" // Turns into a nymph instantly, no transplanting possible.
 
-/obj/item/organ/internal/diona/removed(var/mob/living/user, var/skip_nymph)
+/obj/item/organ/internal/diona/removed(mob/living/user, skip_nymph)
 	if(robotic >= ORGAN_ROBOT)
 		return ..()
 	var/mob/living/carbon/human/H = owner
@@ -174,11 +175,6 @@
 	parent_organ = BP_GROIN
 	organ_tag = O_ANCHOR
 
-/obj/item/organ/internal/diona/node
-	name = "receptor node"
-	parent_organ = BP_HEAD
-	organ_tag = O_RESPONSE
-
 /obj/item/organ/internal/diona/nutrients
 	name = O_NUTRIENT
 	parent_organ = BP_TORSO
@@ -192,7 +188,7 @@
 	icon = 'icons/mob/alien.dmi'
 	icon_state = "claw"
 
-/obj/item/organ/internal/diona/nutrients/removed(var/mob/user)
+/obj/item/organ/internal/diona/nutrients/removed(mob/user)
 	return ..(user, 1)
 
 /obj/item/organ/internal/diona/node
@@ -211,13 +207,12 @@
 	parent_organ = BP_TORSO
 	vital = TRUE
 
-/obj/item/organ/internal/brain/cephalon/Initialize()
+/obj/item/organ/internal/brain/cephalon/Initialize(mapload)
 	. = ..()
-	spawn(30 SECONDS)	// FBP Dionaea need some way to be disassembled through surgery, if absolutely necessary.
-		if(!owner.isSynthetic())
-			vital = FALSE
+	if(!owner?.isSynthetic())
+		vital = FALSE
 
-/obj/item/organ/internal/brain/cephalon/robotize()
+/obj/item/organ/internal/brain/cephalon/robotize(company, skip_prosthetics, keep_organs)
 	return
 
 /obj/item/organ/internal/brain/cephalon/mechassist()
@@ -226,7 +221,7 @@
 /obj/item/organ/internal/brain/cephalon/digitize()
 	return
 
-/obj/item/organ/internal/brain/cephalon/removed(var/mob/living/user, var/skip_nymph)
+/obj/item/organ/internal/brain/cephalon/removed(mob/living/user, skip_nymph)
 	if(robotic >= ORGAN_ROBOT)
 		return ..()
 	var/mob/living/carbon/human/H = owner
@@ -243,5 +238,5 @@
 	amputation_point = "branch"
 	joint = "structural ligament"
 	dislocated = -1
-	vital = 0
+	vital = FALSE
 	slot_flags = SLOT_BELT

@@ -4,7 +4,7 @@
  * Buckles crossing individuals, doing moderate brute damage.
  */
 
-/obj/item/weapon/beartrap
+/obj/item/beartrap
 	name = "mechanical trap"
 	throw_speed = 2
 	throw_range = 1
@@ -13,31 +13,59 @@
 	icon_state = "beartrap0"
 	desc = "A mechanically activated leg trap. Low-tech, but reliable. Looks like it could really hurt if you set it off."
 	randpixel = 0
-	center_of_mass = null
+	center_of_mass_x = 0
+	center_of_mass_y = 0
 	throwforce = 0
 	w_class = ITEMSIZE_NORMAL
-	origin_tech = list(TECH_MATERIAL = 1)
-	matter = list(MAT_STEEL = 18750)
+	matter = list(MAT_STEEL = MATERIAL_COST(9.375))
 	var/deployed = 0
 	var/camo_net = FALSE
 	var/stun_length = 0.25 SECONDS
+	slot_flags = SLOT_MASK
+	item_icons = list(
+		slot_wear_mask_str = 'icons/inventory/face/mob.dmi'
+		)
 
-/obj/item/weapon/beartrap/proc/can_use(mob/user)
+/obj/item/beartrap/equipped()
+	if(ishuman(src.loc))
+		var/mob/living/carbon/human/H = src.loc
+		if(H.wear_mask == src)
+			add_verb(H, /mob/living/proc/shred_limb_temp)
+		else
+			remove_verb(H, /mob/living/proc/shred_limb_temp)
+	..()
+
+/obj/item/beartrap/dropped(mob/user, equipping, slot)
+	remove_verb(user, /mob/living/proc/shred_limb_temp)
+	..()
+
+
+/obj/item/beartrap/start_active
+	deployed = TRUE
+
+/obj/item/beartrap/Initialize(mapload)
+	. = ..()
+	if(mapload && deployed)
+		update_icon()
+
+/obj/item/beartrap/proc/can_use(mob/user)
 	return (user.IsAdvancedToolUser() && !issilicon(user) && !user.stat && !user.restrained())
 
-/obj/item/weapon/beartrap/attack_self(mob/user as mob)
-	..()
+/obj/item/beartrap/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(!deployed && can_use(user))
 		user.visible_message(
-			"<span class='danger'>[user] starts to deploy \the [src].</span>",
-			"<span class='danger'>You begin deploying \the [src]!</span>",
+			span_danger("[user] starts to deploy \the [src]."),
+			span_danger("You begin deploying \the [src]!"),
 			"You hear the slow creaking of a spring."
 			)
 
-		if (do_after(user, 60))
+		if (do_after(user, 6 SECONDS, target = src))
 			user.visible_message(
-				"<span class='danger'>[user] has deployed \the [src].</span>",
-				"<span class='danger'>You have deployed \the [src]!</span>",
+				span_danger("[user] has deployed \the [src]."),
+				span_danger("You have deployed \the [src]!"),
 				"You hear a latch click loudly."
 				)
 			playsound(src, 'sound/machines/click.ogg',70, 1)
@@ -46,31 +74,32 @@
 			user.drop_from_inventory(src)
 			update_icon()
 			anchored = TRUE
+			log_and_message_admins("has set up a [name] at \the [get_area(loc)]", user)
 
-/obj/item/weapon/beartrap/attack_hand(mob/user as mob)
+/obj/item/beartrap/attack_hand(mob/user as mob)
 	if(has_buckled_mobs() && can_use(user))
 		var/victim = english_list(buckled_mobs)
 		user.visible_message(
-			"<span class='notice'>[user] begins freeing [victim] from \the [src].</span>",
-			"<span class='notice'>You carefully begin to free [victim] from \the [src].</span>",
+			span_notice("[user] begins freeing [victim] from \the [src]."),
+			span_notice("You carefully begin to free [victim] from \the [src]."),
 			)
-		if(do_after(user, 60))
-			user.visible_message("<span class='notice'>[victim] has been freed from \the [src] by [user].</span>")
+		if(do_after(user, 6 SECONDS, target = src))
+			user.visible_message(span_notice("[victim] has been freed from \the [src] by [user]."))
 			for(var/A in buckled_mobs)
 				unbuckle_mob(A)
 			anchored = FALSE
 	else if(deployed && can_use(user))
 		user.visible_message(
-			"<span class='danger'>[user] starts to disarm \the [src].</span>",
-			"<span class='notice'>You begin disarming \the [src]!</span>",
+			span_danger("[user] starts to disarm \the [src]."),
+			span_notice("You begin disarming \the [src]!"),
 			"You hear a latch click followed by the slow creaking of a spring."
 			)
 		playsound(src, 'sound/machines/click.ogg', 50, 1)
 
-		if(do_after(user, 60))
+		if(do_after(user, 6 SECONDS, target = src))
 			user.visible_message(
-				"<span class='danger'>[user] has disarmed \the [src].</span>",
-				"<span class='notice'>You have disarmed \the [src]!</span>"
+				span_danger("[user] has disarmed \the [src]."),
+				span_notice("You have disarmed \the [src]!")
 				)
 			deployed = 0
 			anchored = FALSE
@@ -78,32 +107,28 @@
 	else
 		..()
 
-/obj/item/weapon/beartrap/proc/attack_mob(mob/living/L)
+/obj/item/beartrap/proc/attack_mob(mob/living/L)
 
 	var/target_zone
 	if(L.lying)
 		target_zone = ran_zone()
 	else
-		target_zone = pick("l_foot", "r_foot", "l_leg", "r_leg")
+		target_zone = pick(BP_L_FOOT, BP_R_FOOT, BP_L_LEG, BP_R_LEG)
 
 	//armour
 	var/blocked = L.run_armor_check(target_zone, "melee")
-	var/soaked = L.get_armor_soak(target_zone, "melee")
 
 	if(blocked >= 100)
 		return
 
-	if(soaked >= 30)
-		return
-
-	if(!L.apply_damage(30, BRUTE, target_zone, blocked, soaked, used_weapon=src))
+	if(!L.apply_damage(30, BRUTE, target_zone, blocked, used_weapon=src))
 		return 0
 
 	if(ishuman(L))
 		var/mob/living/carbon/human/H = L
 		var/obj/item/organ/external/affected = H.get_organ(check_zone(target_zone))
 		if(!affected) // took it clean off!
-			to_chat(H, "<span class='danger'>The steel jaws of \the [src] take your limb clean off!</span>")
+			to_chat(H, span_danger("The steel jaws of \the [src] take your limb clean off!"))
 			L.Stun(stun_length*2)
 			deployed = 0
 			anchored = FALSE
@@ -114,30 +139,34 @@
 	can_buckle = TRUE
 	buckle_mob(L)
 	L.Stun(stun_length)
-	to_chat(L, "<span class='danger'>The steel jaws of \the [src] bite into you, trapping you in place!</span>")
+	to_chat(L, span_danger("The steel jaws of \the [src] bite into you, trapping you in place!"))
 	deployed = 0
 	anchored = FALSE
 	can_buckle = initial(can_buckle)
 
-/obj/item/weapon/beartrap/Crossed(atom/movable/AM as mob|obj)
+/obj/item/beartrap/Crossed(atom/movable/AM as mob|obj)
+	. = ..()
 	if(AM.is_incorporeal())
+		return
+	if(AM.throwing)
 		return
 	if(deployed && isliving(AM))
 		var/mob/living/L = AM
-		if(L.m_intent == "run")
+		if(L.m_intent == I_RUN)
 			L.visible_message(
-				"<span class='danger'>[L] steps on \the [src].</span>",
-				"<span class='danger'>You step on \the [src]!</span>",
-				"<b>You hear a loud metallic snap!</b>"
+				span_danger("[L] steps on \the [src]."),
+				span_danger("You step on \the [src]!"),
+				span_infoplain(span_bold("You hear a loud metallic snap!"))
 				)
+			SSmotiontracker.ping(src,100) // Clunk!
 			attack_mob(L)
 			if(!has_buckled_mobs())
 				anchored = FALSE
 			deployed = 0
 			update_icon()
-	..()
+			log_and_message_admins("has sprung a [name] at \the [get_area(loc)], last touched by [forensic_data?.get_lastprint()]", L)
 
-/obj/item/weapon/beartrap/update_icon()
+/obj/item/beartrap/update_icon()
 	..()
 
 	if(!deployed)
@@ -151,21 +180,19 @@
 
 		icon_state = "beartrap1"
 
-/obj/item/weapon/beartrap/hunting
+/obj/item/beartrap/hunting
 	name = "hunting trap"
 	desc = "A mechanically activated leg trap. High-tech and reliable. Looks like it could really hurt if you set it off."
 	stun_length = 1 SECOND
 	camo_net = TRUE
 	color = "#C9DCE1"
 
-	origin_tech = list(TECH_MATERIAL = 4, TECH_BLUESPACE = 3, TECH_MAGNET = 4, TECH_PHORON = 2, TECH_ARCANE = 1)
-
 /*
  * Barbed-Wire.
  * Slows individuals crossing it. Barefoot individuals will be cut. Can be electrified by placing over a cable node.
  */
 
-/obj/item/weapon/material/barbedwire
+/obj/item/material/barbedwire
 	name = "barbed wire"
 	desc = "A coil of wire."
 	icon = 'icons/obj/trap.dmi'
@@ -181,48 +208,51 @@
 
 	sharp = TRUE
 
-/obj/item/weapon/material/barbedwire/set_material(var/new_material)
+/obj/item/material/barbedwire/set_material(new_material)
 	..()
 
 	if(!QDELETED(src))
 		health = round(material.integrity / 3)
-		name = (material.get_edge_damage() * force_divisor > 15) ?  "[material.display_name] razor wire" : "[material.display_name] [initial(name)]"
+		if(named_from_material)
+			name = (material.get_edge_damage() * force_divisor > 15) ?  "[material.display_name] razor wire" : "[material.display_name] [initial(name)]"
 
-/obj/item/weapon/material/barbedwire/proc/can_use(mob/user)
+/obj/item/material/barbedwire/proc/can_use(mob/user)
 	return (user.IsAdvancedToolUser() && !issilicon(user) && !user.stat && !user.restrained())
 
-/obj/item/weapon/material/barbedwire/attack_hand(mob/user as mob)
+/obj/item/material/barbedwire/attack_hand(mob/user)
 	if(anchored && can_use(user))
 		user.visible_message(
-			"<span class='danger'>[user] starts to collect \the [src].</span>",
-			"<span class='notice'>You begin collecting \the [src]!</span>",
+			span_danger("[user] starts to collect \the [src]."),
+			span_notice("You begin collecting \the [src]!"),
 			"You hear the sound of rustling [material.name]."
 			)
 		playsound(src, 'sound/machines/click.ogg', 50, 1)
 
-		if(do_after(user, health))
+		if(do_after(user, health, target = src))
 			user.visible_message(
-				"<span class='danger'>[user] has collected \the [src].</span>",
-				"<span class='notice'>You have collected \the [src]!</span>"
+				span_danger("[user] has collected \the [src]."),
+				span_notice("You have collected \the [src]!")
 				)
 			anchored = FALSE
 			update_icon()
 	else
 		..()
 
-/obj/item/weapon/material/barbedwire/attack_self(mob/user as mob)
-	..()
+/obj/item/material/barbedwire/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(!anchored && can_use(user))
 		user.visible_message(
-			"<span class='danger'>[user] starts to deploy \the [src].</span>",
-			"<span class='danger'>You begin deploying \the [src]!</span>",
+			span_danger("[user] starts to deploy \the [src]."),
+			span_danger("You begin deploying \the [src]!"),
 			"You hear the rustling of [material.name]."
 			)
 
-		if (do_after(user, 60))
+		if (do_after(user, 6 SECONDS, target = src))
 			user.visible_message(
-				"<span class='danger'>[user] has deployed \the [src].</span>",
-				"<span class='danger'>You have deployed \the [src]!</span>",
+				span_danger("[user] has deployed \the [src]."),
+				span_danger("You have deployed \the [src]!"),
 				"You hear the rustling of [material.name]."
 				)
 			playsound(src, 'sound/items/Wirecutter.ogg',70, 1)
@@ -233,7 +263,7 @@
 			anchored = TRUE
 			update_icon()
 
-/obj/item/weapon/material/barbedwire/attackby(obj/item/W as obj, mob/user as mob)
+/obj/item/material/barbedwire/attackby(obj/item/W, mob/user)
 	if(!istype(W))
 		return
 
@@ -258,7 +288,7 @@
 
 	..()
 
-/obj/item/weapon/material/barbedwire/update_icon()
+/obj/item/material/barbedwire/update_icon()
 	..()
 
 	if(anchored)
@@ -266,22 +296,28 @@
 	else
 		icon_state = "[initial(icon_state)]"
 
-/obj/item/weapon/material/barbedwire/Crossed(atom/movable/AM as mob|obj)
+/obj/item/material/barbedwire/Crossed(atom/movable/AM)
+	. = ..()
+	return check_step(AM)
+
+/obj/item/material/barbedwire/proc/check_step(atom/movable/AM)
 	if(AM.is_incorporeal())
-		return
+		return FALSE
 	if(anchored && isliving(AM))
 		var/mob/living/L = AM
-		if(L.m_intent == "run")
+		if(L.m_intent == I_RUN)
 			L.visible_message(
-				"<span class='danger'>[L] steps in \the [src].</span>",
-				"<span class='danger'>You step in \the [src]!</span>",
-				"<b>You hear a sharp rustling!</b>"
+				span_danger("[L] steps in \the [src]."),
+				span_danger("You step in \the [src]!"),
+				span_infoplain(span_bold("You hear a sharp rustling!"))
 				)
 			attack_mob(L)
 			update_icon()
-	..()
+			return TRUE
+	return FALSE
 
-/obj/item/weapon/material/barbedwire/proc/shock(mob/user as mob, prb, var/target_zone = BP_TORSO)
+
+/obj/item/material/barbedwire/proc/shock(mob/user, prb, target_zone = BP_TORSO)
 	if(!anchored || health == 0)		// anchored/destroyed grilles are never connected
 		return 0
 	if(material.conductivity <= 0)
@@ -326,21 +362,17 @@
 			return 0
 	return 0
 
-/obj/item/weapon/material/barbedwire/proc/attack_mob(mob/living/L)
+/obj/item/material/barbedwire/proc/attack_mob(mob/living/L)
 	var/target_zone
 	if(L.lying)
 		target_zone = ran_zone()
 	else
-		target_zone = pick("l_foot", "r_foot", "l_leg", "r_leg")
+		target_zone = pick(BP_L_FOOT, BP_R_FOOT, BP_L_LEG, BP_R_LEG)
 
 	//armour
 	var/blocked = L.run_armor_check(target_zone, "melee")
-	var/soaked = L.get_armor_soak(target_zone, "melee")
 
 	if(blocked >= 100)
-		return
-
-	if(soaked >= 30)
 		return
 
 	if(L.buckled) //wheelchairs, office chairs, rollerbeds
@@ -350,7 +382,7 @@
 
 	L.add_modifier(/datum/modifier/entangled, 3 SECONDS)
 
-	if(!L.apply_damage(force * (issilicon(L) ? 0.25 : 1), BRUTE, target_zone, blocked, soaked, src, sharp, edge))
+	if(!L.apply_damage(force * (issilicon(L) ? 0.25 : 1), BRUTE, target_zone, blocked, sharp, edge, src))
 		return
 
 	playsound(src, 'sound/effects/glass_step.ogg', 50, 1) // not sure how to handle metal shards with sounds
@@ -366,9 +398,9 @@
 		if(H.species.flags & NO_MINOR_CUT)
 			return
 
-		to_chat(H, "<span class='danger'>You step directly on \the [src]!</span>")
+		to_chat(H, span_danger("You step directly on \the [src]!"))
 
-		var/list/check = list("l_foot", "r_foot")
+		var/list/check = list(BP_L_FOOT, BP_R_FOOT)
 		while(check.len)
 			var/picked = pick(check)
 			var/obj/item/organ/external/affecting = H.get_organ(picked)
@@ -391,6 +423,24 @@
 
 	return
 
-/obj/item/weapon/material/barbedwire/plastic
+/obj/item/material/barbedwire/plastic
 	name = "snare wire"
 	default_material = MAT_PLASTIC
+
+/obj/item/material/barbedwire/plastic/starts_active
+	anchored = TRUE
+
+/obj/item/material/barbedwire/plastic/starts_active/Initialize(mapload, material_key)
+	. = ..()
+	update_icon()
+
+/obj/item/material/barbedwire/durasteel
+	name = "durasteel razor wire"
+	default_material = MAT_DURASTEEL
+
+/obj/item/material/barbedwire/durasteel/starts_active
+	anchored = TRUE
+
+/obj/item/material/barbedwire/durasteel/starts_active/Initialize(mapload, material_key)
+	. = ..()
+	update_icon()

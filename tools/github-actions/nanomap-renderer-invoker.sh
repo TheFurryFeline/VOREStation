@@ -1,35 +1,68 @@
 #!/bin/bash
-# Generate maps
-map_files=(
-    "./maps/tether/tether-01-surface1.dmm"
-    "./maps/tether/tether-02-surface2.dmm"
-    "./maps/tether/tether-03-surface3.dmm"
-    "./maps/tether/tether-04-transit.dmm"
-    "./maps/tether/tether-05-station1.dmm"
-    "./maps/tether/tether-06-station2.dmm"
-    "./maps/tether/tether-07-station3.dmm"
-    "./maps/tether/tether-08-mining.dmm"
-    "./maps/tether/tether-09-solars.dmm"
-    "./maps/offmap_vr/talon/talon1.dmm"
-    "./maps/offmap_vr/talon/talon2.dmm"
+
+BASEDIR=$PWD
+#Put directories to get maps from here. One per line.
+mapdirs=(
+	"maps/groundbase"
+	"maps/stellar_delight"
+	"maps/tether"
+	"maps/offmap_vr/talon"
 )
 
-tools/github-actions/nanomap-renderer minimap -w 2240 -h 2240 "${map_files[@]}"
+RED='\033[0;31m'
+GREEN="\033[0;32m"
+#This will automatically fill with any maps in mapdirs that are form MAPNAMEn.dmm.
+map_files=()
 
-# Move and rename files so the game understands them
-cd "data/nanomaps"
+#Fill up mapfiles list
+for mapdir in "${mapdirs[@]}"; do
+	echo "Scanning $mapdir..."
+	#https://stackoverflow.com/a/23357277
+	while IFS= read -r -d $'\0'; do
+		map_files+=("$REPLY")
+	done < <(find "${BASEDIR}/${mapdir}" -maxdepth 1 -name '*[0-9]*.dmm' -print0)
+done
 
-mv "talon1_nanomap_z1.png" "tether_nanomap_z13.png"
-mv "talon2_nanomap_z1.png" "tether_nanomap_z14.png"
-mv "tether-01-surface1_nanomap_z1.png" "tether_nanomap_z1.png"
-mv "tether-02-surface2_nanomap_z1.png" "tether_nanomap_z2.png"
-mv "tether-03-surface3_nanomap_z1.png" "tether_nanomap_z3.png"
-mv "tether-04-transit_nanomap_z1.png" "tether_nanomap_z4.png"
-mv "tether-05-station1_nanomap_z1.png" "tether_nanomap_z5.png"
-mv "tether-06-station2_nanomap_z1.png" "tether_nanomap_z6.png"
-mv "tether-07-station3_nanomap_z1.png" "tether_nanomap_z7.png"
-mv "tether-08-mining_nanomap_z1.png" "tether_nanomap_z8.png"
-mv "tether-09-solars_nanomap_z1.png" "tether_nanomap_z9.png"
+#Print full map list
+echo "Full map list (${#map_files[@]}):"
+for map in "${map_files[@]}"; do
+	echo $map
+done
+printf "\n\n\n"
 
-cd "../../"
-cp data/nanomaps/* "icons/_nanomaps/"
+#Duplicate stderr because dmm-tools doesn't return an error code for bad icons or bad path so we need to capture it
+exec 5>&2
+
+#Render maps to initial images ignoring some tg specific icon_state handling
+any_errors=0
+result=$(~/dmm-tools minimap "${map_files[@]}" --disable smart-cables,overlays,pretty,transit-tube 2>&1 | tee /dev/fd/5)
+
+#Check if anything errored
+if [[ ($? -ne 0) || ("${result}" =~ ("bad icon"|"bad path"|"error")) ]]; then
+	any_errors=1
+fi
+
+#Close the new file descriptor
+exec 5>&-
+
+printf "\n"
+
+#Give results if we're just testing
+if [[ $1 == "--testing" ]]; then
+	if [[ any_errors -ne 0 ]]; then
+		echo -e "${RED}Errors occured during testing!"
+		exit 1
+	fi
+	echo -e "${GREEN}Maps were successfully rendered."
+	exit 0
+fi
+
+echo "Starting image resizing..."
+cd data/minimaps
+
+#Resize images to proper size and copy them to the correct place
+for map in ./*.png; do
+	j=$(echo $map | sed -nE "s/^\.\/([^-]*)(-[^1-9]*)?([1-9][0-9]*)(.*)-1\.png$/\1_nanomap_z\3.png/p")
+	echo "Resizing $map and copying to icons/_nanomaps/$j"
+	convert $map -resize 2240x2240 "$BASEDIR/icons/_nanomaps/$j"
+done

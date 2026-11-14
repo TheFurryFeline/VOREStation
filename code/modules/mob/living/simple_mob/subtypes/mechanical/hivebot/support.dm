@@ -8,7 +8,7 @@
 	melee_damage_lower = 2
 	melee_damage_upper = 2
 
-	organ_names = /decl/mob_organ_names/hivebotsupport
+	organ_names = /datum/decl/mob_organ_names/hivebotsupport
 
 // This hivebot supplies a general buff to nearby hivebots that improve their performance.
 // Note that the commander itself does not receive the buff.
@@ -32,22 +32,22 @@
 // The boost is lost if the commander is too far away or dies.
 /datum/modifier/aura/hivebot_commander_buff
 	name = "Strategicals"
-	on_created_text = "<span class='notice'>Signal established with commander. Optimizating combat performance...</span>"
-	on_expired_text = "<span class='warning'>Lost signal to commander. Optimization halting.</span>"
+	on_created_text = span_notice("Signal established with commander. Optimizating combat performance...")
+	on_expired_text = span_warning("Lost signal to commander. Optimization halting.")
 	stacks = MODIFIER_STACK_FORBID
 	aura_max_distance = 4
 	mob_overlay_state = "signal_blue"
 
 	disable_duration_percent = 0.7
 	outgoing_melee_damage_percent = 1.3
-	attack_speed_percent = 1.3
+	attack_speed_percent = 0.7
 	accuracy = 30
 	slowdown = -1
 	evasion = 30
 
 // Variant that automatically commands nearby allies to follow it when created.
 // Useful to avoid having to manually set follow to a lot of hivebots that are gonna die in the next minute anyways.
-/mob/living/simple_mob/mechanical/hivebot/support/commander/autofollow/Initialize()
+/mob/living/simple_mob/mechanical/hivebot/support/commander/autofollow/Initialize(mapload)
 	for(var/mob/living/L in hearers(7, src))
 		if(!L.ai_holder)
 			continue
@@ -82,12 +82,12 @@
 		if(IIsAlly(SM)) // Don't resupply enemies.
 			if(!isnull(SM.special_attack_charges) && SM.special_attack_charges < initial(SM.special_attack_charges))
 				SM.special_attack_charges += 1
-				to_chat(SM, span("notice", "\The [src] has resupplied you, and you can use your special ability one additional time."))
-				to_chat(src, span("notice", "You have resupplied \the [SM]."))
+				to_chat(SM, span_notice("\The [src] has resupplied you, and you can use your special ability one additional time."))
+				to_chat(src, span_notice("You have resupplied \the [SM]."))
 				last_resupply = world.time
 				break // Only one resupply per pulse.
 
-/decl/mob_organ_names/hivebotsupport
+/datum/decl/mob_organ_names/hivebotsupport
 	hit_zones = list("central chassis", "positioning servo", "head", "sensor suite", "manipulator arm", "battle analytics mount", "weapons array", "front right leg", "front left leg", "rear left leg", "rear right leg")
 
 /mob/living/simple_mob/mechanical/hivebot/support/harry
@@ -99,12 +99,12 @@
 	say_list_type = /datum/say_list/hivebot/harry
 	melee_damage_lower = 0
 	melee_damage_upper = 0
-	faction = "Station"
+	faction = FACTION_STATION
 	water_resist = 1 //Harry lives under the sea!
 
 /mob/living/simple_mob/mechanical/hivebot/support/harry/death()
 	..()
-	visible_message(span("Connection... terminated... Sweet Release... obtained.","\The [src] blows apart!"))
+	visible_message(span_warning("Connection... terminated... Sweet Release... obtained."),span_danger("\The [src] blows apart!"))
 	new /obj/effect/decal/cleanable/blood/gibs/robot(src.loc)
 	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
 	s.set_up(3, 1, src)

@@ -1,6 +1,6 @@
-var/datum/antagonist/deathsquad/deathsquad
+GLOBAL_DATUM(deathsquad, /datum/antagonist/deathsquad)
 
-/datum/antagonist/deathsquad
+/datum/antagonist/
 	id = MODE_DEATHSQUAD
 	role_type = BE_OPERATIVE
 	role_text = "Death Commando"
@@ -9,7 +9,7 @@ var/datum/antagonist/deathsquad/deathsquad
 	antag_sound = 'sound/effects/antag_notice/deathsquid_alert.ogg'
 	landmark_id = "Commando"
 	flags = ANTAG_OVERRIDE_JOB | ANTAG_OVERRIDE_MOB | ANTAG_HAS_NUKE | ANTAG_HAS_LEADER
-	default_access = list(access_cent_general, access_cent_specops, access_cent_living, access_cent_storage)
+	default_access = list(ACCESS_CENT_GENERAL, ACCESS_CENT_SPECOPS, ACCESS_CENT_LIVING, ACCESS_CENT_STORAGE)
 	antaghud_indicator = "huddeathsquad"
 
 	hard_cap = 4
@@ -19,16 +19,16 @@ var/datum/antagonist/deathsquad/deathsquad
 
 	var/deployed = 0
 
-/datum/antagonist/deathsquad/New(var/no_reference)
+/datum/antagonist/deathsquad/New(no_reference)
 	..()
 	if(!no_reference)
-		deathsquad = src
+		GLOB.deathsquad = src
 
 /datum/antagonist/deathsquad/attempt_spawn()
 	if(..())
 		deployed = 1
 
-/datum/antagonist/deathsquad/equip(var/mob/living/carbon/human/player)
+/datum/antagonist/deathsquad/equip(mob/living/carbon/human/player)
 	if(!..())
 		return
 
@@ -42,23 +42,23 @@ var/datum/antagonist/deathsquad/deathsquad
 	player.equip_to_slot_or_del(new /obj/item/clothing/glasses/thermal(player), slot_glasses)
 	player.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/swat(player), slot_wear_mask)
 	if (player.mind == leader)
-		player.equip_to_slot_or_del(new /obj/item/weapon/pinpointer(player), slot_l_store)
-		player.equip_to_slot_or_del(new /obj/item/weapon/disk/nuclear(player), slot_r_store)
+		player.equip_to_slot_or_del(new /obj/item/pinpointer(player), slot_l_store)
+		player.equip_to_slot_or_del(new /obj/item/disk/nuclear(player), slot_r_store)
 	else
-		player.equip_to_slot_or_del(new /obj/item/weapon/plastique(player), slot_l_store)
-	player.equip_to_slot_or_del(new /obj/item/weapon/gun/projectile/revolver/mateba(player), slot_belt)
-	player.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/pulse_rifle(player), slot_r_hand)
-	player.equip_to_slot_or_del(new /obj/item/weapon/rig/ert/assetprotection(player), slot_back)
-	player.equip_to_slot_or_del(new /obj/item/weapon/melee/energy/sword(player), slot_s_store)
+		player.equip_to_slot_or_del(new /obj/item/plastique(player), slot_l_store)
+	player.equip_to_slot_or_del(new /obj/item/gun/projectile/revolver/mateba(player), slot_belt)
+	player.equip_to_slot_or_del(new /obj/item/gun/energy/pulse_rifle(player), slot_r_hand)
+	player.equip_to_slot_or_del(new /obj/item/rig/ert/assetprotection(player), slot_back)
+	player.equip_to_slot_or_del(new /obj/item/melee/energy/sword(player), slot_s_store)
 //	player.implant_loyalty()
 
-	var/obj/item/weapon/card/id/id = create_id("Asset Protection", player)
+	var/obj/item/card/id/id = create_id("Asset Protection", player)
 	if(id)
-		id.access |= get_all_station_access()
+		id.access |= SSaccess.get_all_station_access()
 		id.icon_state = "centcom"
 	create_radio(DTH_FREQ, player)
 
-/datum/antagonist/deathsquad/update_antag_mob(var/datum/mind/player)
+/datum/antagonist/deathsquad/update_antag_mob(datum/mind/player)
 
 	..()
 
@@ -68,10 +68,7 @@ var/datum/antagonist/deathsquad/deathsquad
 	else
 		syndicate_commando_rank = pick("Lieutenant", "Captain", "Major")
 
-	var/syndicate_commando_name = pick(last_names)
-
-	var/datum/preferences/A = new() //Randomize appearance for the commando.
-	A.randomize_appearance_and_body_for(player.current)
+	var/syndicate_commando_name = pick(GLOB.last_names)
 
 	player.name = "[syndicate_commando_rank] [syndicate_commando_name]"
 	player.current.name = player.name

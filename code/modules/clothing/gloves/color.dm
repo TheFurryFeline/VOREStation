@@ -18,7 +18,7 @@
 	drop_sound = 'sound/items/drop/rubber.ogg'
 	pickup_sound = 'sound/items/pickup/rubber.ogg'
 
-/obj/item/clothing/gloves/fyellow/Initialize()
+/obj/item/clothing/gloves/fyellow/Initialize(mapload)
 	. = ..()
 	//Picks a value between 0 and 1.25, in 5% increments // VOREStation edit
 	var/shock_pick = rand(0,15) // VOREStation Edit
@@ -29,11 +29,9 @@
 	name = "black gloves"
 	icon_state = "black"
 	permeability_coefficient = 0.05
-
-	cold_protection = HANDS
 	min_cold_protection_temperature = GLOVES_MIN_COLD_PROTECTION_TEMPERATURE
-	heat_protection = HANDS
 	max_heat_protection_temperature = GLOVES_MAX_HEAT_PROTECTION_TEMPERATURE
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/gloves/orange
 	name = "orange gloves"
@@ -85,6 +83,8 @@
 	name = "evening gloves"
 	icon_state = "evening_gloves"
 	addblends = "evening_gloves_a"
+	heat_protection = ARMS|HANDS
+	cold_protection = ARMS|HANDS
 
 /obj/item/clothing/gloves/fingerless
 	desc = "A pair of gloves that don't actually cover the fingers."
@@ -92,8 +92,34 @@
 	icon_state = "fingerlessgloves"
 	fingerprint_chance = 100
 
+/obj/item/clothing/gloves/fingerless/alt
+	icon_state = "fingerlessgloves_alt"
+
+/obj/item/clothing/gloves/fingerless/mid
+	desc = "A pair of gloves that don't actually cover the fingers. These ones go about halfway up the forearm!"
+	name = "long fingerless gloves"
+	icon_state = "fingerlessmid_black"
+
+/obj/item/clothing/gloves/fingerless/long
+	desc = "A pair of gloves that don't actually cover the fingers. These ones go most of the way to the elbow!"
+	name = "elbow-length fingerless gloves"
+	icon_state = "fingerlesslong_black"
+
 /obj/item/clothing/gloves/fingerless_recolourable
 	desc = "A pair of gloves that don't actually cover the fingers."
 	name = "fingerless gloves"
 	icon_state = "fingerlessgloves_rc"
 	fingerprint_chance = 100
+
+/obj/item/clothing/gloves/fingerless_recolourable/alt
+	icon_state = "fingerlessgloves_rc_alt"
+
+/obj/item/clothing/gloves/fingerless_recolourable/mid
+	desc = "A pair of gloves that don't actually cover the fingers. These ones go about halfway up the forearm!"
+	name = "long fingerless gloves"
+	icon_state = "fingerlessmid_white"
+
+/obj/item/clothing/gloves/fingerless_recolourable/long
+	desc = "A pair of gloves that don't actually cover the fingers. These ones go most of the way to the elbow!"
+	name = "elbow-length fingerless gloves"
+	icon_state = "fingerlesslong_white"

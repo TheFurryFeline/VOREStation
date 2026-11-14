@@ -16,8 +16,8 @@
 	image			= 'icons/ntos/cardcomp.png'
 	active_state	= "id"
 
-	var/obj/item/weapon/card/id/reader = null
-	var/obj/item/weapon/card/id/writer = null
+	var/obj/item/card/id/reader = null
+	var/obj/item/card/id/writer = null
 
 	var/mode = 0
 	var/auth = 0
@@ -36,53 +36,53 @@
 	jobs_all += "<table><tr><td></td><td><b>Command</b></td>"
 
 	jobs_all += "</tr><tr height='20'><td><b>Special</b></td>"//Site Manager in special because he is head of heads ~Intercross21
-	jobs_all += "<td weight='100'><a href='?src=\ref[src];;assign=Site Manager'>Site Manager</a></td>"
-	jobs_all += "<td weight='100'><a href='?src=\ref[src];;assign=Custom'>Custom</a></td>"
+	jobs_all += "<td weight='100'><a href='byond://?src=\ref[src];;assign="+JOB_SITE_MANAGER+"'>"+JOB_SITE_MANAGER+"</a></td>"
+	jobs_all += "<td weight='100'><a href='byond://?src=\ref[src];;assign=Custom'>Custom</a></td>"
 
 	counter = 0
-	jobs_all += "</tr><tr><td><font color='#A50000'><b>Security</b></font></td>"//Red
+	jobs_all += "</tr><tr><td>" + span_red(span_bold("Security")) + "</td>"//Red
 	for(var/job in security_positions)
 		counter++
 		if(counter >= 6)
 			jobs_all += "</tr><tr height='20'><td></td><td></td>"
 			counter = 0
-		jobs_all += "<td height='20' weight='100'><a href='?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
+		jobs_all += "<td height='20' weight='100'><a href='byond://?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
 
 	counter = 0
-	jobs_all += "</tr><tr><td><font color='#FFA500'><b>Engineering</b></font></td>"//Orange
+	jobs_all += "</tr><tr><td>" + span_orange(span_bold("Engineering")) + "</td>"//Orange
 	for(var/job in engineering_positions)
 		counter++
 		if(counter >= 6)
 			jobs_all += "</tr><tr height='20'><td></td><td></td>"
 			counter = 0
-		jobs_all += "<td height='20' weight='100'><a href='?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
+		jobs_all += "<td height='20' weight='100'><a href='byond://?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
 
 	counter = 0
-	jobs_all += "</tr><tr height='20'><td><font color='#008000'><b>Medical</b></font></td>"//Green
+	jobs_all += "</tr><tr height='20'><td>" + span_green(span_bold("Medical")) + "</td>"//Green
 	for(var/job in medical_positions)
 		counter++
 		if(counter >= 6)
 			jobs_all += "</tr><tr height='20'><td></td><td></td>"
 			counter = 0
-		jobs_all += "<td weight='100'><a href='?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
+		jobs_all += "<td weight='100'><a href='byond://?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
 
 	counter = 0
-	jobs_all += "</tr><tr height='20'><td><font color='#800080'><b>Science</b></font></td>"//Purple
+	jobs_all += "</tr><tr height='20'><td>" + span_purple(span_bold("Science")) + "</td>"//Purple
 	for(var/job in science_positions)
 		counter++
 		if(counter >= 6)
 			jobs_all += "</tr><tr height='20'><td></td><td></td>"
 			counter = 0
-		jobs_all += "<td weight='100'><a href='?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
+		jobs_all += "<td weight='100'><a href='byond://?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
 
 	counter = 0
-	jobs_all += "</tr><tr height='20'><td><font color='#808080'><b>Civilian</b></font></td>"//Grey
+	jobs_all += "</tr><tr height='20'><td>" + span_grey(span_bold("Civilian")) + "</td>"//Grey
 	for(var/job in civilian_positions)
 		counter++
 		if(counter >= 6)
 			jobs_all += "</tr><tr height='20'><td></td><td></td>"
 			counter = 0
-		jobs_all += "<td weight='100'><a href='?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
+		jobs_all += "<td weight='100'><a href='byond://?src=\ref[src];assign=[job]'>[replacetext(job, " ", "&nbsp")]</a></td>"
 
 		dat = {"<script type="text/javascript">
 							function markRed(){
@@ -123,8 +123,8 @@
 	for(var/i = 1; i <= 7; i++)
 		accesses += "<td style='width:14%' valign='top'>"
 		for(var/A in get_region_accesses(i))
-			if(A in writer.access)
-				accesses += topic_link(src,"access=[A]","<font color='red'>[replacetext(get_access_desc(A), " ", "&nbsp")]</font>") + " "
+			if(A in writer.GetAccess())
+				accesses += topic_link(src,"access=[A]",span_red("[replacetext(get_access_desc(A), " ", "&nbsp")]")) + " "
 			else
 				accesses += topic_link(src,"access=[A]",replacetext(get_access_desc(A), " ", "&nbsp")) + " "
 			accesses += "<br>"
@@ -146,14 +146,14 @@
 	// form for renaming the ID
 	dat += "<form name='cardcomp' action='byond://' method='get'>"
 	dat += "<input type='hidden' name='src' value='\ref[src]'>"
-	dat += "<b>registered_name:</b> <input type='text' id='namefield' name='reg' value='[writer.registered_name]' style='width:250px; background-color:white;' onchange='markRed()'>"
+	dat += span_bold("registered_name:") + " <input type='text' id='namefield' name='reg' value='[writer.registered_name]' style='width:250px; background-color:white;' onchange='markRed()'>"
 	dat += "<input type='submit' value='Rename' onclick='markGreen()'>"
 	dat += "</form>"
 
 	// form for changing assignment, taken care of by scriptblock() mostly
 	var/assign_temp = writer.assignment
 	if(!assign_temp || assign_temp == "") assign_temp = "Unassigned"
-	dat += "<b>Assignment:</b> [assign_temp] <span id='alljobsslot'><a href='#' onclick='showAll()'>change</a></span>"
+	dat += span_bold("Assignment:") + " [assign_temp] <span id='alljobsslot'><a href='#' onclick='showAll()'>change</a></span>"
 
 	// list of access rights
 	dat += accessblock()
@@ -180,22 +180,22 @@
 	// assume linked_db since called by interact()
 	var/crew = ""
 	var/list/L = list()
-	for (var/datum/data/record/t in data_core.general)
+	for (var/datum/data/record/t in GLOB.data_core.general)
 		var/R = t.fields["name"] + " - " + t.fields["rank"]
 		L += R
 	for(var/R in sortList(L))
 		crew += "[R]<br>"
-	return "<tt><b>Crew Manifest:</b><br>Please use security record computer to modify entries.<br><br>[crew][topic_link(src,"print","Print")]<br><br>[topic_link(src,"mode=0","Access ID modification console.")]<br></tt>"
+	return "<tt>" + span_bold("Crew Manifest:") + "<br>Please use security record computer to modify entries.<br><br>[crew][topic_link(src,"print","Print")]<br><br>[topic_link(src,"mode=0","Access ID modification console.")]<br></tt>"
 
 // These are here partly in order to be overwritten by the centcom card computer code
 /datum/file/program/card_comp/proc/authenticate()
-	if(access_change_ids in reader.access)
+	if(ACCESS_CHANGE_IDS in reader.GetAccess())
 		return 1
-	if(istype(usr,/mob/living/silicon/ai))
+	if(isAI(usr))
 		return 1
 	return 0
 
-/datum/file/program/card_comp/proc/set_default_access(var/jobname)
+/datum/file/program/card_comp/proc/set_default_access(jobname)
 	var/datum/job/jobdatum
 	for(var/jobtype in typesof(/datum/job))
 		var/datum/job/J = new jobtype
@@ -260,7 +260,7 @@
 		auth = 0
 
 	if("insert" in href_list)
-		var/obj/item/weapon/card/card = usr.get_active_hand()
+		var/obj/item/card/card = usr.get_active_hand()
 		if(!istype(card)) return
 
 		var/which = href_list["insert"]
@@ -275,10 +275,10 @@
 
 		printing = 1
 		sleep(50)
-		var/obj/item/weapon/paper/P = new /obj/item/weapon/paper( computer.loc )
-		P.info = "<B>Crew Manifest:</B><BR>"
+		var/obj/item/paper/P = new /obj/item/paper( computer.loc )
+		P.info = span_bold("Crew Manifest:") + "<BR>"
 		var/list/L = list()
-		for (var/datum/data/record/t in data_core.general)
+		for (var/datum/data/record/t in GLOB.data_core.general)
 			var/R = t.fields["name"] + " - " + t.fields["rank"]
 			L += R
 		for(var/R in sortList(L))
@@ -305,7 +305,7 @@
 		if(auth)
 			var/t1 = href_list["assign"]
 			if(t1 == "Custom")
-				var/temp_t = sanitize(tgui_input_text(usr, "Enter a custom job assignment.","Assignment"))
+				var/temp_t = tgui_input_text(usr, "Enter a custom job assignment.","Assignment", "", MAX_MESSAGE_LEN)
 				if(temp_t)
 					t1 = temp_t
 			set_default_access(t1)
@@ -313,16 +313,15 @@
 			writer.assignment = t1
 			writer.name = text("[writer.registered_name]'s ID Card ([writer.assignment])")
 			data_core.manifest_modify(writer.registered_name, writer.assignment, writer.rank)
-			callHook("reassign_employee", list(writer))
+			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_REASSIGN_EMPLOYEE_IDCARD, writer)
 
 	if("reg" in href_list)
 		if(auth)
 			writer.registered_name = href_list["reg"]
 			writer.name = text("[writer.registered_name]'s ID Card ([writer.assignment])")
 			data_core.manifest_modify(writer.registered_name, writer.assignment, writer.rank)
-			callHook("reassign_employee", list(writer))
+			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_REASSIGN_EMPLOYEE_IDCARD, writer)
 
-	computer.updateUsrDialog()
 	return
 
 /datum/file/program/card_comp/centcom
@@ -335,13 +334,13 @@
 /datum/file/program/card_comp/centcom/accessblock()
 	var/accesses = "<h5>[using_map.boss_name]:</h5>"
 	for(var/A in get_all_centcom_access())
-		if(A in writer.access)
-			accesses += topic_link(src,"access=[A]","<font color='red'>[replacetext(get_centcom_access_desc(A), " ", "&nbsp")]</font>") + " "
+		if(A in writer.GetAccess())
+			accesses += topic_link(src,"access=[A]",span_red("[replacetext(get_centcom_access_desc(A), " ", "&nbsp")]")) + " "
 		else
 			accesses += topic_link(src,"access=[A]",replacetext(get_centcom_access_desc(A), " ", "&nbsp")) + " "
 	return accesses
 
 /datum/file/program/card_comp/centcom/authenticate()
-	if(access_cent_captain in reader.access)
+	if(ACCESS_CENT_CAPTAIN in reader.GetAccess())
 		return 1
 	return 0

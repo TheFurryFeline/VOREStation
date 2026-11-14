@@ -1,7 +1,7 @@
 /turf/simulated/floor
 	name = "plating"
 	desc = "Unfinished flooring."
-	icon = 'icons/turf/flooring/plating_vr.dmi'
+	icon = 'icons/turf/flooring/plating.dmi'
 	icon_state = "plating"
 
 	// Damage to flooring.
@@ -11,21 +11,15 @@
 	// Plating data.
 	var/base_name = "plating"
 	var/base_desc = "The naked hull."
-	var/base_icon = 'icons/turf/flooring/plating_vr.dmi'
+	var/base_icon = 'icons/turf/flooring/plating.dmi'
 	var/base_icon_state = "plating"
-	var/static/list/base_footstep_sounds = list("human" = list(
-		'sound/effects/footstep/plating1.ogg',
-		'sound/effects/footstep/plating2.ogg',
-		'sound/effects/footstep/plating3.ogg',
-		'sound/effects/footstep/plating4.ogg',
-		'sound/effects/footstep/plating5.ogg'))
 
 	var/list/old_decals = null
 
 	// Flooring data.
 	var/flooring_override
 	var/initial_flooring
-	var/decl/flooring/flooring
+	var/datum/decl/flooring/flooring
 	var/mineral = DEFAULT_WALL_MATERIAL
 	var/can_be_plated = TRUE // This is here for inheritance's sake. Override to FALSE for turfs you don't want someone to simply slap a plating over such as hazards.
 
@@ -42,8 +36,6 @@
 	if(floortype)
 		set_flooring(get_flooring_data(floortype), TRUE)
 		. = INITIALIZE_HINT_LATELOAD // We'll update our icons after everyone is ready
-	else
-		footstep_sounds = base_footstep_sounds
 	if(can_dirty && can_start_dirty)
 		if(prob(dirty_prob))
 			dirt += rand(50,100)
@@ -51,26 +43,25 @@
 
 /turf/simulated/floor/LateInitialize()
 	. = ..()
-	update_icon(1)
+	update_icon()
 
 /turf/simulated/floor/proc/swap_decals()
 	var/current_decals = decals
 	decals = old_decals
 	old_decals = current_decals
 
-/turf/simulated/floor/proc/set_flooring(var/decl/flooring/newflooring, var/initializing)
+/turf/simulated/floor/proc/set_flooring(datum/decl/flooring/newflooring, initializing)
 	//make_plating(defer_icon_update = 1)
 	if(is_plating() && !initializing) // Plating -> Flooring
 		swap_decals()
 	flooring = newflooring
-	footstep_sounds = newflooring.footstep_sounds
 	if(!initializing)
 		update_icon(1)
 	levelupdate()
 
 //This proc will set floor_type to null and the update_icon() proc will then change the icon_state of the turf
 //This proc auto corrects the grass tiles' siding.
-/turf/simulated/floor/proc/make_plating(var/place_product, var/defer_icon_update)
+/turf/simulated/floor/proc/make_plating(place_product, defer_icon_update)
 	cut_overlays()
 
 	for(var/obj/effect/decal/writing/W in src)
@@ -80,12 +71,12 @@
 	desc = base_desc
 	icon = base_icon
 	icon_state = base_icon_state
-	footstep_sounds = base_footstep_sounds
+	color = null
 
 	if(!is_plating()) // Flooring -> Plating
 		swap_decals()
 		if(flooring.build_type && place_product)
-			new flooring.build_type(src)
+			new flooring.build_type(src, flooring.build_cost) //VOREstation Edit: conservation of mass
 		var/newtype = flooring.get_plating_type()
 		if(newtype) // Has a custom plating type to become
 			set_flooring(get_flooring_data(newtype))
@@ -109,7 +100,11 @@
 /turf/simulated/floor/can_engrave()
 	return (!flooring || flooring.can_engrave)
 
-/turf/simulated/floor/rcd_values(mob/living/user, obj/item/weapon/rcd/the_rcd, passed_mode)
+/turf/simulated/floor/proc/cause_slip(mob/living/M)
+	PROTECTED_PROC(TRUE)
+	return
+
+/turf/simulated/floor/rcd_values(mob/living/user, obj/item/rcd/the_rcd, passed_mode)
 	switch(passed_mode)
 		if(RCD_FLOORWALL)
 			// A wall costs four sheets to build (two for the grider and two for finishing it).
@@ -147,37 +142,42 @@
 	return FALSE
 
 
-/turf/simulated/floor/rcd_act(mob/living/user, obj/item/weapon/rcd/the_rcd, passed_mode)
+/turf/simulated/floor/rcd_act(mob/living/user, obj/item/rcd/the_rcd, passed_mode)
 	switch(passed_mode)
 		if(RCD_FLOORWALL)
-			to_chat(user, span("notice", "You build a wall."))
+			to_chat(user, span_notice("You build a wall."))
 			ChangeTurf(/turf/simulated/wall)
 			var/turf/simulated/wall/T = get_turf(src) // Ref to the wall we just built.
 			// Apparently set_material(...) for walls requires refs to the material singletons and not strings.
 			// This is different from how other material objects with their own set_material(...) do it, but whatever.
-			var/datum/material/M = name_to_material[the_rcd.material_to_use]
+			var/datum/material/M = GLOB.name_to_material[the_rcd.material_to_use]
 			T.set_material(M, the_rcd.make_rwalls ? M : null, M)
 			T.add_hiddenprint(user)
 			return TRUE
 		if(RCD_AIRLOCK)
 			if(locate(/obj/machinery/door/airlock) in src)
 				return FALSE // No more airlock stacking.
-			to_chat(user, span("notice", "You build an airlock."))
+			to_chat(user, span_notice("You build an airlock."))
 			new the_rcd.airlock_type(src)
 			return TRUE
 		if(RCD_WINDOWGRILLE)
 			if(locate(/obj/structure/grille) in src)
 				return FALSE
-			to_chat(user, span("notice", "You construct the grille."))
+			to_chat(user, span_notice("You construct the grille."))
 			var/obj/structure/grille/G = new(src)
 			G.anchored = TRUE
 			return TRUE
 		if(RCD_DECONSTRUCT)
-			to_chat(user, span("notice", "You deconstruct \the [src]."))
+			to_chat(user, span_notice("You deconstruct \the [src]."))
 			ChangeTurf(get_base_turf_by_area(src), preserve_outdoors = TRUE)
 			return TRUE
 
-/turf/simulated/floor/AltClick(mob/user)
+/turf/simulated/floor/occult_act(mob/living/user)
+	to_chat(user, span_cult("You consecrate the floor."))
+	ChangeTurf(/turf/simulated/floor/cult, preserve_outdoors = TRUE)
+	return TRUE
+
+/turf/simulated/floor/click_alt(mob/user)
 	if(isliving(user))
 		var/mob/living/livingUser = user
 		if(try_graffiti(livingUser, livingUser.get_active_hand()))

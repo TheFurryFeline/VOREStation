@@ -14,20 +14,20 @@
 
 	consume_range = 6
 
-/obj/singularity/narsie/large/exit/New()
-	..()
+/obj/singularity/narsie/large/exit/Initialize(mapload, ...)
+	. = ..()
 	START_PROCESSING(SSobj, src)
 
 /obj/singularity/narsie/large/exit/update_icon()
 	overlays = 0
 
 /obj/singularity/narsie/large/exit/process()
-	for(var/mob/M in player_list)
+	for(var/mob/M in GLOB.player_list)
 		if(M.client)
 			M.see_rift(src)
 	eat()
 
-/obj/singularity/narsie/large/exit/acquire(var/mob/food)
+/obj/singularity/narsie/large/exit/acquire(mob/food)
 	return
 
 /obj/singularity/narsie/large/exit/consume(const/atom/A)
@@ -38,13 +38,13 @@
 		var/mob/living/L = A
 		if(L.buckled && istype(L.buckled,/obj/structure/bed/))
 			var/turf/O = L.buckled
-			do_teleport(O, pick(endgame_safespawns), local = FALSE) //VOREStation Edit
+			do_teleport(O, pick(GLOB.endgame_safespawns))
 			L.loc = O.loc
 		else
-			do_teleport(L, pick(endgame_safespawns), local = FALSE) //dead-on precision //VOREStation Edit
+			do_teleport(L, pick(GLOB.endgame_safespawns)) //dead-on precision
 
 	else if (istype(A, /obj/mecha/))
-		do_teleport(A, pick(endgame_safespawns), local = FALSE) //dead-on precision //VOREStation Edit
+		do_teleport(A, pick(GLOB.endgame_safespawns)) //dead-on precision
 
 	else if (isturf(A))
 		var/turf/T = A
@@ -64,7 +64,7 @@
 				if(!(AM.singuloCanEat()))
 					continue
 
-				if (101 == AM.invisibility)
+				if (INVISIBILITY_ABSTRACT == AM.invisibility)
 					continue
 
 				spawn (0)
@@ -75,7 +75,7 @@
 	//thou shall always be able to see the rift
 	var/image/riftimage = null
 
-/mob/proc/see_rift(var/obj/singularity/narsie/large/exit/R)
+/mob/proc/see_rift(obj/singularity/narsie/large/exit/R)
 	var/turf/T_mob = get_turf(src)
 	if((R.z == T_mob.z) && (get_dist(R,T_mob) <= (R.consume_range+10)) && !(R in view(T_mob)))
 		if(!riftimage)

@@ -14,37 +14,39 @@ Controlled by the player_tips subsystem under code/controllers/subsystems/player
 	var/list/HasReceived = list() //Tracking who received tips. We let them know how to turn them off if they're not on this list. Stores CKeys until round-end.
 
 //Called every 5 minutes as defined in the subsystem.
-/datum/player_tips/proc/send_tips()
-	if(world.time > last_tip_time + tip_delay)
-		last_tip_time = world.time
-		tip_delay = rand(min_tip_delay, max_tip_delay)
-		var/tip = pick_tip("none") //"none" picks a random topic of advice.
-		var/stopWhile = 0
-		while(tip == last_tip) //Prevent posting the same tip twice in a row if possible, but don't force it.
-			tip = pick_tip("none")
-			stopWhile = stopWhile + 1
-			if(stopWhile >= 10)
-				break
-		last_tip = tip
-		for(var/mob/M in player_list)
-			if(M.is_preference_enabled(/datum/client_preference/player_tips))
-				if(!M.key && !(M.key in HasReceived))
-					to_chat(M, SPAN_WARNING("You have periodic player tips enabled. You may turn them off at any time with the Toggle Receiving Player Tips verb in Preferences, or in character set up under the OOC tab!\n Player tips appear every 45-75 minutes."))
-					HasReceived.Add(M.key)
-				tip = GLOB.is_valid_url.Replace(tip,"<span class='linkify'>$1</span>")
-				to_chat(M, SPAN_NOTICE("[tip]"))
+/datum/player_tips/proc/check_next_tip()
+	if(world.time <= last_tip_time + tip_delay)
+		return FALSE
 
+	last_tip_time = world.time
+	tip_delay = rand(min_tip_delay, max_tip_delay)
+	return TRUE
 
+/datum/player_tips/proc/set_current_tip()
+	var/tip = pick_tip("none") //"none" picks a random topic of advice.
+	var/stopWhile = 0
+	while(tip == last_tip) //Prevent posting the same tip twice in a row if possible, but don't force it.
+		tip = pick_tip("none")
+		stopWhile = stopWhile + 1
+		if(stopWhile >= 10)
+			break
+	last_tip = tip
 
-
+/datum/player_tips/proc/send_tip(mob/target_mob)
+	if(!(target_mob.client?.prefs?.read_preference(/datum/preference/toggle/player_tips)))
+		return
+	if(target_mob.key && !(target_mob.key in HasReceived))
+		to_chat(target_mob, span_warning("You have periodic player tips enabled. You may turn them off at any time with the Toggle Receiving Player Tips verb in Preferences, or in character set up under the OOC tab!\nPlayer tips appear every 45-75 minutes."))
+		HasReceived.Add(target_mob.key)
+	to_chat(target_mob, span_notice("[GLOB.is_valid_url.Replace(last_tip, span_linkify("$1"))]"))
 
 /mob/living/verb/request_automated_advice()
 	set name = "Request Automated Advice"
 	set desc = "Sends you advice from a list of possibilities. You can choose to request a specific topic."
-	set category = "OOC"
+	set category = "OOC.Game Settings"
 
 	var/choice = tgui_input_list(src, "What topic would you like to receive advice on?", "Select Topic", list("none","general","gameplay","roleplay","lore","cancel"))
 	if(choice == "cancel")
 		return
 	var/static/datum/player_tips/player_tips = new
-	to_chat(src, SPAN_NOTICE("[GLOB.is_valid_url.Replace(player_tips.pick_tip(choice),"<span class='linkify'>$1</span>")]"))
+	to_chat(src, span_notice("[GLOB.is_valid_url.Replace(player_tips.pick_tip(choice), span_linkify("$1"))]"))

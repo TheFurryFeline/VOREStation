@@ -1,18 +1,15 @@
 /client
 	var/datum/managed_browser/feedback_viewer/feedback_viewer = null
 
-/datum/admins/proc/view_feedback()
-	set category = "Admin"
-	set name = "View Feedback"
-	set desc = "Open the Feedback Viewer"
-
-	if(!check_rights(R_ADMIN|R_DEBUG|R_EVENT))
+ADMIN_VERB(view_feedback, R_ADMIN|R_DEBUG|R_EVENT, "View Feedback", "Open the Feedback Viewer.", ADMIN_CATEGORY_MISC)
+	if(!check_rights())
 		return
 
-	if(usr.client.feedback_viewer)
-		usr.client.feedback_viewer.display()
-	else
-		usr.client.feedback_viewer = new(usr.client)
+	if(user.feedback_viewer)
+		user.feedback_viewer.display()
+		return
+
+	user.feedback_viewer = new(user)
 
 // This object holds the code to run the admin feedback viewer.
 /datum/managed_browser/feedback_viewer
@@ -23,7 +20,7 @@
 	var/database/query/last_query = null
 
 /datum/managed_browser/feedback_viewer/New(client/new_client)
-	if(!check_rights(R_ADMIN|R_DEBUG|R_EVENT, new_client)) // Just in case someone figures out a way to spawn this as non-staff.
+	if(!check_rights_for(new_client, R_ADMIN|R_DEBUG|R_EVENT)) // Just in case someone figures out a way to spawn this as non-staff.
 		message_admins("[new_client] tried to view feedback with insufficent permissions.")
 		qdel(src)
 
@@ -143,7 +140,7 @@
 
 	if(href_list["filter_topic"])
 		var/topic_to_search = tgui_input_text(my_client, "Write desired topic here. Partial topics are allowed. \
-		\nThe current topics in the config are [english_list(config.sqlite_feedback_topics)].", "Filter by Topic", null)
+		\nThe current topics in the config are [english_list(CONFIG_GET(str_list/sqlite_feedback_topics))].", "Filter by Topic", null)
 		if(topic_to_search)
 			last_query = feedback_filter(SQLITE_FEEDBACK_COLUMN_TOPIC, topic_to_search)
 

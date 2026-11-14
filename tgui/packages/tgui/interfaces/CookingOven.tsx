@@ -1,0 +1,182 @@
+import { useBackend } from 'tgui/backend';
+import { Window } from 'tgui/layouts';
+import {
+  Box,
+  Button,
+  DmIcon,
+  ProgressBar,
+  Section,
+  Stack,
+  Tooltip,
+} from 'tgui-core/components';
+
+import { ApplianceStatus, type Data } from './Appliance';
+
+export const CookingOven = (props) => {
+  const { act, data } = useBackend<Data>();
+
+  const { containersRemovable, our_contents, is_open } = data;
+
+  return (
+    <Window width={600} height={600}>
+      <Window.Content scrollable>
+        <ApplianceStatus />
+        <Section title="Containers">
+          <Stack align="center" justify="center">
+            <Stack.Item position="relative">
+              <Stack
+                position="absolute"
+                top={8}
+                left={1.5}
+                align="center"
+                justify="space-around"
+                wrap="wrap"
+                width="90%"
+              >
+                {our_contents.map((content, i) => {
+                  if (content.empty) {
+                    return (
+                      <Stack.Item key={i}>
+                        <Stack align="center" justify="center" fill vertical>
+                          <Stack.Item>
+                            <ProgressBar
+                              value={0}
+                              maxValue={1}
+                              backgroundColor="black"
+                              width={8}
+                            >
+                              N/A
+                            </ProgressBar>
+                          </Stack.Item>
+                          <Stack.Item
+                            backgroundColor="black"
+                            width={3}
+                            height={3}
+                            style={{
+                              border: '2px solid #48739e',
+                              cursor: 'pointer',
+                            }}
+                            onClick={() => act('slot', { slot: i + 1 })}
+                          />
+                          <Stack.Item
+                            backgroundColor="black"
+                            style={{ borderRadius: '4px' }}
+                            p={1}
+                          >
+                            Slot #{i + 1}
+                          </Stack.Item>
+                        </Stack>
+                      </Stack.Item>
+                    );
+                  }
+
+                  return (
+                    <Stack.Item key={i}>
+                      <Stack align="center" justify="center" fill vertical>
+                        <Stack.Item>
+                          <ProgressBar
+                            color={content.progressText[0]}
+                            value={content.progress}
+                            maxValue={1}
+                            backgroundColor="black"
+                            width={8}
+                          >
+                            {content.progressText[1]}
+                          </ProgressBar>
+                        </Stack.Item>
+                        <Stack.Item
+                          backgroundColor="black"
+                          width={3}
+                          height={3}
+                          style={{
+                            border: '2px solid #48739e',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => act('slot', { slot: i + 1 })}
+                        >
+                          {content.empty ? (
+                            'Empty'
+                          ) : (
+                            <DmIcon
+                              icon="icons/obj/cooking_machines.dmi"
+                              icon_state="ovendish"
+                              width="32px"
+                              height="32px"
+                            />
+                          )}
+                        </Stack.Item>
+                        <Tooltip
+                          content={
+                            content.prediction
+                              ? `Predicted Output: ${content.prediction}`
+                              : undefined
+                          }
+                        >
+                          <Stack.Item
+                            backgroundColor="black"
+                            style={{
+                              borderRadius: '4px',
+                              textDecoration: content.prediction
+                                ? 'underline'
+                                : undefined,
+                            }}
+                            p={1}
+                          >
+                            Slot #{i + 1}
+                          </Stack.Item>
+                        </Tooltip>
+                      </Stack>
+                    </Stack.Item>
+                  );
+                })}
+                <Stack.Item>
+                  <Button
+                    left="30px"
+                    height="150px"
+                    tooltip={`Click to ${is_open ? 'close' : 'open'}.`}
+                    width="50px"
+                    color="transparent"
+                    onClick={() => act('toggle_door')}
+                    textColor="white"
+                  >
+                    <Box backgroundColor="black">
+                      <Stack
+                        mt="20px"
+                        fill
+                        vertical
+                        align="center"
+                        verticalAlign="center"
+                      >
+                        {is_open ? (
+                          <>
+                            <Stack.Item bold>C</Stack.Item>
+                            <Stack.Item bold>L</Stack.Item>
+                            <Stack.Item bold>O</Stack.Item>
+                            <Stack.Item bold>S</Stack.Item>
+                            <Stack.Item bold>E</Stack.Item>
+                          </>
+                        ) : (
+                          <>
+                            <Stack.Item bold>O</Stack.Item>
+                            <Stack.Item bold>P</Stack.Item>
+                            <Stack.Item bold>E</Stack.Item>
+                            <Stack.Item bold>N</Stack.Item>
+                          </>
+                        )}
+                      </Stack>
+                    </Box>
+                  </Button>
+                </Stack.Item>
+              </Stack>
+              <DmIcon
+                icon="icons/obj/cooking_machines.dmi"
+                icon_state={is_open ? 'ovenopen' : 'ovenclosed_on'}
+                width={30}
+              />
+            </Stack.Item>
+          </Stack>
+        </Section>
+      </Window.Content>
+    </Window>
+  );
+};

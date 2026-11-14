@@ -21,7 +21,7 @@
 	tt_desc = "S Carabidae glacios"
 	catalogue_data = list(/datum/category_item/catalogue/fauna/frostfly)
 
-	faction = "diyaab"
+	faction = FACTION_DIYAAB
 
 	icon_state = "firefly"
 	icon_living = "firefly"
@@ -29,10 +29,12 @@
 	icon_rest = "firefly_dead"
 	icon = 'icons/mob/animal.dmi'
 	has_eye_glow = TRUE
+	heat_resist = -0.50
+	cold_resist = 0.75
 
 	maxHealth = 65
 	health = 65
-
+	minbodytemp = 175
 	pass_flags = PASSTABLE
 
 	var/energy = 100
@@ -45,7 +47,7 @@
 	base_attack_cooldown = 1.5 SECONDS
 	attacktext = list("nipped", "bit", "pinched")
 
-	organ_names = /decl/mob_organ_names/frostfly
+	organ_names = /datum/decl/mob_organ_names/frostfly
 
 	projectiletype = /obj/item/projectile/energy/blob/freezing
 
@@ -63,17 +65,6 @@
 		"rad" = 100
 		)
 
-	// The frostfly's body is incredibly cold at all times, natural resistance to things trying to burn it.
-	armor_soak = list(
-		"melee" = 0,
-		"bullet" = 0,
-		"laser" = 15,
-		"energy" = 0,
-		"bomb" = 0,
-		"bio" = 0,
-		"rad" = 0
-		)
-
 	var/datum/effect/effect/system/smoke_spread/frost/smoke_special
 
 	say_list_type = /datum/say_list/frostfly
@@ -82,11 +73,13 @@
 /mob/living/simple_mob/animal/sif/frostfly/get_cold_protection()
 	return 1	// It literally produces a cryogenic mist inside itself. Cold doesn't bother it.
 
-/mob/living/simple_mob/animal/sif/frostfly/Initialize()
+/mob/living/simple_mob/animal/sif/frostfly/Initialize(mapload)
 	. = ..()
 	smoke_special = new
-	verbs += /mob/living/proc/ventcrawl
-	verbs += /mob/living/proc/hide
+	add_verb(src, /mob/living/proc/ventcrawl)
+	add_verb(src, /mob/living/proc/hide)
+
+	ADD_TRAIT(src, TRAIT_AMBIENT_PEST_MOB, ROUNDSTART_TRAIT)
 
 /datum/say_list/frostfly
 	speak = list("Zzzz.", "Kss.", "Zzt?")
@@ -110,15 +103,9 @@
 	if(energy < max_energy)
 		energy++
 
-/mob/living/simple_mob/animal/sif/frostfly/Stat()
-	..()
-	if(client.statpanel == "Status")
-		statpanel("Status")
-		if(emergency_shuttle)
-			var/eta_status = emergency_shuttle.get_status_panel_eta()
-			if(eta_status)
-				stat(null, eta_status)
-		stat("Energy", energy)
+/mob/living/simple_mob/animal/sif/frostfly/get_status_tab_items()
+	. = ..()
+	. += "Energy: [energy]"
 
 /mob/living/simple_mob/animal/sif/frostfly/should_special_attack(atom/A)
 	if(energy >= 20)
@@ -161,7 +148,7 @@
 
 /datum/ai_holder/simple_mob/ranged/kiting/threatening/frostfly/post_ranged_attack(atom/A)
 	var/mob/living/simple_mob/animal/sif/frostfly/F = holder
-	if(istype(A,/mob/living))
+	if(isliving(A))
 		var/new_dir = turn(F.dir, -90)
 		if(prob(50))
 			new_dir = turn(F.dir, 90)
@@ -171,5 +158,5 @@
 	F.energy = max(0, F.energy - 1)	// The AI will eventually flee.
 
 
-/decl/mob_organ_names/frostfly
+/datum/decl/mob_organ_names/frostfly
 	hit_zones = list("head", "thorax", "abdomen", "left vestigal wing", "right vestigal wing", "left legs", "right legs")

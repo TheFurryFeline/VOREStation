@@ -13,7 +13,7 @@
 	//computer stuff
 	density = TRUE
 	anchored = TRUE
-	circuit = /obj/item/weapon/circuitboard/powermonitor
+	circuit = /obj/item/circuitboard/powermonitor
 	var/alerting = 0
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 300
@@ -37,8 +37,8 @@
 	..()
 */
 // On creation automatically connects to active sensors. This is delayed to ensure sensors already exist.
-/obj/machinery/computer/power_monitor/New()
-	..()
+/obj/machinery/computer/power_monitor/Initialize(mapload)
+	. = ..()
 	power_monitor = new(src)
 
 // On user click opens the UI of this computer.
@@ -49,8 +49,11 @@
 		return
 	tgui_interact(user)
 
+/obj/machinery/computer/power_monitor/allow_pai_interaction(mob/living/silicon/pai/user, proximity_flag)
+	return proximity_flag
+
 // Uses dark magic to operate the NanoUI of this computer.
-/obj/machinery/computer/power_monitor/tgui_interact(mob/user, var/datum/tgui/ui = null)
+/obj/machinery/computer/power_monitor/tgui_interact(mob/user, datum/tgui/ui = null)
 	power_monitor.tgui_interact(user, ui)
 
 // Verifies if any warnings were registered by connected sensors.

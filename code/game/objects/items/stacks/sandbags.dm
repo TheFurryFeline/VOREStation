@@ -19,7 +19,7 @@
 
 	pass_color = TRUE
 
-	var/bag_material = "cloth"
+	var/bag_material = MAT_CLOTH
 
 /obj/item/stack/sandbags/cyborg
 	name = "sandbag synthesizer"
@@ -32,9 +32,9 @@
 
 	bag_material = MAT_SYNCLOTH
 
-/obj/item/stack/sandbags/Initialize(var/ml, var/amt, var/bag_mat)
-	. = ..(ml, amt)
-	recipes = sandbag_recipes
+/obj/item/stack/sandbags/Initialize(mapload, amt, bag_mat)
+	. = ..(mapload, amt)
+	recipes = GLOB.sandbag_recipes
 	update_icon()
 	if(bag_mat)
 		bag_material = bag_mat
@@ -48,38 +48,35 @@
 
 	slowdown = round(amount / 10, 0.1)
 
-var/global/list/datum/stack_recipe/sandbag_recipes = list( \
-	new/datum/stack_recipe("barricade", /obj/structure/barricade/sandbag, 3, time = 5 SECONDS, one_per_turf = 1, on_floor = 1, pass_stack_color = TRUE))
-
-/obj/item/stack/sandbags/produce_recipe(datum/stack_recipe/recipe, var/quantity, mob/user)
+/obj/item/stack/sandbags/produce_recipe(datum/stack_recipe/recipe, quantity, mob/user)
 	var/required = quantity*recipe.req_amount
 	var/produced = min(quantity*recipe.res_amount, recipe.max_res_amount)
 
 	if (!can_use(required))
 		if (produced>1)
-			to_chat(user, "<span class='warning'>You haven't got enough [src] to build \the [produced] [recipe.title]\s!</span>")
+			to_chat(user, span_warning("You haven't got enough [src] to build \the [produced] [recipe.title]\s!"))
 		else
-			to_chat(user, "<span class='warning'>You haven't got enough [src] to build \the [recipe.title]!</span>")
+			to_chat(user, span_warning("You haven't got enough [src] to build \the [recipe.title]!"))
 		return
 
 	if (recipe.one_per_turf && (locate(recipe.result_type) in user.loc))
-		to_chat(user, "<span class='warning'>There is another [recipe.title] here!</span>")
+		to_chat(user, span_warning("There is another [recipe.title] here!"))
 		return
 
 	if (recipe.on_floor && !isfloor(user.loc))
-		to_chat(user, "<span class='warning'>\The [recipe.title] must be constructed on the floor!</span>")
+		to_chat(user, span_warning("\The [recipe.title] must be constructed on the floor!"))
 		return
 
 	if (recipe.time)
-		to_chat(user, "<span class='notice'>Building [recipe.title] ...</span>")
-		if (!do_after(user, recipe.time))
+		to_chat(user, span_notice("Building [recipe.title] ..."))
+		if (!do_after(user, recipe.time, target = src))
 			return
 
 	if (use(required))
 		var/atom/O = new recipe.result_type(user.loc, bag_material)
 
-		if(istype(O, /obj))
-			var/obj/Ob = O
+		if(istype(O, /obj/item))
+			var/obj/item/Ob = O
 
 			if(LAZYLEN(Ob.matter))	// Law of equivalent exchange.
 				Ob.matter.Cut()
@@ -99,7 +96,7 @@ var/global/list/datum/stack_recipe/sandbag_recipes = list( \
 			S.amount = produced
 			S.add_to_stacks(user)
 
-		if (istype(O, /obj/item/weapon/storage)) //BubbleWrap - so newly formed boxes are empty
+		if (istype(O, /obj/item/storage)) //BubbleWrap - so newly formed boxes are empty
 			for (var/obj/item/I in O)
 				qdel(I)
 
@@ -130,10 +127,11 @@ var/global/list/datum/stack_recipe/sandbag_recipes = list( \
 
 	pass_color = TRUE
 
-	var/bag_material = "cloth"
+	var/bag_material = MAT_CLOTH
+	custom_handling = TRUE
 
-/obj/item/stack/emptysandbag/Initialize(var/ml, var/amt, var/bag_mat)
-	. = ..(ml, amt)
+/obj/item/stack/emptysandbag/Initialize(mapload, amt, bag_mat)
+	. = ..(mapload, amt)
 	if(bag_mat)
 		bag_material = bag_mat
 	var/datum/material/M = get_material_by_name("[bag_material]")
@@ -141,10 +139,13 @@ var/global/list/datum/stack_recipe/sandbag_recipes = list( \
 		return INITIALIZE_HINT_QDEL
 	color = M.icon_colour
 
-/obj/item/stack/emptysandbag/attack_self(var/mob/user)
-	while(do_after(user, 1 SECOND) && can_use(1) && istype(get_turf(src), /turf/simulated/floor/outdoors))
+/obj/item/stack/emptysandbag/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+	while(do_after(user, 1 SECOND, target = src) && can_use(1) && istype(get_turf(src), /turf/simulated/floor/outdoors))
 		use(1)
 		var/obj/item/stack/sandbags/SB = new (get_turf(src), 1, bag_material)
 		SB.color = color
 		if(user)
-			to_chat(user, "<span class='notice'>You fill a sandbag.</span>")
+			to_chat(user, span_notice("You fill a sandbag."))

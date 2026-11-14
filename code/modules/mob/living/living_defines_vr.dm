@@ -10,6 +10,7 @@
 	var/custom_link = null
 	appearance_flags = TILE_BOUND|PIXEL_SCALE|KEEP_TOGETHER|LONG_GLIDE
 	var/hunger_rate = DEFAULT_HUNGER_FACTOR
+	var/private_notes = null
 //custom say verbs
 	var/custom_say = null
 	var/custom_ask = null
@@ -20,3 +21,4 @@
 	var/list/custom_cold = list()
 	var/can_climb = FALSE //Checked by turfs when using climb_wall(). Defined here for silicons and simple mobs
 	var/climbing_delay = 1.5 //By default, mobs climb at quarter speed. To be overriden by specific simple mobs or species speed
+	var/eggs = 0

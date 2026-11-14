@@ -11,21 +11,27 @@
 	var/list/frame_types_floor
 	var/list/frame_types_wall
 
+/obj/item/frame/examine(mob/user)
+	. = ..()
+	. += span_notice("Use in hands to choose a machine or computer frame. Use against an open wall to place an alarm or other mounted frame.")
+
 /obj/item/frame/proc/update_type_list()
 	if(!frame_types_floor)
-		frame_types_floor = construction_frame_floor
+		frame_types_floor = GLOB.construction_frame_floor
 	if(!frame_types_wall)
-		frame_types_wall = construction_frame_wall
+		frame_types_wall = GLOB.construction_frame_wall
 
-/obj/item/frame/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/item/frame/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_WRENCH))
 		new refund_type(get_turf(src.loc), refund_amt)
 		qdel(src)
 		return
 	..()
 
-/obj/item/frame/attack_self(mob/user as mob)
-	..()
+/obj/item/frame/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	update_type_list()
 	var/datum/frame/frame_types/frame_type
 	if(!build_machine_type && !build_wall_only)
@@ -41,14 +47,12 @@
 
 	var/ndir
 	ndir = user.dir
-	if(!(ndir in cardinal))
+	if(!(ndir in GLOB.cardinal))
 		return
 
 	var/obj/machinery/M = new build_machine_type(get_turf(src.loc), ndir, 1, frame_type)
-	M.fingerprints = fingerprints
-	M.fingerprintshidden = fingerprintshidden
-	M.fingerprintslast = fingerprintslast
-	if(istype(src.loc, /obj/item/weapon/gripper)) //Typical gripper shenanigans
+	M.init_forensic_data().merge_allprints(forensic_data)
+	if(istype(src.loc, /obj/item/gripper)) //Typical gripper shenanigans
 		user.drop_item()
 	qdel(src)
 
@@ -64,21 +68,21 @@
 	else
 		ndir = get_dir(on_wall, user)
 
-	if(!(ndir in cardinal))
+	if(!(ndir in GLOB.cardinal))
 		return
 
 	var/turf/loc = get_turf(user)
 	var/area/A = loc.loc
 	if(!istype(loc, /turf/simulated/floor))
-		to_chat(user, "<span class='danger'>\The frame cannot be placed on this spot.</span>")
+		to_chat(user, span_danger("\The [src] cannot be placed on this spot."))
 		return
 
 	if(A.requires_power == 0 || A.name == "Space")
-		to_chat(user, "<span class='danger'>\The [src] Alarm cannot be placed in this area.</span>")
+		to_chat(user, span_danger("\The [src] cannot be placed in this area."))
 		return
 
 	if(gotwallitem(loc, ndir))
-		to_chat(user, "<span class='danger'>There's already an item on this wall!</span>")
+		to_chat(user, span_danger("There's already an item on this wall!"))
 		return
 
 	var/datum/frame/frame_types/frame_type
@@ -94,10 +98,8 @@
 			new /obj/item/stack/material/steel(user.loc, (5 - frame_type.frame_size))
 
 	var/obj/machinery/M = new build_machine_type(loc, ndir, 1, frame_type)
-	M.fingerprints = fingerprints
-	M.fingerprintshidden = fingerprintshidden
-	M.fingerprintslast = fingerprintslast
-	if(istype(src.loc, /obj/item/weapon/gripper)) //Typical gripper shenanigans
+	M.init_forensic_data().merge_allprints(forensic_data)
+	if(istype(src.loc, /obj/item/gripper)) //Typical gripper shenanigans
 		user.drop_item()
 	qdel(src)
 

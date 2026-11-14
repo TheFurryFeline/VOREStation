@@ -1,4 +1,4 @@
-/decl/flooring/looking_glass
+/datum/decl/flooring/looking_glass
 	name = "looking glass surface"
 	desc = "Too expensive to replace. Don't break it!"
 	icon = 'icons/turf/flooring/lg_origin.dmi'
@@ -11,7 +11,7 @@
 	name = "looking glass surface"
 	icon = 'icons/turf/flooring/lg_origin.dmi'
 	icon_state = "origin_arrow"
-	initial_flooring = /decl/flooring/looking_glass
+	initial_flooring = /datum/decl/flooring/looking_glass
 	appearance_flags = TILE_BOUND
 	dynamic_lighting = FALSE
 	flags = TURF_ACID_IMMUNE
@@ -39,7 +39,7 @@
 
 	var/new_x = 0
 	var/new_y = 0
-	
+
 	if(dir & NORTH)
 		new_y = 112
 	else if(dir & SOUTH)
@@ -52,7 +52,7 @@
 
 	var/matrix/M = matrix()
 	var/mutable_appearance/MA = new (src)
-	
+
 	if(!center)
 		var/horizontal = (dir & (WEST|EAST))
 		var/vertical = (dir & (NORTH|SOUTH))
@@ -61,7 +61,7 @@
 		MA.opacity = 1
 		if(!optional)
 			MA.density = TRUE
-		
+
 	MA.icon_state = "origin_active"
 	MA.plane = PLANE_LOOKINGGLASS
 	MA.layer = 0
@@ -84,6 +84,4 @@
 	appearance = MA
 
 	animate(src, color = null, time = 3 SECONDS)
-	sleep(3 SECONDS)
-	icon_state = "origin"
-
+	VARSET_IN(src, icon_state, "origin", 3 SECONDS)

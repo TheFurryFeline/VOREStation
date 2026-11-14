@@ -5,7 +5,7 @@
 	var/optimal_power = 0.6 //cooking power at 100% - This variable determines the MAXIMUM increase in do_cooking_ticks, once math goes through. If you want ticks of 0.5, set it to 0.5, etc.
 
 	var/loss = 1	//Temp lost per proc when equalising
-	var/resistance = 32000	//Resistance to heating. combines with heating power to determine how long heating takes. 32k by default.
+	var/resistance = 1200	//Resistance to heating. combines with heating power to determine how long heating takes. 32k by default.
 
 	var/light_x = 0
 	var/light_y = 0
@@ -14,14 +14,7 @@
 	mobdamagetype = BURN
 	can_burn_food = TRUE
 
-/obj/machinery/appliance/cooker/attack_hand(mob/user)
-	tgui_interact(user)
-
-/obj/machinery/appliance/cooker/tgui_interact(mob/user, datum/tgui/ui, datum/tgui/parent_ui)
-	ui = SStgui.try_update_ui(user, src, ui)
-	if(!ui)
-		ui = new(user, src, "CookingAppliance", name)
-		ui.open()
+	tgui_id = "CookingAppliance"
 
 /obj/machinery/appliance/cooker/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
 	var/list/data = ..()
@@ -30,60 +23,23 @@
 	data["optimalTemp"] = round(optimal_temp - T0C, 0.1)
 	data["temperatureEnough"] = temperature >= min_temp
 	data["efficiency"] = round(get_efficiency(), 0.1)
-	data["containersRemovable"] = can_remove_items(user, show_warning = FALSE)
-
-	var/list/our_contents = list()
-	for(var/i in 1 to max_contents)
-		our_contents += list(list("empty" = TRUE))
-		if(i <= LAZYLEN(cooking_objs))
-			var/datum/cooking_item/CI = cooking_objs[i]
-			if(istype(CI))
-				our_contents[i] = list()
-				our_contents[i]["progress"] = 0
-				our_contents[i]["progressText"] = report_progress_tgui(CI)
-				if(CI.max_cookwork)
-					our_contents[i]["progress"] = CI.cookwork / CI.max_cookwork
-				if(CI.container)
-					our_contents[i]["container"] = CI.container.label(i)
-				else
-					our_contents[i]["container"] = null
-	data["our_contents"] = our_contents
 
 	return data
 
-/obj/machinery/appliance/cooker/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
-	if(..())
-		return TRUE
 
-	switch(action)
-		if("slot")
-			var/slot = params["slot"]
-			var/obj/item/I = usr.get_active_hand()
-			if(slot <= LAZYLEN(cooking_objs)) // Inserting
-				var/datum/cooking_item/CI = cooking_objs[slot]
-
-				if(istype(I) && can_insert(I)) // Why do hard work when we can just make them smack us?
-					attackby(I, usr)
-				else if(istype(CI))
-					eject(CI, usr)
-				return TRUE
-			if(istype(I)) // Why do hard work when we can just make them smack us?
-				attackby(I, usr)
-			return TRUE
-
-/obj/machinery/appliance/cooker/examine(var/mob/user)
+/obj/machinery/appliance/cooker/examine(mob/user)
 	. = ..()
 	if(.)	//no need to duplicate adjacency check
 		if(!stat)
 			if (temperature < min_temp)
-				. += "<span class='warning'>\The [src] is still heating up and is too cold to cook anything yet.</span>"
+				. += span_warning("\The [src] is still heating up and is too cold to cook anything yet.")
 			else
-				. += "<span class='notice'>It is running at [round(get_efficiency(), 0.1)]% efficiency!</span>"
+				. += span_notice("It is running at [round(get_efficiency(), 0.1)]% efficiency!")
 			. += "Temperature: [round(temperature - T0C, 0.1)]C / [round(optimal_temp - T0C, 0.1)]C"
 		else
-			. += "<span class='warning'>It is switched off.</span>"
+			. += span_warning("It is switched off.")
 
-/obj/machinery/appliance/cooker/list_contents(var/mob/user)
+/obj/machinery/appliance/cooker/list_contents(mob/user)
 	if (cooking_objs.len)
 		var/string = "Contains...</br>"
 		var/num = 0
@@ -94,13 +50,13 @@
 				string += "- [CI.container.label(num)], [report_progress(CI)]</br>"
 		to_chat(user, string)
 	else
-		to_chat(user, "<span class='notice'>It's empty.</span>")
+		to_chat(user, span_notice("It's empty."))
 
 /obj/machinery/appliance/cooker/proc/get_efficiency()
 	// to_world("Our cooking_power is [cooking_power] and our efficiency is [(cooking_power / optimal_power) * 100].") // Debug lines, uncomment if you need to test.
 	return (cooking_power / optimal_power) * 100
 
-/obj/machinery/appliance/cooker/Initialize()
+/obj/machinery/appliance/cooker/Initialize(mapload)
 	. = ..()
 	loss = (active_power_usage / resistance)*0.5
 	cooking_objs = list()
@@ -183,8 +139,8 @@
 	update_cooking_power()
 
 //Cookers do differently, they use containers
-/obj/machinery/appliance/cooker/has_space(var/obj/item/I)
-	if(istype(I, /obj/item/weapon/reagent_containers/cooking_container))
+/obj/machinery/appliance/cooker/has_space(obj/item/I)
+	if(istype(I, /obj/item/reagent_containers/cooking_container))
 		//Containers can go into an empty slot
 		if(cooking_objs.len < max_contents)
 			return 1
@@ -196,8 +152,8 @@
 
 	return 0
 
-/obj/machinery/appliance/cooker/add_content(var/obj/item/I, var/mob/user)
+/obj/machinery/appliance/cooker/add_content(obj/item/I, mob/user)
 	var/datum/cooking_item/CI = ..()
 	if(istype(CI) && CI.combine_target)
-		to_chat(user, "<span class='filter_notice'>\The [I] will be used to make a [selected_option]. Output selection is returned to default for future items.</span>")
+		to_chat(user, span_filter_notice("\The [I] will be used to make a [selected_option]. Output selection is returned to default for future items."))
 		selected_option = null

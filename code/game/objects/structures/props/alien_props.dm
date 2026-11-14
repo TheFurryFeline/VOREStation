@@ -11,8 +11,8 @@
 	name = "alien console"
 	desc = "The console flashes what appear to be symbols you've never seen before."
 	icon_state = "console-c"
-	interaction_message = "<span class='warning'>The console flashes a series of unknown symbols as you press a button on what is presumably a keyboard. It probably some sort of \
-	authentication error. Since you're not an alien, you should probably leave it alone.</span>"
+	interaction_message = span_warning("The console flashes a series of unknown symbols as you press a button on what is presumably a keyboard. It probably some sort of \
+	authentication error. Since you're not an alien, you should probably leave it alone.")
 
 /obj/structure/prop/alien/computer/camera
 	desc = "This console is briefly flashing video feeds of various locations close by."
@@ -25,19 +25,19 @@
 	name = "alien dispenser"
 	desc = "This looks like it dispenses... something?"
 	icon_state = "dispenser"
-	interaction_message = "<span class='warning'>You don't see any mechanism to operate this. Probably for the best.</span>"
+	interaction_message = span_warning("You don't see any mechanism to operate this. Probably for the best.")
 
 /obj/structure/prop/alien/pod
 	name = "alien pod"
 	desc = "This seems to be a container for something."
 	icon_state = "experiment"
-	interaction_message = "<span class='warning'>You don't see any mechanism to open this thing. Probably for the best.</span>"
+	interaction_message = span_warning("You don't see any mechanism to open this thing. Probably for the best.")
 
 /obj/structure/prop/alien/pod/open
 	name = "opened alien pod"
 	desc = "At one point, this probably contained something interesting..."
 	icon_state = "experiment-open"
-	interaction_message = "<span class='warning'>You don't see any mechanism to close this thing.</span>"
+	interaction_message = span_warning("You don't see any mechanism to close this thing.")
 
 
 // Obtained by scanning both a void core and void cell.
@@ -54,7 +54,7 @@
 	<br>\
 	<ul>\
 		<li>* These objects do, in fact, power themselves for free, and the modern understanding of the physical world \
-		 is in fact incorrect. This is the most obvious answer, but it is very unlikely to be true.</li>\
+		is in fact incorrect. This is the most obvious answer, but it is very unlikely to be true.</li>\
 		<li>* The objects draw from an unknown source of energy that exists at all points in space, or at least where the \
 		void powered machine was found, that presently cannot be detected or determined, and converts that energy into electrical energy \
 		to drive the machine it is inside of.</li>\
@@ -89,7 +89,7 @@
 	name = "void core"
 	icon_state = "core"
 	desc = "An alien machine that seems to be producing energy seemingly out of nowhere."
-	interaction_message = "<span class='warning'>Messing with something that makes energy out of nowhere seems very unwise.</span>"
+	interaction_message = span_warning("Messing with something that makes energy out of nowhere seems very unwise.")
 	catalogue_data = list(/datum/category_item/catalogue/anomalous/precursor_a/alien_void_core)
 
 /obj/item/prop/alien
@@ -104,22 +104,12 @@
 	icon_state = "health"
 	w_class = ITEMSIZE_SMALL
 	var/static/list/possible_states = list("health", "spider", "slime", "emp", "species", "egg", "vent", "mindshock", "viral", "gland")
-	var/static/list/possible_tech = list(TECH_MATERIAL, TECH_ENGINEERING, TECH_PHORON, TECH_POWER, TECH_BIO, TECH_COMBAT, TECH_MAGNET, TECH_DATA)
 
-/obj/item/prop/alien/junk/Initialize()
+/obj/item/prop/alien/junk/Initialize(mapload)
 	. = ..()
 	icon_state = pick(possible_states)
-	var/list/techs = possible_tech.Copy()
-	origin_tech = list()
-	for(var/i = 1 to rand(1, 4))
-		var/new_tech = pick(techs)
-		techs -= new_tech
-		origin_tech[new_tech] = rand(5, 9)
-
-	origin_tech[TECH_PRECURSOR] = rand(0,2)
 
 /obj/item/prop/alien/phasecoil
 	name = "reverberating device"
 	desc = "A device pulsing with an ominous energy."
 	icon_state = "circuit_phase"
-	origin_tech = list(TECH_MATERIAL = 5, TECH_ENGINEERING = 6, TECH_PHORON = 3, TECH_POWER = 5, TECH_MAGNET = 5, TECH_DATA = 5, TECH_PRECURSOR = 2, TECH_ARCANE = 1)

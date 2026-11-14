@@ -1,5 +1,5 @@
 //Adminpaper - it's like paper, but more adminny!
-/obj/item/weapon/paper/admin
+/obj/item/paper/admin
 	name = "administrative paper"
 	desc = "If you see this, something has gone horribly wrong."
 	var/datum/admins/admindatum = null
@@ -16,48 +16,51 @@
 	var/footer = null
 	var/footerOn = FALSE
 
-/obj/item/weapon/paper/admin/New()
-	..()
+/obj/item/paper/admin/Initialize(mapload, text, title)
+	. = ..()
 	generateInteractions()
 
 
-/obj/item/weapon/paper/admin/proc/generateInteractions()
+/obj/item/paper/admin/proc/generateInteractions()
 	//clear first
 	interactions = null
 
 	//Snapshot is crazy and likes putting each topic hyperlink on a seperate line from any other tags so it's nice and clean.
 	interactions += "<HR><center><font size= \"1\">The fax will transmit everything above this line</font><br>"
-	interactions += "<A href='?src=\ref[src];[HrefToken()];confirm=1'>Send fax</A> "
-	interactions += "<A href='?src=\ref[src];[HrefToken()];penmode=1'>Pen mode: [isCrayon ? "Crayon" : "Pen"]</A> "
-	interactions += "<A href='?src=\ref[src];[HrefToken()];cancel=1'>Cancel fax</A> "
+	interactions += "<A href='byond://?src=\ref[src];[HrefToken()];confirm=1'>Send fax</A> "
+	interactions += "<A href='byond://?src=\ref[src];[HrefToken()];penmode=1'>Pen mode: [isCrayon ? "Crayon" : "Pen"]</A> "
+	interactions += "<A href='byond://?src=\ref[src];[HrefToken()];cancel=1'>Cancel fax</A> "
 	interactions += "<BR>"
-	interactions += "<A href='?src=\ref[src];[HrefToken()];toggleheader=1'>Toggle Header</A> "
-	interactions += "<A href='?src=\ref[src];[HrefToken()];togglefooter=1'>Toggle Footer</A> "
-	interactions += "<A href='?src=\ref[src];[HrefToken()];clear=1'>Clear page</A> "
+	interactions += "<A href='byond://?src=\ref[src];[HrefToken()];toggleheader=1'>Toggle Header</A> "
+	interactions += "<A href='byond://?src=\ref[src];[HrefToken()];togglefooter=1'>Toggle Footer</A> "
+	interactions += "<A href='byond://?src=\ref[src];[HrefToken()];clear=1'>Clear page</A> "
 	interactions += "</center>"
 
-/obj/item/weapon/paper/admin/proc/generateHeader()
+/obj/item/paper/admin/proc/generateHeader()
 	var/originhash = md5("[origin]")
 	var/timehash = copytext(md5("[world.time]"),1,10)
 	var/text = null
-	var/logo = tgui_alert(usr, "Do you want the header of your fax to have a NanoTrasen, SolGov, or Trader logo?","Fax Logo",list("NanoTrasen","SolGov","Trader")) //VOREStation Add - Trader
+	var/logo = tgui_alert(usr, "Do you want the header of your fax to have a NanoTrasen, SolGov, Talon or Trader logo?","Fax Logo",list("NanoTrasen","SolGov", "Talon", "Trader")) //VOREStation Add - Trader
+	if(!logo)
+		return
 	if(logo == "SolGov")
-		logo = "sglogo.png"
+		logo = 'html/images/sglogo.png'
 	//VOREStation Edit/Add
 	else if(logo == "NanoTrasen")
-		logo = "ntlogo.png"
+		logo = 'html/images/ntlogo.png'
+	else if(logo == "Talon")
+		logo = 'html/images/talonlogo.png'
 	else
-		logo = "trader.png"
+		logo = 'html/images/trader.png'
 	//VOREStation Edit/Add End
 	//TODO change logo based on who you're contacting.
-	text = "<center><img src = [logo]></br>"
-	text += "<b>[origin] Quantum Uplink Signed Message</b><br>"
-	text += "<font size = \"1\">Encryption key: [originhash]<br>"
-	text += "Challenge: [timehash]<br></font></center><hr>"
+	text = "<center><img src=\ref[logo]></br>"
+	text += span_bold("[origin] Quantum Uplink Signed Message") + "<br>"
+	text += span_small("Encryption key: [originhash]<br>Challenge: [timehash]") + "<br></center><hr>"
 
 	header = text
 
-/obj/item/weapon/paper/admin/proc/generateFooter()
+/obj/item/paper/admin/proc/generateFooter()
 	var/text = null
 
 	text = "<hr><font size= \"1\">"
@@ -69,28 +72,25 @@
 	footer = text
 
 
-/obj/item/weapon/paper/admin/proc/adminbrowse()
+/obj/item/paper/admin/proc/adminbrowse()
 	updateinfolinks()
 	generateHeader()
 	generateFooter()
 	updateDisplay()
 
-/obj/item/weapon/paper/admin/proc/updateDisplay()
+/obj/item/paper/admin/proc/updateDisplay()
 	usr << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY>[headerOn ? header : ""][info_links][stamps][footerOn ? footer : ""][interactions]</BODY></HTML>", "window=[name];can_close=0")
 
 
 
-/obj/item/weapon/paper/admin/Topic(href, href_list)
+/obj/item/paper/admin/Topic(href, href_list)
 	if(href_list["write"])
 		var/id = href_list["write"]
 		if(free_space <= 0)
-			to_chat(usr, "<span class='info'>There isn't enough space left on \the [src] to write anything.</span>")
+			to_chat(usr, span_info("There isn't enough space left on \the [src] to write anything."))
 			return
 
-		var/raw_t = tgui_input_text(usr, "Enter what you want to write:", "Write", multiline = TRUE, prevent_enter = TRUE)
-		if(!raw_t)
-			return
-		var/t =  sanitize(raw_t, free_space, extra = 0)
+		var/t = tgui_input_text(usr, "Enter what you want to write:", "Write", "", free_space, TRUE, prevent_enter = TRUE)
 		if(!t)
 			return
 
@@ -102,7 +102,7 @@
 
 
 		if(fields > 50)//large amount of fields creates a heavy load on the server, see updateinfolinks() and addtofield()
-			to_chat(usr, "<span class='warning'>Too many fields. Sorry, you can't do this.</span>")
+			to_chat(usr, span_warning("Too many fields. Sorry, you can't do this."))
 			fields = last_fields_value
 			return
 
@@ -157,5 +157,5 @@
 		updateDisplay()
 		return
 
-/obj/item/weapon/paper/admin/get_signature()
+/obj/item/paper/admin/get_signature()
 	return tgui_input_text(usr, "Enter the name you wish to sign the paper with (will prompt for multiple entries, in order of entry)", "Signature")

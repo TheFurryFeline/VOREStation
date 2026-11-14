@@ -11,35 +11,38 @@
 	var/list/my_list = data
 	var/t = "<h2>[src]</h2><br>"
 	t += "List length: [my_list.len]<br>"
-	t += "<a href='?src=\ref[src]'>\[Refresh\]</a>  |  "
-	t += "<a href='?src=\ref[src];add=1'>\[Add\]</a>  |  "
-	t += "<a href='?src=\ref[src];swap=1'>\[Swap\]</a>  |  "
-	t += "<a href='?src=\ref[src];clear=1'>\[Clear\]</a><br>"
+	t += "<a href='byond://?src=\ref[src]'>\[Refresh\]</a>  |  "
+	t += "<a href='byond://?src=\ref[src];add=1'>\[Add\]</a>  |  "
+	t += "<a href='byond://?src=\ref[src];swap=1'>\[Swap\]</a>  |  "
+	t += "<a href='byond://?src=\ref[src];clear=1'>\[Clear\]</a><br>"
 	t += "<hr>"
 	var/i = 0
 	for(var/line in my_list)
 		i++
 		t += "#[i] | [display_data(line)]  |  "
-		t += "<a href='?src=\ref[src];edit=1;pos=[i]'>\[Edit\]</a>  |  "
-		t += "<a href='?src=\ref[src];remove=1;pos=[i]'>\[Remove\]</a><br>"
-	user << browse(t, "window=list_pin_\ref[src];size=500x400")
+		t += "<a href='byond://?src=\ref[src];edit=1;pos=[i]'>\[Edit\]</a>  |  "
+		t += "<a href='byond://?src=\ref[src];remove=1;pos=[i]'>\[Remove\]</a><br>"
 
-/datum/integrated_io/list/proc/add_to_list(mob/user, var/new_entry)
+	var/datum/browser/popup = new(user, "list_pin_\ref[src]", null, 500, 400)
+	popup.set_content(t)
+	popup.open()
+
+/datum/integrated_io/list/proc/add_to_list(mob/user, new_entry)
 	if(!new_entry && user)
 		new_entry = ask_for_data_type(user)
 	if(is_valid(new_entry))
 		Add(new_entry)
 
-/datum/integrated_io/list/proc/Add(var/new_entry)
+/datum/integrated_io/list/proc/Add(new_entry)
 	var/list/my_list = data
 	if(my_list.len > IC_MAX_LIST_LENGTH)
 		my_list.Cut(Start=1,End=2)
 	my_list.Add(new_entry)
 
-/datum/integrated_io/list/proc/remove_from_list_by_position(mob/user, var/position)
+/datum/integrated_io/list/proc/remove_from_list_by_position(mob/user, position)
 	var/list/my_list = data
 	if(!my_list.len)
-		to_chat(user, "<span class='warning'>The list is empty, there's nothing to remove.</span>")
+		to_chat(user, span_warning("The list is empty, there's nothing to remove."))
 		return
 	if(!position)
 		return
@@ -47,32 +50,32 @@
 	if(target_entry)
 		my_list.Remove(target_entry)
 
-/datum/integrated_io/list/proc/remove_from_list(mob/user, var/target_entry)
+/datum/integrated_io/list/proc/remove_from_list(mob/user, target_entry)
 	var/list/my_list = data
 	if(!my_list.len)
-		to_chat(user, "<span class='warning'>The list is empty, there's nothing to remove.</span>")
+		to_chat(user, span_warning("The list is empty, there's nothing to remove."))
 		return
 	if(!target_entry)
-		target_entry = tgui_input_list(usr, "Which piece of data do you want to remove?", "Remove", my_list)
+		target_entry = tgui_input_list(user, "Which piece of data do you want to remove?", "Remove", my_list)
 	if(target_entry)
 		my_list.Remove(target_entry)
 
-/datum/integrated_io/list/proc/edit_in_list(mob/user, var/target_entry)
+/datum/integrated_io/list/proc/edit_in_list(mob/user, target_entry)
 	var/list/my_list = data
 	if(!my_list.len)
-		to_chat(user, "<span class='warning'>The list is empty, there's nothing to modify.</span>")
+		to_chat(user, span_warning("The list is empty, there's nothing to modify."))
 		return
 	if(!target_entry)
-		target_entry = tgui_input_list(usr, "Which piece of data do you want to edit?", "Edit", my_list)
+		target_entry = tgui_input_list(user, "Which piece of data do you want to edit?", "Edit", my_list)
 	if(target_entry)
 		var/edited_entry = ask_for_data_type(user, target_entry)
 		if(edited_entry)
 			target_entry = edited_entry
 
-/datum/integrated_io/list/proc/edit_in_list_by_position(mob/user, var/position)
+/datum/integrated_io/list/proc/edit_in_list_by_position(mob/user, position)
 	var/list/my_list = data
 	if(!my_list.len)
-		to_chat(user, "<span class='warning'>The list is empty, there's nothing to modify.</span>")
+		to_chat(user, span_warning("The list is empty, there's nothing to modify."))
 		return
 	if(!position)
 		return
@@ -82,17 +85,17 @@
 		if(edited_entry)
 			target_entry = edited_entry
 
-/datum/integrated_io/list/proc/swap_inside_list(mob/user, var/first_target, var/second_target)
+/datum/integrated_io/list/proc/swap_inside_list(mob/user, first_target, second_target)
 	var/list/my_list = data
 	if(my_list.len <= 1)
-		to_chat(user, "<span class='warning'>The list is empty, or too small to do any meaningful swapping.</span>")
+		to_chat(user, span_warning("The list is empty, or too small to do any meaningful swapping."))
 		return
 	if(!first_target)
-		first_target = tgui_input_list(usr, "Which piece of data do you want to swap? (1)", "Swap", my_list)
+		first_target = tgui_input_list(user, "Which piece of data do you want to swap? (1)", "Swap", my_list)
 
 	if(first_target)
 		if(!second_target)
-			second_target = tgui_input_list(usr, "Which piece of data do you want to swap? (2)", "Swap", my_list - first_target)
+			second_target = tgui_input_list(user, "Which piece of data do you want to swap? (2)", "Swap", my_list - first_target)
 
 		if(second_target)
 			var/first_pos = my_list.Find(first_target)
@@ -108,7 +111,7 @@
 	my_list = shuffle(my_list)
 	push_data()
 
-/datum/integrated_io/list/write_data_to_pin(var/new_data)
+/datum/integrated_io/list/write_data_to_pin(new_data)
 	if(islist(new_data))
 		var/list/new_list = new_data
 		data = new_list.Copy()
@@ -146,4 +149,3 @@
 
 	holder.interact(usr) // Refresh the main UI,
 	interact(usr) // and the list UI.
-

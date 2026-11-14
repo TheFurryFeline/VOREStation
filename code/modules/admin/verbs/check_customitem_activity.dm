@@ -1,36 +1,34 @@
-var/checked_for_inactives = 0
-var/inactive_keys = "None<br>"
+GLOBAL_VAR_INIT(checked_for_inactives, FALSE)
+GLOBAL_VAR_INIT(inactive_keys, "None<br>")
 
-/client/proc/check_customitem_activity()
-	set category = "Admin"
-	set name = "Check activity of players with custom items"
-
-	var/dat = "<b>Inactive players with custom items</b><br>"
+ADMIN_VERB(check_customitem_activity, R_ADMIN|R_MOD|R_SERVER, "Check activity of players with custom items", "Allows you to investigate custom item activity.", ADMIN_CATEGORY_INVESTIGATE)
+	var/dat = span_bold("Inactive players with custom items") + "<br>"
 	dat += "<br>"
 	dat += "The list below contains players with custom items that have not logged\
-	 in for the past two months, or have not logged in since this system was implemented.\
-	 This system requires the feedback SQL database to be properly setup and linked.<br>"
+		in for the past two months, or have not logged in since this system was implemented.\
+		This system requires the feedback SQL database to be properly setup and linked.<br>"
 	dat += "<br>"
 	dat += "Populating this list is done automatically, but must be manually triggered on a per\
-	 round basis. Populating the list may cause a lag spike, so use it sparingly.<br>"
+		round basis. Populating the list may cause a lag spike, so use it sparingly.<br>"
 	dat += "<hr>"
-	if(checked_for_inactives)
-		dat += inactive_keys
+	if(GLOB.checked_for_inactives)
+		dat += GLOB.inactive_keys
 		dat += "<hr>"
 		dat += "This system was implemented on March 1 2013, and the database a few days before that. Root server access is required to add or disable access to specific custom items.<br>"
 	else
-		dat += "<a href='?src=\ref[src];_src_=holder;[HrefToken()];populate_inactive_customitems=1'>Populate list (requires an active database connection)</a><br>"
+		dat += "<a href='byond://?src=\ref[user];_src_=holder;[HrefToken()];populate_inactive_customitems=1'>Populate list (requires an active database connection)</a><br>"
 
-	usr << browse(dat, "window=inactive_customitems;size=600x480")
+	var/datum/browser/popup = new(user, "inactive_customitems", "Inactive Custom Items", 600, 480)
+	popup.set_content(dat)
+	popup.open()
 
-/proc/populate_inactive_customitems_list(var/client/C)
+/proc/populate_inactive_customitems_list(client/C)
 	set background = 1
 
-	if(checked_for_inactives)
+	if(GLOB.checked_for_inactives)
 		return
 
-	establish_db_connection()
-	if(!dbcon.IsConnected())
+	if(!SSdbcore.IsConnected())
 		return
 
 	//grab all ckeys associated with custom items
@@ -55,7 +53,7 @@ var/inactive_keys = "None<br>"
 	//run a query to get all ckeys inactive for over 2 months
 	var/list/inactive_ckeys = list()
 	if(ckeys_with_customitems.len)
-		var/DBQuery/query_inactive = dbcon.NewQuery("SELECT ckey, lastseen FROM erro_player WHERE datediff(Now(), lastseen) > 60")
+		var/datum/db_query/query_inactive = SSdbcore.NewQuery("SELECT ckey, lastseen FROM erro_player WHERE datediff(Now(), lastseen) > 60")
 		query_inactive.Execute()
 		while(query_inactive.NextRow())
 			var/cur_ckey = query_inactive.item[1]
@@ -63,23 +61,25 @@ var/inactive_keys = "None<br>"
 			if(ckeys_with_customitems.Find(cur_ckey))
 				ckeys_with_customitems.Remove(cur_ckey)
 				inactive_ckeys[cur_ckey] = "last seen on [query_inactive.item[2]]"
+		qdel(query_inactive)
 
 	//if there are ckeys left over, check whether they have a database entry at all
 	if(ckeys_with_customitems.len)
 		for(var/cur_ckey in ckeys_with_customitems)
-			var/DBQuery/query_inactive = dbcon.NewQuery("SELECT ckey FROM erro_player WHERE ckey = '[cur_ckey]'")
+			var/datum/db_query/query_inactive = SSdbcore.NewQuery("SELECT ckey FROM erro_player WHERE ckey = '[cur_ckey]'")
 			query_inactive.Execute()
-			if(!query_inactive.RowCount())
+			if(!length(query_inactive.rows))
 				inactive_ckeys += cur_ckey
+			qdel(query_inactive)
 
 	if(inactive_ckeys.len)
-		inactive_keys = ""
+		GLOB.inactive_keys = ""
 		for(var/cur_key in inactive_ckeys)
 			if(inactive_ckeys[cur_key])
-				inactive_keys += "<b>[cur_key]</b> - [inactive_ckeys[cur_key]]<br>"
+				GLOB.inactive_keys += span_bold("[cur_key]") + " - [inactive_ckeys[cur_key]]<br>"
 			else
-				inactive_keys += "[cur_key] - no database entry<br>"
+				GLOB.inactive_keys += "[cur_key] - no database entry<br>"
 
-	checked_for_inactives = 1
+	GLOB.checked_for_inactives = TRUE
 	if(C)
-		C.check_customitem_activity()
+		SSadmin_verbs.dynamic_invoke_verb(C, /datum/admin_verb/check_customitem_activity) //Recursively calling ourselves until cancelled or a unique name is given.

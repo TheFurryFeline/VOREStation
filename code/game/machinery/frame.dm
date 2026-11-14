@@ -1,16 +1,16 @@
-/var/global/list/construction_frame_wall
-/var/global/list/construction_frame_floor
+GLOBAL_LIST(construction_frame_wall)
+GLOBAL_LIST(construction_frame_floor)
 
 /proc/populate_frame_types()
 	//Create global frame type list if it hasn't been made already.
-	construction_frame_wall = list()
-	construction_frame_floor = list()
+	GLOB.construction_frame_wall = list()
+	GLOB.construction_frame_floor = list()
 	for(var/R in subtypesof(/datum/frame/frame_types))
 		var/datum/frame/frame_types/type = new R
 		if(type.frame_style == FRAME_STYLE_WALL)
-			construction_frame_wall += type
+			GLOB.construction_frame_wall += type
 		else
-			construction_frame_floor += type
+			GLOB.construction_frame_floor += type
 
 //////////////////////////////
 // Frame Type Datum - Describes the frame structures that can be created from a frame item.
@@ -24,27 +24,36 @@
 	var/frame_style = FRAME_STYLE_FLOOR	// "floor" or "wall"
 	var/x_offset				// For wall frames: pixel_x
 	var/y_offset				// For wall frames: pixel_y
+	var/is_dense = TRUE			// Lazy workaround for wall-mounted, upgradable machines
 
 // Get the icon state to use at a given state.  Default implementation is based on the frame's name
-/datum/frame/frame_types/proc/get_icon_state(var/state)
+/datum/frame/frame_types/proc/get_icon_state(state)
 	var/type = lowertext(name)
 	type = replacetext(type, " ", "_")
 	return "[type]_[state]"
 
+/datum/frame/frame_types/button
+	name = "Button"
+	frame_class = FRAME_CLASS_ALARM
+	frame_size = 1
+	frame_style = FRAME_STYLE_WALL
+	x_offset = 24
+	y_offset = 24
+
 /datum/frame/frame_types/computer
 	name = "Computer"
-	icon_override = 'icons/obj/stock_parts_vr.dmi' //VOREStation Edit
+	icon_override = 'icons/obj/stock_parts_vr.dmi'
 	frame_class = FRAME_CLASS_COMPUTER
 
 /datum/frame/frame_types/machine
 	name = "Machine"
-	icon_override = 'icons/obj/stock_parts_vr.dmi' //VOREStation Edit
+	icon_override = 'icons/obj/stock_parts_vr.dmi'
 	frame_class = FRAME_CLASS_MACHINE
 
 /datum/frame/frame_types/conveyor
 	name = "Conveyor"
 	frame_class = FRAME_CLASS_MACHINE
-	circuit = /obj/item/weapon/circuitboard/conveyor
+	circuit = /obj/item/circuitboard/conveyor
 
 /datum/frame/frame_types/photocopier
 	name = "Photocopier"
@@ -69,7 +78,7 @@
 /datum/frame/frame_types/mass_driver
 	name = "Mass Driver"
 	frame_class = FRAME_CLASS_MACHINE
-	circuit = /obj/item/weapon/circuitboard/mass_driver
+	circuit = /obj/item/circuitboard/mass_driver
 
 /datum/frame/frame_types/holopad
 	name = "Holopad"
@@ -89,24 +98,25 @@
 /datum/frame/frame_types/recharger
 	name = "Recharger"
 	frame_class = FRAME_CLASS_MACHINE
-	circuit = /obj/item/weapon/circuitboard/recharger
+	circuit = /obj/item/circuitboard/recharger
 	frame_size = 3
 
 /datum/frame/frame_types/cell_charger
 	name = "Heavy-Duty Cell Charger"
 	frame_class = FRAME_CLASS_MACHINE
-	circuit = /obj/item/weapon/circuitboard/cell_charger
+	circuit = /obj/item/circuitboard/cell_charger
 	frame_size = 3
 
 /datum/frame/frame_types/grinder
 	name = "Grinder"
 	frame_class = FRAME_CLASS_MACHINE
-	circuit = /obj/item/weapon/circuitboard/grinder
+	circuit = /obj/item/circuitboard/grinder
 	frame_size = 3
 
 /datum/frame/frame_types/reagent_distillery
 	name = "Distillery"
 	frame_class = FRAME_CLASS_MACHINE
+	circuit = /obj/item/circuitboard/distiller
 	frame_size = 4
 
 /datum/frame/frame_types/display
@@ -142,7 +152,7 @@
 /datum/frame/frame_types/wall_charger
 	name = "Wall Charger"
 	frame_class = FRAME_CLASS_MACHINE
-	circuit = /obj/item/weapon/circuitboard/recharger/wrecharger
+	circuit = /obj/item/circuitboard/recharger/wrecharger
 	frame_size = 3
 	frame_style = FRAME_STYLE_WALL
 	x_offset = 32
@@ -172,6 +182,15 @@
 	frame_style = FRAME_STYLE_WALL
 	x_offset = 30
 	y_offset = 30
+
+/datum/frame/frame_types/mat_production_console
+	name = "mining machine console"
+	icon_override = 'icons/obj/stock_parts_vr.dmi'
+	frame_class = FRAME_CLASS_DISPLAY
+	frame_size = 2
+	frame_style = FRAME_STYLE_WALL
+	x_offset = 32
+	y_offset = 32
 
 /datum/frame/frame_types/intercom
 	name = "Intercom"
@@ -205,16 +224,81 @@
 /datum/frame/frame_types/injector_maker
 	name = "Ready-to-Use Medicine 3000"
 	frame_class = FRAME_CLASS_MACHINE
-	circuit = /obj/machinery/atmospheric_field_generator
+	circuit = /obj/item/circuitboard/injector_maker
 	frame_size = 3
 
-/datum/frame/frame_types/electrochromic_button
-	name = "Electrochromic Window Button"
-	frame_class = FRAME_CLASS_ALARM
-	frame_size = 1
+/datum/frame/frame_types/foodsynthesizer
+	name = "Food Synthesizer"
+	icon_override = 'icons/obj/machines/foodsynthesizer.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+	frame_size = 5
 	frame_style = FRAME_STYLE_WALL
 	x_offset = 24
-	y_offset = 24
+	y_offset = 30
+	is_dense = FALSE
+
+/datum/frame/frame_types/foodsynthesizer/mini
+	name = "Mini Food Synthesizer"
+	frame_class = FRAME_CLASS_MACHINE
+	frame_size = 3 // smaller, so slightly fewer sheets
+	frame_style = FRAME_STYLE_WALL
+
+// Refinery machines
+/datum/frame/frame_types/industrial_reagent_grinder
+	name = "Industrial Chemical Grinder"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_pump
+	name = "Industrial Chemical Pump"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_filter
+	name = "Industrial Chemical Filter"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_vat
+	name = "Industrial Chemical Vat"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_mixer
+	name = "Industrial Chemical Mixer"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_pipe
+	name = "Industrial Chemical Pipe"
+	circuit = /obj/item/circuitboard/industrial_reagent_pipe // Comes with it's own circuitboard now
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_splitter
+	name = "Industrial Chemical Splitter"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_waste_processor
+	name = "Industrial Chemical Waste Processor"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_hub
+	name = "Industrial Chemical Hub"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_reactor
+	name = "Industrial Chemical Reactor"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
+
+/datum/frame/frame_types/industrial_reagent_furnace
+	name = "Industrial Chemical Sintering Furnace"
+	icon_override = 'icons/obj/stock_parts_refinery.dmi'
+	frame_class = FRAME_CLASS_MACHINE
 
 //////////////////////////////
 // Frame Object (Structure)
@@ -223,10 +307,12 @@
 /obj/structure/frame
 	anchored = FALSE
 	name = "frame"
+	desc = "This could become anything. Any sort of machine, as long as you have the parts."
 	icon = 'icons/obj/stock_parts.dmi'
 	icon_state = "machine_0"
+	flags = WALL_ITEM
 	var/state = FRAME_PLACED
-	var/obj/item/weapon/circuitboard/circuit = null
+	var/obj/item/circuitboard/circuit = null
 	var/need_circuit = TRUE
 	var/datum/frame/frame_types/frame_type = new /datum/frame/frame_types/machine
 
@@ -242,12 +328,15 @@
 /obj/structure/frame/examine(mob/user)
 	. = ..()
 	if(circuit)
-		. += "It has \a [circuit] installed."
+		. += span_notice("It has \a [circuit] installed.")
+	if(anchored)
+		. += span_notice("It is anchored.")
+
 
 /obj/structure/frame/proc/update_desc()
 	var/D
 	if(req_components)
-		var/list/component_list = new
+		var/list/component_list = list()
 		for(var/I in req_components)
 			if(req_components[I] > 0)
 				component_list += "[num2text(req_components[I])] [req_component_names[I]]"
@@ -269,17 +358,14 @@
 	for(var/obj/ct as anything in req_components)
 		req_component_names[ct] = initial(ct.name)
 
-/obj/structure/frame/New(var/loc, var/dir, var/building = 0, var/datum/frame/frame_types/type, mob/user as mob)
-	..()
+/obj/structure/frame/Initialize(mapload, dir, building = 0, datum/frame/frame_types/type, mob/user as mob)
+	. = ..()
 	if(building)
 		frame_type = type
 		state = FRAME_PLACED
 
 		if(dir)
 			set_dir(dir)
-
-		if(loc)
-			src.loc = loc
 
 		if(frame_type.x_offset)
 			pixel_x = (dir & 3)? 0 : (dir == EAST ? -frame_type.x_offset : frame_type.x_offset)
@@ -294,40 +380,43 @@
 	if(frame_type.name == "Computer")
 		density = TRUE
 
-	if(frame_type.frame_class == FRAME_CLASS_MACHINE)
+	if(frame_type.frame_class == FRAME_CLASS_MACHINE && frame_type.is_dense)
 		density = TRUE
 
 	update_icon()
 
+	AddElement(/datum/element/climbable)
+	AddElement(/datum/element/rotatable)
+
 /obj/structure/frame/attackby(obj/item/P as obj, mob/user as mob)
 	if(P.has_tool_quality(TOOL_WRENCH))
 		if(state == FRAME_PLACED && !anchored)
-			to_chat(user, "<span class='notice'>You start to wrench the frame into place.</span>")
+			to_chat(user, span_notice("You start to wrench the frame into place."))
 			playsound(src, P.usesound, 50, 1)
-			if(do_after(user, 20 * P.toolspeed))
+			if(do_after(user, 2 SECONDS * P.toolspeed, target = src))
 				anchored = TRUE
 				if(!need_circuit && circuit)
 					state = FRAME_FASTENED
 					check_components()
 					update_desc()
-					to_chat(user, "<span class='notice'>You wrench the frame into place and set the outer cover.</span>")
+					to_chat(user, span_notice("You wrench the frame into place and set the outer cover."))
 				else
-					to_chat(user, "<span class='notice'>You wrench the frame into place.</span>")
+					to_chat(user, span_notice("You wrench the frame into place."))
 
 		else if(state == FRAME_PLACED && anchored)
 			playsound(src, P.usesound, 50, 1)
-			if(do_after(user, 20 * P.toolspeed))
-				to_chat(user, "<span class='notice'>You unfasten the frame.</span>")
+			if(do_after(user, 2 SECONDS * P.toolspeed, target = src))
+				to_chat(user, span_notice("You unfasten the frame."))
 				anchored = FALSE
 
 	else if(P.has_tool_quality(TOOL_WELDER))
 		if(state == FRAME_PLACED)
-			var/obj/item/weapon/weldingtool/WT = P.get_welder()
+			var/obj/item/weldingtool/WT = P.get_welder()
 			if(WT.remove_fuel(0, user))
 				playsound(src, P.usesound, 50, 1)
-				if(do_after(user, 20 * P.toolspeed))
+				if(do_after(user, 2 SECONDS * P.toolspeed, target = src))
 					if(src && WT.isOn())
-						to_chat(user, "<span class='notice'>You deconstruct the frame.</span>")
+						to_chat(user, span_notice("You deconstruct the frame."))
 						new /obj/item/stack/material/steel(src.loc, frame_type.frame_size)
 						qdel(src)
 						return
@@ -335,13 +424,13 @@
 				to_chat(user, "The welding tool must be on to complete this task.")
 				return
 
-	else if(istype(P, /obj/item/weapon/circuitboard) && need_circuit && !circuit)
+	else if(istype(P, /obj/item/circuitboard) && need_circuit && !circuit)
 		if(state == FRAME_PLACED && anchored)
-			var/obj/item/weapon/circuitboard/B = P
+			var/obj/item/circuitboard/B = P
 			var/datum/frame/frame_types/board_type = B.board_type
 			if(board_type.name == frame_type.name)
 				playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
-				to_chat(user, "<span class='notice'>You place the circuit board inside the frame.</span>")
+				to_chat(user, span_notice("You place the circuit board inside the frame."))
 				circuit = P
 				user.drop_item()
 				P.loc = src
@@ -350,25 +439,25 @@
 					check_components()
 					update_desc()
 			else
-				to_chat(user, "<span class='warning'>This frame does not accept circuit boards of this type!</span>")
+				to_chat(user, span_warning("This frame does not accept circuit boards of this type!"))
 				return
 
 	else if(P.has_tool_quality(TOOL_SCREWDRIVER))
 		if(state == FRAME_UNFASTENED)
 			if(need_circuit && circuit)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You screw the circuit board into place.</span>")
+				to_chat(user, span_notice("You screw the circuit board into place."))
 				state = FRAME_FASTENED
 
 		else if(state == FRAME_FASTENED)
 			if(need_circuit && circuit)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You unfasten the circuit board.</span>")
+				to_chat(user, span_notice("You unfasten the circuit board."))
 				state = FRAME_UNFASTENED
 
 			else if(!need_circuit && circuit)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You unfasten the outer cover.</span>")
+				to_chat(user, span_notice("You unfasten the outer cover."))
 				state = FRAME_PLACED
 
 		else if(state == FRAME_WIRED)
@@ -410,7 +499,7 @@
 
 			else if(frame_type.frame_class == FRAME_CLASS_ALARM)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You fasten the cover.</span>")
+				to_chat(user, span_notice("You fasten the cover."))
 				var/obj/machinery/B = new circuit.build_path(src.loc)
 				B.pixel_x = pixel_x
 				B.pixel_y = pixel_y
@@ -424,7 +513,7 @@
 		else if(state == FRAME_PANELED)
 			if(frame_type.frame_class == FRAME_CLASS_COMPUTER)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You connect the monitor.</span>")
+				to_chat(user, span_notice("You connect the monitor."))
 				var/obj/machinery/B = new circuit.build_path(src.loc)
 				B.pixel_x = pixel_x
 				B.pixel_y = pixel_y
@@ -432,12 +521,18 @@
 				circuit.construct(B)
 				circuit.loc = null
 				B.circuit = circuit
+				var/obj/machinery/computer/LC = locate() in get_step(B, turn(B.dir, 90))
+				var/obj/machinery/computer/RC = locate() in get_step(B, turn(B.dir, -90))
+				if(LC)
+					LC.update_icon()
+				if(RC)
+					RC.update_icon()
 				qdel(src)
 				return
 
 			else if(frame_type.frame_class == FRAME_CLASS_DISPLAY)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You connect the monitor.</span>")
+				to_chat(user, span_notice("You connect the monitor."))
 				var/obj/machinery/B = new circuit.build_path(src.loc)
 				B.pixel_x = pixel_x
 				B.pixel_y = pixel_y
@@ -445,6 +540,7 @@
 				circuit.construct(B)
 				circuit.loc = null
 				B.circuit = circuit
+				B.update_icon()
 				qdel(src)
 				return
 
@@ -452,7 +548,7 @@
 		if(state == FRAME_UNFASTENED)
 			if(need_circuit && circuit)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You remove the circuit board.</span>")
+				to_chat(user, span_notice("You remove the circuit board."))
 				state = FRAME_PLACED
 				circuit.forceMove(src.loc)
 				circuit = null
@@ -464,10 +560,10 @@
 			if(frame_type.frame_class == FRAME_CLASS_MACHINE)
 				playsound(src, P.usesound, 50, 1)
 				if(components.len == 0)
-					to_chat(user, "<span class='notice'>There are no components to remove.</span>")
+					to_chat(user, span_notice("There are no components to remove."))
 				else
-					to_chat(user, "<span class='notice'>You remove the components.</span>")
-					for(var/obj/item/weapon/W in components)
+					to_chat(user, span_notice("You remove the components."))
+					for(var/obj/item/W in components)
 						W.forceMove(src.loc)
 					check_components()
 					update_desc()
@@ -476,13 +572,13 @@
 		else if(state == FRAME_PANELED)
 			if(frame_type.frame_class == FRAME_CLASS_COMPUTER)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You remove the glass panel.</span>")
+				to_chat(user, span_notice("You remove the glass panel."))
 				state = FRAME_WIRED
 				new /obj/item/stack/material/glass(src.loc, 2)
 
 			else if(frame_type.frame_class == FRAME_CLASS_DISPLAY)
 				playsound(src, P.usesound, 50, 1)
-				to_chat(user, "<span class='notice'>You remove the glass panel.</span>")
+				to_chat(user, span_notice("You remove the glass panel."))
 				state = FRAME_WIRED
 				new /obj/item/stack/material/glass(src.loc, 2)
 
@@ -490,13 +586,13 @@
 		if(state == FRAME_FASTENED)
 			var/obj/item/stack/cable_coil/C = P
 			if(C.get_amount() < 5)
-				to_chat(user, "<span class='warning'>You need five coils of wire to add them to the frame.</span>")
+				to_chat(user, span_warning("You need five coils of wire to add them to the frame."))
 				return
-			to_chat(user, "<span class='notice'>You start to add cables to the frame.</span>")
+			to_chat(user, span_notice("You start to add cables to the frame."))
 			playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
-			if(do_after(user, 20) && state == FRAME_FASTENED)
+			if(do_after(user, 2 SECONDS, target = src) && state == FRAME_FASTENED)
 				if(C.use(5))
-					to_chat(user, "<span class='notice'>You add cables to the frame.</span>")
+					to_chat(user, span_notice("You add cables to the frame."))
 					state = FRAME_WIRED
 					if(frame_type.frame_class == FRAME_CLASS_MACHINE)
 						to_chat(user, desc)
@@ -535,106 +631,99 @@
 			)
 				playsound(src, P.usesound, 50, 1)
 				if (components.len == 0)
-					to_chat(user, "<span class='notice'>You remove the cables.</span>")
+					to_chat(user, span_notice("You remove the cables."))
 				else
-					to_chat(user, "<span class='notice'>You remove the cables and components.</span>")
-					for(var/obj/item/weapon/W in components)
+					to_chat(user, span_notice("You remove the cables and components."))
+					for(var/obj/item/W in components)
 						W.forceMove(src.loc)
 					check_components()
 					update_desc()
 				state = FRAME_FASTENED
 				new /obj/item/stack/cable_coil(src.loc, 5)
 
-	else if(istype(P, /obj/item/stack/material) && P.get_material_name() == "glass")
+	else if(istype(P, /obj/item/stack/material) && P.get_material_name() == MAT_GLASS)
 		if(state == FRAME_WIRED)
 			if(frame_type.frame_class == FRAME_CLASS_COMPUTER)
 				var/obj/item/stack/G = P
 				if(G.get_amount() < 2)
-					to_chat(user, "<span class='warning'>You need two sheets of glass to put in the glass panel.</span>")
+					to_chat(user, span_warning("You need two sheets of glass to put in the glass panel."))
 					return
 				playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
-				to_chat(user, "<span class='notice'>You start to put in the glass panel.</span>")
-				if(do_after(user, 20) && state == FRAME_WIRED)
+				to_chat(user, span_notice("You start to put in the glass panel."))
+				if(do_after(user, 2 SECONDS, target = src) && state == FRAME_WIRED)
 					if(G.use(2))
-						to_chat(user, "<span class='notice'>You put in the glass panel.</span>")
+						to_chat(user, span_notice("You put in the glass panel."))
 						state = FRAME_PANELED
 
 			else if(frame_type.frame_class == FRAME_CLASS_DISPLAY)
 				var/obj/item/stack/G = P
 				if(G.get_amount() < 2)
-					to_chat(user, "<span class='warning'>You need two sheets of glass to put in the glass panel.</span>")
+					to_chat(user, span_warning("You need two sheets of glass to put in the glass panel."))
 					return
 				playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
-				to_chat(user, "<span class='notice'>You start to put in the glass panel.</span>")
-				if(do_after(user, 20) && state == FRAME_WIRED)
+				to_chat(user, span_notice("You start to put in the glass panel."))
+				if(do_after(user, 2 SECONDS, target = src) && state == FRAME_WIRED)
 					if(G.use(2))
-						to_chat(user, "<span class='notice'>You put in the glass panel.</span>")
+						to_chat(user, span_notice("You put in the glass panel."))
 						state = FRAME_PANELED
 
 	else if(istype(P, /obj/item))
 		if(state == FRAME_WIRED)
 			if(frame_type.frame_class == FRAME_CLASS_MACHINE)
-				for(var/I in req_components)
-					if(istype(P, I) && (req_components[I] > 0))
-						playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
-						if(istype(P, /obj/item/stack))
-							var/obj/item/stack/ST = P
-							if(ST.get_amount() > 1)
-								var/camt = min(ST.get_amount(), req_components[I]) // amount of stack to take, idealy amount required, but limited by amount provided
-								var/obj/item/stack/NS = new ST.stacktype(src, camt)
-								NS.update_icon()
-								ST.use(camt)
-								components += NS
-								req_components[I] -= camt
-								update_desc()
-								break
-
-						user.drop_item()
-						P.forceMove(src)
-						components += P
-						req_components[I]--
-						update_desc()
-						break
-				to_chat(user, desc)
-				if(P && P.loc != src && !istype(P, /obj/item/stack/material))
-					to_chat(user, "<span class='warning'>You cannot add that component to the machine!</span>")
-					return
+				if(istype(P, /obj/item/storage))
+					mass_install_parts(user,P)
+				else
+					install_part(user,P)
 
 	update_icon()
 
-/obj/structure/frame/verb/rotate_counterclockwise()
-	set name = "Rotate Frame Counter-Clockwise"
-	set category = "Object"
-	set src in oview(1)
+/obj/structure/frame/proc/install_part(mob/user, obj/item/P, defer_feedback = FALSE)
+	var/installed_part = FALSE
+	for(var/I in req_components)
+		if(!istype(P, I) || (req_components[I] == 0))
+			continue
 
-	if(usr.incapacitated())
+		installed_part = TRUE
+		if(istype(P, /obj/item/stack))
+			var/obj/item/stack/ST = P
+			if(ST.get_amount() > 1)
+				var/camt = min(ST.get_amount(), req_components[I]) // amount of stack to take, idealy amount required, but limited by amount provided
+				var/obj/item/stack/NS = new ST.stacktype(src, camt)
+				NS.update_icon()
+				ST.use(camt)
+				components += NS
+				req_components[I] -= camt
+				break
+
+		if(istype(P.loc,/obj/item/storage))
+			var/obj/item/storage/holder = P.loc
+			holder.remove_from_storage(P, src)
+		else
+			user.drop_item()
+			P.forceMove(src)
+		components += P
+		req_components[I]--
+		break
+
+	if(defer_feedback)
+		return installed_part
+
+	if(installed_part)
+		playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
+		update_desc()
+		to_chat(user, desc)
+		return TRUE
+
+	to_chat(user, span_warning("You cannot add that component to the machine!"))
+	return FALSE
+
+/obj/structure/frame/proc/mass_install_parts(mob/user, obj/item/storage/S)
+	var/installed_part = FALSE
+	for(var/obj/item/P in S.contents)
+		installed_part |= install_part(user, P, TRUE)
+	if(!installed_part)
 		return FALSE
-
-	if(anchored)
-		to_chat(usr, "It is fastened to the floor therefore you can't rotate it!")
-		return FALSE
-
-	src.set_dir(turn(src.dir, 90))
-
-	to_chat(usr, "<span class='notice'>You rotate the [src] to face [dir2text(dir)]!</span>")
-
-	return
-
-
-/obj/structure/frame/verb/rotate_clockwise()
-	set name = "Rotate Frame Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	if(usr.incapacitated())
-		return FALSE
-
-	if(anchored)
-		to_chat(usr, "It is fastened to the floor therefore you can't rotate it!")
-		return FALSE
-
-	src.set_dir(turn(src.dir, 270))
-
-	to_chat(usr, "<span class='notice'>You rotate the [src] to face [dir2text(dir)]!</span>")
-
-	return
+	playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
+	update_desc()
+	to_chat(user, desc)
+	return TRUE

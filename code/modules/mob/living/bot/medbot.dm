@@ -17,8 +17,8 @@
 	name = "Medibot"
 	desc = "A little medical robot. He looks somewhat underwhelmed."
 	icon_state = "medibot0"
-	req_one_access = list(access_robotics, access_medical)
-	botcard_access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics)
+	req_one_access = list(ACCESS_ROBOTICS, ACCESS_MEDICAL)
+	botcard_access = list(ACCESS_MEDICAL, ACCESS_MORGUE, ACCESS_SURGERY, ACCESS_CHEMISTRY, ACCESS_VIROLOGY, ACCESS_GENETICS)
 
 	var/skin = null //Set to "tox", "ointment" or "o2" for the other two firstaid kits.
 
@@ -27,17 +27,17 @@
 	var/vocal = 1
 
 	//Healing vars
-	var/obj/item/weapon/reagent_containers/glass/reagent_glass = null //Can be set to draw from this for reagents.
+	var/obj/item/reagent_containers/glass/reagent_glass = null //Can be set to draw from this for reagents.
 	var/injection_amount = 15 //How much reagent do we inject at a time?
 	var/heal_threshold = 10 //Start healing when they have this much damage in a category
 	var/use_beaker = 0 //Use reagents in beaker instead of default treatment agents.
-	var/treatment_brute = "tricordrazine"
-	var/treatment_oxy = "tricordrazine"
-	var/treatment_fire = "tricordrazine"
-	var/treatment_tox = "tricordrazine"
-	var/treatment_virus = "spaceacillin"
-	var/treatment_emag = "toxin"
-	var/declare_treatment = 0 //When attempting to treat a patient, should it notify everyone wearing medhuds?
+	var/treatment_brute = REAGENT_ID_TRICORDRAZINE
+	var/treatment_oxy = REAGENT_ID_TRICORDRAZINE
+	var/treatment_fire = REAGENT_ID_TRICORDRAZINE
+	var/treatment_tox = REAGENT_ID_TRICORDRAZINE
+	var/treatment_virus = REAGENT_ID_SPACEACILLIN
+	var/treatment_emag = REAGENT_ID_TOXIN
+	var/datum/declare_treatment = 0 //When attempting to treat a patient, should it notify everyone wearing medhuds?
 
 	// Are we tipped over?
 	var/is_tipped = FALSE
@@ -52,10 +52,10 @@
 	name = "\improper Mysterious Medibot"
 	desc = "International Medibot of mystery."
 	skin = "bezerk"
-	treatment_brute		= "bicaridine"
-	treatment_fire		= "dermaline"
-	treatment_oxy		= "dexalin"
-	treatment_tox		= "anti_toxin"
+	treatment_brute		= REAGENT_ID_BICARIDINE
+	treatment_fire		= REAGENT_ID_DERMALINE
+	treatment_oxy		= REAGENT_ID_DEXALIN
+	treatment_tox		= REAGENT_ID_ANTITOXIN
 
 /mob/living/bot/medbot/handleIdle()
 	if(is_tipped) // Don't handle idle things if we're incapacitated!
@@ -122,11 +122,11 @@
 					var/message = pick(message_options)
 					say(message)
 					playsound(src, message_options[message], 50, 0)
-				custom_emote(1, "points at [H.name].")
+				automatic_custom_emote(VISIBLE_MESSAGE, "points at [H.name].")
 				last_newpatient_speak = world.time
 			break
 
-/mob/living/bot/medbot/UnarmedAttack(var/mob/living/carbon/human/H)
+/mob/living/bot/medbot/UnarmedAttack(mob/living/carbon/human/H)
 	if(!..())
 		return
 
@@ -143,18 +143,18 @@
 	if(!t)
 		return
 
-	visible_message("<span class='warning'>[src] is trying to inject [H]!</span>")
+	visible_message(span_warning("[src] is trying to inject [H]!"))
 	if(declare_treatment)
 		var/area/location = get_area(src)
-		global_announcer.autosay("[src] is treating <b>[H]</b> in <b>[location]</b>", "[src]", "Medical")
+		GLOB.global_announcer.autosay("[src] is treating <b>[H]</b> in <b>[location]</b>", "[src]", "Medical")
 	busy = 1
 	update_icons()
-	if(do_mob(src, H, 30))
+	if(do_after(src, 3 SECONDS, H))
 		if(t == 1)
 			reagent_glass.reagents.trans_to_mob(H, injection_amount, CHEM_BLOOD)
 		else
 			H.reagents.add_reagent(t, injection_amount)
-		visible_message("<span class='warning'>[src] injects [H] with the syringe!</span>")
+		visible_message(span_warning("[src] injects [H] with the syringe!"))
 
 	if(H.stat == DEAD) // This is down here because this proc won't be called again due to losing a target because of parent AI loop.
 		target = null
@@ -197,7 +197,7 @@
 
 /mob/living/bot/medbot/attack_hand(mob/living/carbon/human/H)
 	if(istype(H) && H.a_intent == I_DISARM && !is_tipped)
-		H.visible_message("<span class='danger'>[H] begins tipping over [src].</span>", "<span class='warning'>You begin tipping over [src]...</span>")
+		H.visible_message(span_danger("[H] begins tipping over [src]."), span_warning("You begin tipping over [src]..."))
 
 		if(world.time > last_tipping_action_voice + 15 SECONDS)
 			last_tipping_action_voice = world.time // message for tipping happens when we start interacting, message for righting comes after finishing
@@ -206,12 +206,12 @@
 			say(message)
 			playsound(src, messagevoice[message], 70, FALSE)
 
-		if(do_after(H, 3 SECONDS, target=src))
+		if(do_after(H, 3 SECONDS, target = src))
 			tip_over(H)
 
 	else if(istype(H) && H.a_intent == I_HELP && is_tipped)
-		H.visible_message("<span class='notice'>[H] begins righting [src].</span>", "<span class='notice'>You begin righting [src]...</span>")
-		if(do_after(H, 3 SECONDS, target=src))
+		H.visible_message(span_notice("[H] begins righting [src]."), span_notice("You begin righting [src]..."))
+		if(do_after(H, 3 SECONDS, target = src))
 			set_right(H)
 	else
 		tgui_interact(H)
@@ -248,19 +248,19 @@
 		ui = new(user, src, "Medbot", name)
 		ui.open()
 
-/mob/living/bot/medbot/attackby(var/obj/item/O, var/mob/user)
-	if(istype(O, /obj/item/weapon/reagent_containers/glass))
+/mob/living/bot/medbot/attackby(obj/item/O, mob/user)
+	if(istype(O, /obj/item/reagent_containers/glass))
 		if(locked)
-			to_chat(user, "<span class='notice'>You cannot insert a beaker because the panel is locked.</span>")
+			to_chat(user, span_notice("You cannot insert a beaker because the panel is locked."))
 			return
 		if(!isnull(reagent_glass))
-			to_chat(user, "<span class='notice'>There is already a beaker loaded.</span>")
+			to_chat(user, span_notice("There is already a beaker loaded."))
 			return
 
 		user.drop_item()
 		O.loc = src
 		reagent_glass = O
-		to_chat(user, "<span class='notice'>You insert [O].</span>")
+		to_chat(user, span_notice("You insert [O]."))
 		return
 	else
 		..()
@@ -269,20 +269,19 @@
 	if(..())
 		return TRUE
 
-	usr.set_machine(src)
-	add_fingerprint(usr)
+	add_fingerprint(ui.user)
 
 	. = TRUE
 	switch(action)
 		if("power")
-			if(!access_scanner.allowed(usr))
+			if(!access_scanner.allowed(ui.user))
 				return FALSE
 			if(on)
 				turn_off()
 			else
 				turn_on()
 
-	if(locked && !issilicon(usr))
+	if(locked && !issilicon(ui.user))
 		return TRUE
 
 	switch(action)
@@ -312,12 +311,12 @@
 			declare_treatment = !declare_treatment
 			. = TRUE
 
-/mob/living/bot/medbot/emag_act(var/remaining_uses, var/mob/user)
+/mob/living/bot/medbot/emag_act(remaining_uses, mob/user)
 	. = ..()
 	if(!emagged)
 		if(user)
-			to_chat(user, "<span class='warning'>You short out [src]'s reagent synthesis circuits.</span>")
-		visible_message("<span class='warning'>[src] buzzes oddly!</span>")
+			to_chat(user, span_warning("You short out [src]'s reagent synthesis circuits."))
+		visible_message(span_warning("[src] buzzes oddly!"))
 		flick("medibot_spark", src)
 		target = null
 		busy = 0
@@ -329,12 +328,12 @@
 
 /mob/living/bot/medbot/explode()
 	on = 0
-	visible_message("<span class='danger'>[src] blows apart!</span>")
+	visible_message(span_danger("[src] blows apart!"))
 	var/turf/Tsec = get_turf(src)
 
-	new /obj/item/weapon/storage/firstaid(Tsec)
-	new /obj/item/device/assembly/prox_sensor(Tsec)
-	new /obj/item/device/healthanalyzer(Tsec)
+	new /obj/item/storage/firstaid(Tsec)
+	new /obj/item/assembly/prox_sensor(Tsec)
+	new /obj/item/healthanalyzer(Tsec)
 	if (prob(50))
 		new /obj/item/robot_parts/l_arm(Tsec)
 
@@ -360,7 +359,7 @@
 
 /mob/living/bot/medbot/proc/tip_over(mob/user)
 	playsound(src, 'sound/machines/warning-buzzer.ogg', 50)
-	user.visible_message("<span class='danger'>[user] tips over [src]!</span>", "<span class='danger'>You tip [src] over!</span>")
+	user.visible_message(span_danger("[user] tips over [src]!"), span_danger("You tip [src] over!"))
 	is_tipped = TRUE
 	tipper_name = user.name
 	var/matrix/mat = transform
@@ -369,13 +368,13 @@
 /mob/living/bot/medbot/proc/set_right(mob/user)
 	var/list/messagevoice
 	if(user)
-		user.visible_message("<span class='notice'>[user] sets [src] right-side up!</span>", "<span class='green'>You set [src] right-side up!</span>")
+		user.visible_message(span_notice("[user] sets [src] right-side up!"), span_green("You set [src] right-side up!"))
 		if(user.name == tipper_name)
 			messagevoice = list("I forgive you." = 'sound/voice/medbot/forgive.ogg')
 		else
 			messagevoice = list("Thank you!" = 'sound/voice/medbot/thank_you.ogg', "You are a good person." = 'sound/voice/medbot/youre_good.ogg')
 	else
-		visible_message("<span class='notice'>[src] manages to [pick("writhe", "wriggle", "wiggle")] enough to right itself.</span>")
+		visible_message(span_notice("[src] manages to [pick("writhe", "wriggle", "wiggle")] enough to right itself."))
 		messagevoice = list("Fuck you." = 'sound/voice/medbot/fuck_you.ogg', "Your behavior has been reported, have a nice day." = 'sound/voice/medbot/reported.ogg')
 
 	tipper_name = null
@@ -404,7 +403,7 @@
 		if(MEDBOT_PANIC_ENDING)
 			messagevoice = list("Is this the end?" = 'sound/voice/medbot/is_this_the_end.ogg', "Nooo!" = 'sound/voice/medbot/nooo.ogg')
 		if(MEDBOT_PANIC_END)
-			global_announcer.autosay("PSYCH ALERT: Crewmember [tipper_name] recorded displaying antisocial tendencies torturing bots in [get_area(src)]. Please schedule psych evaluation.", "[src]", "Medical")
+			GLOB.global_announcer.autosay("PSYCH ALERT: Crewmember [tipper_name] recorded displaying antisocial tendencies torturing bots in [get_area(src)]. Please schedule psych evaluation.", "[src]", "Medical")
 			set_right() // strong independent medbot
 
 	// if(prob(tipped_status)) // Commented out pending introduction of jitter stuff from /tg/
@@ -430,11 +429,11 @@
 		if(MEDBOT_PANIC_MED to MEDBOT_PANIC_HIGH)
 			. += "They are tipped over and appear visibly distressed." // now we humanize the medbot as a they, not an it
 		if(MEDBOT_PANIC_HIGH to MEDBOT_PANIC_FUCK)
-			. += "<span class='warning'>They are tipped over and visibly panicking!</span>"
+			. += span_warning("They are tipped over and visibly panicking!")
 		if(MEDBOT_PANIC_FUCK to INFINITY)
-			. += "<span class='warning'><b>They are freaking out from being tipped over!</b></span>"
+			. += span_boldwarning("They are freaking out from being tipped over!")
 
-/mob/living/bot/medbot/confirmTarget(var/mob/living/carbon/human/H)
+/mob/living/bot/medbot/confirmTarget(mob/living/carbon/human/H)
 	if(!..())
 		return 0
 
@@ -471,53 +470,53 @@
 
 /* Construction */
 
-/obj/item/weapon/storage/firstaid/attackby(var/obj/item/robot_parts/S, mob/user as mob)
+/obj/item/storage/firstaid/attackby(obj/item/robot_parts/S, mob/user as mob)
 	if ((!istype(S, /obj/item/robot_parts/l_arm)) && (!istype(S, /obj/item/robot_parts/r_arm)))
 		..()
 		return
 
 	if(contents.len >= 1)
-		to_chat(user, "<span class='notice'>You need to empty [src] out first.</span>")
+		to_chat(user, span_notice("You need to empty [src] out first."))
 		return
 
-	var/obj/item/weapon/firstaid_arm_assembly/A = new /obj/item/weapon/firstaid_arm_assembly
-	if(istype(src, /obj/item/weapon/storage/firstaid/fire))
+	var/obj/item/firstaid_arm_assembly/A = new /obj/item/firstaid_arm_assembly
+	if(istype(src, /obj/item/storage/firstaid/fire))
 		A.skin = "ointment"
-	else if(istype(src, /obj/item/weapon/storage/firstaid/toxin))
+	else if(istype(src, /obj/item/storage/firstaid/toxin))
 		A.skin = "tox"
-	else if(istype(src, /obj/item/weapon/storage/firstaid/o2))
+	else if(istype(src, /obj/item/storage/firstaid/o2))
 		A.skin = "o2"
 
 	qdel(S)
 	user.put_in_hands(A)
-	to_chat(user, "<span class='notice'>You add the robot arm to the first aid kit.</span>")
+	to_chat(user, span_notice("You add the robot arm to the first aid kit."))
 	user.drop_from_inventory(src)
 	qdel(src)
 
-/obj/item/weapon/storage/firstaid/attackby(var/obj/item/organ/external/S, mob/user as mob)
+/obj/item/storage/firstaid/attackby(obj/item/organ/external/S, mob/user as mob)
 	if (!istype(S, /obj/item/organ/external/arm) || S.robotic != ORGAN_ROBOT)
 		..()
 		return
 
 	if(contents.len >= 1)
-		to_chat(user, "<span class='notice'>You need to empty [src] out first.</span>")
+		to_chat(user, span_notice("You need to empty [src] out first."))
 		return
 
-	var/obj/item/weapon/firstaid_arm_assembly/A = new /obj/item/weapon/firstaid_arm_assembly
-	if(istype(src, /obj/item/weapon/storage/firstaid/fire))
+	var/obj/item/firstaid_arm_assembly/A = new /obj/item/firstaid_arm_assembly
+	if(istype(src, /obj/item/storage/firstaid/fire))
 		A.skin = "ointment"
-	else if(istype(src, /obj/item/weapon/storage/firstaid/toxin))
+	else if(istype(src, /obj/item/storage/firstaid/toxin))
 		A.skin = "tox"
-	else if(istype(src, /obj/item/weapon/storage/firstaid/o2))
+	else if(istype(src, /obj/item/storage/firstaid/o2))
 		A.skin = "o2"
 
 	qdel(S)
 	user.put_in_hands(A)
-	to_chat(user, "<span class='notice'>You add the robot arm to the first aid kit.</span>")
+	to_chat(user, span_notice("You add the robot arm to the first aid kit."))
 	user.drop_from_inventory(src)
 	qdel(src)
 
-/obj/item/weapon/firstaid_arm_assembly
+/obj/item/firstaid_arm_assembly
 	name = "first aid/robot arm assembly"
 	desc = "A first aid kit with a robot arm permanently grafted to it."
 	icon = 'icons/obj/aibots.dmi'
@@ -527,28 +526,28 @@
 	var/skin = null //Same as medbot, set to tox or ointment for the respective kits.
 	w_class = ITEMSIZE_NORMAL
 
-/obj/item/weapon/firstaid_arm_assembly/Initialize()
+/obj/item/firstaid_arm_assembly/Initialize(mapload)
 	. = ..()
 	if(skin)
 		add_overlay("kit_skin_[src.skin]")
 
-/obj/item/weapon/firstaid_arm_assembly/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/item/firstaid_arm_assembly/attackby(obj/item/W as obj, mob/user as mob)
 	..()
-	if(istype(W, /obj/item/weapon/pen))
-		var/t = sanitizeSafe(tgui_input_text(user, "Enter new robot name", name, created_name, MAX_NAME_LEN), MAX_NAME_LEN)
+	if(istype(W, /obj/item/pen))
+		var/t = sanitizeSafe(tgui_input_text(user, "Enter new robot name", name, created_name, MAX_NAME_LEN, encode = FALSE), MAX_NAME_LEN)
 		if(!t)
 			return
-		if(!in_range(src, usr) && loc != usr)
+		if(!in_range(src, user) && loc != user)
 			return
 		created_name = t
 	else
 		switch(build_step)
 			if(0)
-				if(istype(W, /obj/item/device/healthanalyzer))
+				if(istype(W, /obj/item/healthanalyzer))
 					user.drop_item()
 					qdel(W)
 					build_step++
-					to_chat(user, "<span class='notice'>You add the health sensor to [src].</span>")
+					to_chat(user, span_notice("You add the health sensor to [src]."))
 					name = "First aid/robot arm/health analyzer assembly"
 					add_overlay("na_scanner")
 
@@ -556,7 +555,7 @@
 				if(isprox(W))
 					user.drop_item()
 					qdel(W)
-					to_chat(user, "<span class='notice'>You complete the Medibot! Beep boop.</span>")
+					to_chat(user, span_notice("You complete the Medibot! Beep boop."))
 					var/turf/T = get_turf(src)
 					var/mob/living/bot/medbot/S = new /mob/living/bot/medbot(T)
 					S.skin = skin
@@ -572,3 +571,8 @@
 #undef MEDBOT_PANIC_FUCK
 #undef MEDBOT_PANIC_ENDING
 #undef MEDBOT_PANIC_END
+
+#undef MEDBOT_MIN_INJECTION
+#undef MEDBOT_MAX_INJECTION
+#undef MEDBOT_MIN_HEAL
+#undef MEDBOT_MAX_HEAL

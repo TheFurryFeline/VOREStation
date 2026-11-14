@@ -7,7 +7,7 @@
 	var/message1	// used for status_displays
 	var/message2
 
-/datum/data/pda/app/status_display/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/status_display/update_ui(mob/user, list/data)
 	data["records"] = list(
 		"message1" = message1 ? message1 : "(none)",
 		"message2" = message2 ? message2 : "(none)")
@@ -23,15 +23,15 @@
 				if("alert")
 					post_status("alert", params["alert"])
 				if("setmsg1")
-					message1 = clean_input("Line 1", "Enter Message Text", message1)
+					message1 = tgui_input_text(ui.user,"Line 1", "Enter Message Text", message1, encode=TRUE)
 				if("setmsg2")
-					message2 = clean_input("Line 2", "Enter Message Text", message2)
+					message2 = tgui_input_text(ui.user, "Line 2", "Enter Message Text", message2, encode=TRUE)
 				else
 					post_status(params["statdisp"])
 			return TRUE
 
-/datum/data/pda/app/status_display/proc/post_status(var/command, var/data1, var/data2)
-	var/datum/radio_frequency/frequency = radio_controller.return_frequency(1435)
+/datum/data/pda/app/status_display/proc/post_status(command, data1, data2)
+	var/datum/radio_frequency/frequency = SSradio.return_frequency(1435)
 	if(!frequency)
 		return
 
@@ -44,8 +44,8 @@
 		if("message")
 			status_signal.data["msg1"] = data1
 			status_signal.data["msg2"] = data2
-			var/mob/user = pda.fingerprintslast
-			if(istype(pda.loc, /mob/living))
+			var/mob/user = pda.forensic_data?.get_lastprint()
+			if(isliving(pda.loc))
 				user = pda.loc
 			log_admin("STATUS: [user] set status screen with [pda]. Message: [data1] [data2]")
 			message_admins("STATUS: [user] set status screen with [pda]. Message: [data1] [data2]")
@@ -63,7 +63,7 @@
 	template = "pda_signaller"
 	category = "Utilities"
 
-/datum/data/pda/app/signaller/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/signaller/update_ui(mob/user, list/data)
 	if(pda.cartridge && istype(pda.cartridge.radio, /obj/item/radio/integrated/signal))
 		var/obj/item/radio/integrated/signal/R = pda.cartridge.radio
 		data["frequency"] = R.frequency
@@ -112,7 +112,7 @@
 	QDEL_NULL(power_monitor)
 	return ..()
 
-/datum/data/pda/app/power/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/power/update_ui(mob/user, list/data)
 	data.Add(power_monitor.tgui_data(user))
 
 /datum/data/pda/app/power/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
@@ -128,17 +128,17 @@
 /datum/data/pda/app/crew_records
 	var/datum/data/record/general_records = null
 
-/datum/data/pda/app/crew_records/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/crew_records/update_ui(mob/user, list/data)
 	var/list/records[0]
 
-	if(general_records && (general_records in data_core.general))
+	if(general_records && (general_records in GLOB.data_core.general))
 		data["records"] = records
 		records["general"] = general_records.fields
 		return records
 	else
-		for(var/datum/data/record/R as anything in sortRecord(data_core.general))
+		for(var/datum/data/record/R as anything in sortRecord(GLOB.data_core.general))
 			if(R)
-				records += list(list(Name = R.fields["name"], "ref" = "\ref[R]"))
+				records += list(list(name = R.fields["name"], "ref" = "\ref[R]"))
 		data["recordsList"] = records
 		data["records"] = null
 		return null
@@ -149,7 +149,7 @@
 	switch(action)
 		if("Records")
 			var/datum/data/record/R = locate(params["target"])
-			if(R && (R in data_core.general))
+			if(R && (R in GLOB.data_core.general))
 				load_records(R)
 			return TRUE
 		if("Back")
@@ -169,19 +169,19 @@
 
 	var/datum/data/record/medical_records = null
 
-/datum/data/pda/app/crew_records/medical/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/crew_records/medical/update_ui(mob/user, list/data)
 	var/list/records = ..()
 	if(!records)
 		return
 
-	if(medical_records && (medical_records in data_core.medical))
+	if(medical_records && (medical_records in GLOB.data_core.medical))
 		records["medical"] = medical_records.fields
 
 	return records
 
 /datum/data/pda/app/crew_records/medical/load_records(datum/data/record/R)
 	..(R)
-	for(var/datum/data/record/E as anything in data_core.medical)
+	for(var/datum/data/record/E as anything in GLOB.data_core.medical)
 		if(E && (E.fields["name"] == R.fields["name"] || E.fields["id"] == R.fields["id"]))
 			medical_records = E
 			break
@@ -194,19 +194,19 @@
 
 	var/datum/data/record/security_records = null
 
-/datum/data/pda/app/crew_records/security/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/crew_records/security/update_ui(mob/user, list/data)
 	var/list/records = ..()
 	if(!records)
 		return
 
-	if(security_records && (security_records in data_core.security))
+	if(security_records && (security_records in GLOB.data_core.security))
 		records["security"] = security_records.fields
 
 	return records
 
 /datum/data/pda/app/crew_records/security/load_records(datum/data/record/R)
 	..(R)
-	for(var/datum/data/record/E as anything in data_core.security)
+	for(var/datum/data/record/E as anything in GLOB.data_core.security)
 		if(E && (E.fields["name"] == R.fields["name"] || E.fields["id"] == R.fields["id"]))
 			security_records = E
 			break
@@ -217,7 +217,7 @@
 	template = "pda_supply"
 	category = "Quartermaster"
 
-/datum/data/pda/app/supply/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/supply/update_ui(mob/user, list/data)
 	var/supplyData[0]
 	var/datum/shuttle/autodock/ferry/supply/shuttle = SSsupply.shuttle
 	if (shuttle)
@@ -229,7 +229,7 @@
 	for(var/datum/supply_order/SO as anything in SSsupply.shoppinglist)
 
 		supplyOrderCount++
-		supplyOrderData[++supplyOrderData.len] = list("Number" = SO.ordernum, "Name" = html_encode(SO.object.name), "ApprovedBy" = SO.ordered_by, "Comment" = html_encode(SO.comment))
+		supplyOrderData[++supplyOrderData.len] = list("Number" = SO.ordernum, "Name" = html_encode(SO.object.name), "ApprovedBy" = SO.approved_by, "Comment" = html_encode(SO.comment))
 
 	supplyData["approved"] = supplyOrderData
 	supplyData["approved_count"] = supplyOrderCount
@@ -254,7 +254,7 @@
 	template = "pda_janitor"
 	category = "Utilities"
 
-/datum/data/pda/app/janitor/update_ui(mob/user as mob, list/data)
+/datum/data/pda/app/janitor/update_ui(mob/user, list/data)
 	var/JaniData[0]
 	var/turf/cl = get_turf(pda)
 
@@ -264,7 +264,7 @@
 		JaniData["user_loc"] = list("x" = 0, "y" = 0)
 
 	var/MopData[0]
-	for(var/obj/item/weapon/mop/M in all_mops)//GLOB.janitorial_equipment)
+	for(var/obj/item/mop/M in GLOB.all_mops)//GLOB.janitorial_equipment)
 		var/turf/ml = get_turf(M)
 		if(ml)
 			if(ml.z != cl.z)
@@ -273,7 +273,7 @@
 			MopData[++MopData.len] = list ("x" = ml.x, "y" = ml.y, "dir" = uppertext(dir2text(direction)), "status" = M.reagents.total_volume ? "Wet" : "Dry")
 
 	var/BucketData[0]
-	for(var/obj/structure/mopbucket/B in all_mopbuckets)//GLOB.janitorial_equipment)
+	for(var/obj/structure/mopbucket/B in GLOB.all_mopbuckets)//GLOB.janitorial_equipment)
 		var/turf/bl = get_turf(B)
 		if(bl)
 			if(bl.z != cl.z)
@@ -282,7 +282,7 @@
 			BucketData[++BucketData.len] = list ("x" = bl.x, "y" = bl.y, "dir" = uppertext(dir2text(direction)), "volume" = B.reagents.total_volume, "max_volume" = B.reagents.maximum_volume)
 
 	var/CbotData[0]
-	for(var/mob/living/bot/cleanbot/B in mob_list)
+	for(var/mob/living/bot/cleanbot/B in GLOB.mob_list)
 		var/turf/bl = get_turf(B)
 		if(bl)
 			if(bl.z != cl.z)
@@ -291,7 +291,7 @@
 			CbotData[++CbotData.len] = list("x" = bl.x, "y" = bl.y, "dir" = uppertext(dir2text(direction)), "status" = B.on ? "Online" : "Offline")
 
 	var/CartData[0]
-	for(var/obj/structure/janitorialcart/B in all_janitorial_carts)//GLOB.janitorial_equipment)
+	for(var/obj/structure/janitorialcart/B in GLOB.all_janitorial_carts)//GLOB.janitorial_equipment)
 		var/turf/bl = get_turf(B)
 		if(bl)
 			if(bl.z != cl.z)

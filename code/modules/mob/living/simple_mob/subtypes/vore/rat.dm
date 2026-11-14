@@ -28,7 +28,7 @@
 	icon_living = "rous"
 	icon_dead = "rous-dead"
 	icon_rest = "rous_rest"
-	faction = "mouse"
+	faction = FACTION_MOUSE
 	icon = 'icons/mob/vore64x32.dmi'
 
 	maxHealth = 150
@@ -46,7 +46,7 @@
 	friendly = list("nuzzles", "licks", "noses softly at", "noseboops", "headbumps against", "leans on", "nibbles affectionately on")
 
 	meat_amount = 6
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
+	meat_type = /obj/item/reagent_containers/food/snacks/meat
 
 	old_x = -16
 	old_y = 0
@@ -62,7 +62,7 @@
 
 	vore_active = TRUE
 	vore_capacity = 1
-	vore_pounce_chance = 45
+	vore_pounce_chance = 65
 	vore_icons = SA_ICON_LIVING | SA_ICON_REST
 
 	var/life_since_foodscan = 0
@@ -70,25 +70,33 @@
 	say_list_type = /datum/say_list/rat
 	ai_holder_type = /datum/ai_holder/simple_mob/melee/rat
 
-/mob/living/simple_mob/vore/aggressive/rat/init_vore()
-	..()
+	can_be_drop_prey = FALSE
+	allow_mind_transfer = TRUE
+
+/mob/living/simple_mob/vore/aggressive/rat/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stomach"
 	B.desc = "In a cruel game of cat-and-mouse gone horribly wrong, you struggle to breathe clearly as the giant rat holds your head in its jaws, the rest of its bulk pinning you to the ground. Slimy slurps and its own muffled squeaking fill your senses as it simultaneously tosses its head while backing up. Quickly, ravenously consuming you, bit by bit, packing you down its gullet no matter how you struggle. Passing by its excited heartbeat, your thoroughly slickened head pushes out into its awaiting stomach, a dark and humid hammock eager to accept the rest of you. Soon, those too-warm, plush walls clench and squeeze around you with undeniable need! A need for mere filling, or, perhaps, a proper meal?"
+	B.vore_sound = "Tauric Swallow"
+	B.release_sound = "Pred Escape"
+	B.fancy_vore = TRUE
+	B.belly_fullscreen_color = "#c47cb4"
+	B.belly_fullscreen = "VBOanim_belly1"
 
 	B.emote_lists[DM_HOLD] = list(
-		"As time passes, the massive rat’s stomach slowly churns and squeezes down around you, packing you into an easier to carry bundle amidst that oddly soothing massage.",
+		"As time passes, the massive rat's stomach slowly churns and squeezes down around you, packing you into an easier to carry bundle amidst that oddly soothing massage.",
 		"The giant rat ambles around, its well-fed, underhanging belly doing little to hide that someone is inside it, with every heavy footfall swaying you from one side to the other.",
 		"A soft, growl-like rumble mutedly filters into your heated, humid confines... before a paw squishes into the weighty lump you give the overgrown rat.",
-		"While somewhat cramped, the giant rat’s innards cling more to you like a hot, heavy blanket than anything else, lazily squeezing and relaxing to a casual, squelch-based rhythm.",
+		"While somewhat cramped, the giant rat's innards cling more to you like a hot, heavy blanket than anything else, lazily squeezing and relaxing to a casual, squelch-based rhythm.",
 		"For a while, most of your limited free space is squished away as the rat opts to rest atop its stuffed belly, a satisfied squeak drifting in here and there amidst the closer, more intimate massaging.",
-		"Every breath you take while trapped in the rat’s stomach is a deep one, having to contend with the hot, stuffy atmosphere within it. It only further compounds upon the relaxation creeping into your body, urging you to curl up, to accept this impromptu, greedy sanctuary.")
+		"Every breath you take while trapped in the rat's stomach is a deep one, having to contend with the hot, stuffy atmosphere within it. It only further compounds upon the relaxation creeping into your body, urging you to curl up, to accept this impromptu, greedy sanctuary.")
 
 	B.emote_lists[DM_DIGEST] = list(
-		"With each passing moment, the giant rat’s stomach forcefully churns and clenches down around you, massaging an ever-thicker layer of hot, ache-inducing ooze into your body!",
-		"The massive rat’s stomach visibly twitches and shivers as it ambles around, every footfall sloshing fresh stomach juices over you as the chamber noisily gurgles away!",
+		"With each passing moment, the giant rat's stomach forcefully churns and clenches down around you, massaging an ever-thicker layer of hot, ache-inducing ooze into your body!",
+		"The massive rat's stomach visibly twitches and shivers as it ambles around, every footfall sloshing fresh stomach juices over you as the chamber noisily gurgles away!",
 		"Everything suddenly turns onto its side, the rat sitting back atop its haunches to mash its forepaws into its belly... encouraging that its still-solid meal soften away!",
-		"The rat’s restless innards show no respect for your personal space, clinging tightly to your figure as that ample, slimy flesh grinds tingling slime into you!",
+		"The rat's restless innards show no respect for your personal space, clinging tightly to your figure as that ample, slimy flesh grinds tingling slime into you!",
 		"Your wiggle room disappears for a time as the giant rat flumps belly-first to the ground, vigorously squishing you under its bulk in hopes of weakening its meal more efficiently!",
 		"Every shallow breath taken is more unpleasant than the last, the lack of fresh air leaving you increasingly lightheaded. It only worsens the drained feeling permeating you, encouraging your worn, sore figure to give in entirely!")
 
@@ -105,7 +113,7 @@
 
 	if(hunger > 0 && life_since_foodscan++ > 5) //Only look for floor food when hungry.
 		life_since_foodscan = 0
-		for(var/obj/item/weapon/reagent_containers/food/snacks/S in oview(src,3)) //Accept thrown offerings and scavenge surroundings.
+		for(var/obj/item/reagent_containers/food/snacks/S in oview(src,3)) //Accept thrown offerings and scavenge surroundings.
 			if(get_dist(src,S) <=1)
 				visible_emote("hungrily devours \the [S].")
 				playsound(src,'sound/items/eatfood.ogg', rand(10,50), 1)
@@ -163,14 +171,14 @@
 				hunger += 5
 		else
 			food.Weaken(5)
-			food.visible_message("<span class='danger'>\The [src] pounces on \the [food]!</span>!")
+			food.visible_message(span_danger("\The [src] pounces on \the [food]!"))
 			target_mob = food
 			EatTarget()
 			hunger = 0
 			food = null
 
-/mob/living/simple_mob/vore/aggressive/rat/tame/attackby(var/obj/item/O, var/mob/user) // Feed the rat your food to satisfy it.
-	if(istype(O, /obj/item/weapon/reagent_containers/food/snacks))
+/mob/living/simple_mob/vore/aggressive/rat/tame/attackby(obj/item/O, mob/user) // Feed the rat your food to satisfy it.
+	if(istype(O, /obj/item/reagent_containers/food/snacks))
 		qdel(O)
 		playsound(src,'sound/items/eatfood.ogg', rand(10,50), 1)
 		hunger = 0
@@ -178,12 +186,12 @@
 		return
 	. = ..()
 
-/mob/living/simple_mob/vore/aggressive/rat/tame/Found(var/atom/found_atom)
+/mob/living/simple_mob/vore/aggressive/rat/tame/Found(atom/found_atom)
 	if(!SA_attackable(found_atom))
 		return null
 	else if(ishuman(found_atom) && will_eat(found_atom))
 		var/mob/living/carbon/human/H = found_atom
-		for(var/obj/item/weapon/reagent_containers/food/snacks/S in H)
+		for(var/obj/item/reagent_containers/food/snacks/S in H)
 			if(!food)
 				visible_emote("sniffs around the air intently, seeming to have caught a whiff of food!")
 			if(resting)
@@ -212,8 +220,8 @@
 	. = ..()
 	if(!riding_datum)
 		riding_datum = new /datum/riding/simple_mob(src)
-	verbs |= /mob/living/simple_mob/proc/animal_mount
-	verbs |= /mob/living/proc/toggle_rider_reins
+	add_verb(src, /mob/living/simple_mob/proc/animal_mount)
+	add_verb(src, /mob/living/proc/toggle_rider_reins)
 	movement_cooldown = 0
 
 /mob/living/simple_mob/vore/aggressive/rat/MouseDrop_T(mob/living/M, mob/living/user)
@@ -246,10 +254,12 @@
 	minbodytemp = 0
 
 /mob/living/simple_mob/vore/aggressive/rat/pet
-	name = "pet rat"
+	name = "Giant Rat Siblings"
 	ai_holder_type = /datum/ai_holder/simple_mob/retaliate
+	devourable = 0
+	digestable = 0
 
-/mob/living/simple_mob/vore/aggressive/rat/pet/Initialize()
+/mob/living/simple_mob/vore/aggressive/rat/pet/Initialize(mapload)
 	.=..()
 
 	var/chance = rand(1,101)
@@ -284,3 +294,39 @@
 
 /datum/ai_holder/simple_mob/melee/rat
 	speak_chance = 2
+
+/mob/living/simple_mob/vore/aggressive/rat/event
+	maxHealth = 50
+	health = 50
+	vore_pounce_chance = 10
+
+	can_be_drop_prey = FALSE
+
+/mob/living/simple_mob/vore/aggressive/rat/labrat
+	name = "giant lab rat"
+	desc = "In what passes for a hierarchy among lab rats, this one is a boss."
+	icon_state = "labrat"
+	icon_living = "labrat"
+	icon_dead = "labrat-dead"
+	icon_rest = "labrat_rest"
+	faction = "neutral"
+	icon = 'icons/mob/vore64x32.dmi'
+
+/mob/living/simple_mob/vore/aggressive/rat/labrat/genetics
+	name = "Nibbles"
+	desc = "A giant rat that made it's nest in an abandoned genetics lab. This one seems fairly docile."
+	ai_holder_type = /datum/ai_holder/simple_mob/retaliate
+
+	vore_active = 1
+	vore_capacity = 1
+	vore_escape_chance = 20
+	swallowTime = 25
+	vore_bump_chance = 100
+	faction_bump_vore = 1
+	vore_standing_too = TRUE
+	vore_pounce_chance = 75
+	vore_pounce_maxhealth = 80
+	vore_bump_emote = "knocks over and attempts to engulf"
+
+	can_be_drop_prey = FALSE
+	allow_mind_transfer = FALSE

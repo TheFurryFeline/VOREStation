@@ -7,7 +7,7 @@
 	desc = "A big stompy mech!"
 	icon = 'icons/mecha/mecha.dmi'
 
-	faction = "syndicate"
+	faction = FACTION_SYNDICATE
 	movement_cooldown = 1.5
 	movement_sound = "mechstep" // This gets fed into playsound(), which can also take strings as a 'group' of sound files.
 	turn_sound = 'sound/mecha/mechturn.ogg'
@@ -15,7 +15,7 @@
 	mob_size = MOB_LARGE
 	damage_threshold = 5 //Anything that's 5 or less damage will not do damage.
 
-	organ_names = /decl/mob_organ_names/mecha
+	organ_names = /datum/decl/mob_organ_names/mecha
 
 	armor = list(
 				"melee"		= 20,
@@ -42,7 +42,7 @@
 	var/has_repair_droid = FALSE // If true, heals 2 damage every tick and gets a repair droid overlay.
 
 
-/mob/living/simple_mob/mechanical/mecha/Initialize()
+/mob/living/simple_mob/mechanical/mecha/Initialize(mapload)
 	sparks = new (src)
 	sparks.set_up(3, 1, src)
 	sparks.attach(src)
@@ -59,14 +59,14 @@
 	return ..()
 
 /mob/living/simple_mob/mechanical/mecha/Destroy()
-	qdel_null(sparks)
+	QDEL_NULL(sparks)
 	return ..()
 
 /mob/living/simple_mob/mechanical/mecha/death()
 	..(0,"explodes!") // Do everything else first.
 
 	// Make the exploding more convincing with an actual explosion and some sparks.
-	sparks.start()
+	sparks?.start()
 	explosion(get_turf(src), 0, 0, 1, 3)
 
 	// 'Eject' our pilot, if one exists.
@@ -74,7 +74,8 @@
 		var/mob/living/L = new pilot_type(loc)
 		L.faction = src.faction
 
-	new wreckage(loc) // Leave some wreckage.
+	if(wreckage)
+		new wreckage(loc) // Leave some wreckage.
 
 	qdel(src) // Then delete us since we don't actually have a body.
 
@@ -93,8 +94,8 @@
 		add_overlay(image(icon = 'icons/mecha/mecha_equipment.dmi', icon_state = "repair_droid"))
 
 /mob/living/simple_mob/mechanical/mecha/bullet_act()
-	. = ..()
 	sparks.start()
+	. = ..()
 
 /mob/living/simple_mob/mechanical/mecha/speech_bubble_appearance()
 	return pilot_type ? "" : ..()
@@ -115,7 +116,7 @@
 
 /mob/living/simple_mob/mechanical/mecha/bullet_act(obj/item/projectile/P)
 	if(prob(deflect_chance))
-		visible_message(span("warning", "\The [P] is deflected by \the [src]'s armor!"))
+		visible_message(span_warning("\The [P] is deflected by \the [src]'s armor!"))
 		deflect_sprite()
 		return 0
 	return ..()
@@ -123,14 +124,14 @@
 /mob/living/simple_mob/mechanical/mecha/proc/deflect_sprite()
 	var/image/deflect_image = image('icons/effects/effects.dmi', "deflect_static")
 	add_overlay(deflect_image)
-	sleep(1 SECOND)
-	cut_overlay(deflect_image)
-	qdel(deflect_image)
+	spawn(1 SECOND)
+		cut_overlay(deflect_image)
+		qdel(deflect_image)
 //	flick_overlay_view(deflect_image, src, duration = 1 SECOND, gc_after = TRUE)
 
 /mob/living/simple_mob/mechanical/mecha/attackby(obj/item/I, mob/user)
 	if(prob(deflect_chance))
-		visible_message(span("warning", "\The [user]'s [I] bounces off \the [src]'s armor!"))
+		visible_message(span_warning("\The [user]'s [I] bounces off \the [src]'s armor!"))
 		deflect_sprite()
 		user.setClickCooldown(user.get_attack_speed(I))
 		return
@@ -142,5 +143,5 @@
 		deflect_sprite()
 	..(severity)
 
-/decl/mob_organ_names/mecha
+/datum/decl/mob_organ_names/mecha
 	hit_zones = list("central chassis", "control module", "hydraulics", "left arm", "right arm", "left leg", "right leg", "sensor suite", "radiator", "power supply", "left equipment mount", "right equipment mount")

@@ -2,22 +2,21 @@ SUBSYSTEM_DEF(vis_overlays)
 	name = "Vis contents overlays"
 	wait = 1 MINUTES
 	priority = FIRE_PRIORITY_VIS
-	init_order = INIT_ORDER_VIS
 
 	var/list/vis_overlay_cache
 	var/list/currentrun
 
 /datum/controller/subsystem/vis_overlays/Initialize()
 	vis_overlay_cache = list()
-	return ..()
+	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/vis_overlays/fire(resumed = FALSE)
 	if(!resumed)
 		currentrun = vis_overlay_cache.Copy()
 	var/list/current_run = currentrun
 
-	while(current_run.len)
-		var/key = current_run[current_run.len]
+	while(length(current_run))
+		var/key = current_run[length(current_run)]
 		var/obj/effect/overlay/vis/overlay = current_run[key]
 		current_run.len--
 		if(!overlay.unused && !length(overlay.vis_locs))
@@ -82,7 +81,7 @@ SUBSYSTEM_DEF(vis_overlays)
 	if(istext(icon))
 		iconstate = icon
 		icon = src.icon
-		
+
 	return SSvis_overlays.add_vis_overlay(src, icon, iconstate, layer, plane, dir, alpha, add_appearance_flags, add_vis_flags, unique)
 
 /atom/proc/remove_vis_overlay(list/overlays)

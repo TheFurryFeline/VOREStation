@@ -7,7 +7,7 @@ Category: Religion
 
 ///A Basic Understanding of Zoroastrianism by Satrap
 
-/obj/item/weapon/book/bundle/custom_library/religious/zoroastrianism
+/obj/item/book/bundle/custom_library/religious/zoroastrianism
 	name = "A Basic Understanding of Zoroastrianism"
 	desc = "A hardbound book titled \"A Basic Understanding of Zoroastrianism\" by Satrap."
 	description_info = "This book is titled \"A Basic Understanding of Zoroastrianism\" by Satrap. It covers the basics of Zoroastrianism -- an old religion originating on Earth -- as well as its influence on other religions."
@@ -28,8 +28,8 @@ Category: Religion
 					<body>
 					<br><br><br>
 					<center>
-					<h1><font size="5"><b>A Basic Understanding of Zoroastrianism</b></font><br>
-					<font size="3"><i>by Satrap</i></font></h1>
+					<h1>"} + span_giant(span_bold("A Basic Understanding of Zoroastrianism")) + {"<br>
+					"} + span_large(span_italics("by Satrap")) + {"</h1>
 					</center>
 					</body>
 					</html>
@@ -48,9 +48,9 @@ Category: Religion
 					<br><br>
 					Zoroastrianism was founded by the prophet, Zoroaster. Zoroaster was a priest in an area that preached mostly polytheistic religions. He rejected these beliefs, mostly because they were used to classify people in a rigid social structure with priests controlling the ordinary people. One day, while bathing in a river, Zoroaster received a vision from God.
 					<br><br>
-					Zoroaster reportedly found the visions of a God named Ahura Mazda, or the <i>"Wise Lord"</i>. Ahura Mazda came down to Zoroaster in the form of his Amesha Spentas, or <i>"Divine Immortals"</i>. This experience changed his worldview, and he sought to spread his religion through the lands. Despite some struggles, he was successful in that the Persian Empire picked up his beliefs, and spread them far and wide (but did not do so forcefully).
+					Zoroaster reportedly found the visions of a God named Ahura Mazda, or the "} + span_italics("\"Wise Lord\"") + {". Ahura Mazda came down to Zoroaster in the form of his Amesha Spentas, or "} + span_italics("\"Divine Immortals\"") + {". This experience changed his worldview, and he sought to spread his religion through the lands. Despite some struggles, he was successful in that the Persian Empire picked up his beliefs, and spread them far and wide (but did not do so forcefully).
 					<br><br>
-					Zoroastrianism is a simple religion. There is one God, Ahura Mazda. He is omnipotent, omnipresent, and the force behind all creation. His six Amesha Spentas are representations of himself in various aspects and forms. An analogy to think of is that he is the sun, and they are all rays of the sun. Ahura Mazda is opposed by a devil named Angra Mainyu, or the <i>"Destructive Spirit"</i>. While Ahura Mazda seeks to create life and beauty, Angra Mainyu only seeks to destroy his greatness and glory at every turn.
+					Zoroastrianism is a simple religion. There is one God, Ahura Mazda. He is omnipotent, omnipresent, and the force behind all creation. His six Amesha Spentas are representations of himself in various aspects and forms. An analogy to think of is that he is the sun, and they are all rays of the sun. Ahura Mazda is opposed by a devil named Angra Mainyu, or the "} + span_italics("\"Destructive Spirit\"") + {". While Ahura Mazda seeks to create life and beauty, Angra Mainyu only seeks to destroy his greatness and glory at every turn.
 					<hr>
 					</p>
 					</body>
@@ -84,7 +84,7 @@ Category: Religion
 
 /// The Way of the Bleeding Swan by Shra'ziir Krin Enai-Rinrijar. I have no idea what this is about but it was in religion.
 
-/obj/item/weapon/book/custom_library/religious/wayofbleedingswan
+/obj/item/book/custom_library/religious/wayofbleedingswan
 	name = "The Way of the Bleeding Swan"
 	desc = "A hardbound book titled \"The Way of the Bleeding Swan\" by Shra'ziir Krin Enai-Rinrijar."
 	description_info = "This book is titled \"The Way of the Bleeding Swan\" by Shra'ziir Krin Enai-Rinrijar. It appears religious in nature."
@@ -171,7 +171,7 @@ Category: Religion
 
 /// The Sun Goddess of Korea by Korean Folklore
 
-/obj/item/weapon/book/custom_library/religious/sungoddessofkorea
+/obj/item/book/custom_library/religious/sungoddessofkorea
 
 	name = "The Sun Goddess of Korea"
 	desc = "A hardbound book titled \"The Sun Goddess of Korea\" as provided by the Earth Religion Preservation Team."
@@ -193,7 +193,7 @@ Category: Religion
 				<body>
 				<h1>The Sun Goddess of Korea </h1>
 				<p class="border">
-				<i>Let us enjoy reading this Korean mythological story of the Sun-Goddess of Korea.</i><br><br>
+				"} + span_italics("Let us enjoy reading this Korean mythological story of the Sun-Goddess of Korea.") + {"<br><br>
 				Byun-soon, Dael-soon and Hae-soon were three sisters. One day a tiger came to their house, and on seeing him the girls ran out of the back door and climbed a tree.<br><br>
 				When the tiger began to climb the tree, the sisters prayed to the gods to save them. Their prayers were answered.<br><br>
 				An iron chain descended from the skies and the sisters climbed up to safety.<br><br>
@@ -208,7 +208,7 @@ Category: Religion
 
 /// The Story of Lord Ganesha by Hindu Folklore
 
-/obj/item/weapon/book/custom_library/religious/storyoflordganesha
+/obj/item/book/custom_library/religious/storyoflordganesha
 
 	name = "The Story of Lord Ganesha"
 	desc = "A hardbound book titled \"The Story of Lord Ganesha\" as provided by the Earth Religion Preservation Team."
@@ -249,7 +249,7 @@ Category: Religion
 
 /// Feast of Kubera by Hindu Folklore
 
-/obj/item/weapon/book/custom_library/religious/feastofkubera
+/obj/item/book/custom_library/religious/feastofkubera
 
 	name = "Feast of Kubera"
 	desc = "A hardbound book titled \"The Story of Lord Ganesha\" as provided by the Earth Religion Preservation Team."

@@ -24,7 +24,7 @@
 
 	if(isobserver(user))
 		// Admins can always interact.
-		if(check_rights(R_ADMIN|R_EVENT, 0, src))
+		if(check_rights_for(user.client, R_ADMIN|R_EVENT|R_DEBUG))
 			. = max(., STATUS_INTERACTIVE)
 
 		// Regular ghosts can always at least view if in range.
@@ -144,5 +144,5 @@
 	return STATUS_CLOSE // Otherwise, we got nothing.
 
 // Topic Extensions for old UIs
-/datum/proc/CanUseTopic(var/mob/user, var/datum/tgui_state/state)
+/datum/proc/CanUseTopic(mob/user, datum/tgui_state/state)
 	return tgui_status(user, state)

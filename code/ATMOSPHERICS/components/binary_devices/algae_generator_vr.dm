@@ -1,11 +1,9 @@
-#define MAT_ALGAE "algae"
-
 /obj/machinery/atmospherics/binary/algae_farm
 	name = "algae oxygen generator"
 	desc = "An oxygen generator using algae to convert carbon dioxide to oxygen."
 	icon = 'icons/obj/machines/algae_vr.dmi'
 	icon_state = "algae-off"
-	circuit = /obj/item/weapon/circuitboard/algae_farm
+	circuit = /obj/item/circuitboard/algae_farm
 	anchored = TRUE
 	density = TRUE
 	power_channel = EQUIP
@@ -30,14 +28,14 @@
 	var/ui_error = null // For error messages to show up in nano ui.
 
 	var/datum/gas_mixture/internal = new()
-	var/const/input_gas = "carbon_dioxide"
-	var/const/output_gas = "oxygen"
+	var/const/input_gas = GAS_CO2
+	var/const/output_gas = GAS_O2
 
 /obj/machinery/atmospherics/binary/algae_farm/filled
 	stored_material = list(MAT_ALGAE = 10000, MAT_GRAPHITE = 0)
 
-/obj/machinery/atmospherics/binary/algae_farm/New()
-	..()
+/obj/machinery/atmospherics/binary/algae_farm/Initialize(mapload)
+	. = ..()
 	desc = initial(desc) + " Its outlet port is to the [dir2text(dir)]."
 	default_apply_parts()
 	update_icon()
@@ -45,7 +43,7 @@
 	var/image/I = image(icon = icon, icon_state = "algae-pipe-overlay", dir = dir)
 	I.color = PIPE_COLOR_BLUE
 	add_overlay(I)
-	I = image(icon = icon, icon_state = "algae-pipe-overlay", dir = reverse_dir[dir])
+	I = image(icon = icon, icon_state = "algae-pipe-overlay", dir = GLOB.reverse_dir[dir])
 	I.color = PIPE_COLOR_BLACK
 	add_overlay(I)
 
@@ -92,7 +90,7 @@
 	// STEP 3 - Convert CO2 to O2  (Note: We know our internal group multipier is 1, so just be cool)
 	var/co2_moles = internal.gas[input_gas]
 	if(co2_moles < MINIMUM_MOLES_TO_FILTER)
-		ui_error = "Insufficient [gas_data.name[input_gas]] to process."
+		ui_error = "Insufficient [GLOB.gas_data.name[input_gas]] to process."
 		update_icon()
 		return
 
@@ -123,7 +121,7 @@
 		icon_state = "algae-on"
 	return 1
 
-/obj/machinery/atmospherics/binary/algae_farm/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/atmospherics/binary/algae_farm/attackby(obj/item/W as obj, mob/user as mob)
 	add_fingerprint(user)
 	if(default_deconstruction_screwdriver(user, W))
 		return
@@ -134,7 +132,7 @@
 	if(try_load_materials(user, W))
 		return
 	else
-		to_chat(user, "<span class='notice'>You cannot insert this item into \the [src]!</span>")
+		to_chat(user, span_notice("You cannot insert this item into \the [src]!"))
 		return
 
 /obj/machinery/atmospherics/binary/algae_farm/attack_hand(mob/user)
@@ -149,12 +147,12 @@
 	var/bin_rating = 0
 	var/manip_rating = 0
 
-	for(var/obj/item/weapon/stock_parts/P in component_parts)
-		if(istype(P, /obj/item/weapon/stock_parts/capacitor))
+	for(var/obj/item/stock_parts/P in component_parts)
+		if(istype(P, /obj/item/stock_parts/capacitor))
 			cap_rating += P.rating
-		if(istype(P, /obj/item/weapon/stock_parts/matter_bin))
+		if(istype(P, /obj/item/stock_parts/matter_bin))
 			bin_rating += P.rating
-		if(istype(P, /obj/item/weapon/stock_parts/manipulator))
+		if(istype(P, /obj/item/stock_parts/manipulator))
 			manip_rating += P.rating
 
 	power_per_mole = round(initial(power_per_mole) / cap_rating)
@@ -172,10 +170,10 @@
 		ui.open()
 
 /obj/machinery/atmospherics/binary/algae_farm/tgui_data(mob/user)
-	var/data[0]
+	var/list/data = list()
 	data["panelOpen"] = panel_open
 
-	var/materials_ui[0]
+	var/list/materials_ui = list()
 	for(var/M in stored_material)
 		materials_ui[++materials_ui.len] = list(
 				"name" = M,
@@ -186,7 +184,7 @@
 	data["materials"] = materials_ui
 	data["last_flow_rate"] = last_flow_rate
 	data["last_power_draw"] = last_power_draw
-	data["inputDir"] = dir2text(reverse_dir[dir])
+	data["inputDir"] = dir2text(GLOB.reverse_dir[dir])
 	data["outputDir"] = dir2text(dir)
 	data["usePower"] = use_power
 	data["errorText"] = ui_error
@@ -194,22 +192,22 @@
 	if(air1 && network1 && node1)
 		data["input"] = list(
 			"pressure" = air1.return_pressure(),
-			"name" = gas_data.name[input_gas],
+			"name" = GLOB.gas_data.name[input_gas],
 			"percent" = air1.total_moles > 0 ? round((air1.gas[input_gas] / air1.total_moles) * 100) : 0,
 			"moles" = round(air1.gas[input_gas], 0.01))
 	if(air2 && network2 && node2)
 		data["output"] = list(
 			"pressure" = air2.return_pressure(),
-			"name" = gas_data.name[output_gas],
+			"name" = GLOB.gas_data.name[output_gas],
 			"percent" = air2.total_moles ? round((air2.gas[output_gas] / air2.total_moles) * 100) : 0,
 			"moles" = round(air2.gas[output_gas], 0.01))
 
 	return data
 
-/obj/machinery/atmospherics/binary/algae_farm/tgui_act(action, params)
+/obj/machinery/atmospherics/binary/algae_farm/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
-	add_fingerprint(usr)
+	add_fingerprint(ui.user)
 
 	switch(action)
 		if("toggle")
@@ -230,26 +228,48 @@
 // TODO - These should be replaced with materials datum.
 
 // 0 amount = 0 means ejecting a full stack; -1 means eject everything
-/obj/machinery/atmospherics/binary/algae_farm/proc/eject_materials(var/material_name, var/amount)
-	var/recursive = amount == -1 ? 1 : 0
-	var/datum/material/matdata = get_material_by_name(material_name)
-	var/stack_type = matdata.stack_type
-	var/obj/item/stack/material/S = new stack_type(loc)
-	if(amount <= 0)
-		amount = S.max_amount
-	var/ejected = min(round(stored_material[material_name] / S.perunit), amount)
-	if(!S.set_amount(min(ejected, amount)))
+/obj/machinery/atmospherics/binary/algae_farm/proc/eject_materials(material_name, amount)
+	if(!stored_material[material_name])
 		return
-	stored_material[material_name] -= ejected * S.perunit
-	if(recursive && stored_material[material_name] >= S.perunit)
-		eject_materials(material_name, -1)
+	var/datum/material/matdata = get_material_by_name(material_name)
+	if(!matdata)
+		return
+
+	var/obj/item/stack/material/new_stack = new matdata.stack_type(loc)
+	var/perunit = new_stack.perunit
+
+	var/available_units = stored_material[material_name] / perunit
+
+	var/units_to_eject
+	if(!amount)
+		units_to_eject = available_units
+	else
+		units_to_eject = min(amount, available_units)
+
+	var/to_set = min(units_to_eject, new_stack.max_amount)
+	if(!new_stack.set_amount(to_set))
+		return
+
+	stored_material[material_name] -= to_set * perunit
+	units_to_eject -= to_set
+
+	while(units_to_eject > 0)
+		new_stack = new matdata.stack_type(loc)
+		to_set = min(units_to_eject, new_stack.max_amount)
+
+		if(!new_stack.set_amount(to_set))
+			break
+
+		stored_material[material_name] -= to_set * perunit
+		units_to_eject -= to_set
+
 
 // Attept to load materials.  Returns 0 if item wasn't a stack of materials, otherwise 1 (even if failed to load)
-/obj/machinery/atmospherics/binary/algae_farm/proc/try_load_materials(var/mob/user, var/obj/item/stack/material/S)
+/obj/machinery/atmospherics/binary/algae_farm/proc/try_load_materials(mob/user, obj/item/stack/material/S)
 	if(!istype(S))
 		return 0
 	if(!(S.material.name in stored_material))
-		to_chat(user, "<span class='warning'>\The [src] doesn't accept [material_display_name(S.material)]!</span>")
+		to_chat(user, span_warning("\The [src] doesn't accept [material_display_name(S.material)]!"))
 		return 1
 	var/max_res_amount = storage_capacity[S.material.name]
 	if(stored_material[S.material.name] + S.perunit <= max_res_amount)
@@ -258,10 +278,9 @@
 			stored_material[S.material.name] += S.perunit
 			S.use(1)
 			count++
-		user.visible_message("\The [user] inserts [S.name] into \the [src].", "<span class='notice'>You insert [count] [S.name] into \the [src].</span>")
-		updateUsrDialog()
+		user.visible_message("\The [user] inserts [S.name] into \the [src].", span_notice("You insert [count] [S.name] into \the [src]."))
 	else
-		to_chat(user, "<span class='warning'>\The [src] cannot hold more [S.name].</span>")
+		to_chat(user, span_warning("\The [src] cannot hold more [S.name]."))
 	return 1
 
 /datum/material/algae
@@ -273,6 +292,7 @@
 	hardness = 10
 	sheet_singular_name = "sheet"
 	sheet_plural_name = "sheets"
+	supply_conversion_value = 0.25
 
 /obj/item/stack/material/algae
 	name = "algae sheet"
@@ -282,5 +302,3 @@
 
 /obj/item/stack/material/algae/ten
 	amount = 10
-
-#undef MAT_ALGAE

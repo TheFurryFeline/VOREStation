@@ -15,8 +15,8 @@
 	var/mob/lasteditor
 	var/list/viewingcode = list()
 	var/obj/machinery/telecomms/server/SelectedServer
-	circuit = /obj/item/weapon/circuitboard/comm_traffic
-	req_access = list(access_tcomsat)
+	circuit = /obj/item/circuitboard/comm_traffic
+	req_access = list(ACCESS_TCOMSAT)
 
 	var/network = "NULL"		// the network to probe
 	var/temp = ""				// temporary feedback messages
@@ -39,7 +39,7 @@
 			winset(editingcode, "tcscode", "is-disabled=false")
 
 		// If the player's not manning the keyboard anymore, adjust everything
-		if( (!(editingcode in range(1, src)) && !issilicon(editingcode)) || (editingcode.machine != src && !issilicon(editingcode)))
+		if( (!(editingcode in range(1, src)) && !issilicon(editingcode)) || (!editingcode.check_current_machine(src) && !issilicon(editingcode)))
 			if(editingcode)
 				winshow(editingcode, "Telecomms IDE", 0) // hide the window!
 			editingcode = null
@@ -55,7 +55,7 @@
 
 			for(var/mob/M in viewingcode)
 
-				if( (M.machine == src && (M in view(1, src)) ) || issilicon(M))
+				if( (M.check_current_machine(src) && (M in view(1, src)) ) || issilicon(M))
 					winset(M, "tcscode", "is-disabled=true")
 					winset(M, "tcscode", "text=\"[showcode]\"")
 				else
@@ -85,39 +85,37 @@
 
 		if(0)
 			dat += "<br>[temp]<br>"
-			dat += "<br>Current Network: <a href='?src=\ref[src];network=1'>[network]</a><br>"
+			dat += "<br>Current Network: <a href='byond://?src=\ref[src];network=1'>[network]</a><br>"
 			if(servers.len)
 				dat += "<br>Detected Telecommunication Servers:<ul>"
 				for(var/obj/machinery/telecomms/T in servers)
-					dat += "<li><a href='?src=\ref[src];viewserver=[T.id]'>\ref[T] [T.name]</a> ([T.id])</li>"
+					dat += "<li><a href='byond://?src=\ref[src];viewserver=[T.id]'>\ref[T] [T.name]</a> ([T.id])</li>"
 				dat += "</ul>"
-				dat += "<br><a href='?src=\ref[src];operation=release'>\[Flush Buffer\]</a>"
+				dat += "<br><a href='byond://?src=\ref[src];operation=release'>\[Flush Buffer\]</a>"
 
 			else
-				dat += "<br>No servers detected. Scan for servers: <a href='?src=\ref[src];operation=scan'>\[Scan\]</a>"
+				dat += "<br>No servers detected. Scan for servers: <a href='byond://?src=\ref[src];operation=scan'>\[Scan\]</a>"
 
 
 		// --- Viewing Server ---
 
 		if(1)
 			dat += "<br>[temp]<br>"
-			dat += "<center><a href='?src=\ref[src];operation=mainmenu'>\[Main Menu\]</a>     <a href='?src=\ref[src];operation=refresh'>\[Refresh\]</a></center>"
+			dat += "<center><a href='byond://?src=\ref[src];operation=mainmenu'>\[Main Menu\]</a>     <a href='byond://?src=\ref[src];operation=refresh'>\[Refresh\]</a></center>"
 			dat += "<br>Current Network: [network]"
 			dat += "<br>Selected Server: [SelectedServer.id]<br><br>"
-			dat += "<br><a href='?src=\ref[src];operation=editcode'>\[Edit Code\]</a>"
+			dat += "<br><a href='byond://?src=\ref[src];operation=editcode'>\[Edit Code\]</a>"
 			dat += "<br>Signal Execution: "
 			if(SelectedServer.autoruncode)
-				dat += "<a href='?src=\ref[src];operation=togglerun'>ALWAYS</a>"
+				dat += "<a href='byond://?src=\ref[src];operation=togglerun'>ALWAYS</a>"
 			else
-				dat += "<a href='?src=\ref[src];operation=togglerun'>NEVER</a>"
+				dat += "<a href='byond://?src=\ref[src];operation=togglerun'>NEVER</a>"
 
-
-	user << browse(dat, "window=traffic_control;size=575x400")
-	onclose(user, "server_control")
+	var/datum/browser/popup = new(user, "traffic_control", "Traffic Control", 575, 400)
+	popup.set_content(dat)
+	popup.open()
 
 	temp = ""
-	return
-
 
 /obj/machinery/computer/telecomms/traffic/Topic(href, href_list)
 	if(..())
@@ -127,7 +125,7 @@
 	add_fingerprint(usr)
 	usr.set_machine(src)
 	if(!src.allowed(usr) && !emagged)
-		to_chat(usr, "<span class='warning'>ACCESS DENIED.</span>")
+		to_chat(usr, span_warning("ACCESS DENIED."))
 		return
 
 	if(href_list["viewserver"])
@@ -149,7 +147,7 @@
 
 			if("scan")
 				if(servers.len > 0)
-					temp = "<font color = #D70B00>- FAILED: CANNOT PROBE WHEN BUFFER FULL -</font>"
+					temp = span_red("- FAILED: CANNOT PROBE WHEN BUFFER FULL -")
 
 				else
 					for(var/obj/machinery/telecomms/server/T in range(25, src))
@@ -157,9 +155,9 @@
 							servers.Add(T)
 
 					if(!servers.len)
-						temp = "<font color = #D70B00>- FAILED: UNABLE TO LOCATE SERVERS IN \[[network]\] -</font>"
+						temp = span_red("- FAILED: UNABLE TO LOCATE SERVERS IN \[[network]\] -")
 					else
-						temp = "<font color = #336699>- [servers.len] SERVERS PROBED & BUFFERED -</font>"
+						temp = span_blue("- [servers.len] SERVERS PROBED & BUFFERED -")
 
 					screen = 0
 
@@ -193,26 +191,25 @@
 	if(href_list["network"])
 
 		var/newnet = tgui_input_text(usr, "Which network do you want to view?", "Comm Monitor", network, 15)
-		newnet = sanitize(newnet,15)
 
-		if(newnet && ((usr in range(1, src) || issilicon(usr))))
+		if(newnet && ((usr in range(1, src)) || issilicon(usr)))
 			if(length(newnet) > 15)
-				temp = "<font color = #D70B00>- FAILED: NETWORK TAG STRING TOO LENGHTLY -</font>"
+				temp = span_red("- FAILED: NETWORK TAG STRING TOO LENGHTLY -")
 
 			else
 
 				network = newnet
 				screen = 0
 				servers = list()
-				temp = "<font color = #336699>- NEW NETWORK TAG SET IN ADDRESS \[[network]\] -</font>"
+				temp = span_blue("- NEW NETWORK TAG SET IN ADDRESS \[[network]\] -")
 
-	updateUsrDialog()
+	updateUsrDialog(usr)
 	return
 
-/obj/machinery/computer/telecomms/traffic/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/computer/telecomms/traffic/emag_act(remaining_charges, mob/user)
 	if(!emagged)
 		playsound(src, 'sound/effects/sparks4.ogg', 75, 1)
 		emagged = 1
-		to_chat(user, "<span class='notice'>You you disable the security protocols</span>")
-		src.updateUsrDialog()
+		to_chat(user, span_notice("You you disable the security protocols"))
+		updateUsrDialog(user)
 		return 1

@@ -19,19 +19,24 @@
 	icon = 'maps/redgate/falls/icons/objs/bronze_overhang.dmi'
 	icon_modifier = "bronze_"
 	icon_state = "bronze_railing0"
+	var/interactable = FALSE
 
 //Escape most railing interactions besides tackling people over them
 /obj/structure/railing/overhang/attackby(obj/item/W)
-	if(!istype(W, /obj/item/weapon/grab))
+	if(!istype(W, /obj/item/grab) && !interactable)
 		return
 	return ..()
 
 /obj/structure/railing/overhang/waterless
 	icon_modifier = "wbronze_"
 	icon_state = "wbronze_railing0"
-	climbable = 0
 	layer = MOB_LAYER + 0.3
 	plane = MOB_PLANE //im so sorry
+
+/obj/structure/railing/overhang/waterless/Initialize(mapload)
+	. = ..()
+	// Not climbable!
+	RemoveElement(/datum/element/climbable)
 
 /obj/structure/railing/overhang/waterless/under
 	plane = OBJ_PLANE
@@ -79,9 +84,9 @@
 	layer = MOB_LAYER + 0.2
 	plane = MOB_PLANE
 
-/obj/structure/canopy/Initialize()
+/obj/structure/canopy/Initialize(mapload)
 	. = ..()
-	dir = pick(alldirs)
+	dir = pick(GLOB.alldirs)
 
 /obj/structure/canopy/edge
 	icon_state = "left"
@@ -93,16 +98,16 @@
 /obj/structure/canopy/edge/north
 	icon_state = "north"
 
-/obj/structure/canopy/edge/north/Initialize()
+/obj/structure/canopy/edge/north/Initialize(mapload)
 	. = ..()
 	dir = pick(1,2) //i cba to add two more
 
 /obj/structure/canopy/edge/south
 	icon_state = "south"
 
-/obj/structure/canopy/edge/south/Initialize()
+/obj/structure/canopy/edge/south/Initialize(mapload)
 	. = ..()
-	dir = pick(cardinal)
+	dir = pick(GLOB.cardinal)
 
 //Because I'm terrible at planning
 /obj/structure/canopy_corner
@@ -208,7 +213,8 @@
 /obj/structure/monolith/fifth/update_icon()
 	add_overlay("5")
 
-/obj/structure/monolith/Initialize()
+/obj/structure/monolith/Initialize(mapload)
+	. = ..()
 	update_icon()
 	soundloop = new(list(src), TRUE)
 
@@ -260,11 +266,11 @@
 	desc = "A prismatic field of... energy, probably. You should definitely rub your face in it."
 	icon = 'maps/redgate/falls/icons/decals/marble_decals.dmi'
 	icon_state = "teleporter"
-	invisibility = 0
+	invisibility = INVISIBILITY_NONE
 
 //teleport_z must be populated but this is a gateway map
 //switching between tether or another map will change the z
 //so we just do this lmfao
-/obj/effect/step_trigger/teleporter/atoll/Initialize()
+/obj/effect/step_trigger/teleporter/atoll/Initialize(mapload)
 	. = ..()
 	teleport_z = z

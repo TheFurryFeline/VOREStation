@@ -6,12 +6,10 @@
 
 	unacidable = TRUE	// Don't melt when holding your acid, dangit.
 
-	var/acidtype = "stomacid"	// Incase you want some stomach organ with, say, polyacid instead, or sulphuric.
+	var/acidtype = REAGENT_ID_STOMACID	// Incase you want some stomach organ with, say, polyacid instead, or sulphuric.
 	var/max_acid_volume = 30
 
-	var/deadly_hold = TRUE	// Does the stomach do damage to mobs eaten by its owner? Xenos should probably have this FALSE.
-
-/obj/item/organ/internal/stomach/Initialize()
+/obj/item/organ/internal/stomach/Initialize(mapload)
 	. = ..()
 	if(reagents)
 		reagents.maximum_volume = 30
@@ -19,13 +17,10 @@
 		create_reagents(30)
 
 /obj/item/organ/internal/stomach/handle_organ_proc_special()
-	if(owner && istype(owner, /mob/living/carbon/human))
+	if(owner && ishuman(owner))
 		if(reagents)
 			if(reagents.total_volume + 2 < max_acid_volume && prob(20))
 				reagents.add_reagent(acidtype, rand(1,2))
-
-			for(var/mob/living/L in owner.stomach_contents) // Splashes mobs inside with acid. Twice as effective as being splashed with the same acid outside the body.
-				reagents.trans_to(L, 2, 2, 0)
 
 		if(is_broken() && prob(1))
 			owner.custom_pain("There's a twisting pain in your abdomen!",1)
@@ -47,7 +42,7 @@
 
 /obj/item/organ/internal/stomach/xeno
 	color = "#555555"
-	acidtype = "pacid"
+	acidtype = REAGENT_ID_PACID
 
 /obj/item/organ/internal/stomach/machine
 	name = "reagent cycler"
@@ -56,7 +51,7 @@
 
 	robotic = ORGAN_ROBOT
 
-	acidtype = "sacid"
+	acidtype = REAGENT_ID_SACID
 
 	organ_verbs = list(/mob/living/carbon/human/proc/reagent_purge) //VOREStation Add
 

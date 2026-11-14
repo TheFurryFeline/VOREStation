@@ -9,7 +9,7 @@
  * * items are objects. Fruits, tools, circuit boards.
  * * result is type to create as new object
  * * time is optional parameter, you shall use in in your machine,
-     default /datum/recipe/ procs does not rely on this parameter.
+ *	default /datum/recipe/ procs does not rely on this parameter.
  *
  *  Functions you need:
  *  /datum/recipe/proc/make(var/obj/container as obj)
@@ -29,29 +29,20 @@
  *  /datum/recipe/proc/check_items(var/obj/container as obj)
  *
  * */
- 
-// Recipe type defines. Used to determine what machine makes them.
-#define MICROWAVE			0x1
-#define FRYER				0x2
-#define OVEN				0x4
-#define GRILL				0x8
-#define CANDYMAKER			0x10
-#define CEREALMAKER			0x20
 
 /datum/recipe
-	var/list/reagents		// Example: = list("berryjuice" = 5) // do not list same reagent twice
-	var/list/items			// Example: = list(/obj/item/weapon/tool/crowbar, /obj/item/weapon/welder) // place /foo/bar before /foo
+	var/list/reagents		// Example: = list(REAGENT_ID_BERRYJUICE = 5) // do not list same reagent twice
+	var/list/items			// Example: = list(/obj/item/tool/crowbar, /obj/item/welder) // place /foo/bar before /foo
 	var/list/fruit			// Example: = list("fruit" = 3)
 	var/coating = null		// Required coating on all items in the recipe. The default value of null explitly requires no coating
 							// A value of -1 is permissive and cares not for any coatings
 							// Any typepath indicates a specific coating that should be present
 							// Coatings are used for batter, breadcrumbs, beer-batter, colonel's secret coating, etc
 
-	var/result				// Example: = /obj/item/weapon/reagent_containers/food/snacks/donut/normal
+	var/result				// Example: = /obj/item/reagent_containers/food/snacks/donut/normal
 	var/result_quantity = 1 // Number of instances of result that are created.
 	var/time = 100			// 1/10 part of second
-	
-	#define RECIPE_REAGENT_REPLACE		0 //Reagents in the ingredients are discarded.
+
 	//Only the reagents present in the result at compiletime are used
 	#define RECIPE_REAGENT_MAX	1 //The result will contain the maximum of each reagent present between the two pools. Compiletime result, and sum of ingredients
 	#define RECIPE_REAGENT_MIN 2 //As above, but the minimum, ignoring zero values.
@@ -71,36 +62,37 @@
 	// This is a bitfield, more than one type can be used
 	// Grill is presently unused and not listed
 
-/datum/recipe/proc/check_reagents(var/datum/reagents/avail_reagents, var/exact = FALSE)
+	var/wiki_flag = 0
+
+/datum/recipe/proc/check_reagents(datum/reagents/avail_reagents, exact = FALSE)
 	if(!reagents || !reagents.len)
 		return TRUE
-	
+
 	if(!avail_reagents)
 		return FALSE
 
-	. = TRUE
 	for(var/r_r in reagents)
 		var/aval_r_amnt = avail_reagents.get_reagent_amount(r_r)
-		if(aval_r_amnt - reagents[r_r] >= 0)
-			if(aval_r_amnt>(reagents[r_r]) && exact)
-				. = FALSE
-		else
+		if(aval_r_amnt - reagents[r_r] < 0)
 			return FALSE
-	
-	if((reagents?(reagents.len):(0)) < avail_reagents.reagent_list.len)
-		return FALSE
-	return .
 
-/datum/recipe/proc/check_fruit(var/obj/container, var/exact = FALSE)
+		if(aval_r_amnt > (reagents[r_r]) && exact)
+			return FALSE
+
+	if(LAZYLEN(reagents) < avail_reagents.reagent_list.len)
+		return FALSE
+	return TRUE
+
+/datum/recipe/proc/check_fruit(obj/container, exact = FALSE)
 	if (!fruit || !fruit.len)
 		return TRUE
 
 	. = TRUE
 	if(fruit && fruit.len)
 		var/list/checklist = list()
-		 // You should trust Copy().
+		// You should trust Copy().
 		checklist = fruit.Copy()
-		for(var/obj/item/weapon/reagent_containers/food/snacks/grown/G in container)
+		for(var/obj/item/reagent_containers/food/snacks/grown/G in container)
 			if(!G.seed || !G.seed.kitchen_tag || isnull(checklist[G.seed.kitchen_tag]))
 				continue
 			if(check_coating(G))
@@ -114,10 +106,10 @@
 					break
 	return .
 
-/datum/recipe/proc/check_items(var/obj/container as obj, var/exact = FALSE)
+/datum/recipe/proc/check_items(obj/container as obj, exact = FALSE)
 	if(!items || !items.len)
 		return TRUE
-	
+
 	. = TRUE
 	if(items && items.len)
 		var/list/checklist = list()
@@ -125,7 +117,7 @@
 		if(istype(container, /obj/machinery))
 			var/obj/machinery/machine = container
 			for(var/obj/O in ((machine.contents - machine.component_parts) - machine.circuit))
-				if(istype(O,/obj/item/weapon/reagent_containers/food/snacks/grown))
+				if(istype(O,/obj/item/reagent_containers/food/snacks/grown))
 					continue // Fruit is handled in check_fruit().
 				var/found = FALSE
 				for(var/i = 1; i < checklist.len+1; i++)
@@ -138,7 +130,7 @@
 					return FALSE
 		else
 			for(var/obj/O in container.contents)
-				if(istype(O,/obj/item/weapon/reagent_containers/food/snacks/grown))
+				if(istype(O,/obj/item/reagent_containers/food/snacks/grown))
 					continue // Fruit is handled in check_fruit().
 				var/found = FALSE
 				for(var/i = 1; i < checklist.len+1; i++)
@@ -155,14 +147,14 @@
 	return .
 
 //This is called on individual items within the container.
-/datum/recipe/proc/check_coating(var/obj/O, var/exact = FALSE)
-	if(!istype(O,/obj/item/weapon/reagent_containers/food/snacks))
+/datum/recipe/proc/check_coating(obj/O, exact = FALSE)
+	if(!istype(O,/obj/item/reagent_containers/food/snacks))
 		return TRUE //Only snacks can be battered
 
 	if (coating == -1)
 		return TRUE //-1 value doesnt care
 
-	var/obj/item/weapon/reagent_containers/food/snacks/S = O
+	var/obj/item/reagent_containers/food/snacks/S = O
 	if (!S.coating)
 		if (!coating)
 			return TRUE
@@ -173,7 +165,7 @@
 	return FALSE
 
 //general version
-/datum/recipe/proc/make(var/obj/container as obj)
+/datum/recipe/proc/make(obj/container as obj)
 	var/obj/result_obj = new result(container)
 	if(istype(container, /obj/machinery))
 		var/obj/machinery/machine = container
@@ -189,18 +181,18 @@
 
 // food-related
 // This proc is called under the assumption that the container has already been checked and found to contain the necessary ingredients
-/datum/recipe/proc/make_food(var/obj/container as obj)
+/datum/recipe/proc/make_food(obj/container as obj)
 	if(!result)
-		log_runtime(EXCEPTION("<span class='danger'>Recipe [type] is defined without a result, please bug report this.</span>"))
+		log_runtime(EXCEPTION(span_danger("Recipe [type] is defined without a result, please bug report this.")))
 		if(istype(container, /obj/machinery/microwave))
 			var/obj/machinery/microwave/M = container
 			M.dispose(FALSE)
 
-		else if(istype(container, /obj/item/weapon/reagent_containers/cooking_container))
-			var/obj/item/weapon/reagent_containers/cooking_container/CC = container
+		else if(istype(container, /obj/item/reagent_containers/cooking_container))
+			var/obj/item/reagent_containers/cooking_container/CC = container
 			CC.clear()
 
-		container.visible_message(SPAN_WARNING("[container] inexplicably spills, and its contents are lost!"))
+		container.visible_message(span_warning("[container] inexplicably spills, and its contents are lost!"))
 
 		return
 
@@ -218,6 +210,12 @@
 			var/obj/item/I = locate(i) in container
 			if (I && I.reagents)
 				I.reagents.trans_to_holder(buffer,I.reagents.total_volume)
+			if(istype(I,/obj/item/holder))
+				var/obj/item/holder/hol = I
+				if(hol.held_mob?.client)
+					hol.held_mob.ghostize()
+				qdel(hol.held_mob)
+				hol.held_mob = null
 			qdel(I)
 
 	//Find fruits
@@ -225,7 +223,7 @@
 		var/list/checklist = list()
 		checklist = fruit.Copy()
 
-		for(var/obj/item/weapon/reagent_containers/food/snacks/grown/G in container)
+		for(var/obj/item/reagent_containers/food/snacks/grown/G in container)
 			if(!G.seed || !G.seed.kitchen_tag || isnull(checklist[G.seed.kitchen_tag]))
 				continue
 
@@ -271,10 +269,12 @@
 			result_obj.reagents.trans_to(holder, result_obj.reagents.total_volume)
 		tally++
 
+	if(results.len)
+		SEND_GLOBAL_SIGNAL(COMSIG_GLOB_FOOD_PREPARED, container, results)
 
 	switch(reagent_mix)
 		if (RECIPE_REAGENT_REPLACE)
-			//We do no transferring
+			pass() //We do no transferring
 		if (RECIPE_REAGENT_SUM)
 			//Sum is easy, just shove the entire buffer into the result
 			buffer.trans_to_holder(holder, buffer.total_volume)
@@ -315,7 +315,7 @@
 // When exact is false, extraneous ingredients are ignored
 // When exact is true, extraneous ingredients will fail the recipe
 // In both cases, the full set of required ingredients is still needed
-/proc/select_recipe(var/list/datum/recipe/available_recipes, var/obj/obj as obj, var/exact)
+/proc/select_recipe(list/datum/recipe/available_recipes, obj/obj as obj, exact)
 	var/highest_count = 0
 	var/count = 0
 	for (var/datum/recipe/recipe in available_recipes)
@@ -332,3 +332,7 @@
 
 
 /datum/recipe/proc/after_cook(obj/container) // Called When the Microwave is finished.
+
+#undef RECIPE_REAGENT_MAX
+#undef RECIPE_REAGENT_MIN
+#undef RECIPE_REAGENT_SUM

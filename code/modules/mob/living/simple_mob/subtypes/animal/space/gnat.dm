@@ -26,7 +26,7 @@
 	icon_living = "gnat"
 	icon_dead = "gnat_dead"
 
-	faction = "gnat"
+	faction = FACTION_GNAT
 	maxHealth = 5
 	health = 5
 	movement_cooldown = 0
@@ -43,15 +43,15 @@
 	attack_sound = 'sound/weapons/bite.ogg'
 	attacktext = list("nibbled")
 
-	organ_names = /decl/mob_organ_names/fish
+	organ_names = /datum/decl/mob_organ_names/fish
 
 	meat_amount = 1
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/carpmeat/gnat
+	meat_type = /obj/item/reagent_containers/food/snacks/carpmeat/gnat
 
 	ai_holder_type = /datum/ai_holder/simple_mob/melee/evasive/jellyfish
 	mob_bump_flag = 0
 
-	organ_names = /decl/mob_organ_names/space_gnat
+	organ_names = /datum/decl/mob_organ_names/space_gnat
 
-/decl/mob_organ_names/space_gnat
+/datum/decl/mob_organ_names/space_gnat
 	hit_zones = list("cephalothorax", "stubby winglets", "flailing tail")

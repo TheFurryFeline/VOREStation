@@ -25,7 +25,7 @@
 	var/datum/computer_file/data/email_message/current_message = null
 
 /datum/tgui_module/email_client/proc/log_in()
-	for(var/datum/computer_file/data/email_account/account in ntnet_global.email_accounts)
+	for(var/datum/computer_file/data/email_account/account in GLOB.ntnet_global.email_accounts)
 		if(!account.can_login)
 			continue
 		if(account.login == stored_login)
@@ -43,7 +43,7 @@
 
 // Returns 0 if no new messages were received, 1 if there is an unread message but notification has already been sent.
 // and 2 if there is a new message that appeared in this tick (and therefore notification should be sent by the program).
-/datum/tgui_module/email_client/proc/check_for_new_messages(var/messages_read = FALSE)
+/datum/tgui_module/email_client/proc/check_for_new_messages(messages_read = FALSE)
 	if(!current_account)
 		return 0
 
@@ -128,7 +128,7 @@
 		data["current_account"] = current_account.login
 		if(addressbook)
 			var/list/all_accounts = list()
-			for(var/datum/computer_file/data/email_account/account in ntnet_global.email_accounts)
+			for(var/datum/computer_file/data/email_account/account in GLOB.ntnet_global.email_accounts)
 				if(!account.can_login)
 					continue
 				all_accounts.Add(list(list(
@@ -186,7 +186,7 @@
 
 	return data
 
-/datum/tgui_module/email_client/proc/find_message_by_fuid(var/fuid)
+/datum/tgui_module/email_client/proc/find_message_by_fuid(fuid)
 	if(!istype(current_account))
 		return
 
@@ -206,7 +206,7 @@
 	msg_attachment = null
 	current_message = null
 
-/datum/tgui_module/email_client/proc/relayed_process(var/netspeed)
+/datum/tgui_module/email_client/proc/relayed_process(netspeed)
 	download_speed = netspeed
 	if(!downloading)
 		return
@@ -228,11 +228,10 @@
 	return 1
 
 
-/datum/tgui_module/email_client/tgui_act(action, params)
+/datum/tgui_module/email_client/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
 
-	var/mob/living/user = usr
 	check_for_new_messages(1)		// Any actual interaction (button pressing) is considered as acknowledging received message, for the purpose of notification icons.
 
 	switch(action)
@@ -279,7 +278,7 @@
 			var/oldtext = html_decode(msg_body)
 			oldtext = replacetext(oldtext, "\[editorbr\]", "\n")
 
-			var/newtext = sanitize(replacetext(tgui_input_text(usr, "Enter your message. You may use most tags from paper formatting", "Message Editor", oldtext, 20000, TRUE, prevent_enter = TRUE), "\n", "\[editorbr\]"), 20000)
+			var/newtext = replacetext(tgui_input_text(ui.user, "Enter your message. You may use most tags from paper formatting", "Message Editor", oldtext, 20000, TRUE, prevent_enter = TRUE), "\n", "\[editorbr\]")
 			if(newtext)
 				msg_body = newtext
 			return 1
@@ -362,13 +361,13 @@
 			return 1
 
 		if("changepassword")
-			var/oldpassword = sanitize(tgui_input_text(user,"Please enter your old password:", "Password Change", null, 100), 100)
+			var/oldpassword = tgui_input_text(ui.user,"Please enter your old password:", "Password Change", null, 100)
 			if(!oldpassword)
 				return 1
-			var/newpassword1 = sanitize(tgui_input_text(user,"Please enter your new password:", "Password Change", null, 100), 100)
+			var/newpassword1 = tgui_input_text(ui.user,"Please enter your new password:", "Password Change", null, 100)
 			if(!newpassword1)
 				return 1
-			var/newpassword2 = sanitize(tgui_input_text(user,"Please re-enter your new password:", "Password Change", null, 100), 100)
+			var/newpassword2 = tgui_input_text(ui.user,"Please re-enter your new password:", "Password Change", null, 100)
 			if(!newpassword2)
 				return 1
 
@@ -399,7 +398,7 @@
 				error = "Error exporting file. Are you using a functional and NTOS-compliant device?"
 				return 1
 
-			var/filename = sanitize(tgui_input_text(user,"Please specify file name:", "Message export", null, 100), 100)
+			var/filename = tgui_input_text(ui.user,"Please specify file name:", "Message export", null, 100)
 			if(!filename)
 				return 1
 
@@ -427,7 +426,7 @@
 				if(CF.unsendable)
 					continue
 				filenames.Add(CF.filename)
-			var/picked_file = tgui_input_list(user, "Please pick a file to send as attachment (max 32GQ)", "Select Attachment", filenames)
+			var/picked_file = tgui_input_list(ui.user, "Please pick a file to send as attachment (max 32GQ)", "Select Attachment", filenames)
 
 			if(!picked_file)
 				return 1

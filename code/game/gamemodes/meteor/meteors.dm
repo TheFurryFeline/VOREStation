@@ -1,50 +1,55 @@
-/var/const/meteor_wave_delay = 625 //minimum wait between waves in tenths of seconds
+GLOBAL_VAR_INIT(meteor_wave_delay, 625) //minimum wait between waves in tenths of seconds
 //set to at least 100 unless you want evarr ruining every round
 
 //Meteors probability of spawning during a given wave
 
 //for space dust event
-/var/list/meteors_dust = list(/obj/effect/meteor/dust)
+/* Not in use
+GLOBAL_LIST_INIT(meteors_dust, list(/obj/effect/meteor/dust))
+*/
 
 //for normal meteor event
-/var/list/meteors_normal = list(
+GLOBAL_LIST_INIT(meteors_normal, list(
 	/obj/effect/meteor/dust=3,
 	/obj/effect/meteor/medium=8,
 	/obj/effect/meteor/big=3,
 	/obj/effect/meteor/flaming=1,
 	/obj/effect/meteor/irradiated=3
-	)
+	))
 
 //for threatening meteor event
-/var/list/meteors_threatening = list(
+GLOBAL_LIST_INIT(meteors_threatening, list(
 	/obj/effect/meteor/medium=5,
 	/obj/effect/meteor/big=10,
 	/obj/effect/meteor/flaming=3,
 	/obj/effect/meteor/irradiated=3,
-	/obj/effect/meteor/emp=3)
+	/obj/effect/meteor/emp=3
+	))
 
+/* Not in use
 //for catastrophic meteor event
-/var/list/meteors_catastrophic = list(
+GLOBAL_LIST_INIT(meteors_catastrophic, list(
 	/obj/effect/meteor/medium=5,
 	/obj/effect/meteor/big=75,
 	/obj/effect/meteor/flaming=10,
 	/obj/effect/meteor/irradiated=10,
-	/obj/effect/meteor/emp=10)
-
+	/obj/effect/meteor/emp=10
+	))
+*/
 
 
 ///////////////////////////////
 //Meteor spawning global procs
 ///////////////////////////////
 
-/proc/spawn_meteors(var/number = 10, var/list/meteortypes, var/startSide, var/zlevel)
-	log_debug("Spawning [number] meteors on the [dir2text(startSide)] of [zlevel]")
+/proc/spawn_meteors(number = 10, list/meteortypes, startSide, zlevel)
+	log_game("Spawning [number] meteors on the [dir2text(startSide)] of [zlevel]")
 	for(var/i = 0; i < number; i++)
 		spawn_meteor(meteortypes, startSide, zlevel)
 
-/proc/spawn_meteor(var/list/meteortypes, var/startSide, var/startLevel)
+/proc/spawn_meteor(list/meteortypes, startSide, startLevel)
 	if(isnull(startSide))
-		startSide = pick(cardinal)
+		startSide = pick(GLOB.cardinal)
 	if(isnull(startLevel))
 		startLevel = pick(using_map.station_levels - using_map.sealed_levels)
 
@@ -97,7 +102,7 @@
 	return T
 
 // Override for special behavior when getting hit by meteors, and only meteors.  Return one if the meteor hasn't been 'stopped'.
-/atom/proc/handle_meteor_impact(var/obj/effect/meteor/meteor)
+/atom/proc/handle_meteor_impact(obj/effect/meteor/meteor)
 	return TRUE
 
 ///////////////////////
@@ -118,7 +123,7 @@
 	var/heavy = FALSE
 	var/z_original
 
-	var/meteordrop = /obj/item/weapon/ore/iron
+	var/meteordrop = /obj/item/ore/iron
 	var/dropamt = 2
 
 	// How much damage it does to walls, using take_damage().
@@ -126,7 +131,7 @@
 	// Multiply this and the hits var to get a rough idea of how penetrating a meteor is.
 	var/wall_power = 100
 
-/obj/effect/meteor/Initialize()
+/obj/effect/meteor/Initialize(mapload)
 	. = ..()
 	z_original = z
 	GLOB.meteor_list += src
@@ -151,23 +156,31 @@
 	GLOB.meteor_list -= src
 	return ..()
 
-/obj/effect/meteor/New()
-	..()
+/obj/effect/meteor/Initialize(mapload)
+	. = ..()
 	SpinAnimation()
 
 /obj/effect/meteor/Bump(atom/A)
-	if(attempt_vr(src,"Bump_vr",list(A))) return //VOREStation Edit - allows meteors to be deflected by baseball bats
-	if(A)
-		if(A.handle_meteor_impact(src)) // Used for special behaviour when getting hit specifically by a meteor, like a shield.
-			ram_turf(get_turf(A))
-			get_hit()
-		else
-			die(FALSE)
+	if(!A)
+		return
+	if(istype(A, /mob/living/carbon))
+		var/mob/living/carbon/batter = A
+		var/obj/item/I = batter.get_active_hand()
+		if(!batter.stat && istype(I, /obj/item/material/twohanded/baseballbat))
+			batter.do_attack_animation(src)
+			batter.visible_message("[batter] deflects [src] with [I]]! Home run!", "You deflect [src] with [I]! Home run!")
+			walk_away(src, batter, 100, 1)
+			return
+	if(A.handle_meteor_impact(src)) // Used for special behaviour when getting hit specifically by a meteor, like a shield.
+		ram_turf(get_turf(A))
+		get_hit()
+		return
+	die(FALSE)
 
 /obj/effect/meteor/CanPass(atom/movable/mover, turf/target)
 	return istype(mover, /obj/effect/meteor) ? TRUE : ..()
 
-/obj/effect/meteor/proc/ram_turf(var/turf/T)
+/obj/effect/meteor/proc/ram_turf(turf/T)
 	//first bust whatever is in the turf
 	for(var/atom/A in T)
 		if(A == src) // Don't hit ourselves.
@@ -192,7 +205,7 @@
 	if(hits <= 0)
 		die(TRUE)
 
-/obj/effect/meteor/proc/die(var/explode = TRUE)
+/obj/effect/meteor/proc/die(explode = TRUE)
 	make_debris()
 	meteor_effect(explode)
 	qdel(src)
@@ -200,13 +213,13 @@
 /obj/effect/meteor/ex_act()
 	return
 
-/obj/effect/meteor/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
-	if(istype(W, /obj/item/weapon/pickaxe))
+/obj/effect/meteor/attackby(obj/item/W as obj, mob/user as mob, params)
+	if(istype(W, /obj/item/pickaxe))
 		qdel(src)
 		return
 	..()
 
-/obj/effect/meteor/bullet_act(var/obj/item/projectile/Proj)
+/obj/effect/meteor/bullet_act(obj/item/projectile/Proj)
 	if(Proj.excavation_amount)
 		get_hit()
 
@@ -224,14 +237,14 @@
 		O.throw_at(dest, 5, 10)
 
 /obj/effect/meteor/proc/shake_players()
-	for(var/mob/M in player_list)
+	for(var/mob/M in GLOB.player_list)
 		var/turf/T = get_turf(M)
 		if(!T || T.z != src.z)
 			continue
 		var/dist = get_dist(M.loc, src.loc)
 		shake_camera(M, dist > 20 ? 3 : 5, dist > 20 ? 1 : 3)
 
-/obj/effect/meteor/proc/meteor_effect(var/explode)
+/obj/effect/meteor/proc/meteor_effect(explode)
 	if(heavy)
 		shake_players()
 
@@ -247,7 +260,7 @@
 	pass_flags = PASSTABLE | PASSGRILLE
 	hits = 1
 	hitpwr = 3
-	meteordrop = /obj/item/weapon/ore/glass
+	meteordrop = /obj/item/ore/glass
 	wall_power = 50
 
 // Medium-sized meteors aren't very special and can be stopped easily by r-walls.
@@ -256,7 +269,7 @@
 	dropamt = 3
 	wall_power = 200
 
-/obj/effect/meteor/medium/meteor_effect(var/explode)
+/obj/effect/meteor/medium/meteor_effect(explode)
 	..()
 	if(explode)
 		explosion(src.loc, 0, 1, 2, 3, 0)
@@ -270,7 +283,7 @@
 	dropamt = 4
 	wall_power = 400
 
-/obj/effect/meteor/big/meteor_effect(var/explode)
+/obj/effect/meteor/big/meteor_effect(explode)
 	..()
 	if(explode)
 		explosion(src.loc, 1, 2, 3, 4, 0)
@@ -281,10 +294,10 @@
 	icon_state = "flaming"
 	hits = 5
 	heavy = 1
-	meteordrop = /obj/item/weapon/ore/phoron
+	meteordrop = /obj/item/ore/phoron
 	wall_power = 100
 
-/obj/effect/meteor/flaming/meteor_effect(var/explode)
+/obj/effect/meteor/flaming/meteor_effect(explode)
 	..()
 	if(explode)
 		explosion(src.loc, 1, 2, 3, 4, 0, 0, 5)
@@ -294,27 +307,25 @@
 	name = "glowing meteor"
 	icon_state = "glowing"
 	heavy = 1
-	meteordrop = /obj/item/weapon/ore/uranium
+	meteordrop = /obj/item/ore/uranium
 	wall_power = 75
 
-
-/obj/effect/meteor/irradiated/meteor_effect(var/explode)
+/obj/effect/meteor/irradiated/meteor_effect(explode)
 	..()
 	if(explode)
 		explosion(src.loc, 0, 0, 4, 3, 0)
 	new /obj/effect/decal/cleanable/greenglow(get_turf(src))
-	SSradiation.radiate(src, 50)
 
 // This meteor fries toasters.
 /obj/effect/meteor/emp
 	name = "conducting meteor"
 	icon_state = "glowing_blue"
 	desc = "Hide your floppies!"
-	meteordrop = /obj/item/weapon/ore/osmium
+	meteordrop = /obj/item/ore/osmium
 	dropamt = 3
 	wall_power = 80
 
-/obj/effect/meteor/emp/meteor_effect(var/explode)
+/obj/effect/meteor/emp/meteor_effect(explode)
 	..()
 	// Best case scenario: Comparable to a low-yield EMP grenade.
 	// Worst case scenario: Comparable to a standard yield EMP grenade.
@@ -331,10 +342,10 @@
 	hits = 30
 	hitpwr = 1
 	heavy = 1
-	meteordrop = /obj/item/weapon/ore/phoron
+	meteordrop = /obj/item/ore/phoron
 	wall_power = 150
 
-/obj/effect/meteor/tunguska/meteor_effect(var/explode)
+/obj/effect/meteor/tunguska/meteor_effect(explode)
 	..()
 	if(explode)
 		explosion(src.loc, 3, 6, 9, 20, 0)

@@ -15,15 +15,17 @@
 	if(owner.life_tick % spleen_tick == 0)
 
 		//High toxins levels are dangerous
-		if(owner.getToxLoss() >= 30 && !owner.reagents.has_reagent("anti_toxin"))
+		if(owner.getToxLoss() >= 30 && !owner.reagents.has_reagent(REAGENT_ID_ANTITOXIN))
 			//Healthy liver suffers on its own
-			if (src.damage < min_broken_damage)
+			if(src.damage < min_broken_damage)
 				src.damage += 0.2 * spleen_tick
+				owner.adjustToxLoss(-0.2) //The spleen takes damage but reduces toxins, up until it's broken.
 			//Damaged one shares the fun
 			else
 				var/obj/item/organ/internal/O = pick(owner.internal_organs)
 				if(O)
 					O.damage += 0.2 * spleen_tick
+					owner.adjustToxLoss(-0.1) //Only half as effective.
 
 		else if(!src.is_broken()) // If the spleen isn't severely damaged, it can help fight infections. Key word, can.
 			var/obj/item/organ/external/OEx = pick(owner.organs)
@@ -34,11 +36,16 @@
 				B.adjust_germ_level(round(rand(-3 * spleen_efficiency, -10 * spleen_efficiency)))
 
 		//Detox can heal small amounts of damage
-		if (src.damage && src.damage < src.min_bruised_damage && owner.reagents.has_reagent("anti_toxin"))
+		if (src.damage && src.damage < src.min_bruised_damage && owner.reagents.has_reagent(REAGENT_ID_ANTITOXIN))
 			src.damage -= 0.2 * spleen_tick * spleen_efficiency
 
 		if(src.damage < 0)
 			src.damage = 0
+
+		// General organ damage from withdraw
+		if(prob(20) && owner.chem_effects[CE_WITHDRAWL])
+			take_damage(owner.chem_effects[CE_WITHDRAWL] * 0.05 * PROCESS_ACCURACY, prob(1)) // Chance to warn them
+			owner.adjustToxLoss(owner.chem_effects[CE_WITHDRAWL] * 0.2 * PROCESS_ACCURACY)
 
 /obj/item/organ/internal/spleen/handle_germ_effects()
 	. = ..() //Up should return an infection level as an integer
@@ -61,10 +68,12 @@
 	..()
 	if(owner)
 		owner.add_modifier(/datum/modifier/trait/haemophilia, round(15 MINUTES * spleen_efficiency))
-		var/obj/item/organ/external/Target = owner.get_organ(parent_organ)
+		var/obj/item/organ/external/target = owner.get_organ(parent_organ)
 		var/datum/wound/W = new /datum/wound/internal_bleeding(round(20 * spleen_efficiency))
 		owner.adjustToxLoss(15 * spleen_efficiency)
-		Target.wounds += W
+		target.wounds += W
+		target.update_damages()
+		owner.handle_organs(TRUE) //Force an update so we start processing the internal bleeding.
 
 /obj/item/organ/internal/spleen/minor
 	name = "vestigial spleen"
@@ -72,6 +81,6 @@
 	spleen_efficiency = 0.3
 	spleen_tick = 15
 
-/obj/item/organ/internal/spleen/minor/Initialize()
+/obj/item/organ/internal/spleen/minor/Initialize(mapload)
 	. = ..()
 	adjust_scale(0.7)

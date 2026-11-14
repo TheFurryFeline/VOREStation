@@ -117,7 +117,7 @@
 /obj/machinery/computer/HolodeckControl{
 	dir = 4
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -150,9 +150,9 @@
 /turf/simulated/floor/tiled/dark,
 /area/lawoffice)
 "au" = (
-/obj/item/weapon/book/manual/command_guide,
-/obj/item/weapon/book/manual/standard_operating_procedure,
-/obj/item/weapon/book/manual/security_space_law,
+/obj/item/book/manual/command_guide,
+/obj/item/book/manual/standard_operating_procedure,
+/obj/item/book/manual/wiki/security_space_law,
 /obj/structure/closet/walllocker_double/command/hos{
 	dir = 4;
 	pixel_x = 32
@@ -160,14 +160,14 @@
 /turf/simulated/floor/tiled/dark,
 /area/crew_quarters/heads/hos)
 "av" = (
-/obj/item/device/taperecorder{
+/obj/item/taperecorder{
 	pixel_x = -3
 	},
-/obj/item/weapon/circuitboard/aicore{
+/obj/item/circuitboard/aicore{
 	pixel_x = -2;
 	pixel_y = 4
 	},
-/obj/item/weapon/circuitboard/teleporter,
+/obj/item/circuitboard/teleporter,
 /obj/structure/closet/walllocker_double/command/rd{
 	dir = 8;
 	pixel_x = -32
@@ -181,12 +181,12 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/aftstarroom)
 "ax" = (
-/obj/item/weapon/book/manual/command_guide,
-/obj/item/weapon/book/manual/command_guide,
-/obj/item/weapon/book/manual/standard_operating_procedure,
-/obj/item/weapon/book/manual/standard_operating_procedure,
-/obj/item/weapon/book/manual/security_space_law,
-/obj/item/weapon/book/manual/security_space_law,
+/obj/item/book/manual/command_guide,
+/obj/item/book/manual/command_guide,
+/obj/item/book/manual/standard_operating_procedure,
+/obj/item/book/manual/standard_operating_procedure,
+/obj/item/book/manual/wiki/security_space_law,
+/obj/item/book/manual/wiki/security_space_law,
 /obj/structure/closet/walllocker_double/command/iaa{
 	dir = 4;
 	pixel_x = 32
@@ -194,12 +194,12 @@
 /turf/simulated/floor/tiled/dark,
 /area/lawoffice)
 "ay" = (
-/obj/item/weapon/book/manual/command_guide,
-/obj/item/weapon/book/manual/command_guide,
-/obj/item/weapon/book/manual/standard_operating_procedure,
-/obj/item/weapon/book/manual/standard_operating_procedure,
-/obj/item/weapon/book/manual/security_space_law,
-/obj/item/weapon/book/manual/security_space_law,
+/obj/item/book/manual/command_guide,
+/obj/item/book/manual/command_guide,
+/obj/item/book/manual/standard_operating_procedure,
+/obj/item/book/manual/standard_operating_procedure,
+/obj/item/book/manual/wiki/security_space_law,
+/obj/item/book/manual/wiki/security_space_law,
 /obj/structure/closet/walllocker_double/command/iaa{
 	dir = 8;
 	pixel_x = -32
@@ -207,11 +207,11 @@
 /turf/simulated/floor/tiled/dark,
 /area/lawoffice)
 "az" = (
-/obj/item/device/megaphone,
-/obj/item/weapon/book/manual/standard_operating_procedure,
-/obj/item/weapon/book/manual/command_guide,
+/obj/item/megaphone,
+/obj/item/book/manual/standard_operating_procedure,
+/obj/item/book/manual/command_guide,
 /obj/structure/table/reinforced,
-/obj/item/weapon/folder/red,
+/obj/item/folder/red,
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 8
 	},
@@ -353,9 +353,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "aQ" = (
 /turf/simulated/floor/tiled/eris/dark/gray_platform,
 /area/stellardelight/deck3/commandhall)
@@ -411,6 +409,10 @@
 /obj/effect/landmark/vines,
 /turf/simulated/open,
 /area/stellardelight/deck2/starboard)
+"aW" = (
+/obj/machinery/vending/cigarette,
+/turf/simulated/floor/airless,
+/area/stellardelight/deck3/exterior)
 "aX" = (
 /obj/structure/sign/deck3{
 	pixel_x = 32
@@ -420,6 +422,25 @@
 	},
 /turf/simulated/floor/tiled,
 /area/stellardelight/deck3/aft)
+"aY" = (
+/obj/structure/sign/small/nosmoking{
+	pixel_y = 27
+	},
+/obj/structure/railing/grey{
+	dir = 4
+	},
+/obj/item/trash/cigbutt,
+/obj/effect/floor_decal/shuttle/blue,
+/turf/simulated/floor/airless,
+/area/stellardelight/deck3/exterior)
+"aZ" = (
+/obj/machinery/maint_recycler,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/aftstarroom)
+"ba" = (
+/obj/machinery/maint_vendor,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/aftstarroom)
 "bb" = (
 /obj/effect/floor_decal/techfloor/orange{
 	dir = 8
@@ -427,6 +448,10 @@
 /obj/machinery/atmospherics/unary/vent_pump/on,
 /turf/simulated/floor/tiled/techfloor,
 /area/stellardelight/deck3/transitgateway)
+"bc" = (
+/obj/effect/recycler_beacon,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/portaft)
 "bd" = (
 /obj/structure/closet,
 /turf/simulated/floor,
@@ -441,9 +466,11 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/reinforced/airless,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
+"bf" = (
+/obj/effect/recycler_vendor_beacon,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/starboardaft)
 "bg" = (
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
@@ -477,10 +504,18 @@
 	},
 /turf/simulated/floor/tiled/steel_ridged,
 /area/maintenance/stellardelight/deck3/starboardfore)
+"bi" = (
+/obj/effect/recycler_vendor_beacon,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/starboardcent)
 "bj" = (
 /obj/structure/flora/pottedplant/stoutbush,
 /turf/simulated/floor/tiled/dark,
 /area/lawoffice)
+"bk" = (
+/obj/effect/recycler_beacon,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/portfore)
 "bl" = (
 /obj/structure/lattice,
 /obj/structure/cable/green{
@@ -508,6 +543,10 @@
 	},
 /turf/simulated/open,
 /area/stellardelight/deck2/fore)
+"bo" = (
+/obj/effect/recycler_beacon,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/starboardfore)
 "bp" = (
 /obj/effect/floor_decal/industrial/warning{
 	dir = 4
@@ -517,6 +556,10 @@
 	},
 /turf/simulated/floor/airless,
 /area/stellardelight/deck3/exterior)
+"bq" = (
+/obj/machinery/space_heater,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/aftstarroom)
 "br" = (
 /obj/structure/lattice,
 /obj/structure/cable{
@@ -532,6 +575,14 @@
 	},
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/ai)
+"bt" = (
+/obj/machinery/space_heater,
+/turf/simulated/floor/tiled/techfloor/grid,
+/area/maintenance/stellardelight/deck3/foreportroomb)
+"bu" = (
+/obj/machinery/space_heater,
+/turf/simulated/floor,
+/area/maintenance/stellardelight/deck3/foreportrooma)
 "bx" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /turf/simulated/floor/carpet/purcarpet,
@@ -576,7 +627,7 @@
 /area/stellardelight/deck2/fore)
 "bJ" = (
 /obj/structure/table/steel,
-/obj/item/weapon/flame/candle,
+/obj/item/flame/candle,
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/maintenance/stellardelight/deck3/forestarrooma)
 "bK" = (
@@ -599,7 +650,7 @@
 /area/ai_upload)
 "bO" = (
 /obj/structure/table/darkglass,
-/obj/item/weapon/clipboard,
+/obj/item/clipboard,
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 1
 	},
@@ -769,9 +820,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "cp" = (
 /obj/machinery/atmospherics/pipe/simple/hidden{
 	dir = 4
@@ -1000,7 +1049,7 @@
 /turf/simulated/floor/airless,
 /area/maintenance/stellardelight/deck3/starboardcent)
 "dn" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -1132,9 +1181,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/reinforced/airless,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "dS" = (
 /obj/machinery/camera/network/command{
 	dir = 4
@@ -1194,7 +1241,7 @@
 /area/maintenance/stellardelight/deck3/starboardcent)
 "ed" = (
 /obj/structure/closet,
-/obj/random/firstaid,
+/obj/random/tetheraid,
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/portaft)
 "eg" = (
@@ -1274,7 +1321,8 @@
 /area/stellardelight/deck3/aft)
 "eo" = (
 /obj/machinery/power/apc/angled{
-	dir = 4
+	dir = 4;
+	cell_type = /obj/item/cell/super
 	},
 /obj/structure/cable/blue{
 	icon_state = "0-2"
@@ -1414,9 +1462,7 @@
 /turf/simulated/wall/fancy_shuttle/nondense{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "eK" = (
 /obj/machinery/atmospherics/unary/vent_pump{
 	external_pressure_bound = 0;
@@ -1532,38 +1578,37 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/ai_server_room)
 "fd" = (
-/obj/item/weapon/reagent_containers/food/drinks/cup{
+/obj/item/reagent_containers/food/drinks/cup{
 	pixel_x = 8;
 	pixel_y = 8
 	},
-/obj/item/weapon/reagent_containers/food/drinks/cup{
+/obj/item/reagent_containers/food/drinks/cup{
 	pixel_x = -4;
 	pixel_y = 8
 	},
-/obj/item/weapon/reagent_containers/food/drinks/cup{
+/obj/item/reagent_containers/food/drinks/cup{
 	pixel_x = 8;
 	pixel_y = -4
 	},
-/obj/item/weapon/reagent_containers/food/drinks/cup{
+/obj/item/reagent_containers/food/drinks/cup{
 	pixel_x = -4;
 	pixel_y = -4
 	},
-/obj/item/weapon/reagent_containers/food/drinks/cup{
+/obj/item/reagent_containers/food/drinks/cup{
 	pixel_x = 8
 	},
-/obj/item/weapon/reagent_containers/food/drinks/cup{
+/obj/item/reagent_containers/food/drinks/cup{
 	pixel_x = -4
 	},
-/obj/item/weapon/reagent_containers/food/drinks/cup{
+/obj/item/reagent_containers/food/drinks/cup{
 	pixel_x = 8;
 	pixel_y = 12
 	},
-/obj/item/weapon/reagent_containers/food/drinks/cup{
+/obj/item/reagent_containers/food/drinks/cup{
 	pixel_x = -4;
 	pixel_y = 12
 	},
 /obj/structure/table/woodentable,
-/obj/item/weapon/hand_labeler,
 /obj/machinery/alarm/angled,
 /obj/machinery/status_display{
 	pixel_x = -32
@@ -1597,9 +1642,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "fh" = (
 /obj/structure/cable/green{
 	icon_state = "4-8"
@@ -1612,8 +1655,8 @@
 "fj" = (
 /obj/structure/table/woodentable,
 /obj/item/toy/figure/clown,
-/obj/item/weapon/pen/crayon/marker/rainbow,
-/obj/item/weapon/pen/crayon/rainbow,
+/obj/item/pen/crayon/marker/rainbow,
+/obj/item/pen/crayon/rainbow,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 8
 	},
@@ -1736,7 +1779,7 @@
 /area/stellardelight/deck3/starboarddock)
 "gb" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/weapon/folder/red_hos,
+/obj/item/folder/red_hos,
 /turf/simulated/floor/carpet,
 /area/crew_quarters/heads/hos)
 "gc" = (
@@ -1770,12 +1813,10 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "gj" = (
 /obj/structure/table/rack/shelf,
-/obj/item/weapon/disk/nifsoft/compliance,
+/obj/item/disk/nifsoft/compliance,
 /obj/random/contraband,
 /obj/random/contraband,
 /obj/random/contraband,
@@ -1803,9 +1844,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "gm" = (
 /obj/structure/lattice,
 /obj/structure/cable/blue{
@@ -1839,7 +1878,7 @@
 /area/stellardelight/deck3/exterior)
 "gy" = (
 /obj/structure/closet/secure_closet/engineering_chief,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	name = "Station Intercom (General)";
 	pixel_y = 24
@@ -1847,7 +1886,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 8
 	},
-/obj/item/device/retail_scanner/engineering,
+/obj/item/retail_scanner/engineering,
 /turf/simulated/floor/tiled,
 /area/crew_quarters/heads/chief)
 "gA" = (
@@ -1864,7 +1903,7 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/portcent)
 "gB" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -1878,11 +1917,11 @@
 /area/stellardelight/deck3/exterior)
 "gE" = (
 /obj/structure/table/darkglass,
-/obj/item/weapon/stamp/denied{
+/obj/item/stamp/denied{
 	pixel_x = 6;
 	pixel_y = 6
 	},
-/obj/item/weapon/stamp/internalaffairs,
+/obj/item/stamp/internalaffairs,
 /turf/simulated/floor/carpet/blue2,
 /area/lawoffice)
 "gG" = (
@@ -1914,7 +1953,7 @@
 /turf/simulated/floor/airless,
 /area/stellardelight/deck3/exterior)
 "gL" = (
-/obj/item/weapon/bedsheet/hosdouble,
+/obj/item/bedsheet/hosdouble,
 /obj/structure/bed/double/padded,
 /obj/structure/curtain/black{
 	color = "#631915"
@@ -1952,12 +1991,7 @@
 /turf/simulated/open,
 /area/stellardelight/deck2/fore)
 "gQ" = (
-/obj/machinery/power/smes/buildable{
-	charge = 5e+006;
-	input_attempt = 1;
-	input_level = 200000;
-	output_level = 200000
-	},
+/obj/machinery/power/smes/buildable/engine_default,
 /obj/structure/window/reinforced{
 	dir = 1
 	},
@@ -2079,9 +2113,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "hj" = (
 /obj/machinery/portable_atmospherics/hydroponics,
 /turf/simulated/floor/tiled/techfloor/grid,
@@ -2229,9 +2261,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "hT" = (
 /obj/structure/cable/blue{
 	icon_state = "4-8"
@@ -2361,9 +2391,7 @@
 	dir = 4
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "iy" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 8
@@ -2402,7 +2430,6 @@
 /obj/machinery/door/airlock/angled_bay/hatch{
 	door_color = "#e6ab22";
 	name = "Shield Generator";
-	req_access = null;
 	req_one_access = list(11,24);
 	stripe_color = "#e6ab22"
 	},
@@ -2441,7 +2468,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 6
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -2505,7 +2532,7 @@
 /turf/simulated/floor/tiled,
 /area/stellardelight/deck3/aft)
 "iY" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -2535,9 +2562,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "jd" = (
 /obj/structure/cable/green{
 	icon_state = "4-8"
@@ -2633,7 +2658,7 @@
 /area/crew_quarters/bar)
 "jD" = (
 /obj/structure/bed/double/padded,
-/obj/item/weapon/bedsheet/hopdouble,
+/obj/item/bedsheet/hopdouble,
 /obj/structure/curtain/black,
 /obj/effect/landmark/start/hop,
 /obj/machinery/requests_console{
@@ -2738,7 +2763,7 @@
 /area/stellardelight/deck2/central)
 "ka" = (
 /obj/structure/table/darkglass,
-/obj/item/weapon/storage/briefcase{
+/obj/item/storage/briefcase{
 	pixel_x = -2;
 	pixel_y = -5
 	},
@@ -2881,9 +2906,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "kB" = (
 /obj/machinery/porta_turret/ai_defense,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
@@ -2903,8 +2926,8 @@
 	},
 /obj/structure/closet/secure_closet/hop,
 /obj/item/clothing/glasses/omnihud,
-/obj/item/device/retail_scanner/command,
-/obj/item/weapon/storage/box/PDAs,
+/obj/item/retail_scanner/command,
+/obj/item/storage/box/PDAs,
 /turf/simulated/floor/tiled,
 /area/crew_quarters/heads/hop)
 "kO" = (
@@ -3001,9 +3024,7 @@
 	pixel_y = -32
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "la" = (
 /obj/structure/cable/green{
 	icon_state = "1-2"
@@ -3031,9 +3052,7 @@
 	dir = 1
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "le" = (
 /obj/structure/railing/grey{
 	dir = 8
@@ -3178,9 +3197,7 @@
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "lC" = (
 /obj/machinery/power/apc/angled{
 	dir = 4
@@ -3253,7 +3270,7 @@
 /area/ai_cyborg_station)
 "lP" = (
 /obj/structure/table/woodentable,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	name = "Station Intercom (General)";
 	pixel_x = 24
@@ -3359,7 +3376,7 @@
 /area/stellardelight/deck2/central)
 "mh" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 1;
 	pixel_y = 1
@@ -3378,17 +3395,13 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "mi" = (
 /obj/machinery/shipsensors/fancy_shuttle,
 /turf/simulated/wall/fancy_shuttle/nondense{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "mj" = (
 /obj/structure/lattice,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
@@ -3467,15 +3480,13 @@
 /obj/effect/map_helper/airlock/atmos/pump_out_external,
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 1;
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sdboat_docker_pump_out_external"
 	},
 /turf/simulated/wall/fancy_shuttle/low{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "mA" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 6
@@ -3724,9 +3735,9 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/starboardcent)
 "nv" = (
-/obj/item/weapon/reagent_containers/glass/bucket/wood,
+/obj/item/reagent_containers/glass/bucket/wood,
 /obj/structure/closet/crate,
-/obj/item/weapon/material/minihoe,
+/obj/item/material/minihoe,
 /obj/item/seeds/reishimycelium,
 /obj/item/seeds/random,
 /obj/item/seeds/random,
@@ -3761,8 +3772,7 @@
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/door/airlock/angled_bay/external/glass{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -3773,7 +3783,7 @@
 /obj/machinery/access_button{
 	command = "cycle_interior";
 	dir = 4;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_escape_starboard";
 	pixel_y = 32;
 	req_one_access = list(13)
@@ -3813,7 +3823,7 @@
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 1
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -3821,12 +3831,12 @@
 /area/stellardelight/deck3/cafe)
 "nH" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/device/flashlight/lamp/green{
+/obj/item/flashlight/lamp/green{
 	pixel_x = -4;
 	pixel_y = 12
 	},
-/obj/item/weapon/stamp/hos,
-/obj/item/weapon/book/manual/sd_guide,
+/obj/item/stamp/hos,
+/obj/item/book/manual/sd_guide,
 /turf/simulated/floor/carpet,
 /area/crew_quarters/heads/hos)
 "nL" = (
@@ -3843,7 +3853,7 @@
 /obj/structure/cable/blue{
 	icon_state = "1-2"
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -3950,8 +3960,8 @@
 /obj/structure/table/alien{
 	name = "fancy table"
 	},
-/obj/item/weapon/stamp/rd,
-/obj/item/weapon/book/manual/sd_guide,
+/obj/item/stamp/rd,
+/obj/item/book/manual/sd_guide,
 /turf/simulated/floor/carpet/purcarpet,
 /area/crew_quarters/heads/hor)
 "op" = (
@@ -3973,8 +3983,7 @@
 	dir = 6
 	},
 /obj/machinery/door/airlock/angled_bay/external/glass{
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -3982,7 +3991,7 @@
 /obj/machinery/access_button{
 	command = "cycle_interior";
 	dir = 1;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_escape_center_right";
 	pixel_x = 32;
 	req_one_access = list(13)
@@ -3992,25 +4001,19 @@
 "ou" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 1;
-	frequency = 1380;
-	id_tag = null
+	frequency = 1381
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port_multi{
 	dir = 8;
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sd_escape_center_right";
 	master_tag = "escape_dock";
 	pixel_x = 24;
-	req_one_access = list(13);
-	tag_airpump = null;
-	tag_chamber_sensor = null;
-	tag_exterior_door = null;
-	tag_interior_door = null
+	req_one_access = list(13)
 	},
 /obj/machinery/airlock_sensor{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	pixel_x = -25
 	},
 /obj/effect/map_helper/airlock/atmos/chamber_pump,
@@ -4123,17 +4126,17 @@
 	pixel_x = -32;
 	pixel_y = 32
 	},
-/obj/item/device/radio/intercom/locked/ai_private{
+/obj/item/radio/intercom/locked/ai_private{
 	dir = 4;
 	pixel_x = 32
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	broadcasting = 1;
 	dir = 8;
 	name = "Common Channel";
 	pixel_x = -21
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	name = "Station Intercom (General)";
 	pixel_y = 21
@@ -4163,7 +4166,7 @@
 /obj/machinery/atmospherics/pipe/manifold/hidden/scrubbers{
 	dir = 4
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -4266,7 +4269,7 @@
 /obj/effect/floor_decal/steeldecal/steel_decals5{
 	dir = 4
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -4274,22 +4277,22 @@
 /area/stellardelight/deck3/starboarddock)
 "pm" = (
 /obj/structure/table/darkglass,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	name = "Station Intercom (General)";
 	pixel_y = 24
 	},
-/obj/item/device/flashlight/lamp/green{
+/obj/item/flashlight/lamp/green{
 	pixel_x = -5;
 	pixel_y = -5
 	},
-/obj/item/weapon/paper_bin,
-/obj/item/weapon/pen/blade/red{
+/obj/item/paper_bin,
+/obj/item/pen/blade/red{
 	pixel_x = -2;
 	pixel_y = -2
 	},
-/obj/item/weapon/pen,
-/obj/item/weapon/pen/blue{
+/obj/item/pen,
+/obj/item/pen/blue{
 	pixel_x = 2;
 	pixel_y = 3
 	},
@@ -4362,7 +4365,7 @@
 /area/maintenance/stellardelight/deck3/aftstarroom)
 "pA" = (
 /obj/structure/bed/double/padded,
-/obj/item/weapon/bedsheet/cosmosdouble{
+/obj/item/bedsheet/cosmosdouble{
 	icon_state = "dobulesheetcosmos"
 	},
 /obj/machinery/camera/network/command,
@@ -4373,7 +4376,7 @@
 /obj/effect/floor_decal/steeldecal/steel_decals5{
 	dir = 1
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24
 	},
@@ -4521,7 +4524,7 @@
 	},
 /area/tcommsat/chamber)
 "qb" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -4546,8 +4549,7 @@
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/door/airlock/angled_bay/external/glass{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -4558,7 +4560,7 @@
 /obj/machinery/access_button{
 	command = "cycle_interior";
 	dir = 8;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_escape_port";
 	pixel_y = 32;
 	req_one_access = list(13)
@@ -4637,7 +4639,6 @@
 	dir = 4;
 	door_color = "#323d80";
 	id_tag = "AICore";
-	id_tint = null;
 	locked = 1;
 	name = "AI Core";
 	req_one_access = list(16);
@@ -4709,7 +4710,7 @@
 /area/stellardelight/deck3/exterior)
 "qM" = (
 /obj/structure/table/steel,
-/obj/random/firstaid,
+/obj/random/tetheraid,
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/foreportrooma)
 "qN" = (
@@ -4851,9 +4852,7 @@
 	dir = 4
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "rj" = (
 /obj/structure/cable/green{
 	icon_state = "1-2"
@@ -4878,7 +4877,7 @@
 	pixel_x = 32;
 	pixel_y = 32
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24
 	},
@@ -4902,7 +4901,6 @@
 	master_tag = "portmaint_airlock";
 	name = "interior access button";
 	pixel_x = 32;
-	req_access = null;
 	req_one_access = list(13)
 	},
 /obj/machinery/door/airlock/angled_bay/external/glass{
@@ -4922,23 +4920,17 @@
 "rr" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null
+	frequency = 1381
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port_multi{
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sd_escape_starboard";
 	master_tag = "escape_dock";
 	pixel_y = 30;
-	req_one_access = list(13);
-	tag_airpump = null;
-	tag_chamber_sensor = null;
-	tag_exterior_door = null;
-	tag_interior_door = null
+	req_one_access = list(13)
 	},
 /obj/machinery/airlock_sensor{
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	pixel_y = -25
 	},
 /obj/effect/map_helper/airlock/atmos/chamber_pump,
@@ -4971,7 +4963,6 @@
 	dir = 4;
 	door_color = "#323d80";
 	id_tag = "AICore";
-	id_tint = null;
 	locked = 1;
 	name = "AI Core";
 	req_one_access = list(16);
@@ -5024,9 +5015,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "rZ" = (
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 4
@@ -5047,9 +5036,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "sb" = (
 /obj/machinery/door/firedoor/glass,
 /obj/structure/cable/blue{
@@ -5144,8 +5131,7 @@
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/door/airlock/angled_bay/external/glass{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -5156,7 +5142,7 @@
 /obj/machinery/access_button{
 	command = "cycle_interior";
 	dir = 4;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_port_landing";
 	pixel_y = 32;
 	req_one_access = list(13)
@@ -5178,7 +5164,8 @@
 /area/ai)
 "su" = (
 /obj/machinery/power/apc/angled{
-	dir = 8
+	dir = 8;
+	cell_type = /obj/item/cell/super
 	},
 /obj/structure/cable/blue{
 	icon_state = "0-4"
@@ -5195,7 +5182,6 @@
 	dir = 4;
 	door_color = "#e6ab22";
 	name = "Shield Generator";
-	req_access = null;
 	req_one_access = list(11,24);
 	stripe_color = "#e6ab22"
 	},
@@ -5275,7 +5261,7 @@
 /area/stellardelight/deck3/starboarddock)
 "sQ" = (
 /obj/structure/table/standard,
-/obj/item/weapon/aiModule/reset,
+/obj/item/aiModule/reset,
 /obj/machinery/alarm{
 	dir = 4;
 	pixel_x = -28
@@ -5492,19 +5478,19 @@
 /area/tcommsat/chamber)
 "tO" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/device/taperecorder{
+/obj/item/taperecorder{
 	pixel_x = 10
 	},
-/obj/item/weapon/reagent_containers/food/drinks/flask/barflask{
+/obj/item/reagent_containers/food/drinks/flask/barflask{
 	pixel_x = -9;
 	pixel_y = -2
 	},
-/obj/item/device/radio/off,
+/obj/item/radio/off,
 /turf/simulated/floor/tiled/dark,
 /area/crew_quarters/heads/hos)
 "tQ" = (
 /obj/structure/table/standard,
-/obj/item/weapon/aiModule/freeform,
+/obj/item/aiModule/freeform,
 /obj/machinery/light{
 	dir = 1
 	},
@@ -5514,8 +5500,7 @@
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/door/airlock/angled_bay/external/glass{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -5523,7 +5508,7 @@
 /obj/machinery/access_button{
 	command = "cycle_exterior";
 	dir = 4;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_escape_port";
 	pixel_y = 32;
 	req_one_access = list(13)
@@ -5598,9 +5583,7 @@
 	req_one_access = list(11,67)
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "uj" = (
 /turf/simulated/wall/bay/r_wall/blue,
 /area/crew_quarters/heads/hor)
@@ -5608,7 +5591,7 @@
 /obj/effect/floor_decal/steeldecal/steel_decals5{
 	dir = 8
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -5736,15 +5719,15 @@
 "uM" = (
 /obj/machinery/alarm/angled,
 /obj/structure/table/woodentable,
-/obj/item/device/flashlight/lamp/clown{
+/obj/item/flashlight/lamp/clown{
 	pixel_x = -4;
 	pixel_y = 6
 	},
-/obj/item/weapon/bikehorn{
+/obj/item/bikehorn{
 	pixel_x = -2;
 	pixel_y = 2
 	},
-/obj/item/weapon/stamp/clown{
+/obj/item/stamp/clown{
 	pixel_x = 6;
 	pixel_y = 9
 	},
@@ -5912,9 +5895,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "vt" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 8
@@ -6086,9 +6067,7 @@
 	dir = 4
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "wa" = (
 /obj/machinery/door/firedoor/glass,
 /obj/structure/window/bay/reinforced,
@@ -6097,18 +6076,18 @@
 /area/stellardelight/deck2/port)
 "wd" = (
 /obj/structure/table/standard,
-/obj/item/weapon/aiModule/oxygen,
-/obj/item/weapon/aiModule/oneHuman,
-/obj/item/weapon/aiModule/purge,
-/obj/item/weapon/aiModule/antimov,
-/obj/item/weapon/aiModule/teleporterOffline,
+/obj/item/aiModule/oxygen,
+/obj/item/aiModule/oneHuman,
+/obj/item/aiModule/purge,
+/obj/item/aiModule/antimov,
+/obj/item/aiModule/teleporterOffline,
 /obj/machinery/alarm/angled{
 	dir = 8
 	},
 /turf/simulated/floor/bluegrid,
 /area/ai_cyborg_station)
 "we" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -6136,34 +6115,29 @@
 "wm" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 8;
-	frequency = 1380;
-	id_tag = null
+	frequency = 1381
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port{
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sd_starboard_landing";
 	pixel_y = 29
 	},
 /obj/effect/map_helper/airlock/atmos/chamber_pump,
 /obj/effect/map_helper/airlock/sensor/chamber_sensor,
 /obj/machinery/airlock_sensor{
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	pixel_y = -25
 	},
 /turf/simulated/floor/tiled,
 /area/stellardelight/deck3/starboarddock)
 "wo" = (
 /obj/structure/table/standard,
-/obj/item/weapon/aiModule/asimov,
-/obj/item/weapon/aiModule/freeformcore,
-/obj/item/weapon/aiModule/corp,
-/obj/item/weapon/aiModule/paladin,
-/obj/item/weapon/aiModule/robocop,
+/obj/item/aiModule/asimov,
+/obj/item/aiModule/freeformcore,
+/obj/item/aiModule/corp,
+/obj/item/aiModule/paladin,
+/obj/item/aiModule/robocop,
 /obj/structure/cable/blue,
-/obj/machinery/power/apc/angled{
-	dir = 8
-	},
 /turf/simulated/floor/bluegrid,
 /area/ai_cyborg_station)
 "wq" = (
@@ -6178,9 +6152,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "wt" = (
 /obj/machinery/door/firedoor/glass,
 /obj/structure/window/bay/reinforced,
@@ -6231,7 +6203,7 @@
 /obj/effect/floor_decal/techfloor/orange{
 	dir = 1
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24
 	},
@@ -6324,9 +6296,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "xb" = (
 /obj/machinery/light/small{
 	dir = 4
@@ -6372,9 +6342,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "xg" = (
 /obj/machinery/door/firedoor/glass,
 /obj/structure/window/bay/reinforced,
@@ -6405,11 +6373,11 @@
 /area/maintenance/stellardelight/deck3/portaft)
 "xj" = (
 /obj/structure/table/standard,
-/obj/item/weapon/aiModule/consuming_eradicator,
-/obj/item/weapon/aiModule/guard_dog,
-/obj/item/weapon/aiModule/pleasurebot,
-/obj/item/weapon/aiModule/protective_shell,
-/obj/item/weapon/aiModule/scientific_pursuer,
+/obj/item/aiModule/consuming_eradicator,
+/obj/item/aiModule/guard_dog,
+/obj/item/aiModule/pleasurebot,
+/obj/item/aiModule/protective_shell,
+/obj/item/aiModule/scientific_pursuer,
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 1
 	},
@@ -6445,7 +6413,6 @@
 	master_tag = "starmaint_airlock";
 	name = "exterior access button";
 	pixel_y = 32;
-	req_access = null;
 	req_one_access = list(13)
 	},
 /turf/simulated/floor/tiled/steel_ridged,
@@ -6516,7 +6483,7 @@
 /area/stellardelight/deck3/starboarddock)
 "xE" = (
 /obj/structure/closet,
-/obj/random/firstaid,
+/obj/random/tetheraid,
 /obj/random/maintenance,
 /obj/random/maintenance/cargo,
 /obj/random/maintenance/cargo,
@@ -6538,9 +6505,7 @@
 /turf/simulated/wall/fancy_shuttle/low{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "xM" = (
 /obj/structure/bed/chair/office/dark{
 	dir = 4
@@ -6624,9 +6589,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "yb" = (
 /obj/structure/sign/deck3{
 	pixel_x = 32
@@ -6800,16 +6763,16 @@
 /turf/simulated/wall/bay/r_wall/blue,
 /area/ai_cyborg_station)
 "yI" = (
-/obj/item/weapon/folder{
+/obj/item/folder{
 	pixel_x = -4
 	},
-/obj/item/weapon/folder/blue{
+/obj/item/folder/blue{
 	pixel_x = 5
 	},
-/obj/item/weapon/folder/red{
+/obj/item/folder/red{
 	pixel_y = 3
 	},
-/obj/item/weapon/folder/yellow,
+/obj/item/folder/yellow,
 /obj/structure/table/darkglass,
 /obj/machinery/light,
 /turf/simulated/floor/tiled/dark,
@@ -6856,15 +6819,14 @@
 /obj/machinery/access_button{
 	command = "cycle_exterior";
 	dir = 4;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_starboard_landing";
 	pixel_y = 32;
 	req_one_access = list(13)
 	},
 /obj/machinery/door/airlock/angled_bay/external/glass{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -7015,7 +6977,7 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/maintenance/stellardelight/deck3/foreportroomb)
 "zv" = (
-/obj/item/weapon/bedsheet/rddouble,
+/obj/item/bedsheet/rddouble,
 /obj/structure/bed/double/padded,
 /obj/structure/curtain/black{
 	color = "#361447"
@@ -7028,7 +6990,6 @@
 	dir = 8;
 	id_tag = "portmaint_airlock";
 	pixel_x = 24;
-	req_access = null;
 	req_one_access = list(13);
 	tag_airpump = "portmaint_airpump";
 	tag_chamber_sensor = "portmaint_sensor";
@@ -7074,8 +7035,8 @@
 /area/stellardelight/deck3/commandhall)
 "zC" = (
 /obj/item/toy/figure/mime,
-/obj/item/weapon/pen/crayon/marker/mime,
-/obj/item/weapon/pen/crayon/mime,
+/obj/item/pen/crayon/marker/mime,
+/obj/item/pen/crayon/mime,
 /obj/structure/table/woodentable,
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 4
@@ -7191,7 +7152,7 @@
 /area/crew_quarters/heads/hos)
 "zQ" = (
 /obj/structure/table/steel,
-/obj/item/device/flashlight/lamp,
+/obj/item/flashlight/lamp,
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/maintenance/stellardelight/deck3/foreportrooma)
 "zS" = (
@@ -7208,9 +7169,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "zV" = (
 /obj/structure/cable/green{
 	icon_state = "1-4"
@@ -7260,12 +7219,12 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/maintenance/stellardelight/deck3/forestarrooma)
 "Aj" = (
-/obj/item/device/camera,
-/obj/item/device/camera_film,
-/obj/item/device/taperecorder,
-/obj/item/device/tape/random,
-/obj/item/device/tape/random,
-/obj/item/weapon/storage/secure/briefcase,
+/obj/item/camera,
+/obj/item/camera_film,
+/obj/item/taperecorder,
+/obj/item/rectape/random,
+/obj/item/rectape/random,
+/obj/item/storage/secure/briefcase,
 /obj/structure/closet/walllocker_double/east,
 /turf/simulated/floor/carpet/blue2,
 /area/lawoffice)
@@ -7343,7 +7302,7 @@
 /area/maintenance/stellardelight/deck3/starboardaft)
 "At" = (
 /obj/structure/table/glass,
-/obj/item/device/flashlight/lamp/green,
+/obj/item/flashlight/lamp/green,
 /turf/simulated/floor/carpet,
 /area/stellardelight/deck3/readingroom)
 "Av" = (
@@ -7374,12 +7333,12 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/forestarrooma)
 "Az" = (
-/obj/item/weapon/camera_assembly,
-/obj/item/weapon/camera_assembly,
-/obj/item/weapon/camera_assembly,
-/obj/item/weapon/camera_assembly,
-/obj/item/weapon/camera_assembly,
-/obj/item/weapon/camera_assembly,
+/obj/item/camera_assembly,
+/obj/item/camera_assembly,
+/obj/item/camera_assembly,
+/obj/item/camera_assembly,
+/obj/item/camera_assembly,
+/obj/item/camera_assembly,
 /obj/structure/closet/crate{
 	name = "Camera Assembly Crate"
 	},
@@ -7394,15 +7353,14 @@
 	dir = 10
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port{
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sdboat_docker";
 	pixel_x = 5;
 	pixel_y = 25
 	},
 /obj/machinery/airlock_sensor{
 	dir = 8;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	pixel_x = 25;
 	pixel_y = 2
 	},
@@ -7411,9 +7369,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "AE" = (
 /obj/structure/table/glass,
 /obj/machinery/atmospherics/unary/vent_pump/on{
@@ -7536,9 +7492,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "Bd" = (
 /obj/machinery/alarm/angled{
 	dir = 8
@@ -7604,11 +7558,10 @@
 /area/ai_upload)
 "Bl" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
-	dir = 8;
-	id_tag = null
+	dir = 8
 	},
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller{
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "tcommsairlock";
 	pixel_y = 24;
 	req_one_access = list(61)
@@ -7703,8 +7656,7 @@
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/door/airlock/angled_bay/external/glass{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -7712,7 +7664,7 @@
 /obj/machinery/access_button{
 	command = "cycle_exterior";
 	dir = 8;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_port_landing";
 	pixel_y = 32;
 	req_one_access = list(13)
@@ -7829,25 +7781,19 @@
 "BR" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 1;
-	frequency = 1380;
-	id_tag = null
+	frequency = 1381
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port_multi{
 	dir = 4;
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sd_escape_center_left";
 	master_tag = "escape_dock";
 	pixel_x = -24;
-	req_one_access = list(13);
-	tag_airpump = null;
-	tag_chamber_sensor = null;
-	tag_exterior_door = null;
-	tag_interior_door = null
+	req_one_access = list(13)
 	},
 /obj/machinery/airlock_sensor{
 	dir = 8;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	pixel_x = 25
 	},
 /obj/effect/map_helper/airlock/atmos/chamber_pump,
@@ -7878,9 +7824,7 @@
 	},
 /obj/effect/landmark/stardog,
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "BY" = (
 /obj/machinery/newscaster{
 	layer = 3.3;
@@ -8063,23 +8007,17 @@
 "CD" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 8;
-	frequency = 1380;
-	id_tag = null
+	frequency = 1381
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port_multi{
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sd_escape_port";
 	master_tag = "escape_dock";
 	pixel_y = 30;
-	req_one_access = list(13);
-	tag_airpump = null;
-	tag_chamber_sensor = null;
-	tag_exterior_door = null;
-	tag_interior_door = null
+	req_one_access = list(13)
 	},
 /obj/machinery/airlock_sensor{
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	pixel_y = -25
 	},
 /obj/effect/map_helper/airlock/atmos/chamber_pump,
@@ -8498,7 +8436,7 @@
 /area/space)
 "Et" = (
 /obj/structure/closet/secure_closet/hos,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	name = "Station Intercom (General)";
 	pixel_y = 24
@@ -8532,15 +8470,13 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "EE" = (
 /obj/structure/table/rack{
 	dir = 8;
 	layer = 2.9
 	},
-/obj/item/weapon/rig/ce/equipped,
+/obj/item/rig/ce/equipped,
 /obj/item/clothing/mask/breath,
 /obj/item/clothing/shoes/magboots/adv,
 /turf/simulated/floor/tiled,
@@ -8578,8 +8514,6 @@
 /area/crew_quarters/heads/cmo)
 "EL" = (
 /obj/machinery/door/airlock/angled_bay/hatch{
-	frequency = null;
-	id_tag = null;
 	locked = 1;
 	name = "Telecoms Server Access";
 	req_access = list(61);
@@ -8592,7 +8526,7 @@
 /obj/machinery/access_button{
 	command = "cycle_exterior";
 	dir = 1;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "tcommsairlock";
 	pixel_x = -32;
 	req_one_access = list(61)
@@ -8676,9 +8610,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "EY" = (
 /obj/structure/table/reinforced,
 /obj/machinery/computer/skills{
@@ -8825,10 +8757,11 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 5
 	},
+/obj/effect/recycler_vendor_beacon,
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/portaft)
 "FH" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -8930,7 +8863,7 @@
 /area/maintenance/stellardelight/deck3/starboardaft)
 "Ge" = (
 /obj/structure/table/standard,
-/obj/item/weapon/aiModule/nanotrasen,
+/obj/item/aiModule/nanotrasen,
 /obj/machinery/camera/network/command,
 /obj/machinery/atmospherics/unary/vent_scrubber/on,
 /turf/simulated/floor/bluegrid,
@@ -8967,7 +8900,7 @@
 /area/ai_upload)
 "Gi" = (
 /obj/structure/table/rack,
-/obj/item/weapon/rig/hazmat/equipped,
+/obj/item/rig/hazmat/equipped,
 /obj/machinery/light,
 /turf/simulated/floor/tiled/techfloor,
 /area/crew_quarters/heads/hor)
@@ -8989,9 +8922,8 @@
 	icon_state = "0-2"
 	},
 /obj/structure/cable/blue,
-/obj/machinery/power/smes/buildable{
-	RCon_tag = "Substation - Command";
-	output_attempt = 0
+/obj/machinery/power/smes/buildable/disable_output{
+	RCon_tag = "Substation - Command"
 	},
 /turf/simulated/floor,
 /area/maintenance/stellardelight/substation/command)
@@ -9033,8 +8965,8 @@
 /turf/simulated/floor/tiled,
 /area/stellardelight/deck3/aft)
 "GB" = (
-/obj/item/weapon/reagent_containers/food/drinks/shaker,
-/obj/item/weapon/reagent_containers/glass/rag,
+/obj/item/reagent_containers/food/drinks/shaker,
+/obj/item/reagent_containers/glass/rag,
 /obj/structure/table/rack,
 /obj/random/donkpocketbox,
 /turf/simulated/floor/tiled/techfloor/grid,
@@ -9072,7 +9004,7 @@
 /turf/simulated/floor/airless,
 /area/maintenance/stellardelight/deck3/portcent)
 "GH" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -9131,17 +9063,17 @@
 /area/ai_server_room)
 "GW" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/book/manual/supermatter_engine,
-/obj/item/device/radio{
+/obj/item/book/manual/supermatter_engine,
+/obj/item/radio{
 	pixel_x = -4
 	},
-/obj/item/device/megaphone,
+/obj/item/megaphone,
 /obj/machinery/light,
 /turf/simulated/floor/tiled,
 /area/crew_quarters/heads/chief)
 "Ha" = (
 /obj/structure/bed/double/padded,
-/obj/item/weapon/bedsheet/cedouble,
+/obj/item/bedsheet/cedouble,
 /obj/structure/curtain/black{
 	color = "#945112"
 	},
@@ -9215,7 +9147,7 @@
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 8
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -9388,7 +9320,6 @@
 /obj/machinery/door/airlock/angled_bay/standard/color{
 	door_color = "#9c9c9c";
 	fill_color = "#5c5c5c";
-	id_tag = null;
 	name = "Reading Rooms";
 	stripe_color = "#89bd66"
 	},
@@ -9475,9 +9406,7 @@
 /turf/simulated/wall/fancy_shuttle/nondense{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Ib" = (
 /obj/machinery/alarm/angled{
 	dir = 4
@@ -9547,9 +9476,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "It" = (
 /obj/effect/floor_decal/steeldecal/steel_decals4{
 	dir = 5
@@ -9739,7 +9666,6 @@
 	master_tag = "starmaint_airlock";
 	name = "interior access button";
 	pixel_x = 32;
-	req_access = null;
 	req_one_access = list(13)
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden,
@@ -9835,22 +9761,22 @@
 /area/stellardelight/deck3/starboarddock)
 "Js" = (
 /obj/structure/table/darkglass,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	name = "Station Intercom (General)";
 	pixel_y = 24
 	},
-/obj/item/device/flashlight/lamp/green{
+/obj/item/flashlight/lamp/green{
 	pixel_x = 5;
 	pixel_y = -5
 	},
-/obj/item/weapon/paper_bin,
-/obj/item/weapon/pen/blade/red{
+/obj/item/paper_bin,
+/obj/item/pen/blade/red{
 	pixel_x = -2;
 	pixel_y = -2
 	},
-/obj/item/weapon/pen,
-/obj/item/weapon/pen/blue{
+/obj/item/pen,
+/obj/item/pen/blue{
 	pixel_x = 2;
 	pixel_y = 3
 	},
@@ -9897,15 +9823,14 @@
 "JA" = (
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/door/airlock/angled_bay/external/glass{
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
 /obj/effect/map_helper/airlock/door/ext_door,
 /obj/machinery/access_button{
 	command = "cycle_exterior";
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_escape_center_left";
 	pixel_x = -32;
 	req_one_access = list(13)
@@ -9920,19 +9845,11 @@
 	icon_state = "0-2"
 	},
 /obj/structure/table/woodentable,
-/obj/item/weapon/reagent_containers/food/drinks/glass2/square{
-	pixel_x = 8;
-	pixel_y = 8
+/obj/item/reagent_containers/glass/rag,
+/obj/machinery/chemical_dispenser/bar_syrup/full{
+	pixel_y = 11;
+	pixel_x = -1
 	},
-/obj/item/weapon/reagent_containers/food/drinks/glass2/square{
-	pixel_x = 8;
-	pixel_y = 8
-	},
-/obj/item/weapon/reagent_containers/food/drinks/glass2/square{
-	pixel_x = 8;
-	pixel_y = 8
-	},
-/obj/item/weapon/reagent_containers/glass/rag,
 /turf/simulated/floor/lino,
 /area/stellardelight/deck3/cafe)
 "JJ" = (
@@ -9996,7 +9913,7 @@
 	child_names_txt = "Port;Center Left;Center Right;Starboard";
 	child_tags_txt = "sd_escape_port;sd_escape_center_left;sd_escape_center_right;sd_escape_starboard";
 	dir = 1;
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "escape_dock";
 	pixel_y = -18;
 	req_one_access = list(13)
@@ -10006,11 +9923,11 @@
 /area/stellardelight/deck3/aft)
 "JU" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/rcd,
-/obj/item/weapon/rcd_ammo,
-/obj/item/weapon/rcd_ammo,
-/obj/item/weapon/rcd_ammo,
-/obj/item/weapon/rcd_ammo,
+/obj/item/rcd,
+/obj/item/rcd_ammo,
+/obj/item/rcd_ammo,
+/obj/item/rcd_ammo,
+/obj/item/rcd_ammo,
 /turf/simulated/floor/tiled,
 /area/crew_quarters/heads/chief)
 "JW" = (
@@ -10050,9 +9967,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Kf" = (
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 1
@@ -10109,9 +10024,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "Kk" = (
 /obj/structure/table/steel,
 /obj/random/maintenance/clean,
@@ -10224,8 +10137,8 @@
 /obj/structure/table/alien{
 	name = "fancy table"
 	},
-/obj/item/weapon/cartridge/signal/science,
-/obj/item/weapon/cartridge/signal/science,
+/obj/item/cartridge/signal/science,
+/obj/item/cartridge/signal/science,
 /obj/item/clothing/glasses/welding/superior,
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 1
@@ -10510,9 +10423,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "LP" = (
 /obj/structure/disposalpipe/segment{
 	dir = 4
@@ -10608,12 +10519,12 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/forestarrooma)
 "Mg" = (
-/obj/item/device/camera,
-/obj/item/device/camera_film,
-/obj/item/device/taperecorder,
-/obj/item/device/tape/random,
-/obj/item/device/tape/random,
-/obj/item/weapon/storage/secure/briefcase,
+/obj/item/camera,
+/obj/item/camera_film,
+/obj/item/taperecorder,
+/obj/item/rectape/random,
+/obj/item/rectape/random,
+/obj/item/storage/secure/briefcase,
 /obj/structure/closet/walllocker_double/west,
 /turf/simulated/floor/carpet/blue2,
 /area/lawoffice)
@@ -10645,11 +10556,11 @@
 /area/stellardelight/deck2/port)
 "Ml" = (
 /obj/structure/table/darkglass,
-/obj/item/weapon/stamp/denied{
+/obj/item/stamp/denied{
 	pixel_x = -6;
 	pixel_y = 6
 	},
-/obj/item/weapon/stamp/internalaffairs,
+/obj/item/stamp/internalaffairs,
 /turf/simulated/floor/carpet/blue2,
 /area/lawoffice)
 "Mo" = (
@@ -10658,18 +10569,16 @@
 	},
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null
+	frequency = 1381
 	},
 /obj/effect/map_helper/airlock/atmos/chamber_pump,
 /obj/effect/map_helper/airlock/sensor/chamber_sensor,
 /obj/machinery/airlock_sensor{
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	pixel_y = -25
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port{
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sd_port_landing";
 	pixel_y = 29
 	},
@@ -10683,7 +10592,7 @@
 /area/ai_cyborg_station)
 "Mr" = (
 /obj/structure/bed/double/padded,
-/obj/item/weapon/bedsheet/clowndouble,
+/obj/item/bedsheet/clowndouble,
 /obj/structure/curtain/black{
 	color = "#361447"
 	},
@@ -10691,17 +10600,18 @@
 /area/stellardelight/deck3/clownmimeoffice)
 "Ms" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/stamp/hop,
-/obj/item/weapon/paper_bin{
+/obj/item/stamp/hop,
+/obj/item/paper_bin{
 	pixel_x = -3;
 	pixel_y = 7
 	},
-/obj/item/weapon/pen/multi,
-/obj/item/device/flashlight/lamp/green{
+/obj/item/pen/multi,
+/obj/item/flashlight/lamp/green{
 	pixel_x = 3;
 	pixel_y = 18
 	},
-/obj/item/weapon/book/manual/sd_guide,
+/obj/item/book/manual/sd_guide,
+/obj/item/gold_star_printer,
 /turf/simulated/floor/carpet,
 /area/crew_quarters/heads/hop)
 "Mu" = (
@@ -10829,8 +10739,8 @@
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 1
 	},
-/obj/item/device/retail_scanner/security,
-/obj/item/device/ticket_printer,
+/obj/item/retail_scanner/security,
+/obj/item/ticket_printer,
 /turf/simulated/floor/tiled/dark,
 /area/crew_quarters/heads/hos)
 "MO" = (
@@ -10913,9 +10823,7 @@
 	dir = 4
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "MZ" = (
 /obj/machinery/alarm/angled{
 	dir = 8
@@ -11142,8 +11050,8 @@
 /area/stellardelight/deck3/aft)
 "NO" = (
 /obj/structure/table/reinforced,
-/obj/item/device/flashlight/lamp,
-/obj/item/device/radio/intercom{
+/obj/item/flashlight/lamp,
+/obj/item/radio/intercom{
 	dir = 1;
 	frequency = 1357;
 	name = "station intercom (Engineering)";
@@ -11171,7 +11079,6 @@
 	master_tag = "portmaint_airlock";
 	name = "exterior access button";
 	pixel_y = 32;
-	req_access = null;
 	req_one_access = list(13)
 	},
 /obj/machinery/door/airlock/angled_bay/external/glass{
@@ -11198,9 +11105,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "NT" = (
 /obj/effect/floor_decal/steeldecal/steel_decals5{
 	dir = 8
@@ -11230,7 +11135,7 @@
 /obj/machinery/access_button{
 	command = "cycle_interior";
 	dir = 8;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_starboard_landing";
 	pixel_y = 32;
 	req_one_access = list(13)
@@ -11240,8 +11145,7 @@
 	},
 /obj/machinery/door/airlock/angled_bay/external/glass{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -11249,7 +11153,7 @@
 /turf/simulated/floor/tiled/steel_ridged,
 /area/stellardelight/deck3/starboarddock)
 "NZ" = (
-/obj/item/weapon/bedsheet/mimedouble,
+/obj/item/bedsheet/mimedouble,
 /obj/structure/bed/double/padded,
 /obj/structure/curtain/black,
 /turf/simulated/floor/carpet/bcarpet,
@@ -11328,7 +11232,7 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/foreportrooma)
 "Op" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -11362,7 +11266,7 @@
 /turf/simulated/floor/carpet/purcarpet,
 /area/crew_quarters/heads/hor)
 "Ou" = (
-/obj/item/device/radio/beacon,
+/obj/item/radio/beacon,
 /obj/effect/floor_decal/steeldecal/steel_decals5,
 /obj/structure/cable{
 	icon_state = "4-8"
@@ -11410,6 +11314,13 @@
 /obj/machinery/door/window{
 	req_one_access = list(25)
 	},
+/obj/machinery/button/remote/blast_door{
+	desc = "A remote control-switch for shutters.";
+	id = "cafe";
+	name = "Cafe Shutters";
+	pixel_y = 28;
+	req_one_access = list(25)
+	},
 /turf/simulated/floor/lino,
 /area/stellardelight/deck3/cafe)
 "Oz" = (
@@ -11427,8 +11338,6 @@
 "OC" = (
 /obj/machinery/atmospherics/pipe/simple/hidden,
 /obj/machinery/door/airlock/angled_bay/hatch{
-	frequency = null;
-	id_tag = null;
 	locked = 1;
 	name = "Telecoms Server Access";
 	req_access = list(61);
@@ -11440,7 +11349,7 @@
 	},
 /obj/machinery/access_button{
 	command = "cycle_interior";
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "tcommsairlock";
 	pixel_x = 32;
 	req_one_access = list(61)
@@ -11462,8 +11371,8 @@
 	dir = 8
 	},
 /obj/item/clothing/mask/breath,
-/obj/item/weapon/tank/oxygen,
-/obj/item/device/suit_cooling_unit,
+/obj/item/tank/oxygen,
+/obj/item/suit_cooling_unit,
 /obj/item/clothing/shoes/magboots,
 /obj/item/clothing/suit/space/void/security/prototype,
 /obj/item/clothing/head/helmet/space/void/security/prototype,
@@ -11673,9 +11582,7 @@
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "Pm" = (
 /obj/structure/cable/green{
 	icon_state = "4-8"
@@ -11746,9 +11653,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "PC" = (
 /obj/machinery/alarm/angled{
 	dir = 4
@@ -11816,12 +11721,12 @@
 /area/stellardelight/deck3/commandhall)
 "PR" = (
 /obj/structure/table/glass,
-/obj/item/device/flashlight/lamp/green{
+/obj/item/flashlight/lamp/green{
 	pixel_x = -4;
 	pixel_y = 12
 	},
-/obj/item/weapon/stamp/cmo,
-/obj/item/weapon/book/manual/sd_guide,
+/obj/item/stamp/cmo,
+/obj/item/book/manual/sd_guide,
 /turf/simulated/floor/carpet/tealcarpet,
 /area/crew_quarters/heads/cmo)
 "PT" = (
@@ -11872,9 +11777,7 @@
 	dir = 4
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Qf" = (
 /obj/structure/bed/chair/office/dark{
 	dir = 4
@@ -11889,9 +11792,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Qi" = (
 /obj/structure/sign/painting/public{
 	pixel_x = -30
@@ -12008,7 +11909,7 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/ai)
 "QI" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -12017,15 +11918,14 @@
 "QJ" = (
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/door/airlock/angled_bay/external/glass{
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
 /obj/effect/map_helper/airlock/door/ext_door,
 /obj/machinery/access_button{
 	command = "cycle_exterior";
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_escape_center_right";
 	pixel_x = 32;
 	req_one_access = list(13)
@@ -12082,7 +11982,6 @@
 /obj/machinery/door/airlock/angled_bay/standard/glass{
 	door_color = "#323d80";
 	name = "Command Offices";
-	req_access = null;
 	req_one_access = list(19,38);
 	stripe_color = "#f7d35c"
 	},
@@ -12237,9 +12136,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/reinforced/airless,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Rx" = (
 /obj/structure/cable/green{
 	icon_state = "1-2"
@@ -12341,7 +12238,6 @@
 	dir = 4;
 	door_color = "#e6ab22";
 	name = "Shield Generator";
-	req_access = null;
 	req_one_access = list(11,24);
 	stripe_color = "#e6ab22"
 	},
@@ -12363,9 +12259,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "RX" = (
 /turf/simulated/wall/bay/steel,
 /area/stellardelight/deck2/central)
@@ -12380,9 +12274,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "RZ" = (
 /obj/structure/cable/blue{
 	icon_state = "1-2"
@@ -12419,7 +12311,7 @@
 /area/maintenance/stellardelight/deck3/foreportrooma)
 "Sk" = (
 /obj/structure/table/standard,
-/obj/item/weapon/phone{
+/obj/item/phone{
 	pixel_x = 3;
 	pixel_y = 11
 	},
@@ -12524,7 +12416,7 @@
 /obj/effect/floor_decal/steeldecal/steel_decals5{
 	dir = 1
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24
 	},
@@ -12537,9 +12429,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/reinforced/airless,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "SK" = (
 /obj/structure/lattice,
 /turf/space,
@@ -12706,7 +12596,7 @@
 /obj/structure/bed/chair/office/dark{
 	dir = 8
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	name = "Station Intercom (General)";
 	pixel_y = 24
@@ -12752,7 +12642,7 @@
 	},
 /obj/structure/disposalpipe/segment,
 /obj/machinery/power/apc/angled{
-	cell_type = /obj/item/weapon/cell/super;
+	cell_type = /obj/item/cell/super;
 	dir = 8;
 	name = "night shift APC";
 	nightshift_setting = 2
@@ -12775,7 +12665,6 @@
 	dir = 4;
 	door_color = "#9fccc7";
 	fill_color = "#333333";
-	id_tag = null;
 	name = "Internal Affairs";
 	req_access = list(38);
 	stripe_color = "#ffffff"
@@ -12811,7 +12700,7 @@
 /turf/simulated/floor/tiled,
 /area/stellardelight/deck3/aft)
 "TE" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -12941,8 +12830,8 @@
 /area/maintenance/stellardelight/deck3/foreportrooma)
 "Ud" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/stamp/ce,
-/obj/item/weapon/book/manual/sd_guide,
+/obj/item/stamp/ce,
+/obj/item/book/manual/sd_guide,
 /turf/simulated/floor/carpet/oracarpet,
 /area/crew_quarters/heads/chief)
 "Ue" = (
@@ -12973,9 +12862,8 @@
 /obj/structure/cable/blue{
 	icon_state = "0-2"
 	},
-/obj/machinery/power/smes/buildable{
-	RCon_tag = "Substation - AI/Telecomms";
-	output_attempt = 0
+/obj/machinery/power/smes/buildable/disable_output{
+	RCon_tag = "Substation - AI/Telecomms"
 	},
 /turf/simulated/floor,
 /area/ai_cyborg_station)
@@ -13033,9 +12921,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "UF" = (
 /obj/machinery/light/small,
 /turf/simulated/floor,
@@ -13061,7 +12947,7 @@
 /obj/effect/floor_decal/steeldecal/steel_decals5{
 	dir = 4
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -13091,7 +12977,7 @@
 /area/maintenance/stellardelight/deck3/portfore)
 "UO" = (
 /obj/machinery/recharge_station,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -13122,13 +13008,13 @@
 /area/crew_quarters/bar)
 "UT" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/weapon/paper_bin{
+/obj/item/paper_bin{
 	pixel_x = -3;
 	pixel_y = 7
 	},
-/obj/item/device/megaphone,
-/obj/item/weapon/pen/multi,
-/obj/item/device/radio/intercom/department/security{
+/obj/item/megaphone,
+/obj/item/pen/multi,
+/obj/item/radio/intercom/department/security{
 	dir = 1;
 	pixel_y = 24
 	},
@@ -13231,9 +13117,7 @@
 	dir = 6
 	},
 /turf/simulated/floor/reinforced/airless,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Vi" = (
 /obj/structure/cable/green{
 	icon_state = "2-8"
@@ -13245,7 +13129,7 @@
 /obj/random/maintenance,
 /obj/random/maintenance,
 /obj/random/maintenance,
-/obj/item/device/gps,
+/obj/item/gps,
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/forestarrooma)
 "Vk" = (
@@ -13269,8 +13153,7 @@
 /obj/machinery/door/firedoor/glass,
 /obj/machinery/door/airlock/angled_bay/external/glass{
 	dir = 4;
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -13278,7 +13161,7 @@
 /obj/machinery/access_button{
 	command = "cycle_exterior";
 	dir = 8;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_escape_starboard";
 	pixel_y = 32;
 	req_one_access = list(13)
@@ -13297,16 +13180,13 @@
 /turf/simulated/floor/tiled/monotile,
 /area/stellardelight/deck3/commandhall)
 "Vr" = (
-/obj/machinery/atmospherics/unary/vent_pump/on{
-	dir = 1
-	},
 /obj/structure/table/reinforced,
-/obj/item/weapon/paper_bin{
+/obj/item/paper_bin{
 	pixel_x = -3;
 	pixel_y = 7
 	},
-/obj/item/weapon/folder/yellow_ce,
-/obj/item/weapon/pen/multi,
+/obj/item/folder/yellow_ce,
+/obj/item/pen/multi,
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 1
 	},
@@ -13316,7 +13196,7 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/ai)
 "Vt" = (
-/obj/item/device/radio/intercom/locked/ai_private{
+/obj/item/radio/intercom/locked/ai_private{
 	dir = 4;
 	pixel_x = 32
 	},
@@ -13330,9 +13210,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Vx" = (
 /obj/structure/cable/blue{
 	icon_state = "1-4"
@@ -13343,7 +13221,7 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/maintenance/stellardelight/deck3/forestarroomb)
 "Vz" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -13356,7 +13234,7 @@
 /turf/simulated/floor/airless,
 /area/stellardelight/deck3/exterior)
 "VB" = (
-/obj/item/weapon/bedsheet/double,
+/obj/item/bedsheet/double,
 /obj/structure/bed/double/padded,
 /obj/structure/curtain/black{
 	color = "#156363"
@@ -13375,26 +13253,26 @@
 /area/maintenance/stellardelight/deck3/foreportroomb)
 "VE" = (
 /obj/structure/table/glass,
-/obj/item/device/radio/intercom/department/medbay{
+/obj/item/radio/intercom/department/medbay{
 	dir = 1;
 	pixel_y = 24
 	},
-/obj/item/weapon/paper_bin{
+/obj/item/paper_bin{
 	pixel_x = 3;
 	pixel_y = 7
 	},
-/obj/item/weapon/pen/multi,
+/obj/item/pen/multi,
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 8
 	},
-/obj/item/weapon/folder/white_cmo,
+/obj/item/folder/white_cmo,
 /turf/simulated/floor/tiled/eris/white/cargo,
 /area/crew_quarters/heads/cmo)
 "VG" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 10
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -13415,7 +13293,7 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/portcent)
 "VM" = (
-/obj/machinery/power/pointdefense{
+/obj/machinery/pointdefense{
 	id_tag = "sd_pd"
 	},
 /obj/effect/floor_decal/industrial/warning/full,
@@ -13499,7 +13377,7 @@
 	dir = 1;
 	pixel_y = -32
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -13507,9 +13385,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Wi" = (
 /obj/structure/closet/secure_closet/personal,
 /turf/simulated/floor/bluegrid,
@@ -13520,9 +13396,7 @@
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "Wl" = (
 /obj/structure/sign/warning/falling{
 	pixel_x = -32
@@ -13530,9 +13404,7 @@
 /turf/simulated/open,
 /area/stellardelight/deck2/port)
 "Wn" = (
-/obj/machinery/power/smes/buildable{
-	charge = 500000
-	},
+/obj/machinery/power/smes/buildable/max_charge,
 /obj/effect/floor_decal/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
@@ -13540,9 +13412,7 @@
 	icon_state = "0-4"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Wp" = (
 /obj/machinery/atmospherics/unary/vent_pump/on,
 /turf/simulated/open,
@@ -13569,7 +13439,7 @@
 	icon_state = "1-2"
 	},
 /obj/structure/table/steel,
-/obj/item/weapon/flame/candle,
+/obj/item/flame/candle,
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/portfore)
 "Wt" = (
@@ -13593,16 +13463,14 @@
 /obj/effect/map_helper/airlock/atmos/pump_out_internal,
 /obj/machinery/light,
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
-	frequency = 1380;
+	frequency = 1381;
 	id_tag = "sdboat_docker_pump_out_internal"
 	},
 /obj/effect/floor_decal/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
 /turf/simulated/floor/tiled,
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Wx" = (
 /obj/effect/floor_decal/steeldecal/steel_decals5{
 	dir = 4
@@ -13620,7 +13488,7 @@
 	dir = 4
 	},
 /obj/structure/table/steel_reinforced,
-/obj/item/weapon/paper/sdshield,
+/obj/item/paper/sdshield,
 /turf/simulated/floor,
 /area/stellardelight/deck2/central)
 "WA" = (
@@ -13676,9 +13544,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/fore{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/fore/airless_base)
 "WL" = (
 /obj/structure/closet/crate,
 /obj/random/contraband,
@@ -13710,7 +13576,7 @@
 /area/lawoffice)
 "WQ" = (
 /obj/machinery/power/apc/angled{
-	cell_type = /obj/item/weapon/cell/super;
+	cell_type = /obj/item/cell/super;
 	dir = 4;
 	name = "night shift APC";
 	nightshift_setting = 2
@@ -13751,24 +13617,23 @@
 /turf/simulated/floor/tiled,
 /area/stellardelight/deck3/aft)
 "Xa" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	name = "Station Intercom (General)";
 	pixel_y = 24
 	},
-/obj/structure/closet/secure_closet/CMO,
+/obj/structure/closet/secure_closet/chief_medical_officer,
 /obj/item/clothing/accessory/stethoscope,
-/obj/item/device/flashlight/pen,
-/obj/item/weapon/storage/belt/medical,
+/obj/item/flashlight/pen,
+/obj/item/storage/belt/medical,
 /obj/item/clothing/glasses/hud/health,
-/obj/item/device/defib_kit/compact/combat/loaded,
-/obj/item/weapon/cmo_disk_holder,
-/obj/item/weapon/storage/secure/briefcase/ml3m_pack_cmo,
-/obj/item/weapon/storage/mrebag/pill/sleevingcure,
+/obj/item/defib_kit/compact/combat/loaded,
+/obj/item/cmo_disk_holder,
+/obj/item/storage/secure/briefcase/ml3m_pack_cmo,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 8
 	},
-/obj/item/device/retail_scanner/medical,
+/obj/item/retail_scanner/medical,
 /turf/simulated/floor/tiled/eris/white/cargo,
 /area/crew_quarters/heads/cmo)
 "Xb" = (
@@ -13816,7 +13681,7 @@
 /obj/structure/table/alien{
 	name = "fancy table"
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	frequency = 1351;
 	name = "station intercom (Science)";
@@ -13825,16 +13690,16 @@
 /obj/random/paicard{
 	pixel_x = 4
 	},
-/obj/item/weapon/paper_bin{
+/obj/item/paper_bin{
 	pixel_x = 1;
 	pixel_y = 9
 	},
-/obj/item/weapon/paper/monitorkey,
-/obj/item/device/megaphone,
+/obj/item/paper/monitorkey,
+/obj/item/megaphone,
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 8
 	},
-/obj/item/weapon/folder/white_rd,
+/obj/item/folder/white_rd,
 /turf/simulated/floor/tiled/techfloor,
 /area/crew_quarters/heads/hor)
 "Xo" = (
@@ -13963,9 +13828,6 @@
 /turf/simulated/floor/tiled/techfloor/grid,
 /area/maintenance/stellardelight/deck3/foreportroomb)
 "XJ" = (
-/obj/machinery/power/apc/angled{
-	dir = 8
-	},
 /obj/structure/cable/blue,
 /turf/simulated/floor/tiled/dark,
 /area/lawoffice)
@@ -14011,8 +13873,7 @@
 	dir = 10
 	},
 /obj/machinery/door/airlock/angled_bay/external/glass{
-	frequency = 1380;
-	id_tag = null;
+	frequency = 1381;
 	locked = 1;
 	name = "Docking Port Airlock"
 	},
@@ -14020,7 +13881,7 @@
 /obj/machinery/access_button{
 	command = "cycle_interior";
 	dir = 1;
-	frequency = 1380;
+	frequency = 1381;
 	master_tag = "sd_escape_center_left";
 	pixel_x = -32;
 	req_one_access = list(13)
@@ -14112,13 +13973,18 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/aftstarroom)
 "Yp" = (
-/obj/machinery/button/remote/blast_door{
-	desc = "A remote control-switch for shutters.";
-	id = "cafe";
-	name = "Cafe Shutters";
-	pixel_y = 28;
-	req_one_access = list(25)
-	},
+/obj/structure/closet/walllocker_double/kitchen/north,
+/obj/item/reagent_containers/food/drinks/glass2/square,
+/obj/item/reagent_containers/food/drinks/glass2/square,
+/obj/item/reagent_containers/food/drinks/glass2/square,
+/obj/item/reagent_containers/food/drinks/glass2/square,
+/obj/item/hand_labeler,
+/obj/item/storage/box/glasses/coffeecup,
+/obj/item/storage/box/glasses/coffeecup,
+/obj/item/storage/box/glasses/coffeecup,
+/obj/item/storage/box/glasses/coffeecup_tall,
+/obj/item/storage/box/glasses/coffeecup_grande,
+/obj/item/storage/box/glasses/coffeecup_venti,
 /turf/simulated/floor/lino,
 /area/stellardelight/deck3/cafe)
 "Ys" = (
@@ -14126,7 +13992,6 @@
 	dir = 4;
 	id_tag = "starmaint_airlock";
 	pixel_x = -24;
-	req_access = null;
 	req_one_access = list(13);
 	tag_airpump = "starmaint_airpump";
 	tag_chamber_sensor = "starmaint_sensor";
@@ -14207,18 +14072,18 @@
 /turf/simulated/floor,
 /area/maintenance/stellardelight/deck3/forestarroomb)
 "YC" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	name = "Station Intercom (General)";
 	pixel_y = 24
 	},
-/obj/structure/closet/secure_closet/RD,
-/obj/item/device/aicard,
+/obj/structure/closet/secure_closet/research_director,
+/obj/item/aicard,
 /obj/item/clothing/glasses/omnihud/rnd,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 8
 	},
-/obj/item/device/retail_scanner/science,
+/obj/item/retail_scanner/science,
 /turf/simulated/floor/tiled/techfloor,
 /area/crew_quarters/heads/hor)
 "YD" = (
@@ -14273,12 +14138,12 @@
 /area/stellardelight/deck3/aft)
 "YL" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/paper_bin{
+/obj/item/paper_bin{
 	pixel_x = -3;
 	pixel_y = 7
 	},
-/obj/item/weapon/folder/blue_hop,
-/obj/item/weapon/pen,
+/obj/item/folder/blue_hop,
+/obj/item/pen,
 /obj/machinery/light,
 /turf/simulated/floor/tiled,
 /area/crew_quarters/heads/hop)
@@ -14325,9 +14190,7 @@
 /turf/simulated/wall/fancy_shuttle{
 	fancy_shuttle_tag = "sdboat"
 	},
-/area/shuttle/sdboat/aft{
-	base_turf = /turf/simulated/floor/reinforced/airless
-	})
+/area/shuttle/sdboat/aft/airless_base)
 "Ze" = (
 /turf/simulated/floor/bluegrid{
 	name = "Mainframe Base";
@@ -14525,7 +14388,7 @@
 /turf/simulated/open,
 /area/stellardelight/deck2/starboard)
 "ZN" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -21605,15 +21468,15 @@ bd
 NE
 nV
 ZB
-dE
+bc
 NR
 dE
 hd
 dE
+bc
 dE
 dE
-dE
-dE
+bc
 fP
 HY
 ed
@@ -21722,12 +21585,12 @@ IP
 YD
 bC
 ms
-Ns
+bk
 Ns
 Hk
 Ns
-Ns
-Ns
+bk
+bk
 Ns
 Ns
 KW
@@ -21996,7 +21859,7 @@ MP
 hD
 zt
 dL
-xP
+bt
 pN
 pN
 zp
@@ -22844,7 +22707,7 @@ Zn
 zQ
 DM
 WI
-il
+bu
 hD
 ne
 vF
@@ -26262,7 +26125,7 @@ Ub
 Yj
 Yj
 Ef
-FE
+Ps
 Ps
 eE
 dx
@@ -26852,7 +26715,7 @@ ON
 Xd
 Ja
 Ly
-KJ
+bf
 by
 ow
 aC
@@ -26985,7 +26848,7 @@ Vg
 Vg
 RE
 RE
-xH
+bi
 DE
 me
 od
@@ -27251,16 +27114,16 @@ On
 DQ
 DQ
 DQ
-DQ
+bo
 DQ
 WB
 TP
+bo
 DQ
 DQ
 DQ
 DQ
-DQ
-DQ
+bo
 Mu
 zA
 Ln
@@ -27272,7 +27135,7 @@ RK
 hB
 In
 me
-NL
+aW
 NL
 qy
 NL
@@ -27414,7 +27277,7 @@ RE
 me
 me
 me
-NL
+aY
 NL
 we
 NL
@@ -27442,7 +27305,7 @@ CK
 CK
 by
 hQ
-lq
+bq
 lq
 rq
 lq
@@ -27584,7 +27447,7 @@ SK
 Jh
 Jh
 hQ
-lq
+ba
 lq
 rq
 lq
@@ -27731,7 +27594,7 @@ Qv
 Al
 VZ
 tu
-lq
+aZ
 nT
 xE
 YS

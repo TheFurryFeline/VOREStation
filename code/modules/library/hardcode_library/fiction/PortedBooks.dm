@@ -7,7 +7,7 @@ Category: Fiction
 
 /// The Tale of the Rainbow Cat by Miyahara Koichiro, translated by Emily Balistrieri.
 
-/obj/item/weapon/book/bundle/custom_library/fiction/taleoftherainbowcat
+/obj/item/book/bundle/custom_library/fiction/taleoftherainbowcat
 	name = "The Tale of the Rainbow Cat"
 	desc = "A hardbound book titled \"The Tale of the Rainbow Cat\" by Miyahara Koichiro."
 	description_info = "This book is titled \"The Tale of the Rainbow Cat\" by Miyahara Koichiro. There is a blurb on the back: <br>\<br>\
@@ -29,9 +29,9 @@ Category: Fiction
 					<body>
 					<br><br><br>
 					<center>
-					<h1><font size="5">The Tale of the Rainbow Cat</font>
+					<h1>"} + span_giant("The Tale of the Rainbow Cat") + {"
 					<br><br>
-					<font size="2"><i>by Miyahara Koichiro</i></font></h1>
+					"} + span_normal(span_italics("by Miyahara Koichiro")) + {"</h1>
 					</center>
 					</body>
 					</html>
@@ -46,39 +46,39 @@ Category: Fiction
 
 					<body>
 					<p>
-					Once upon a time there was a cat, but he wasnít the kind of cat youíre thinking of. He was from the land of the fairies and his fur was completely unexpected colors. For starters, his nose was <i>violet</i>. His eyes were <i>indigo</i>, his ears were <i>sky blue</i>, his front paws were <i>green</i>, his body was <i>yellow</i>, his back paws were <i>orange</i>, and his tail was <i>red</i>. So he was a mysterious cat of seven colors arranged just like a rainbow.
+					Once upon a time there was a cat, but he wasn't the kind of cat you're thinking of. He was from the land of the fairies and his fur was completely unexpected colors. For starters, his nose was "} + span_italics("violet") + {". His eyes were "} + span_italics("indigo") + {", his ears were "} + span_italics("sky blue") + {", his front paws were "} + span_italics("green") + {", his body was "} + span_italics("yellow") + {", his back paws were "} + span_italics("orange") + {", and his tail was "} + span_italics("red") + {". So he was a mysterious cat of seven colors arranged just like a rainbow.
 					<br><br>
 					That rainbow cat went on all sorts of strange adventures. The following story is one of them.
 					<br><br>
 					One day while the rainbow cat was sunbathing, he was suddenly vexed by boredom. That is to say, peace reigned in the land of the fairies, so nothing much was going on.
 					<br><br>
-					<i>Itís not good for my health to spend all my time idling about as if I havenít got a care in the world,</i> he thought. <i>Perhaps I should head out and go on an adventure.</i>
+					"} + span_italics("It's not good for my health to spend all my time idling about as if I haven't got a care in the world,") + {" he thought. "} + span_italics("Perhaps I should head out and go on an adventure.") + {"
 					<br><br>
 					So he put a note up on his door: "Dear Mr. Post Man, I will be gone for two or three days, so if any packages or letters come, please throw them down the chimney."
 					<br><br>
 					Then he packed a small bag, hung it on his tail, and wobbled off to the border of the land of the fairies. When he arrived, a thick cloud billowed up.
 					<br><br>
-					"Well, maybe Iíll drop by the cloud peopleís place," he chattered to himself, climbing up the cloud embankment.
+					"Well, maybe I'll drop by the cloud people's place," he chattered to himself, climbing up the cloud embankment.
 					<br><br>
-					The people who lived in cloud country were quite pleasant folks. They didnít do any work, in particular, but just because they were lazy didnít mean that they didnít find the world interesting. They all lived in splendid palaces, of which the ones you couldnít see from Earth were far more beautiful than the ones you could.
+					The people who lived in cloud country were quite pleasant folks. They didn't do any work, in particular, but just because they were lazy didn't mean that they didn't find the world interesting. They all lived in splendid palaces, of which the ones you couldn't see from Earth were far more beautiful than the ones you could.
 					<br><br>
-					The people of the cloud country sometimes drove pearly gray carriages or went sailing in lightweight boats. They lived in the sky, so the only person they had to fear was Sir Thunder. Itís quite understandable given that he was quick to anger -- he would make the sky rumble with his stomping and go around knocking down their houses.
+					The people of the cloud country sometimes drove pearly gray carriages or went sailing in lightweight boats. They lived in the sky, so the only person they had to fear was Sir Thunder. It's quite understandable given that he was quick to anger -- he would make the sky rumble with his stomping and go around knocking down their houses.
 					<br><br>
 					The people of the cloud country were very happy to have the rainbow cat visit and greeted him politely.
 					<br><br>
-					"Youíve come at a great time," they said. "Weíre having a big celebration at the Wind Godís house. His eldest son, North Wind is taking the daughter of the King of the Magic Isle as his wife."
+					"You've come at a great time," they said. "We're having a big celebration at the Wind God's house. His eldest son, North Wind is taking the daughter of the King of the Magic Isle as his wife."
 					<br><br>
 					The rainbow cat, having thought just such a thing might happen, was prepared with various goods in the bag on his tail.
 					<br><br>
 					It was a truly magnificent wedding.
 					<br><br>
-					Everyone came. Even Comet showed up. You wouldnít see Comet unless it was a very fine banquet indeed.
+					Everyone came. Even Comet showed up. You wouldn't see Comet unless it was a very fine banquet indeed.
 					<br><br>
-					And Aurora came in the most indescribably beautiful garments of light. Of course, the brideís parents, the King of Magic Isle and his Pearl Oyster Queen, were in attendance.
+					And Aurora came in the most indescribably beautiful garments of light. Of course, the bride's parents, the King of Magic Isle and his Pearl Oyster Queen, were in attendance.
 					<br><br>
-					A feast was served and everyone was in a lively mood, having interesting conversations and drinking, when all of the sudden a swallow flew in. According to him, the giant Sir Thunder was rushing towards them at a tremendous speed. Apparently, when Trade Wind was hurrying by, he had tripped over sleeping Sir Thunderís toes and Sir Thunder was furious.
+					A feast was served and everyone was in a lively mood, having interesting conversations and drinking, when all of the sudden a swallow flew in. According to him, the giant Sir Thunder was rushing towards them at a tremendous speed. Apparently, when Trade Wind was hurrying by, he had tripped over sleeping Sir Thunder's toes and Sir Thunder was furious.
 					<br><br>
-					"Whatíll we do?" everyone wondered at once, their faces pale. "The celebration will be ruined!"
+					"What'll we do?" everyone wondered at once, their faces pale. "The celebration will be ruined!"
 					<br><br>
 					All the guests and the master of the house began to scatter in a panic.
 					<br><br>
@@ -88,9 +88,9 @@ Category: Fiction
 					<br><br>
 					A moment later, he came back out.
 					<br><br>
-					"Iíll find a way to keep Sir Thunder from coming here," said the cat. "So please continue the celebration as you were. Iíll go to him and see what I can do."
+					"I'll find a way to keep Sir Thunder from coming here," said the cat. "So please continue the celebration as you were. I'll go to him and see what I can do."
 					<br><br>
-					Everyone was surprised at how brave and composed the rainbow cat was, but it sounded like their celebration wouldnít be intruded upon partway through, so they were happy to gather and see off the cat as he raced towards the far-off rumblings of Sir Thunder.
+					Everyone was surprised at how brave and composed the rainbow cat was, but it sounded like their celebration wouldn't be intruded upon partway through, so they were happy to gather and see off the cat as he raced towards the far-off rumblings of Sir Thunder.
 					</p>
 					</body>
 					</html>
@@ -111,21 +111,21 @@ Category: Fiction
 					<br><br>
 					"Hey, who are you and what are you doing here?" he shouted.
 					<br><br>
-					"Me? Iím the famed magician Mewpuu," replied the rainbow cat in a voice made to sound serious and important. "Take a look at my bag, here. There are magic seeds inside. Mr. Thunder, Iíve known about you for a while now. Youíre quite famous."
+					"Me? I'm the famed magician Mewpuu," replied the rainbow cat in a voice made to sound serious and important. "Take a look at my bag, here. There are magic seeds inside. Mr. Thunder, I've known about you for a while now. You're quite famous."
 					<br><br>
 					Hearing this Sir Thunder felt a bit proud, but his foot was sore, so he was soon angry again.
 					<br><br>
-					"Hrmph! I donít think too highly of magicians. What can you do, anyways?"
+					"Hrmph! I don't think too highly of magicians. What can you do, anyways?"
 					<br><br>
 					"I can read your mind."
 					<br><br>
-					"Oh? Is that so? Then try to guess what Iím thinking right now."
+					"Oh? Is that so? Then try to guess what I'm thinking right now."
 					<br><br>
-					"A simple matter. Youíre angry because your foot hurts and you want to catch the fellow who kicked your blister, right?"
+					"A simple matter. You're angry because your foot hurts and you want to catch the fellow who kicked your blister, right?"
 					<br><br>
 					The rainbow cat had heard all that from the swallow. Sir Thunder was flabbergasted.
 					<br><br>
-					"Wow, thatís right. Will you teach me your magic?"
+					"Wow, that's right. Will you teach me your magic?"
 					<br><br>
 					"Sure I will. But first I must test your potential. Have a seat."
 					<br><br>
@@ -133,35 +133,35 @@ Category: Fiction
 					<br><br>
 					"Now then, try to tell me what I am thinking right now," said the cat.
 					<br><br>
-					Sir Thunder the giant looked blankly at the catís face. He was not very bright.
+					Sir Thunder the giant looked blankly at the cat's face. He was not very bright.
 					<br><br>
 					"You must be thinking that I look pretty foolish sitting here."
 					<br><br>
 					"Excellent. Astonishing! You have more than enough talent to begin the training. You may be my brightest disciple yet."
 					<br><br>
-					"Then maybe Iíll try one more time." Sir Thunder now thought himself terribly sharp.
+					"Then maybe I'll try one more time." Sir Thunder now thought himself terribly sharp.
 					<br><br>
-					"Very well. Try to guess what Iím thinking."
+					"Very well. Try to guess what I'm thinking."
 					<br><br>
-					Sir Thunder tried to look wise and peered at the catís face with his small, goofy eyes.
+					Sir Thunder tried to look wise and peered at the cat's face with his small, goofy eyes.
 					<br><br>
 					"Beef steak and onions," he announced abruptly.
 					<br><br>
-					"Brilliant!" the cat feigned surprise and purposely lost his footing to land on his rump. "Youíre exactly right. But how did you know?"
+					"Brilliant!" the cat feigned surprise and purposely lost his footing to land on his rump. "You're exactly right. But how did you know?"
 					<br><br>
 					"Oh, how do you say...? I guess it just came to me," replied Sir Thunder.
 					<br><br>
 					The cat assumed a serious air. "We must cultivate that fine talent of yours!"
 					<br><br>
-					"How do we cultivate it?" asked Sir Thunder. He thought being able to read peopleís minds was quite fun.
+					"How do we cultivate it?" asked Sir Thunder. He thought being able to read people's minds was quite fun.
 					<br><br>
-					"Itís a cinch," said the cat, finally telling a blatant lie now that he thought he had the giant where he wanted him. "Go home and sleep for two or three hours. Then have some cake and sleep another two or three hours. Then, when you wake up, drink one cup of hot tea. But you have to be as still as possible or it wonít work. If you do all that, by tomorrow morning youíll be reading peopleís minds like itís nothing."
+					"It's a cinch," said the cat, finally telling a blatant lie now that he thought he had the giant where he wanted him. "Go home and sleep for two or three hours. Then have some cake and sleep another two or three hours. Then, when you wake up, drink one cup of hot tea. But you have to be as still as possible or it won't work. If you do all that, by tomorrow morning you'll be reading people's minds like it's nothing."
 					<br><br>
-					Sir Thunder wanted to go running straight home, but of course, he couldnít forget his manners. "Thanks a lot. But Master Mewpuu, what can I offer you in return for teaching me this?"
+					Sir Thunder wanted to go running straight home, but of course, he couldn't forget his manners. "Thanks a lot. But Master Mewpuu, what can I offer you in return for teaching me this?"
 					<br><br>
-					The rainbow cat thought a moment and said, "Iíd like a tiny bit of lightning. Please give me just a smidge."
+					The rainbow cat thought a moment and said, "I'd like a tiny bit of lightning. Please give me just a smidge."
 					<br><br>
-					Sir Thunder the giant put his hand in his pocket and said, "No problem. If thatís all, I have a bundle of it right here, so please take this. When you need it, just undo the string and the lightning will come out in a most amusing way."
+					Sir Thunder the giant put his hand in his pocket and said, "No problem. If that's all, I have a bundle of it right here, so please take this. When you need it, just undo the string and the lightning will come out in a most amusing way."
 					<br><br>
 					"Thank you very much."
 					<br><br>
@@ -179,7 +179,7 @@ Category: Fiction
 
 /// Woody's Got Wood by Unknown. Literally just a meme entry, a memory of a different time.
 
-/obj/item/weapon/book/custom_library/fiction/woodysgotwood
+/obj/item/book/custom_library/fiction/woodysgotwood
 	name = "Woody's Got Wood"
 	desc = "A barely held together book titled \"Woody's Got Wood\". There doesn't seem to be an author listed."
 	description_info = "This worn book is titled \"Woody's Got Wood\" and has no author visibly listed. Just holding it gives you a sense this is from a different time."
@@ -205,7 +205,7 @@ Category: Fiction
 				<br><br>
 				<font color="#998666">One d</font><font color="#ad9e85">ay</font><font color="#b8ab94"> wh</font><font color="#c2b7a3">ile</font><font color="#ccc3b3"> A</font><font color="#d6cfc2">n</font><font color="#e0dbd1">dy wa</font><font color="#ebe7e0">s mas</font>
 				<br><br><br><br><br><br>
-				<font color="#998666"><i>It fades out quickly into worn, blank pages. You feel as though you've found a relic of times long past.</i></font>
+				<font color="#998666">"} + span_italics("It fades out quickly into worn, blank pages. You feel as though you've found a relic of times long past.") + {"</font>
 				<hr>
 				</body>
 				</html>
@@ -213,7 +213,7 @@ Category: Fiction
 
 ///Song from Arcadia: My True Love Hath My Heart by Sir Philip Sidney.
 
-/obj/item/weapon/book/custom_library/fiction/truelovehathmyheart
+/obj/item/book/custom_library/fiction/truelovehathmyheart
 	name = "My True Love Hath My Heart"
 	desc = "A hardbound book titled \"Song from Arcadia: My True Love Hath My Heart\" by Sir Philip Sidney."
 	description_info = "This book is titled \"Song from Arcadia: My True Love Hath My Heart\" by Sir Philip Sidney. It appears to be a short poem."
@@ -257,7 +257,7 @@ Category: Fiction
 
 /// An Irish Airman Forsees His Death by W.B. Yeats.
 
-/obj/item/weapon/book/custom_library/fiction/irishairmanforseesdeath
+/obj/item/book/custom_library/fiction/irishairmanforseesdeath
 	name = "An Irish Airman Forsees His Death"
 	desc = "A hardbound book titled \"An Irish Airman Forsees His Death\" by W.B. Yeats."
 	description_info = "This book is titled \"An Irish Airman Forsees His Death\" by W.B. Yeats. It is a poem from the point of view of an aircraft pilot in Earth's First World War."
@@ -285,7 +285,7 @@ Category: Fiction
 				Those that I fight I do not hate<br>
 				Those that I guard I do not love;<br>
 				My country is Kiltartan Cross,<br>
-				My countrymen Kiltartanís poor,<br>
+				My countrymen Kiltartan's poor,<br>
 				No likely end could bring them loss<br>
 				Or leave them happier than before.<br>
 				Nor law, nor duty bade me fight,<br>
@@ -303,7 +303,7 @@ Category: Fiction
 
 /// Poems by Wilfred Owen, renamed to "Poems for a Rainy Day: A Collection of Poetry by Wilfred Owen".
 
-/obj/item/weapon/book/bundle/custom_library/fiction/poemsforarainyday
+/obj/item/book/bundle/custom_library/fiction/poemsforarainyday
 	name = "Poems for a Rainy Day"
 	desc = "A hardbound book titled \"Poems for a Rainy Day\" by Wilfred Owen."
 	description_info = "This book is titled \"Poems for a Rainy Day\" by Wilfred Owen. It's a collection of three poems by an old Earth poet by the name of Wilfred Owen."
@@ -325,7 +325,7 @@ Category: Fiction
 					<br><br><br>
 					<div class="border">
 					<h1>Poems for a Rainy Day</h1><br>
-					<i>A Collection of Poetry<br>by Wilfred Owen</i><br><br>
+					"} + span_italics("A Collection of Poetry<br>by Wilfred Owen") + {"<br><br>
 					</div>
 					</body>
 					</html>
@@ -339,7 +339,7 @@ Category: Fiction
 					</style>
 					</head>
 					<body>
-					<b>Anthem for Doomed Youth</b>
+					"} + span_bold("Anthem for Doomed Youth") + {"
 					<hr>
 					<div class="border">
 					What passing-bells for these who die as cattle?
@@ -368,7 +368,7 @@ Category: Fiction
 					</style>
 					</head>
 					<body>
-					<b>The Send-Off</b>
+					"} + span_bold("The Send-Off") + {"
 					<hr>
 					<div class="border">
 					Down the close, darkening lanes they sang their way<br>
@@ -403,7 +403,7 @@ Category: Fiction
 					</style>
 					</head>
 					<body>
-					<b>Dulce et Decorum Est</b>
+					"} + span_bold("Dulce et Decorum Est") + {"
 					<hr>
 					<div class="border">
 					Bent double, like old beggars under sacks,<br>
@@ -417,7 +417,7 @@ Category: Fiction
 					Gas! GAS! Quick, boys! -- An ecstasy of fumbling<br>
 					Fitting the clumsy helmets just in time,<br>
 					But someone still was yelling out and stumbling<br>
-					And floundíring like a man in fire or lime.--<br>
+					And flound'ring like a man in fire or lime.--<br>
 					Dim through the misty panes and thick green light,<br>
 					As under a green sea, I saw him drowning.<br><br>
 					In all my dreams before my helpless sight,<br>
@@ -425,15 +425,15 @@ Category: Fiction
 					If in some smothering dreams, you too could pace<br>
 					Behind the wagon that we flung him in,<br>
 					And watch the white eyes writhing in his face,<br>
-					His hanging face, like a devilís sick of sin;<br>
+					His hanging face, like a devil's sick of sin;<br>
 					If you could hear, at every jolt, the blood<br>
 					Come gargling from the froth-corrupted lungs,<br>
 					Obscene as cancer, bitter as the cud<br>
 					Of vile, incurable sores on innocent tongues,--<br>
 					My friend, you would not tell with such high zest<br>
 					To children ardent for some desperate glory,<br>
-					The old Lie: <i>Dulce et decorum est<br>
-					Pro patria mori.</i><br>
+					The old Lie: "} + span_italics("Dulce et decorum est<br>") + {"
+					"} + span_italics("Pro patria mori.") + {"<br>
 					</div>
 					</body>
 					</html>
@@ -441,7 +441,7 @@ Category: Fiction
 
 ///Silence by Samara McCollough.
 
-/obj/item/weapon/book/bundle/custom_library/fiction/silence
+/obj/item/book/bundle/custom_library/fiction/silence
 	name = "Silence"
 	desc = "A hardbound book titled \"Silence\" by Samara McCollough."
 	description_info = "This book is titled \"Silence\" by Samara McCollough. It appears to be an excerpt from a longer novel."
@@ -461,9 +461,9 @@ Category: Fiction
 					</head>
 					<body>
 					<br><br>
-					<h1><i>Silence</i><br></h1>
+					<h1>"} + span_italics("Silence") + {"<br></h1>
 					<br><br><br><br>
-					<i>By<br>Samara McCollough</i>
+					"} + span_italics("By<br>Samara McCollough") + {"
 					</body>
 					</html>
 					"},
@@ -479,7 +479,7 @@ Category: Fiction
 					<div class="border">
 					The door gave under Sergei's gloved fist and crashed silently to the floor, twisted around its remaining plastic hinge.<br><br>
 					"Whoops," Sergei's voice mumbled through the earpiece. Michael didn't need to look at the his partner to know that beneath his helmet, the Texan was cringing.<br><br>
-					"S'all right." A pristine environment would make their job easier, but salvaging didn't require perfection. Michael softly shouldered past the younger man and moved into the abandoned living quarters, careful not to snag his suit. Other than the ruined door, the room was in mint condition. Depressurization had clearly been a gentle process here; air slowly leaking through seals that had been designed for hours of vacuum exposure, not years. The left side of the room was taken up by a desk, with a bunk bed situated at a comfortable height above. On the right was what appeared to a be a closet set into the wall, as well as a recessed table with some kind of lab equipment on it which Michael's salvaging experience immediately filed away as <i>valuable</i>. <br><br>
+					"S'all right." A pristine environment would make their job easier, but salvaging didn't require perfection. Michael softly shouldered past the younger man and moved into the abandoned living quarters, careful not to snag his suit. Other than the ruined door, the room was in mint condition. Depressurization had clearly been a gentle process here; air slowly leaking through seals that had been designed for hours of vacuum exposure, not years. The left side of the room was taken up by a desk, with a bunk bed situated at a comfortable height above. On the right was what appeared to a be a closet set into the wall, as well as a recessed table with some kind of lab equipment on it which Michael's salvaging experience immediately filed away as "} + span_italics("valuable") + {". <br><br>
 					The cabin's walls, floors, furniture, and even bed sheets were an almost uniform gray. Any discernible difference in shade was whitewashed out by the harsh light emanating from a large rounded rectangle in the wall opposite to the door. Michael stared at the rectangle, not sure he believed what he was seeing. Behind him, Sergei swore softly.<br><br>
 					"That's a real window." He murmured. "Like, not a screen. I've never seen one of those on a starship before."<br><br>
 					"Me neither." Michael wondered what it was made of. Even from the doorway he could see that the material had to be more than half a meter thick, completely penetrating the inner and outer hull of the ship. Suddenly anxious, he checked his Geiger; the rad count was unchanged. He grunted in surprise. "Well, it's shielded, whatever it is. Let's get what we came for."
@@ -490,7 +490,7 @@ Category: Fiction
 
 ///My Rock by Roman Pilduski
 
-/obj/item/weapon/book/custom_library/fiction/myrock
+/obj/item/book/custom_library/fiction/myrock
 
 	name = "My Rock"
 	desc = "A hardbound book titled \"My Rock\" by Roman Pilduski."
@@ -509,8 +509,8 @@ Category: Fiction
 				</style>
 				</head>
 				<body>
-				<b>My Rock</b><br>
-				<i>by Roman Pilduski</i><br><br>
+				"} + span_bold("My Rock") + {"<br>
+				"} + span_italics("by Roman Pilduski") + {"<br><br>
 				<div class="border">
 				<br>I have a rock. It is with me anywhere I go.<br><br>
 				I'm accustomed to my rock, its weight is always present.<br><br>
@@ -531,7 +531,7 @@ Category: Fiction
 
 /// Ghost Ship by Ogawa Mimei
 
-/obj/item/weapon/book/bundle/custom_library/fiction/ghostship
+/obj/item/book/bundle/custom_library/fiction/ghostship
 
 	name = "Ghost Ship"
 	desc = "A hardbound book titled \"Ghost Ship\" by Ogawa Mimei."
@@ -555,7 +555,7 @@ Category: Fiction
 					<br><br><br>
 					<div class="border">
 					<h1>Ghost Ship</h1>
-					<i>by Ogawa Mimei</i><br><br>
+					"} + span_italics("by Ogawa Mimei") + {"<br><br>
 					</div>
 					</body>
 					</html>
@@ -612,13 +612,13 @@ Category: Fiction
 					</head>
 					<body>
 					<div class="border">
-					"I wonder where they might be taking shelter from the storm. There is no where else to go in this wide, wide ocean. They must have sunk...îù<br><br>
+					"I wonder where they might be taking shelter from the storm. There is no where else to go in this wide, wide ocean. They must have sunk..."¬ù<br><br>
 					The first fisherman had started to worry as the stormy night turned to complete darkness. Whenever he looked out, the waves of the ocean were winding into the skies above. He could see no sign of a boat. The first fisherman had been abandoned on the small, deserted island. He stood on the rocks of the shore and waited a full day for his friends to return. But perhaps because the winds from yesterday had made the ocean rough, the sun that day went down without any sign of the boat he had been waiting for.<br><br>
 					Three days passed. The first fisherman had started to grow weak. Finally, after standing on the beach looking intently out over the ocean for three days, the boat carrying his friends cut through the waves and sailed towards the beach. It felt like a thousand years since he had seen them last. He could see that the second fisherman and the third fisherman were fine and moving about on the boat.<br><br>
 					"Hey!" the first fisherman called out over the water, raising both of his hands high in the air. When he did, it looked like they too had thrown their hands in the air and called back. Only he couldn't hear their voices. Just then as the setting sun illuminated the tips of the waves, the two fishermen on the boat came into sight, red in the face.<br><br>
 					"Ahh, here's a sight for sore eyes, my two friends! They made it back alive," said the first fisherman, warm tears of joy swelling in his eyes. Before long the boat was nearly on the sand.<br><br>
 					"Hey!" the first fisherman called out, his hand in the air. He thought the other to fishermen would respond, but just as the pair were about to turn to the side and bring their boat in, they disappeared like a puff of smoke. The first fisherman was shocked.<br><br>
-					"A ghost ship!î
+					"A ghost ship!"
 					</div><br>
 					<center><font style="Courier New">III</font></center>
 					</body>
@@ -634,8 +634,8 @@ Category: Fiction
 					<body>
 					<div class="border">
 					The first fisherman lost all hope, threw himself down on the sand and began to cry. His imagination was running wild, and his nightmares ran through the night. When he awoke the next morning his eyes were blood-shot and his heart was pounding. It was just past midday. The first fisherman raised his head and looked out over the sea only to spot the same boat in the distance. But it was the same as yesterday, a ghost ship, that had come to the island. For a moment he was relieved, and happiness danced in his chest, but in the next instant his body shook with fear.<br><br>
-					"Damn it. Are they trying to kill me?î said the first fisherman, as he started to lose his mind. The boat cut through the waves and came in closer and closer to the island. The first fisherman pulled out his pistol, aimed at the boat and pulled the trigger. But this time the boat wasn't a ghost, and it didn't disappear. Once the boat was docked at the beach, the two other fishermen scrambled up onto land.<br><br>
-					"Have you gone completely mad?îù yelled one, which was enough to snap the first fisherman back to reality.<br><br>
+					"Damn it. Are they trying to kill me?" said the first fisherman, as he started to lose his mind. The boat cut through the waves and came in closer and closer to the island. The first fisherman pulled out his pistol, aimed at the boat and pulled the trigger. But this time the boat wasn't a ghost, and it didn't disappear. Once the boat was docked at the beach, the two other fishermen scrambled up onto land.<br><br>
+					"Have you gone completely mad?"¬ù yelled one, which was enough to snap the first fisherman back to reality.<br><br>
 					The first fisherman had gone completely mad. That night the winds had caused the boat to be pushed back against a nearby island. Once the waves had died down, the two fishermen went back to the island to rescue their friend. The two fishermen got their crazy friend back on the boat and returned to the mainland. The pair cared for their weakened friend, and through their care he was able to lose his madness and returned to how he used to be. And from there the three friends went on to be even better friends for a very long time. This story is still told in the harbors to the north where the head of that deserted island still pokes up from between those blue black waves.
 					</div><br>
 					<center><font style="Courier New">IV</font></center>
@@ -645,7 +645,7 @@ Category: Fiction
 
 ///The Metal Glen by Jawn Mancer
 
-/obj/item/weapon/book/bundle/custom_library/fiction/metalglen
+/obj/item/book/bundle/custom_library/fiction/metalglen
 
 	name = "The Metal Glen"
 	desc = "A hardbound book titled \"The Metal Glen\" by Jawn Mancer."
@@ -717,16 +717,16 @@ Category: Fiction
 					To wait the coming morrow.<br><br>
 					The hound was still, the birds said naught,<br>
 					The fox denied he had been caught,<br>
-					The bear cried "<i>This is just our lot</i>",<br>
+					The bear cried ""} + span_italics("This is just our lot") + {"",<br>
 					And surrendered to his pain.<br>
 					But the cat stood up and shook his head<br>
 					And rising from his metal bed<br>
-					He said: "<i>For now, I am not dead,<br>
-					And I will not die in vain!</i>"<br><br>
+					He said: ""} + span_italics("For now, I am not dead,") + {"<br>
+					"} + span_italics("And I will not die in vain!") + {""<br><br>
 					He cried aloud with much disdain<br>
 					And tore about his stark domain<br>
-					And said "<i>These walls cannot contain<br>
-					A force as strong as I!</i>"<br>
+					And said ""} + span_italics("These walls cannot contain") + {"<br>
+					"} + span_italics("A force as strong as I!") + {""<br>
 					And the fox just laughed, and the birds all cried<br>
 					And the bear knotted up himself and died<br>
 					But the hare looked on as the poor cat tried<br>
@@ -763,7 +763,7 @@ Category: Fiction
 
 /// RA - Issue 142 by Jawn Mancer
 
-/obj/item/weapon/book/bundle/custom_library/fiction/raissue142
+/obj/item/book/bundle/custom_library/fiction/raissue142
 
 	name = "RA - Issue 142"
 	desc = "A hardbound book titled \"RA - Issue 142\" by Jawn Mancer."
@@ -785,9 +785,9 @@ Category: Fiction
 					<body>
 					<br><br><br>
 					<center>
-					<h1><font size="5">RA<br>-<br>Issue 142</font>
+					<h1>"} + span_giant("RA<br>-<br>Issue 142") + {"
 					<br><br>
-					<font size="2"><i>by Jawn Mancer</i></font></h1>
+					"} + span_normal(span_italics("by Jawn Mancer")) + {"</h1>
 					</center>
 					</body>
 					</html>
@@ -802,15 +802,15 @@ Category: Fiction
 					<body>
 					<center>RA - Issue 142</center><br>
 					<div class="borders">
-					<center>"<i>Engie! You must be calm when waking the animals! I hope you are better at ice-skating and making nests!</i>" was the Captain's critique when I explained where and why I had left the "<i>most precious shovel</i>".<br><br>
-					"<i>Do you how the cost of shovel replacement?! I'd have to take on another business loan and the bank manager is already giving me dirty looks and not talking to me!</i>" Captain had continued to rant. If the Photoshop worm monster ate me instead of the shovel, I think Captain would be slightly less upset.<br><br>***<br><br>
+					<center>""} + span_italics("Engie! You must be calm when waking the animals! I hope you are better at ice-skating and making nests!") + {"" was the Captain's critique when I explained where and why I had left the ""} + span_italics("most precious shovel") + {"".<br><br>
+					""} + span_italics("Do you how the cost of shovel replacement?! I'd have to take on another business loan and the bank manager is already giving me dirty looks and not talking to me!") + {"" Captain had continued to rant. If the Photoshop worm monster ate me instead of the shovel, I think Captain would be slightly less upset.<br><br>***<br><br>
 					Was that even Photoshop? It seemed slightly bigger and longer. Can't be sure of anything these days. I'm afraid that someday I'll finally succumb to botulism or some sort of other poisoning and that will be the end.</center><br><br>
 					I'll see something that's not there and fall off a cliff. Or slip into a snow crevice and slowly sink deeper and deeper... and nobody will find me or help me.<br><br>
 					Brrr.<br><br><center>***</center><br><br>
 					I find myself developing a severe paranoia of snow in addition to my severe hypochondria.<br><br>
 					After my encounter with the shovel-eating monster, I started to throw rocks ahead of me and then walk only onto the spots where the rocks didn't sink into the snow.<br><br>
 					You can never be sure that there isn't something horrible under there.<br><br>
-					<b>EVER.</b>
+					"} + span_bold("EVER.") + {"
 					</div>
 					</body>
 					</html>
@@ -827,9 +827,9 @@ Category: Fiction
 					Thank god my Chionophobia isn't anywhere like Snippy's. He seems calm on the surface, except some times.... Eeesh.<br><br>
 					I recollect that one time he went completely bonkers when a large snowflake fell onto his lens. Freaking out, flailing and screaming, total full psychotic breakdown. Thank god Captain poured tea onto his mask as a distraction of sorts.<br><br>
 					He even ranted afterwards about living snowflakes and how they planned to shatter his lenses, cut him up and drill into his head to sample his organic juices.<br><br>
-					"<i>Watch out for the snowflakes,</i>" he later told me. "<i>They cannot be trusted!</i>"<br><br>
-					"<i>What are they gonna do? Pick me up and carry me away to the North Pole?</i>" I jokingly commented.<br><br>
-					"<i>I am serious!! I'm not crazy! I know it sounds crazy, but the snowflakes were planning to kill us all!</i>" He shouted, flapping his arms psychotically.<br><br><center>***</center><br><br>
+					""} + span_italics("Watch out for the snowflakes,") + {"" he later told me. ""} + span_italics("They cannot be trusted!") + {""<br><br>
+					""} + span_italics("What are they gonna do? Pick me up and carry me away to the North Pole?") + {"" I jokingly commented.<br><br>
+					""} + span_italics("I am serious!! I'm not crazy! I know it sounds crazy, but the snowflakes were planning to kill us all!") + {"" He shouted, flapping his arms psychotically.<br><br><center>***</center><br><br>
 					Snippy's mental condition worries me. I think Captain is only aggravating it with nonsensical demands.<br><br>
 					I hope that Snippy doesn't stab me with a trowel, while my back is turned. What if he's extremely jealous of my shovel's size and if it only takes a little snowflake to push him over the edge...<br><br>
 					What if he discovers, remembers who I am?<br><br>
@@ -849,23 +849,23 @@ Category: Fiction
 					<div class="borders">
 					I'm afraid of Charles Snippy. So very afraid.<br><br>
 					He always keeps glancing at that little Captain's heart cup like that thing is about to grow legs and walk off or something.<br><br>
-					"<i>Jeez. It's just a cup man, relax,</i>" I told him.<br><br>
-					"<i>No</i>" he answered, "<i>It is something abhorrent! It's motives are unclear! I know whether not to trust it!</i>" He began to postulate.<br><br><center>***</center><br><br>
+					""} + span_italics("Jeez. It's just a cup man, relax,") + {"" I told him.<br><br>
+					""} + span_italics("No") + {"" he answered, ""} + span_italics("It is something abhorrent! It's motives are unclear! I know whether not to trust it!") + {"" He began to postulate.<br><br><center>***</center><br><br>
 					I think that Snippy's mental state is slowly sliding towards Captain's. Talking to inanimate objects, inventing strange stories, shouting at nothing.<br><br>
 					Recently I overheard Snippy yelling:<br><br>
-					<center>"<i>I'm ALIVE! WHAT? No! You did WHAT?! I'm alive, I don't care what it is you did!</i>" </center><br><br>
+					<center>""} + span_italics("I'm ALIVE! WHAT? No! You did WHAT?! I'm alive, I don't care what it is you did!") + {"" </center><br><br>
 					I looked through a crack in the wall at him. He was definitely having another episode. From the one sided conversation and his hand poses I deduced that he was talking to his scarf.<br><br><center>***</center><br>
-					"<i>I am human! I just want to be normal!</i>"<br><br>
+					""} + span_italics("I am human! I just want to be normal!") + {""<br><br>
 					Snippy shouted;<br><br>
-					<center><i>"STOP ASKING!"<br>
-					"TOO LATE?!"<br>
-					"WOULD YOU PLEASE LEAVE MY SPINE ALONE!"<br>
-					"PUT MY LIVER BACK!"<br>
-					"STOP SLIDING MY ORGANS AROUND!"<br>
-					"WHAT?!"<br>
-					"DON'T DO THAT!"<br>
-					"NO, I DON'T WANT TO EAT METAL!"<br>
-					"I DON'T CARE HOW CONVENIENT IT IS TO HAVE SEVENTEEN APPENDAGES!"</i></center><br>
+					<center>"} + span_italics("\"STOP ASKING!\"") + {"<br>
+					"} + span_italics("\"TOO LATE?!\"") + {"<br>
+					"} + span_italics("\"WOULD YOU PLEASE LEAVE MY SPINE ALONE!\"") + {"<br>
+					"} + span_italics("\"PUT MY LIVER BACK!\"") + {"<br>
+					"} + span_italics("\"STOP SLIDING MY ORGANS AROUND!\"") + {"<br>
+					"} + span_italics("\"WHAT?!\"") + {"<br>
+					"} + span_italics("\"DON'T DO THAT!\"") + {"<br>
+					"} + span_italics("\"NO, I DON'T WANT TO EAT METAL!\"") + {"<br>
+					"} + span_italics("\"I DON'T CARE HOW CONVENIENT IT IS TO HAVE SEVENTEEN APPENDAGES!\"") + {"</center><br>
 					I figured Snippy imagined that the scarf kept offering him some kind of super-powers, including immortality and he was rejecting them.
 					</div>
 					</body>
@@ -882,7 +882,7 @@ Category: Fiction
 					<div class="borders">
 					When I was young, I often wished somebody offered me superpowers.<br><br>
 					Sigh.<br><br>
-					I'd be like "<i>Hells yeah, I'd like to be immortal and have the strength of 10</i>". I always hated the novels in which characters chose to be human instead of accepting greatness. This was one of the reasons I've created Project Seven- to find someone who is truly great... even if lacking the human condition. I really should have known that a super with powers of luck would turn out to be a highly confused, carefree imbecile.<br><br><center>***</center><br><br>
+					I'd be like ""} + span_italics("Hells yeah, I'd like to be immortal and have the strength of 10") + {"". I always hated the novels in which characters chose to be human instead of accepting greatness. This was one of the reasons I've created Project Seven- to find someone who is truly great... even if lacking the human condition. I really should have known that a super with powers of luck would turn out to be a highly confused, carefree imbecile.<br><br><center>***</center><br><br>
 					Was I wrong? Maybe.<br><br>
 					Did I doom humanity by launching that search query?<br>
 					<center>Perhaps.</center><br><center>***</center><br>
@@ -897,7 +897,7 @@ Category: Fiction
 
 /// RA - Issue 147 by Jawn Mancer
 
-/obj/item/weapon/book/bundle/custom_library/fiction/raissue147
+/obj/item/book/bundle/custom_library/fiction/raissue147
 
 	name = "RA - Issue 147"
 	desc = "A hardbound book titled \"RA - Issue 147\" by Jawn Mancer."
@@ -919,9 +919,9 @@ Category: Fiction
 					<body>
 					<br><br><br>
 					<center>
-					<h1><font size="5">RA<br>-<br>Issue 147</font>
+					<h1>"} + span_giant("RA<br>-<br>Issue 147") + {"
 					<br><br>
-					<font size="2"><i>by Jawn Mancer</i></font></h1>
+					"} + span_normal(span_italics("by Jawn Mancer")) + {"</h1>
 					</center>
 					</body>
 					</html>
@@ -938,12 +938,12 @@ Category: Fiction
 					<h1>RA - ISSUE 147</h1>
 					<div class="borders">
 					<h1>ENTRY 57893__3342 : PRIORITY 1 ADMIN : DR ALEXANDER GROMOV :</h1>
-					"<i>I am immune to the broadcasting signal.</i>" Snippy said and it suddenly dawned on me.<br><br>
+					""} + span_italics("I am immune to the broadcasting signal.") + {"" Snippy said and it suddenly dawned on me.<br><br>
 					The weak broadcasting signal that was coming from the Undead... it reactivated my own neural receivers!<br><br>
 					It meant that I could potentially access some sort of useful information via the G-Directorate subnet drive in my backpack.<br><br>
 					Information that I presumed lost. Information about ANNET's new army of spam-bots, their positions, their weaknesses.<br><br>
 					Anything that could help me survive this mess.<br><br>
-					"<i>R:/login admin control... launch grid browser protocol... private browsing, full control,</i>" I whispered.<br><br>
+					""} + span_italics("R:/login admin control... launch grid browser protocol... private browsing, full control,") + {"" I whispered.<br><br>
 					The broadcasting signal responded! A little G appeared in my right eye, with signal strength signage.<br><br>
 					It showed one and a half signal bars. Good enough!<br><br>
 					Glowing letters formed in my right eye.<br><br>
@@ -973,7 +973,7 @@ Category: Fiction
 					SUBJECT'S MENTAL NEURAL PATTERN DEEMED... UNSCANNABLE.<br>
 					SUBJECT IS CONFIRMED TO BE BRAIN-DEAD.<br>
 					***</center><br><br>
-					"<i>Wait... you are... UNSCANNABLE?!</i>" I cried out in surprise.<br><br>
+					""} + span_italics("Wait... you are... UNSCANNABLE?!") + {"" I cried out in surprise.<br><br>
 					What did Snippy just ramble back? He's the last one? What?<br><br>
 					Does he not even realize that he's theoretically brain dead?<br><br>
 					Has nobody ever told him that?<br><br>
@@ -1069,7 +1069,7 @@ Category: Fiction
 
 ///Serenity by Hold Hill (Cold Mountain). Renamed and reauthored to match original writer.
 
-/obj/item/weapon/book/bundle/custom_library/fiction/coldmountain
+/obj/item/book/bundle/custom_library/fiction/coldmountain
 
 	name = "Cold Mountain"
 	desc = "A hardbound book titled \"Cold Mountain\" by Han Shan."
@@ -1177,7 +1177,7 @@ Category: Fiction
 
 /// Tha' Story o' tha' Blacksmith an' tha' Kingly Bloke by Haggis MacDougall
 
-/obj/item/weapon/book/custom_library/fiction/blacksmithandkinglybloke
+/obj/item/book/custom_library/fiction/blacksmithandkinglybloke
 
 	name = "Tha' Story o' tha' Blacksmith an' tha' Kingly Bloke"
 	desc = "A hardbound book titled \"Tha' Story o' tha' Blacksmith an' tha' Kingly Bloke\" by Haggis MacDougall."
@@ -1216,7 +1216,7 @@ Category: Fiction
 
 ///Stars and Sometimes Falling Ones by Henry Clement Fandango
 
-/obj/item/weapon/book/custom_library/fiction/starsandsometimesfallingones
+/obj/item/book/custom_library/fiction/starsandsometimesfallingones
 
 	name = "Stars and Sometimes Falling Ones"
 	desc = "A hardbound book titled \"Stars and Sometimes Falling Ones\" by Henry Clement Fandango."

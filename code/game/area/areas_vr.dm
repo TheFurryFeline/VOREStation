@@ -1,9 +1,6 @@
 /area
 	var/enter_message
 	var/exit_message
-	var/limit_mob_size = TRUE //If mob size is limited in the area.
-	var/block_suit_sensors = FALSE //If suit sensors are blocked in the area.
-	var/block_tracking = FALSE //If camera tracking is blocked in the area.
 	var/turf/ceiling_type
 
 	// Size of the area in open turfs, only calculated for indoors areas.
@@ -11,12 +8,12 @@
 
 	var/no_comms = FALSE	//When true, blocks radios from working in the area
 
-/area/Entered(var/atom/movable/AM, oldLoc)
+/area/Entered(atom/movable/AM, oldLoc)
 	. = ..()
 	if(enter_message && isliving(AM))
 		to_chat(AM, enter_message)
 
-/area/Exited(var/atom/movable/AM, newLoc)
+/area/Exited(atom/movable/AM, newLoc)
 	. = ..()
 	if(exit_message && isliving(AM))
 		to_chat(AM, exit_message)
@@ -29,7 +26,7 @@
 	if(!ceiling_type)
 		return
 	for(var/turf/T in contents)
-		if(T.outdoors >= 0)
+		if(T.is_outdoors() >= 0)
 			continue
 		if(HasAbove(T.z))
 			var/turf/TA = GetAbove(T)
@@ -71,5 +68,5 @@
 		power_equip = 0
 		power_environ = 0
 	power_change()		// all machines set to current power level, also updates lighting icon
-	if(no_spoilers)
+	if(flag_check(AREA_NO_SPOILERS))
 		set_spoiler_obfuscation(TRUE)

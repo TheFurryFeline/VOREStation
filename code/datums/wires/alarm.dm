@@ -31,7 +31,7 @@
 				A.locked = TRUE
 
 		if(WIRE_MAIN_POWER1)
-			A.shock(usr, 50)
+			A.shock(usr, 50) // TODO - REMOVE USR
 			A.shorted = !mend
 			A.update_icon()
 
@@ -58,20 +58,14 @@
 		if(WIRE_MAIN_POWER1)
 			if(!A.shorted)
 				A.shorted = TRUE
-				A.update_icon()
-
-			spawn(12000)
-				if(A.shorted)
-					A.shorted = FALSE
-					A.update_icon()
+				for(var/obj/machinery/alarm/AA in A.alarm_area)
+					AA.update_icon()
+			addtimer(CALLBACK(src, PROC_REF(clear_short)), 20 MINUTES, TIMER_DELETE_ME)
 
 		if(WIRE_AI_CONTROL)
 			if(!A.aidisabled)
 				A.aidisabled = TRUE
-			A.updateDialog()
-			spawn(100)
-				if(A.aidisabled)
-					A.aidisabled = FALSE
+			addtimer(VARSET_CALLBACK(A, aidisabled, FALSE), 10 SECONDS, TIMER_DELETE_ME)
 
 		if(WIRE_SYPHON)
 			if(A.mode == 1) // MODE_SCRUB
@@ -84,3 +78,11 @@
 			if(A.alarm_area.atmosalert(0, A))
 				A.post_alert(0)
 			A.update_icon()
+
+/datum/wires/alarm/proc/clear_short()
+	SHOULD_NOT_OVERRIDE(TRUE)
+	PRIVATE_PROC(TRUE)
+	var/obj/machinery/alarm/A = holder
+	if(A && A.shorted)
+		A.shorted = FALSE
+		A.update_icon()

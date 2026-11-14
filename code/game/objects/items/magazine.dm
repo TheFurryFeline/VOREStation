@@ -5,7 +5,6 @@
 	icon_state = "magazine"
 
 	var/headline
-	var/static/list/tabloid_states = icon_states('icons/obj/magazine.dmi')
 	var/static/list/tabloid_publishers = list(
 		"\improper Solar Enquirer",
 		"\improper Stellar Examiner",
@@ -70,13 +69,13 @@
 		"JOINING THE NAVY? HERE'S 15 EXPERT TIPS FOR AVOIDING BRAIN PARASITES"
 	)
 
-/obj/item/tabloid/Initialize()
+/obj/item/tabloid/Initialize(mapload)
 	. = ..()
 
 	pixel_x = 5-rand(10)
 	pixel_x = 5-rand(10)
 
-	icon_state = pick(tabloid_states)
+	icon_state = pick(icon_states_fast('icons/obj/magazine.dmi'))
 	headline =   pick(tabloid_headlines)
 	name =       pick(tabloid_publishers)
 
@@ -86,7 +85,10 @@
 		to_chat(user, "The headline screams, \"[headline]\"")
 
 /obj/item/tabloid/attack_self(mob/user)
-	user.visible_message(SPAN_NOTICE("\The [user] leafs idly through \the [src]."))
+	. = ..(user)
+	if(.)
+		return TRUE
+	user.visible_message(span_notice("\The [user] leafs idly through \the [src]."))
 	if(headline)
 		to_chat(user, "Most of it is the usual tabloid garbage, but the headline story, \"[headline]\", holds your attention for awhile.")
 		if(tabloid_headlines[headline])

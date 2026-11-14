@@ -58,17 +58,16 @@
 	if(anchored)
 		update_music()
 
-/obj/machinery/media/forceMove(var/atom/destination)
+/obj/machinery/media/forceMove(atom/destination, direction, movetime)
 	disconnect_media_source()
-	. = ..()
+	. = ..(destination, direction, movetime)
 	if(anchored)
 		update_music()
 
-/obj/machinery/media/Initialize()
+/obj/machinery/media/Initialize(mapload)
 	. = ..()
 	update_media_source()
 
 /obj/machinery/media/Destroy()
 	disconnect_media_source()
 	. = ..()
-

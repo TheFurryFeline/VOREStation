@@ -14,14 +14,14 @@
 	blood_overlay_type = "armor"
 	slowdown = 0.5
 	armor = list(melee = 0, bullet = 0, laser = 0, energy = 0, bomb = 0, bio = 0, rad = 0)
-	action_button_name = "Toggle Tesla Armor"
+	actions_types = list(/datum/action/item_action/toggle_tesla_armor)
 	var/active = 1	//Determines if the armor will zap or block
 	var/ready = 1 //Determines if the next attack will be blocked, as well if a strong lightning bolt is sent out at the attacker.
 	var/ready_icon_state = "tesla_armor_1" //also wip
 	var/normal_icon_state = "tesla_armor_0"
 	var/cooldown_to_charge = 15 SECONDS
 
-/obj/item/clothing/suit/armor/tesla/handle_shield(mob/user, var/damage, atom/damage_source = null, mob/attacker = null, var/def_zone = null, var/attack_text = "the attack")
+/obj/item/clothing/suit/armor/tesla/handle_shield(mob/user, damage, atom/damage_source = null, mob/attacker = null, def_zone = null, attack_text = "the attack")
 	//First, some retaliation.
 	if(active)
 		if(istype(damage_source, /obj/item/projectile))
@@ -46,18 +46,21 @@
 			spawn(cooldown_to_charge)
 				ready = 1
 				update_icon()
-				to_chat(user, "<span class='notice'>\The [src] is ready to protect you once more.</span>")
-			visible_message("<span class='danger'>\The [user]'s [src.name] blocks [attack_text]!</span>")
+				to_chat(user, span_notice("\The [src] is ready to protect you once more."))
+			visible_message(span_danger("\The [user]'s [src.name] blocks [attack_text]!"))
 			update_icon()
 			return 1
 	return 0
 
 /obj/item/clothing/suit/armor/tesla/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	active = !active
-	to_chat(user, "<span class='notice'>You [active ? "" : "de"]activate \the [src].</span>")
+	to_chat(user, span_notice("You [active ? "" : "de"]activate \the [src]."))
 	update_icon()
 	user.update_inv_wear_suit()
-	user.update_action_buttons()
+	user.update_mob_action_buttons()
 
 /obj/item/clothing/suit/armor/tesla/update_icon()
 	if(active && ready)
@@ -72,7 +75,7 @@
 	if(ishuman(loc))
 		var/mob/living/carbon/human/H = loc
 		H.update_inv_wear_suit(0)
-		H.update_action_buttons()
+		H.update_mob_action_buttons()
 	..()
 
 /obj/item/clothing/suit/armor/tesla/proc/shoot_lightning(mob/target, power)
@@ -80,5 +83,5 @@
 	lightning.power = power
 	lightning.old_style_target(target)
 	lightning.fire()
-	visible_message("<span class='danger'>\The [src] strikes \the [target] with lightning!</span>")
+	visible_message(span_danger("\The [src] strikes \the [target] with lightning!"))
 	playsound(src, 'sound/weapons/gauss_shoot.ogg', 75, 1)

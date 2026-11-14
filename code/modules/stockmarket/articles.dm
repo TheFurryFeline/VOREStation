@@ -4,10 +4,10 @@
 /proc/vowel()
 	return pick("A", "E", "I", "O", "U")
 
-/proc/ucfirst(var/S)
+/proc/ucfirst(S)
 	return "[uppertext(ascii2text(text2ascii(S, 1)))][copytext(S, 2)]"
 
-/proc/ucfirsts(var/S)
+/proc/ucfirsts(S)
 	var/list/L = splittext(S, " ")
 	var/list/M = list()
 	for (var/P in L)
@@ -94,11 +94,11 @@ GLOBAL_LIST_EMPTY(FrozenAccounts)
 /datum/article/proc/generateAuthorName()
 	switch(rand(1,3))
 		if (1)
-			return "[consonant()]. [pick(last_names)]"
+			return "[consonant()]. [pick(GLOB.last_names)]"
 		if (2)
-			return "[prob(50) ? pick(first_names_male) : pick(first_names_female)] [consonant()].[prob(50) ? "[consonant()]. " : null] [pick(last_names)]"
+			return "[prob(50) ? pick(GLOB.first_names_male) : pick(GLOB.first_names_female)] [consonant()].[prob(50) ? "[consonant()]. " : null] [pick(GLOB.last_names)]"
 		if (3)
-			return "[prob(50) ? pick(first_names_male) : pick(first_names_female)] \"[prob(50) ? pick(first_names_male) : pick(first_names_female)]\" [pick(last_names)]"
+			return "[prob(50) ? pick(GLOB.first_names_male) : pick(GLOB.first_names_female)] \"[prob(50) ? pick(GLOB.first_names_male) : pick(GLOB.first_names_female)]\" [pick(GLOB.last_names)]"
 
 /datum/article/proc/formatSpacetime()
 	var/ticksc = round(ticks/100)
@@ -114,7 +114,7 @@ GLOBAL_LIST_EMPTY(FrozenAccounts)
 	var/output = "<div class='article'><div class='headline'>[headline]</div><div class='subtitle'>[subtitle]</div><div class='article-body'>[article]</div><div class='author'>[author]</div><div class='timestamp'>[spacetime]</div></div>"
 	return output
 
-/datum/article/proc/detokenize(var/token_string, var/list/industry_tokens, var/list/product_tokens = list())
+/datum/article/proc/detokenize(token_string, list/industry_tokens, list/product_tokens = list())
 	var/list/T_list = default_tokens.Copy()
 	for (var/I in industry_tokens)
 		T_list[I] = industry_tokens[I]

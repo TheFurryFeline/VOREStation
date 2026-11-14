@@ -1,5 +1,6 @@
 #define VERM_MICE 0
 #define VERM_LIZARDS 1
+#define VERM_MOTHROACH 2
 
 /datum/event/infestation
 	announceWhen = 10
@@ -16,7 +17,7 @@
 	var/list/spawn_locations = list()
 
 /datum/event/infestation/start()
-	vermin = rand(0,1)
+	vermin = rand(0,2)
 	switch(vermin)
 		if(VERM_MICE)
 			spawn_types = /mob/living/simple_mob/animal/passive/mouse/gray
@@ -28,8 +29,13 @@
 			prep_size_min = 1
 			prep_size_max = 3
 			vermstring = "lizards"
+		if(VERM_MOTHROACH)
+			spawn_types = /mob/living/simple_mob/animal/passive/mothroach
+			prep_size_min = 1
+			prep_size_max = 3
+			vermstring = "mothroaches"
 	// Check if any landmarks exist!
-	for(var/obj/effect/landmark/C in landmarks_list)
+	for(var/obj/effect/landmark/C in GLOB.landmarks_list)
 		if(C.name == "verminstart")
 			spawn_locations.Add(C.loc)
 
@@ -40,7 +46,7 @@
 	if(count_spawned_vermin() < vermin_cap)
 		spawn_vermin(rand(4,10), prep_size_min, prep_size_max)
 
-/datum/event/infestation/proc/spawn_vermin(var/num_groups, var/group_size_min, var/group_size_max)
+/datum/event/infestation/proc/spawn_vermin(num_groups, group_size_min, group_size_max)
 	if(spawn_locations.len) // Okay we've got landmarks, lets use those!
 		shuffle_inplace(spawn_locations)
 		num_groups = min(num_groups, spawn_locations.len)
@@ -51,9 +57,9 @@
 		return
 
 // Spawn a single vermin at given location.
-/datum/event/infestation/proc/spawn_one_vermin(var/loc)
+/datum/event/infestation/proc/spawn_one_vermin(loc)
 	var/mob/living/simple_mob/animal/M = new spawn_types(loc)
-	GLOB.destroyed_event.register(M, src, PROC_REF(on_vermin_destruction))
+	RegisterSignal(M, COMSIG_OBSERVER_DESTROYED, PROC_REF(on_vermin_destruction))
 	spawned_vermin.Add(M)
 	return M
 
@@ -65,14 +71,16 @@
 			. += 1
 
 // If vermin is kill, remove it from the list.
-/datum/event/infestation/proc/on_vermin_destruction(var/mob/M)
+/datum/event/infestation/proc/on_vermin_destruction(mob/M)
+	SIGNAL_HANDLER
 	spawned_vermin -= M
-	GLOB.destroyed_event.unregister(M, src, PROC_REF(on_vermin_destruction))
+	UnregisterSignal(M, COMSIG_OBSERVER_DESTROYED)
 
 
 
 /datum/event/infestation/announce()
-	command_announcement.Announce("Bioscans indicate that [vermstring] have been breeding all over the facility. Clear them out, before this starts to affect productivity.", "Vermin infestation")
+	GLOB.command_announcement.Announce("Bioscans indicate that [vermstring] have been breeding all over the facility. Clear them out, before this starts to affect productivity.", "Vermin infestation", ANNOUNCER_MSG_VERMIN_INFESTATION)
 
 #undef VERM_MICE
 #undef VERM_LIZARDS
+#undef VERM_MOTHROACH

@@ -6,11 +6,11 @@
 	var/obj/machinery/filler_object/filler2
 	open_sound_powered = 'sound/machines/door/WideOpen.ogg'
 	close_sound_powered = 'sound/machines/door/WideClose.ogg'
+	update_adjacent_tiles = FALSE
 
 /obj/machinery/door/airlock/multi_tile/Initialize(mapload)
 	. = ..()
 	SetBounds()
-	RegisterSignal(src, COMSIG_MOVABLE_MOVED, PROC_REF(SetBounds))
 	apply_opacity_to_my_turfs(opacity)
 
 /obj/machinery/door/airlock/multi_tile/set_opacity()
@@ -22,11 +22,8 @@
 		T.set_opacity(new_opacity)
 	update_nearby_tiles()
 
-/obj/machinery/door/airlock/multi_tile/Destroy()
-	UnregisterSignal(src, COMSIG_MOVABLE_MOVED)
-	return ..()
-
 /obj/machinery/door/airlock/multi_tile/proc/SetBounds()
+	SIGNAL_HANDLER
 	if(dir in list(EAST, WEST))
 		bound_width = width * world.icon_size
 		bound_height = world.icon_size
@@ -48,4 +45,4 @@
 
 /obj/machinery/door/airlock/multi_tile/metal/mait
 	icon = 'icons/obj/doors/Door2x1_Maint.dmi'
-	//req_one_access = list(access_maint_tunnels) //VOREStaiton Edit - Maintenance is open access
+	//req_one_access = list(ACCESS_MAINT_TUNNELS) //VOREStaiton Edit - Maintenance is open access

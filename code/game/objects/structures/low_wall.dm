@@ -11,7 +11,6 @@
 	//atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_CLIMBABLE | ATOM_FLAG_CAN_BE_PAINTED | ATOM_FLAG_ADJACENT_EXCEPTION
 	anchored = TRUE
 	density = TRUE
-	climbable = TRUE
 	throwpass = 1
 	layer = TABLE_LAYER
 
@@ -28,12 +27,12 @@
 	var/datum/material/material
 	var/grille_type
 
-/obj/structure/low_wall/Initialize(var/mapload, var/materialtype)
+/obj/structure/low_wall/Initialize(mapload, materialtype)
 	. = ..()
 	icon_state = "blank"
 	var/turf/T = loc
 	if(!isturf(T) || T.density || T.opacity)
-		warning("[src] on invalid turf [T] at [x],[y],[z]")
+		WARNING("[src] on invalid turf [T] at [x],[y],[z]")
 		return INITIALIZE_HINT_QDEL
 
 	if(!materialtype)
@@ -43,10 +42,11 @@
 
 	health = material.integrity
 
+	AddElement(/datum/element/climbable)
+
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/structure/low_wall/LateInitialize()
-	. = ..()
 	update_connections(1)
 	update_icon()
 
@@ -62,17 +62,17 @@
 	. = ..()
 
 	if(health == material.integrity)
-		to_chat(user, "<span class='notice'>It seems to be in fine condition.</span>")
+		to_chat(user, span_notice("It seems to be in fine condition."))
 	else
 		var/dam = health / material.integrity
 		if(dam <= 0.3)
-			to_chat(user, "<span class='notice'>It's got a few dents and scratches.</span>")
+			to_chat(user, span_notice("It's got a few dents and scratches."))
 		else if(dam <= 0.7)
-			to_chat(user, "<span class='warning'>A few pieces of panelling have fallen off.</span>")
+			to_chat(user, span_warning("A few pieces of panelling have fallen off."))
 		else
-			to_chat(user, "<span class='danger'>It's nearly falling to pieces.</span>")
+			to_chat(user, span_danger("It's nearly falling to pieces."))
 
-/obj/structure/low_wall/attackby(var/obj/item/W, var/mob/user, var/hit_modifier, var/click_parameters)
+/obj/structure/low_wall/attackby(obj/item/W, mob/user, hit_modifier, click_parameters)
 	src.add_fingerprint(user)
 
 	// Making grilles (only works on Bay ones currently)
@@ -89,15 +89,15 @@
 	if(W.has_tool_quality(TOOL_WRENCH))
 		for(var/obj/structure/S in loc)
 			if(istype(S, /obj/structure/window))
-				to_chat(user, "<span class='notice'>There is still a window on the low wall!</span>")
+				to_chat(user, span_notice("There is still a window on the low wall!"))
 				return
 			else if(istype(S, /obj/structure/grille))
-				to_chat(user, "<span class='notice'>There is still a grille on the low wall!</span>")
+				to_chat(user, span_notice("There is still a grille on the low wall!"))
 				return
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 100, 1)
-		to_chat(user, "<span class='notice'>Now disassembling the low wall...</span>")
-		if(do_after(user, 40, src))
-			to_chat(user, "<span class='notice'>You dissasembled the low wall!</span>")
+		to_chat(user, span_notice("Now disassembling the low wall..."))
+		if(do_after(user, 4 SECONDS, target = src))
+			to_chat(user, span_notice("You dissasembled the low wall!"))
 			dismantle()
 			return
 
@@ -108,7 +108,7 @@
 	if(W.loc != user) // This should stop mounted modules ending up outside the module.
 		return
 
-	if(can_place_items() && user.unEquip(W, 0, src.loc) && user.is_preference_enabled(/datum/client_preference/precision_placement))
+	if(can_place_items() && user.unEquip(W, 0, src.loc) && user.client?.prefs?.read_preference(/datum/preference/toggle/precision_placement))
 		auto_align(W, click_parameters)
 		return 1
 
@@ -124,16 +124,15 @@
 
 /obj/structure/low_wall/MouseDrop_T(atom/movable/AM, mob/user, src_location, over_location, src_control, over_control, params)
 	if(AM == user)
-		var/mob/living/H = user
-		if(istype(H) && can_climb(H))
-			do_climb(AM)
+		SEND_SIGNAL(src, COMSIG_CLIMBABLE_START_CLIMB, user)
+		return
 	var/obj/O = AM
 	if(!istype(O))
 		return
 	if(istype(O, /obj/structure/window))
 		var/obj/structure/window/W = O
 		if(Adjacent(W) && !W.anchored)
-			to_chat("<span class='notice'>You hoist [W] up onto [src].</span>")
+			to_chat(user, span_notice("You hoist [W] up onto [src]."))
 			W.forceMove(loc)
 			return
 	if(isrobot(user))
@@ -158,22 +157,22 @@
 					O.forceMove(loc)
 					auto_align(I, params, TRUE)
 				else
-					to_chat(user, SPAN_WARNING("\The [I] is too big for you to move!"))
+					to_chat(user, span_warning("\The [I] is too big for you to move!"))
 				return
 
 /obj/structure/low_wall/proc/handle_rod_use(mob/user, obj/item/stack/rods/R)
 	if(!grille_type)
-		to_chat(user, "<span class='notice'>This type of wall frame doesn't support grilles.</span>")
+		to_chat(user, span_notice("This type of wall frame doesn't support grilles."))
 		return
 	for(var/obj/structure/window/WINDOW in loc)
 		if(WINDOW.dir == get_dir(src, user))
-			to_chat(user, "<span class='notice'>There is a window in the way.</span>")
+			to_chat(user, span_notice("There is a window in the way."))
 			return
 	if(R.get_amount() < 2)
-		to_chat(user, "<span class='warning'>You need at least two rods to do this.</span>")
+		to_chat(user, span_warning("You need at least two rods to do this."))
 		return
-	to_chat(user, "<span class='notice'>Assembling grille...</span>")
-	if(!do_after(user, 1 SECONDS, R, exclusive = TASK_ALL_EXCLUSIVE))
+	to_chat(user, span_notice("Assembling grille..."))
+	if(!do_after(user, 1 SECONDS, target = R))
 		return
 	if(!R.use(2))
 		return
@@ -183,17 +182,17 @@
 /obj/structure/low_wall/proc/handle_glass_use(mob/user, obj/item/stack/material/glass/G)
 	var/window_type = get_window_build_type(user, G)
 	if(!window_type)
-		to_chat(user, "<span class='notice'>You can't build that type of window on this type of low wall.</span>")
+		to_chat(user, span_notice("You can't build that type of window on this type of low wall."))
 		return
 	for(var/obj/structure/window/WINDOW in loc)
 		if(WINDOW.dir == get_dir(src, user))
-			to_chat(user, "<span class='notice'>There is already a window here.</span>")
+			to_chat(user, span_notice("There is already a window here."))
 			return
 	if(G.get_amount() < 4)
-		to_chat(user, "<span class='warning'>You need at least four sheets of glass to do this.</span>")
+		to_chat(user, span_warning("You need at least four sheets of glass to do this."))
 		return
-	to_chat(user, "<span class='notice'>Assembling window...</span>")
-	if(!do_after(user, 4 SECONDS, G, exclusive = TASK_ALL_EXCLUSIVE))
+	to_chat(user, span_notice("Assembling window..."))
+	if(!do_after(user, 4 SECONDS, target = G))
 		return
 	if(!G.use(4))
 		return
@@ -252,20 +251,21 @@
 			I.color = main_color
 			add_overlay(I)
 
-/obj/structure/low_wall/bullet_act(var/obj/item/projectile/Proj)
+/obj/structure/low_wall/bullet_act(obj/item/projectile/Proj)
 	var/proj_damage = Proj.get_structure_damage()
 	var/damage = min(proj_damage, 100)
 	take_damage(damage)
 	return
 
-/obj/structure/low_wall/hitby(AM as mob|obj, var/speed)
+/obj/structure/low_wall/hitby(atom/movable/source, datum/thrownthing/throwingdatum)
 	..()
 	var/tforce = 0
-	if(ismob(AM)) // All mobs have a multiplier and a size according to mob_defines.dm
-		var/mob/I = AM
+	var/speed = throwingdatum?.speed || THROWFORCE_SPEED_DIVISOR
+	if(ismob(source)) // All mobs have a multiplier and a size according to mob_defines.dm
+		var/mob/I = source
 		tforce = I.mob_size * (speed/THROWFORCE_SPEED_DIVISOR)
-	else
-		var/obj/O = AM
+	else if(isitem(source))
+		var/obj/item/O = source
 		tforce = O.throwforce * (speed/THROWFORCE_SPEED_DIVISOR)
 	if (tforce < 15)
 		return
@@ -276,8 +276,8 @@
 	if(health <= 0)
 		dismantle()
 
-/obj/structure/low_wall/attack_generic(var/mob/user, var/damage, var/attack_verb)
-	visible_message("<span class='danger'>[user] [attack_verb] the [src]!</span>")
+/obj/structure/low_wall/attack_generic(mob/user, damage, attack_verb)
+	visible_message(span_danger("[user] [attack_verb] the [src]!"))
 	user.do_attack_animation(src)
 	take_damage(damage)
 	return ..()
@@ -346,12 +346,11 @@
 	noblend_objects = list(/obj/machinery/door/window)
 	color = "#666666"
 
-/obj/structure/grille/bay/Initialize()
+/obj/structure/grille/bay/Initialize(mapload)
 	. = ..()
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/structure/grille/bay/LateInitialize()
-	. = ..()
 	update_connections(1)
 	update_icon()
 
@@ -399,12 +398,12 @@
 	icon_state = "preview_glass"
 	basestate = "window"
 	alpha = 180
-	flags = 0
+	flags = NONE
 	fulltile = TRUE
 	maxhealth = 24
 	glasstype = /obj/item/stack/material/glass
 
-/obj/structure/window/bay/Initialize()
+/obj/structure/window/bay/Initialize(mapload)
 	. = ..()
 	var/obj/item/stack/material/glass/G = glasstype
 	var/datum/material/M = get_material_by_name(initial(G.default_type))
@@ -412,7 +411,6 @@
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/structure/window/bay/LateInitialize()
-	. = ..()
 	icon_state = ""
 	update_icon()
 
@@ -466,7 +464,7 @@
 	name = "phoron window"
 	desc = "A borosilicate alloy window. It seems to be quite strong."
 	icon_state = "preview_phoron"
-	shardtype = /obj/item/weapon/material/shard/phoron
+	shardtype = /obj/item/material/shard/phoron
 	glasstype = /obj/item/stack/material/glass/phoronglass
 	maximal_heat = T0C + 2000
 	damage_per_fire_tick = 1.0
@@ -479,7 +477,7 @@
 	desc = "A borosilicate alloy window, with rods supporting it. It seems to be very strong."
 	icon_state = "preview_rphoron"
 	basestate = "rwindow"
-	shardtype = /obj/item/weapon/material/shard/phoron
+	shardtype = /obj/item/material/shard/phoron
 	glasstype = /obj/item/stack/material/glass/phoronrglass
 	reinf = 1
 	maximal_heat = T0C + 4000
@@ -498,12 +496,11 @@
 	maxhealth = 24
 	alpha = 150
 
-/obj/structure/window/eris/Initialize()
+/obj/structure/window/eris/Initialize(mapload)
 	. = ..()
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/structure/window/eris/LateInitialize()
-	. = ..()
 	icon_state = ""
 	update_icon()
 
@@ -542,7 +539,7 @@
 	desc = "A borosilicate alloy window. It seems to be quite strong."
 	basestate = "preview_phoron"
 	icon_state = "pwindow"
-	shardtype = /obj/item/weapon/material/shard/phoron
+	shardtype = /obj/item/material/shard/phoron
 	glasstype = /obj/item/stack/material/glass/phoronglass
 	maximal_heat = T0C + 2000
 	damage_per_fire_tick = 1.0
@@ -555,7 +552,7 @@
 	desc = "A borosilicate alloy window, with rods supporting it. It seems to be very strong."
 	basestate = "preview_rphoron"
 	icon_state = "rpwindow"
-	shardtype = /obj/item/weapon/material/shard/phoron
+	shardtype = /obj/item/material/shard/phoron
 	glasstype = /obj/item/stack/material/glass/phoronrglass
 	reinf = 1
 	maximal_heat = T0C + 4000
@@ -576,10 +573,10 @@
 
 	icon = null
 
-/obj/effect/low_wall_spawner/Initialize()
+/obj/effect/low_wall_spawner/Initialize(mapload)
 	. = ..()
 	if(locate(/obj/effect/low_wall_spawner) in oview(0, src))
-		warning("Duplicate low wall spawners in [x],[y],[z]!")
+		WARNING("Duplicate low wall spawners in [x],[y],[z]!")
 		return INITIALIZE_HINT_QDEL
 
 	if(low_wall_type)

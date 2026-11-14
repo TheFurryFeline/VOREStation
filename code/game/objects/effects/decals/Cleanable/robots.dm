@@ -10,11 +10,13 @@
 
 /obj/effect/decal/cleanable/blood/gibs/robot/update_icon()
 	color = "#FFFFFF"
+	cut_overlays()
+	add_janitor_hud_overlay()
 
 /obj/effect/decal/cleanable/blood/gibs/robot/dry()	//pieces of robots do not dry up like
 	return
 
-/obj/effect/decal/cleanable/blood/gibs/robot/streak(var/list/directions)
+/obj/effect/decal/cleanable/blood/gibs/robot/streak(list/directions)
 	spawn (0)
 		var/direction = pick(directions)
 		for (var/i = 0, i < pick(1, 200; 2, 150; 3, 50; 4), i++)

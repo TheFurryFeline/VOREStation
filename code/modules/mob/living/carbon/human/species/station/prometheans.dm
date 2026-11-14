@@ -1,8 +1,5 @@
-var/datum/species/shapeshifter/promethean/prometheans
-
 // Species definition follows.
 /datum/species/shapeshifter/promethean
-
 	name =             SPECIES_PROMETHEAN
 	name_plural =      "Prometheans"
 	blurb =            "Prometheans (Macrolimus artificialis) are a species of artificially-created gelatinous humanoids, \
@@ -10,6 +7,7 @@ var/datum/species/shapeshifter/promethean/prometheans
 	mimic many forms of life. Derived from the Aetolian giant slime (Macrolimus vulgaris) inhabiting the warm, tropical planet \
 	of Aetolus, they are a relatively new lab-created sapient species, and as such many things about them have yet to be comprehensively studied. \
 	What has Science done?"
+	wikilink="https://wiki.vore-station.net/Promethean"
 	catalogue_data = list(/datum/category_item/catalogue/fauna/promethean)
 	show_ssd =         "totally quiescent"
 	death_message =    "rapidly loses cohesion, splattering across the ground..."
@@ -18,16 +16,16 @@ var/datum/species/shapeshifter/promethean/prometheans
 
 	blood_color = "#05FF9B"
 	flesh_color = "#05FFFB"
+	color_mult = 1
 
-	hunger_factor =    0.2
-	reagent_tag =      IS_SLIME
-	mob_size =         MOB_SMALL
-	bump_flag =        SLIME
-	swap_flags =       MONKEY|SLIME|SIMPLE_ANIMAL
-	push_flags =       MONKEY|SLIME|SIMPLE_ANIMAL
-	flags =            NO_SCAN | NO_SLIP | NO_MINOR_CUT | NO_HALLUCINATION | NO_INFECT | NO_DEFIB
+	hunger_factor =	0.2
+	reagent_tag =	IS_SLIME
+	mob_size =		MOB_MEDIUM
+	push_flags =	~HEAVY
+	swap_flags =	~HEAVY
+	flags =			NO_DNA | NO_SLEEVE | NO_SLIP | NO_MINOR_CUT | NO_HALLUCINATION | NO_INFECT | NO_DEFIB | SHOCK_ABSORB
 	appearance_flags = HAS_SKIN_COLOR | HAS_EYE_COLOR | HAS_HAIR_COLOR | RADIATION_GLOWS | HAS_UNDERWEAR
-	spawn_flags		 = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED
+	spawn_flags = SPECIES_CAN_JOIN
 	health_hud_intensity = 2
 	num_alternate_languages = 3
 	language = LANGUAGE_PROMETHEAN
@@ -35,23 +33,23 @@ var/datum/species/shapeshifter/promethean/prometheans
 	secondary_langs = list(LANGUAGE_PROMETHEAN, LANGUAGE_SOL_COMMON)	// For some reason, having this as their species language does not allow it to be chosen.
 	assisted_langs = list(LANGUAGE_ROOTGLOBAL, LANGUAGE_VOX)	// Prometheans are weird, let's just assume they can use basically any language.
 
+	species_component = list(/datum/component/radiation_effects/promethean)
+
 	blood_name = "gelatinous ooze"
-	blood_reagents = "slimejelly"
+	blood_reagents = REAGENT_ID_SLIMEJELLY
 
 	breath_type = null
 	poison_type = null
 
 	speech_bubble_appearance = "slime"
 
-	male_cough_sounds = list('sound/effects/slime_squish.ogg')
-	female_cough_sounds = list('sound/effects/slime_squish.ogg')
+	species_sounds = "Slime"
 
-	min_age =		1
-	max_age =		16
+	min_age = 18
+	max_age = 80
 
 	economic_modifier = 3
 
-	gluttonous =	1
 	virus_immune =	1
 	blood_volume =	560
 	brute_mod =		0.75
@@ -61,7 +59,7 @@ var/datum/species/shapeshifter/promethean/prometheans
 	item_slowdown_mod = 1.33
 	throwforce_absorb_threshold = 10
 
-	chem_strength_alcohol = 2
+	chem_strength_alcohol = 0.5
 
 	cloning_modifier = /datum/modifier/cloning_sickness/promethean
 
@@ -76,12 +74,12 @@ var/datum/species/shapeshifter/promethean/prometheans
 	body_temperature = T20C	// Room temperature
 
 	rarity_value = 5
-	siemens_coefficient = 0.8
+	siemens_coefficient = 0
 
 	water_resistance = 0
-	water_damage_mod = 0.3
+	water_damage_mod = 0
 
-	genders = list(MALE, FEMALE, NEUTER, PLURAL)
+	genders = list(MALE, FEMALE, PLURAL, NEUTER)
 
 	unarmed_types = list(/datum/unarmed_attack/slime_glomp)
 
@@ -111,50 +109,50 @@ var/datum/species/shapeshifter/promethean/prometheans
 	cold_discomfort_strings = list("You feel too cool.")
 
 	inherent_verbs = list(
-		/mob/living/carbon/human/proc/shapeshifter_select_shape,
-		/mob/living/carbon/human/proc/shapeshifter_select_colour,
-		/mob/living/carbon/human/proc/shapeshifter_select_hair,
-		/mob/living/carbon/human/proc/shapeshifter_select_eye_colour,
-		/mob/living/carbon/human/proc/shapeshifter_select_hair_colors,
-		/mob/living/carbon/human/proc/shapeshifter_select_gender,
-		/mob/living/carbon/human/proc/regenerate
+		/mob/living/carbon/human/proc/innate_shapeshifting,
+		/mob/living/carbon/human/proc/regenerate,
+		/mob/living/carbon/human/proc/prommie_blobform,
+		/mob/living/proc/set_size,
+		/mob/living/carbon/human/proc/promethean_select_opaqueness,
 		)
 
-	valid_transform_species = list(SPECIES_HUMAN, SPECIES_HUMAN_VATBORN, SPECIES_UNATHI, SPECIES_TAJ, SPECIES_SKRELL, SPECIES_DIONA, SPECIES_TESHARI, SPECIES_MONKEY)
+	valid_transform_species = list(
+		SPECIES_HUMAN, SPECIES_UNATHI, SPECIES_TAJARAN, SPECIES_SKRELL,
+		SPECIES_DIONA, SPECIES_TESHARI, SPECIES_MONKEY, SPECIES_SERGAL,
+		SPECIES_AKULA, SPECIES_NEVREAN, SPECIES_ZORREN_HIGH,
+		SPECIES_FENNEC, SPECIES_VULPKANIN, SPECIES_VASILISSAN,
+		SPECIES_RAPALA, SPECIES_MONKEY_SKRELL, SPECIES_MONKEY_UNATHI, SPECIES_MONKEY_TAJ, SPECIES_MONKEY_AKULA,
+		SPECIES_MONKEY_VULPKANIN, SPECIES_MONKEY_SERGAL, SPECIES_MONKEY_NEVREAN)
 
 	var/heal_rate = 0.5 // Temp. Regen per tick.
 
 	default_emotes = list(
-		/decl/emote/audible/squish,
-		/decl/emote/audible/chirp,
-		/decl/emote/visible/bounce,
-		/decl/emote/visible/jiggle,
-		/decl/emote/visible/lightup,
-		/decl/emote/visible/vibrate
+		/datum/decl/emote/audible/squish,
+		/datum/decl/emote/audible/chirp,
+		/datum/decl/emote/visible/bounce,
+		/datum/decl/emote/visible/jiggle,
+		/datum/decl/emote/visible/lightup,
+		/datum/decl/emote/visible/vibrate
 	)
 
-/datum/species/shapeshifter/promethean/New()
-	..()
-	prometheans = src
-
-/datum/species/shapeshifter/promethean/equip_survival_gear(var/mob/living/carbon/human/H)
-	var/boxtype = pick(list(/obj/item/weapon/storage/toolbox/lunchbox,
-							/obj/item/weapon/storage/toolbox/lunchbox/heart,
-							/obj/item/weapon/storage/toolbox/lunchbox/cat,
-							/obj/item/weapon/storage/toolbox/lunchbox/nt,
-							/obj/item/weapon/storage/toolbox/lunchbox/mars,
-							/obj/item/weapon/storage/toolbox/lunchbox/cti,
-							/obj/item/weapon/storage/toolbox/lunchbox/nymph,
-							/obj/item/weapon/storage/toolbox/lunchbox/syndicate))	//Only pick the empty types
-	var/obj/item/weapon/storage/toolbox/lunchbox/L = new boxtype(get_turf(H))
-	new /obj/item/weapon/reagent_containers/food/snacks/candy/proteinbar(L)
-	new /obj/item/weapon/tool/prybar/red(L) //VOREStation Add,
+/datum/species/shapeshifter/promethean/equip_survival_gear(mob/living/carbon/human/H)
+	var/boxtype = pick(list(/obj/item/storage/toolbox/lunchbox,
+							/obj/item/storage/toolbox/lunchbox/heart,
+							/obj/item/storage/toolbox/lunchbox/cat,
+							/obj/item/storage/toolbox/lunchbox/nt,
+							/obj/item/storage/toolbox/lunchbox/mars,
+							/obj/item/storage/toolbox/lunchbox/cti,
+							/obj/item/storage/toolbox/lunchbox/nymph,
+							/obj/item/storage/toolbox/lunchbox/syndicate))	//Only pick the empty types
+	var/obj/item/storage/toolbox/lunchbox/L = new boxtype(get_turf(H))
+	new /obj/item/reagent_containers/food/snacks/candy/proteinbar(L)
+	new /obj/item/tool/prybar/red(L) //VOREStation Add,
 	if(H.backbag == 1)
 		H.equip_to_slot_or_del(L, slot_r_hand)
 	else
 		H.equip_to_slot_or_del(L, slot_in_backpack)
 
-/datum/species/shapeshifter/promethean/hug(var/mob/living/carbon/human/H, var/mob/living/target)
+/datum/species/shapeshifter/promethean/hug(mob/living/carbon/human/H, mob/living/target)
 	var/static/list/parent_handles = list("head", "r_hand", "l_hand", "mouth")
 
 	if(H.zone_sel.selecting in parent_handles)
@@ -175,16 +173,24 @@ var/datum/species/shapeshifter/promethean/prometheans
 			if(FEMALE)
 				t_him = "her"
 
-	H.visible_message("<b>\The [H]</b> glomps [target] to make [t_him] feel better!", \
-					"<span class='notice'>You glomp [target] to make [t_him] feel better!</span>")
+	H.visible_message(span_infoplain(span_bold("\The [H]") + " glomps [target] to make [t_him] feel better!"), \
+					span_notice("You glomp [target] to make [t_him] feel better!"))
 	H.apply_stored_shock_to(target)
 
-/datum/species/shapeshifter/promethean/handle_death(var/mob/living/carbon/human/H)
+/datum/species/shapeshifter/promethean/handle_death(mob/living/carbon/human/H)
+	if(!H)
+		return // Iono!
+
+	if(H.temporary_form)
+		H.forceMove(H.temporary_form.drop_location())
+		H.ckey = H.temporary_form.ckey
+		QDEL_NULL(H.temporary_form)
+
 	spawn(1)
 		if(H)
 			H.gib()
 
-/datum/species/shapeshifter/promethean/handle_environment_special(var/mob/living/carbon/human/H)
+/datum/species/shapeshifter/promethean/handle_environment_special(mob/living/carbon/human/H)
 	var/healing = TRUE	// Switches to FALSE if healing is not possible at all.
 	var/regen_brute = TRUE
 	var/regen_burn = TRUE
@@ -204,11 +210,11 @@ var/datum/species/shapeshifter/promethean/prometheans
 	if(istype(T))
 		if(!(H.shoes || (H.wear_suit && (H.wear_suit.body_parts_covered & FEET))))
 			for(var/obj/O in T)
-				if(O.clean_blood())
+				if(O.wash(CLEAN_SCRUB))
 					H.adjust_nutrition(rand(5, 15))
 			if (istype(T, /turf/simulated))
 				var/turf/simulated/S = T
-				if(T.clean_blood())
+				if(T.wash(CLEAN_SCRUB))
 					H.adjust_nutrition(rand(10, 20))
 				if(S.dirt > 50)
 					S.dirt = 0
@@ -219,17 +225,16 @@ var/datum/species/shapeshifter/promethean/prometheans
 			H.feet_blood_color = null
 			H.adjust_nutrition(rand(3, 10))
 		if(H.bloody_hands)
-			LAZYCLEARLIST(H.blood_DNA)
-			H.blood_DNA = null
+			H.forensic_data?.clear_blooddna()
 			H.hand_blood_color = null
 			H.bloody_hands = 0
 			H.adjust_nutrition(rand(3, 10))
 		if(!(H.gloves || (H.wear_suit && (H.wear_suit.body_parts_covered & HANDS))))
 			if(H.r_hand)
-				if(H.r_hand.clean_blood())
+				if(H.r_hand.wash(CLEAN_SCRUB))
 					H.adjust_nutrition(rand(5, 15))
 			if(H.l_hand)
-				if(H.l_hand.clean_blood())
+				if(H.l_hand.wash(CLEAN_SCRUB))
 					H.adjust_nutrition(rand(5, 15))
 /*
 		if(H.head)
@@ -337,15 +342,15 @@ var/datum/species/shapeshifter/promethean/prometheans
 			if((starve_mod <= 0.5 && (H.getHalLoss() + agony_to_apply) <= 90) || ((H.getHalLoss() + agony_to_apply) <= 70))	// Will max out at applying halloss at 70, unless they are starving; starvation regeneration will bring them up to a maximum of 120, the same amount of agony a human receives from three taser hits.
 				H.apply_damage(agony_to_apply, HALLOSS)
 
-/datum/species/shapeshifter/promethean/get_blood_colour(var/mob/living/carbon/human/H)
+/datum/species/shapeshifter/promethean/get_blood_colour(mob/living/carbon/human/H)
 	return (H ? rgb(H.r_skin, H.g_skin, H.b_skin) : ..())
 
-/datum/species/shapeshifter/promethean/get_flesh_colour(var/mob/living/carbon/human/H)
+/datum/species/shapeshifter/promethean/get_flesh_colour(mob/living/carbon/human/H)
 	return (H ? rgb(H.r_skin, H.g_skin, H.b_skin) : ..())
 
-/datum/species/shapeshifter/promethean/get_additional_examine_text(var/mob/living/carbon/human/H)
+/datum/species/shapeshifter/promethean/get_additional_examine_text(mob/living/carbon/human/H)
 
-	if(!stored_shock_by_ref["\ref[H]"])
+	if(!GLOB.stored_shock_by_ref["\ref[H]"])
 		return
 
 	var/t_she = "She is"
@@ -358,12 +363,43 @@ var/datum/species/shapeshifter/promethean/prometheans
 	else if(H.identifying_gender == HERM) //VOREStation Edit
 		t_she = "Shi is"
 
-	switch(stored_shock_by_ref["\ref[H]"])
+	switch(GLOB.stored_shock_by_ref["\ref[H]"])
 		if(1 to 10)
 			return "[t_she] flickering gently with a little electrical activity."
 		if(11 to 20)
 			return "[t_she] glowing gently with moderate levels of electrical activity.\n"
 		if(21 to 35)
-			return "<span class='warning'>[t_she] glowing brightly with high levels of electrical activity.</span>"
+			return span_warning("[t_she] glowing brightly with high levels of electrical activity.")
 		if(35 to INFINITY)
-			return "<span class='danger'>[t_she] radiating massive levels of electrical activity!</span>"
+			return span_danger("[t_she] radiating massive levels of electrical activity!")
+
+/mob/living/carbon/human/proc/prommie_blobform()
+	set name = "Toggle Blobform"
+	set desc = "Switch between amorphous and humanoid forms."
+	set category = "Abilities.Promethean"
+	set hidden = FALSE
+
+	var/atom/movable/to_locate = temporary_form || src
+	if(!isturf(to_locate.loc))
+		to_chat(to_locate,span_warning("You need more space to perform this action!"))
+		return
+	/*
+	//Blob form
+	if(temporary_form)
+		if(temporary_form.stat)
+			to_chat(temporary_form,span_warning("You can only do this while not stunned."))
+		else
+			prommie_outofblob(temporary_form)
+	*/
+	//Human form
+	else if(stat || paralysis || stunned || weakened || restrained())
+		to_chat(src,span_warning("You can only do this while not stunned."))
+		return
+	else
+		prommie_intoblob()
+
+/mob/living/carbon/human/proc/innate_shapeshifting()
+	set name = "Transform Appearance"
+	set category = "Abilities.Superpower"
+	var/datum/tgui_module/appearance_changer/innate/I = new(src, src)
+	I.tgui_interact(src)

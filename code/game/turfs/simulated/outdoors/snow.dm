@@ -3,11 +3,7 @@
 	icon_state = "snow"
 	edge_blending_priority = 6
 	movement_cost = 2
-	initial_flooring = /decl/flooring/snow
-	turf_layers = list(
-		/turf/simulated/floor/outdoors/rocks,
-		/turf/simulated/floor/outdoors/dirt
-		)
+	initial_flooring = /datum/decl/flooring/snow
 	var/list/crossed_dirs = list()
 
 
@@ -28,21 +24,23 @@
 	for(var/d in crossed_dirs)
 		add_overlay(image(icon = 'icons/turf/outdoors.dmi', icon_state = "snow_footprints", dir = text2num(d)))
 
-/turf/simulated/floor/outdoors/snow/attackby(var/obj/item/W, var/mob/user)
-	if(istype(W, /obj/item/weapon/shovel))
-		to_chat(user, "<span class='notice'>You begin to remove \the [src] with your [W].</span>")
-		if(do_after(user, 4 SECONDS * W.toolspeed))
-			to_chat(user, "<span class='notice'>\The [src] has been dug up, and now lies in a pile nearby.</span>")
+/turf/simulated/floor/outdoors/snow/attackby(obj/item/W, mob/user)
+	if(istype(W, /obj/item/shovel))
+		to_chat(user, span_notice("You begin to remove \the [src] with your [W]."))
+		if(do_after(user, 4 SECONDS * W.toolspeed, target = src))
+			to_chat(user, span_notice("\The [src] has been dug up, and now lies in a pile nearby."))
 			new /obj/item/stack/material/snow(src, 10)
 			demote()
 		else
-			to_chat(user, "<span class='notice'>You decide to not finish removing \the [src].</span>")
+			to_chat(user, span_notice("You decide to not finish removing \the [src]."))
 	else
 		..()
 
 /turf/simulated/floor/outdoors/snow/attack_hand(mob/user as mob)
+	if(!Adjacent(user))
+		return
 	visible_message("[user] starts scooping up some snow.", "You start scooping up some snow.")
-	if(do_after(user, 1 SECOND))
+	if(do_after(user, 1 SECOND, target = src))
 		var/obj/S = new /obj/item/stack/material/snow(user.loc)
 		user.put_in_hands(S)
 		visible_message("[user] scoops up a pile of snow.", "You scoop up a pile of snow.")
@@ -55,6 +53,15 @@
 	edge_blending_priority = 0
 	can_be_plated = FALSE
 
+/turf/simulated/floor/outdoors/ice/Initialize(mapload, floortype)
+	. = ..()
+	MakeSlippery(TURF_WET_PERMAFROST, INFINITY, 0, INFINITY, TRUE)
+
+/turf/simulated/floor/outdoors/ice/Destroy()
+	MakeDry(TURF_WET_PERMAFROST)
+	. = ..()
+
+
 /turf/simulated/floor/outdoors/ice/dark
 	name = "black ice"
 	icon_state = "ice_dark"
@@ -65,14 +72,6 @@
 	icon_state = "ice_dark_smooth"
 	desc = "Dark rock that has been smoothened to be perfectly even. It's coated in a layer of slippey ice"
 
-/turf/simulated/floor/outdoors/ice/Entered(var/mob/living/M)
-	sleep(1 * world.tick_lag)
-	if(istype(M, /mob/living))
-		if(M.stunned == 0)
-			to_chat(M, "<span class='warning'>You slide across the ice!</span>")
-		M.SetStunned(1)
-		step(M,M.dir)
-
 // Ice that is used for, say, areas floating on water or similar.
 /turf/simulated/floor/outdoors/shelfice
 	name = "ice"
@@ -80,3 +79,17 @@
 	desc = "Looks slippery."
 	movement_cost = 4
 	edge_blending_priority = 0
+
+// Extra cold variants
+
+/turf/simulated/floor/outdoors/snow/v5
+	temperature = 150
+	oxygen = 8
+	nitrogen = 17
+	carbon_dioxide = 75
+
+/turf/simulated/floor/outdoors/ice/v5
+	temperature = 150
+	oxygen = 8
+	nitrogen = 17
+	carbon_dioxide = 75

@@ -359,18 +359,21 @@
 	icon_state = "grewhisqu"
 	ambience = AMBIENCE_FOREBODING
 	lightswitch = 0
+
 /area/groundbase/civilian/arrivals
 	name = "Arrivals"
 	lightswitch = 1
-	forbid_events = TRUE
-	forbid_singulo = TRUE
+	flags = AREA_FORBID_EVENTS | AREA_FORBID_SINGULO
+
 /area/groundbase/civilian/toolstorage
 	name = "Tool Storage"
 	lightswitch = 1
+
 /area/groundbase/civilian/bar
 	name = "Bar"
 	sound_env = LARGE_ENCLOSED
 	lightswitch = 1
+
 /area/groundbase/civilian/bar/upper
 	name = "Bar Balcony"
 	base_turf = /turf/simulated/open/virgo3c
@@ -379,14 +382,17 @@
 	name = "Cafe"
 	sound_env = SMALL_SOFTFLOOR
 	lightswitch = 1
+
 /area/groundbase/civilian/hydroponics
 	name = "Hydroponics"
 	lightswitch = 1
+
 /area/groundbase/civilian/hydroponics/out
 	name = "Hydroponics Animal Pen"
 /area/groundbase/civilian/kitchen
 	name = "Kitchen"
 	lightswitch = 1
+
 /area/groundbase/civilian/kitchen/freezer
 	name = "Kitchen Freezer"
 /area/groundbase/civilian/kitchen/backroom
@@ -420,14 +426,26 @@
 	sound_env = SMALL_SOFTFLOOR
 /area/groundbase/civilian/mensrestroom
 	name = "Men's Restroom"
+	flags = AREA_FORBID_EVENTS
 	sound_env = SOUND_ENVIRONMENT_BATHROOM
 	lightswitch = 1
-	forbid_events = TRUE
+
 /area/groundbase/civilian/womensrestroom
 	name = "Women's Restroom"
+	flags = AREA_FORBID_EVENTS
 	sound_env = SOUND_ENVIRONMENT_BATHROOM
 	lightswitch = 1
-	forbid_events = TRUE
+
+/area/groundbase/civilian/entrepreneur
+	name = "\improper Shared Office"
+	icon_state = "entertainment"
+
+/area/groundbase/civilian/entrepreneur/session
+	name = "\improper Shared Office Session Room"
+
+/area/groundbase/civilian/entrepreneur/meeting
+	name = "\improper Shared Office Meeting Room"
+
 
 /area/groundbase/exploration
 	name = "Exploration"
@@ -445,13 +463,7 @@
 	holomap_color = HOLOMAP_AREACOLOR_DORMS
 	icon_state = "grawhisqu"
 	ambience = AMBIENCE_GENERIC
-	flags = RAD_SHIELDED| BLUE_SHIELDED |AREA_FLAG_IS_NOT_PERSISTENT
-	soundproofed = TRUE
-	limit_mob_size = FALSE
-	block_suit_sensors = TRUE
-	block_tracking = TRUE
-	forbid_events = TRUE
-	forbid_singulo = TRUE
+	flags = RAD_SHIELDED | BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_FORBID_SINGULO | AREA_SOUNDPROOF | AREA_ALLOW_LARGE_SIZE | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING | AREA_CRYOPLANET_SHIELDED
 
 /area/groundbase/dorms/bathroom
 	name = "Dormitory Bathroom"
@@ -530,35 +542,12 @@
 /area/groundbase/mining/explored
 	icon_state = "blublacir"
 
-// Exclude some more areas from the atmos leak event since its outside.
-/datum/event/atmos_leak/setup()
-	excluded |= /area/groundbase/level1/centsquare
-	excluded |= /area/groundbase/level1/eastspur
-	excluded |= /area/groundbase/level1/northspur
-	excluded |= /area/groundbase/level1/southeastspur
-	excluded |= /area/groundbase/level1/southwestspur
-	excluded |= /area/groundbase/level1/westspur
-	excluded |= /area/maintenance/groundbase/level1/netunnel
-	excluded |= /area/maintenance/groundbase/level1/nwtunnel
-	excluded |= /area/maintenance/groundbase/level1/stunnel
-	excluded |= /area/maintenance/groundbase/level1/setunnel
-	excluded |= /area/maintenance/groundbase/level1/swtunnel
-	excluded |= /area/groundbase/level2/ne
-	excluded |= /area/groundbase/level2/nw
-	excluded |= /area/groundbase/level2/se
-	excluded |= /area/groundbase/level2/sw
-	excluded |= /area/groundbase/level3/ne
-	excluded |= /area/groundbase/level3/nw
-	excluded |= /area/groundbase/level3/se
-	excluded |= /area/groundbase/level3/sw
-	excluded |= /area/groundbase/level2/northspur
-	excluded |= /area/groundbase/level2/eastspur
-	excluded |= /area/groundbase/level2/westspur
-	excluded |= /area/groundbase/level2/southeastspur
-	excluded |= /area/groundbase/level2/southwestspur
-	excluded |= /area/groundbase/level3/ne/open
-	excluded |= /area/groundbase/level3/nw/open
-	excluded |= /area/groundbase/level3/se/open
-	excluded |= /area/groundbase/level3/sw/open
-	excluded |= /area/groundbase/level3/escapepad
-	..()
+/area/gb_mine/
+	ambience = list('sound/ambience/ambimine.ogg', 'sound/ambience/song_game.ogg')
+	base_turf = /turf/simulated/mineral/floor
+/area/gb_mine/unexplored
+	name = "Virgo 3c Underground"
+	icon_state = "unexplored"
+/area/gb_mine/explored
+	name = "Virgo 3c Underground"
+	icon_state = "explored"

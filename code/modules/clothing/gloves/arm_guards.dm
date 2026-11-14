@@ -1,5 +1,5 @@
 /obj/item/clothing/gloves/arm_guard
-	name = "arm guards"
+	name = DEVELOPER_WARNING_NAME // "arm guards"
 	desc = "These arm guards will protect your hands and arms."
 	body_parts_covered = HANDS|ARMS
 	overgloves = 1
@@ -7,16 +7,17 @@
 	w_class = ITEMSIZE_NORMAL
 	drop_sound = 'sound/items/drop/metalshield.ogg'
 	pickup_sound = 'sound/items/pickup/axe.ogg'
+	resistance_flags = FIRE_PROOF
 
-/obj/item/clothing/gloves/arm_guard/mob_can_equip(var/mob/living/carbon/human/H, slot, disable_warning = FALSE)
+/obj/item/clothing/gloves/arm_guard/mob_can_equip(mob/living/carbon/human/H, slot, disable_warning = FALSE, ignore_obstruction, go_over_slot = TRUE)
 	if(..()) //This will only run if no other problems occured when equiping.
 		if(H.wear_suit)
 			if(H.wear_suit.body_parts_covered & ARMS)
-				to_chat(H, "<span class='warning'>You can't wear \the [src] with \the [H.wear_suit], it's in the way.</span>")
+				to_chat(H, span_warning("You can't wear \the [src] with \the [H.wear_suit], it's in the way."))
 				return 0
 			for(var/obj/item/clothing/accessory/A in H.wear_suit)
 				if(A.body_parts_covered & ARMS)
-					to_chat(H, "<span class='warning'>You can't wear \the [src] with \the [H.wear_suit]'s [A], it's in the way.</span>")
+					to_chat(H, span_warning("You can't wear \the [src] with \the [H.wear_suit]'s [A], it's in the way."))
 					return 0
 		return 1
 

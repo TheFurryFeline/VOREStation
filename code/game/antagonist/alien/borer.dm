@@ -1,11 +1,11 @@
-var/datum/antagonist/borer/borers
+GLOBAL_DATUM(borers, /datum/antagonist/borer)
 
 /datum/antagonist/borer
 	id = MODE_BORER
 	role_type = BE_ALIEN
 	role_text = "Cortical Borer"
 	role_text_plural = "Cortical Borers"
-	mob_path = /mob/living/simple_mob/animal/borer
+	mob_path = /mob/living/simple_mob/animal/borer/roundstart // Use roundstart borer, or ghostcheck makes it take forever to enter mob when assigned
 	bantype = "Borer"
 	welcome_text = "Use your Infest power to crawl into the ear of a host and fuse with their brain. You can only take control temporarily, and at risk of hurting your host, so be clever and careful; your host is encouraged to help you however they can. Talk to your fellow borers with :x."
 	antag_indicator = "brainworm"
@@ -22,28 +22,28 @@ var/datum/antagonist/borer/borers
 
 	spawn_announcement = "Unidentified lifesigns detected coming aboard the station. Secure any exterior access, including ducting and ventilation."
 	spawn_announcement_title = "Lifesign Alert"
-	spawn_announcement_sound = 'sound/AI/aliens.ogg'
+	spawn_announcement_sound = ANNOUNCER_MSG_UNIDENTIFIED_LIFESIGNS
 	spawn_announcement_delay = 5000
 
 /datum/antagonist/borer/New()
 	..(1)
-	borers = src
+	GLOB.borers = src
 
-/datum/antagonist/xenos/borer/get_extra_panel_options(var/datum/mind/player)
-	return "<a href='?src=\ref[src];[HrefToken()];move_to_spawn=\ref[player.current]'>\[put in host\]</a>"
+/datum/antagonist/xenos/borer/get_extra_panel_options(datum/mind/player)
+	return "<a href='byond://?src=\ref[src];[HrefToken()];move_to_spawn=\ref[player.current]'>\[put in host\]</a>"
 
-/datum/antagonist/borer/create_objectives(var/datum/mind/player)
+/datum/antagonist/borer/create_objectives(datum/mind/player)
 	if(!..())
 		return
 	player.objectives += new /datum/objective/borer_survive()
 	player.objectives += new /datum/objective/borer_reproduce()
 	player.objectives += new /datum/objective/escape()
 
-/datum/antagonist/borer/place_mob(var/mob/living/mob)
+/datum/antagonist/borer/place_mob(mob/living/mob)
 	var/mob/living/simple_mob/animal/borer/borer = mob
 	if(istype(borer))
 		var/mob/living/carbon/human/host
-		for(var/mob/living/carbon/human/H in mob_list)
+		for(var/mob/living/carbon/human/H in GLOB.mob_list)
 			if(H.stat != DEAD && !H.has_brain_worms())
 				var/obj/item/organ/external/head = H.get_organ(BP_HEAD)
 				if(head && !(head.robotic >= ORGAN_ROBOT))
@@ -59,15 +59,15 @@ var/datum/antagonist/borer/borers
 			borer.host_brain.name = host.name
 			borer.host_brain.real_name = host.real_name
 			return
-		 // Place them at a vent if they can't get a host.
+		// Place them at a vent if they can't get a host.
 		borer.forceMove(get_turf(pick(get_vents())))
 
 /datum/antagonist/borer/attempt_random_spawn()
-	if(config.aliens_allowed) ..()
+	if(CONFIG_GET(flag/aliens_allowed)) ..()
 
 /datum/antagonist/borer/proc/get_vents()
 	var/list/vents = list()
-	for(var/obj/machinery/atmospherics/unary/vent_pump/temp_vent in machines)
+	for(var/obj/machinery/atmospherics/unary/vent_pump/temp_vent in GLOB.machines)
 		if(!temp_vent.welded && temp_vent.network && (temp_vent.loc.z in using_map.station_levels))
 			if(temp_vent.network.normal_members.len > 50)
 				vents += temp_vent

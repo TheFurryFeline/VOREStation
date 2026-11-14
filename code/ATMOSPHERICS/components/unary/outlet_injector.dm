@@ -18,15 +18,18 @@
 
 	var/volume_rate = 50	//flow rate limit
 
-	var/frequency = 0
+	var/frequency = ZERO_FREQ
 	var/id = null
 	var/datum/radio_frequency/radio_connection
 
 	level = 1
 
-/obj/machinery/atmospherics/unary/outlet_injector/New()
-	..()
+/obj/machinery/atmospherics/unary/outlet_injector/Initialize(mapload)
+	. = ..()
+
 	air_contents.volume = ATMOS_DEFAULT_VOLUME_PUMP + 500	//Give it a small reservoir for injecting. Also allows it to have a higher flow rate limit than vent pumps, to differentiate injectors a bit more.
+	if(frequency)
+		set_frequency(frequency)
 
 /obj/machinery/atmospherics/unary/outlet_injector/Destroy()
 	unregister_radio(src, frequency)
@@ -39,12 +42,12 @@
 		icon_state = "[use_power ? "on" : "off"]"
 
 /obj/machinery/atmospherics/unary/outlet_injector/update_underlays()
-	if(..())
-		underlays.Cut()
-		var/turf/T = get_turf(src)
-		if(!istype(T))
-			return
-		add_underlay(T, node, dir)
+	..()
+	underlays.Cut()
+	var/turf/T = get_turf(src)
+	if(!istype(T))
+		return
+	add_underlay(T, node, dir)
 
 /obj/machinery/atmospherics/unary/outlet_injector/power_change()
 	var/old_stat = stat
@@ -97,10 +100,10 @@
 	flick("inject", src)
 
 /obj/machinery/atmospherics/unary/outlet_injector/proc/set_frequency(new_frequency)
-	radio_controller.remove_object(src, frequency)
+	SSradio.remove_object(src, frequency)
 	frequency = new_frequency
 	if(frequency)
-		radio_connection = radio_controller.add_object(src, frequency)
+		radio_connection = SSradio.add_object(src, frequency)
 
 /obj/machinery/atmospherics/unary/outlet_injector/proc/broadcast_status()
 	if(!radio_connection)
@@ -116,16 +119,11 @@
 		"power" = use_power,
 		"volume_rate" = volume_rate,
 		"sigtype" = "status"
-	 )
+	)
 
 	radio_connection.post_signal(src, signal)
 
 	return 1
-
-/obj/machinery/atmospherics/unary/outlet_injector/Initialize()
-	. = ..()
-	if(frequency)
-		set_frequency(frequency)
 
 /obj/machinery/atmospherics/unary/outlet_injector/receive_signal(datum/signal/signal)
 	if(!signal.data["tag"] || (signal.data["tag"] != id) || (signal.data["sigtype"]!="command"))
@@ -154,24 +152,58 @@
 		broadcast_status()
 	update_icon()
 
-/obj/machinery/atmospherics/unary/outlet_injector/hide(var/i)
+/obj/machinery/atmospherics/unary/outlet_injector/hide(i)
 	update_underlays()
 
 /obj/machinery/atmospherics/unary/outlet_injector/attack_hand(mob/user as mob)
-	to_chat(user, "<span class='notice'>You toggle \the [src].</span>")
+	to_chat(user, span_notice("You toggle \the [src]."))
 	injecting = !injecting
 	update_use_power(injecting ? USE_POWER_IDLE : USE_POWER_OFF)
 	update_icon()
 
-/obj/machinery/atmospherics/unary/outlet_injector/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
+/obj/machinery/atmospherics/unary/outlet_injector/attackby(obj/item/W as obj, mob/user as mob)
+	if (W.has_tool_quality(TOOL_MULTITOOL))
+		var/list/options = list("Frequency", "ID Tag", "-SAVE TO BUFFER-", "Cancel")
+		var/answer = tgui_alert(user, "[src] has an ID of \"[id]\" and a frequency of [frequency]. What would you like to change?", "Options!", options)
+		if(!answer || answer == "Cancel" || !Adjacent(user))
+			return
+
+		switch(answer)
+			if("Frequency")
+				var/new_frequency = tgui_input_number(user, "[src] has a frequency of [frequency]. What would you like it to be?", "[src] frequency", frequency, RADIO_HIGH_FREQ, RADIO_LOW_FREQ)
+				if(new_frequency)
+					new_frequency = sanitize_frequency(new_frequency, RADIO_LOW_FREQ, RADIO_HIGH_FREQ)
+					set_frequency(new_frequency)
+					to_chat(user, span_notice("You set the [src]'s frequency to [frequency]."))
+
+			if("ID Tag")
+				id = tgui_input_text(user, "Please insert an ID tag for [src], example 'exhaust_port'.", "Set ID Tag", id, MAX_NAME_LEN)
+				if(id)
+					to_chat(user, span_notice("You set the [src]'s ID Tag to \"[id]\"."))
+
+			if("-SAVE TO BUFFER-")
+				var/obj/item/multitool/tool = W
+				tool.connectable = src
+				to_chat(user, span_notice("You copied the [src] into the [tool]'s buffer!"))
+
+		return ..()
+
 	if (!W.has_tool_quality(TOOL_WRENCH))
 		return ..()
 
 	playsound(src, W.usesound, 50, 1)
-	to_chat(user, "<span class='notice'>You begin to unfasten \the [src]...</span>")
-	if (do_after(user, 40 * W.toolspeed))
+	to_chat(user, span_notice("You begin to unfasten \the [src]..."))
+	if (do_after(user, 40 * W.toolspeed, target = src))
 		user.visible_message( \
-			"<b>\The [user]</b> unfastens \the [src].", \
-			"<span class='notice'>You have unfastened \the [src].</span>", \
+			span_infoplain(span_bold("\The [user]") + " unfastens \the [src]."), \
+			span_notice("You have unfastened \the [src]."), \
 			"You hear a ratchet.")
-		deconstruct()
+		atom_deconstruct()
+
+/obj/machinery/atmospherics/unary/outlet_injector/click_ctrl(mob/user)
+	if (volume_rate == ATMOS_DEFAULT_VOLUME_PUMP + 500 || use_power == USE_POWER_OFF)
+		return ..()
+
+	volume_rate = ATMOS_DEFAULT_VOLUME_PUMP + 500
+	to_chat(user, span_notice("You have set \the [src] to [volume_rate]"))
+	update_icon()

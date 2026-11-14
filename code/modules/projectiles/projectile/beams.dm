@@ -10,7 +10,7 @@
 	var/frequency = 1
 	hitscan = 1
 	embed_chance = 0
-	invisibility = 99	//beam projectiles are invisible as they are rendered by the effect engine
+	invisibility = INVISIBILITY_BADMIN	//beam projectiles are invisible as they are rendered by the effect engine
 	light_range = 2
 	light_power = 0.5
 	light_color = "#FF0D00"
@@ -197,7 +197,7 @@
 	tracer_type = /obj/effect/projectile/tracer/laser_pulse
 	impact_type = /obj/effect/projectile/impact/laser_pulse
 
-/obj/item/projectile/beam/pulse/on_hit(var/atom/target, var/blocked = 0)
+/obj/item/projectile/beam/pulse/on_hit(atom/target, blocked = 0)
 	if(isturf(target))
 		target.ex_act(2)
 	..()
@@ -224,8 +224,16 @@
 	damage_type = BURN
 	check_armour = "laser"
 	hud_state = "monkey"
+	///What suits this beam can hit.
+	var/list/allowed_suits = list(/obj/item/clothing/suit/lasertag/omni, /obj/item/clothing/suit/lasertag/bluetag, /obj/item/clothing/suit/lasertag/redtag)
+
+	///How much damage we do to the tag vest.
+	var/tag_damage = 1
 
 	combustion = FALSE
+
+/obj/item/projectile/beam/lasertag/on_hit(atom/target, blocked = 0)
+	return handle_lasertag_attack(target, firer, tag_damage, TRUE, allowed_suits = allowed_suits) //We can't shoot this in the first place without having the proper vest / vest_override, so we feed it vest_override = TRUE
 
 /obj/item/projectile/beam/lasertag/blue
 	icon_state = "bluelaser"
@@ -234,75 +242,24 @@
 	muzzle_type = /obj/effect/projectile/muzzle/laser_blue
 	tracer_type = /obj/effect/projectile/tracer/laser_blue
 	impact_type = /obj/effect/projectile/impact/laser_blue
+	allowed_suits = list(/obj/item/clothing/suit/lasertag/redtag, /obj/item/clothing/suit/lasertag/omni)
 
-/obj/item/projectile/beam/lasertag/blue/on_hit(var/atom/target, var/blocked = 0)
-	if(ishuman(target))
-		var/mob/living/carbon/human/M = target
-		if(istype(M.wear_suit, /obj/item/clothing/suit/redtag))
-			M.Weaken(5)
-	return 1
-
-/obj/item/projectile/beam/lasertag/blue/multhit
-	name = "blue multi-hit lasertag beam"
-
-/obj/item/projectile/beam/lasertag/blue/multihit/on_hit(var/atom/target, var/blocked = 0)
-	if(ishuman(target))
-		var/mob/living/carbon/human/M = target
-		if(istype(M.wear_suit, /obj/item/clothing/suit/redtag))
-			var/obj/item/clothing/suit/redtag/S = M.wear_suit
-			if (S.lasertag_health <= 1)
-				M.Weaken(5)
-				to_chat(M,"<span class='warning'>You have been defeated!</span>")
-				S.lasertag_health = initial(S.lasertag_health)
-			else
-				S.lasertag_health--
-				to_chat(M,"<span class='warning'>Danger! You have [num2text(S.lasertag_health)] hits remaining!</span>")
-	return 1
 
 /obj/item/projectile/beam/lasertag/red
 	icon_state = "laser"
 	light_color = "#FF0D00"
 	hud_state = "monkey"
-
-/obj/item/projectile/beam/lasertag/red/on_hit(var/atom/target, var/blocked = 0)
-	if(ishuman(target))
-		var/mob/living/carbon/human/M = target
-		if(istype(M.wear_suit, /obj/item/clothing/suit/bluetag))
-			M.Weaken(5)
-	return 1
-
-/obj/item/projectile/beam/lasertag/red/multhit
-	name = "red multi-hit lasertag beam"
-
-/obj/item/projectile/beam/lasertag/red/multihit/on_hit(var/atom/target, var/blocked = 0)
-	if(ishuman(target))
-		var/mob/living/carbon/human/M = target
-		if(istype(M.wear_suit, /obj/item/clothing/suit/bluetag))
-			var/obj/item/clothing/suit/bluetag/S = M.wear_suit
-			if(S.lasertag_health <= 1)
-				M.Weaken(5)
-				to_chat(M,"<span class='warning'>You have been defeated!</span>")
-				S.lasertag_health = initial(S.lasertag_health)
-			else
-				S.lasertag_health--
-				to_chat(M,"<span class='warning'>Danger! You have [num2text(S.lasertag_health)] hits remaining!</span>")
-	return 1
+	allowed_suits = list(/obj/item/clothing/suit/lasertag/bluetag, /obj/item/clothing/suit/lasertag/omni)
 
 /obj/item/projectile/beam/lasertag/omni//A laser tag bolt that stuns EVERYONE
 	icon_state = "omnilaser"
-	light_color = "#00C6FF"
+	light_color = "#AA24AF"
 	hud_state = "monkey"
+	allowed_suits = list(/obj/item/clothing/suit/lasertag)
 
 	muzzle_type = /obj/effect/projectile/muzzle/laser_omni
 	tracer_type = /obj/effect/projectile/tracer/laser_omni
 	impact_type = /obj/effect/projectile/impact/laser_omni
-
-/obj/item/projectile/beam/lasertag/omni/on_hit(var/atom/target, var/blocked = 0)
-	if(ishuman(target))
-		var/mob/living/carbon/human/M = target
-		if((istype(M.wear_suit, /obj/item/clothing/suit/bluetag))||(istype(M.wear_suit, /obj/item/clothing/suit/redtag)))
-			M.Weaken(5)
-	return 1
 
 /obj/item/projectile/beam/sniper
 	name = "sniper beam"
@@ -320,7 +277,7 @@
 /obj/item/projectile/beam/stun
 	name = "stun beam"
 	icon_state = "stun"
-	fire_sound = 'sound/weapons/Taser.ogg'
+	fire_sound = 'sound/weapons/taser.ogg'
 	nodamage = 1
 	taser_effect = 1
 	agony = 35
@@ -355,11 +312,11 @@
 /obj/item/projectile/beam/stun/disabler/on_hit(atom/target, blocked = 0, def_zone)
 	. = ..(target, blocked, def_zone)
 
-	if(. && istype(target, /mob/living/silicon/robot) && prob(agony))
+	if(. && isrobot(target) && prob(agony))
 		var/mob/living/silicon/robot/R = target
 		var/drainamt = agony * (rand(5, 15) / 10)
 		R.drain_power(0, 0, drainamt)
-		if(istype(firer, /mob/living/silicon/robot)) // Mischevious sappers, the swarm drones are.
+		if(isrobot(firer)) // Mischevious sappers, the swarm drones are.
 			var/mob/living/silicon/robot/A = firer
 			if(A.cell)
 				A.cell.give(drainamt * 2)
@@ -382,18 +339,18 @@
 	hud_state = "laser_disabler"
 
 /obj/item/projectile/beam/disable
-    name = "disabler beam"
-    icon_state = "omnilaser"
-    nodamage = 1
-    taser_effect = 1
-    agony = 100 //One shot stuns for the time being until adjustments are fully made.
-    damage_type = HALLOSS
-    light_color = "#00CECE"
-   	hud_state = "laser_disabler"
+	name = "disabler beam"
+	icon_state = "omnilaser"
+	nodamage = 1
+	taser_effect = 1
+	agony = 100 //One shot stuns for the time being until adjustments are fully made.
+	damage_type = HALLOSS
+	light_color = "#00CECE"
+	hud_state = "laser_disabler"
 
-    muzzle_type = /obj/effect/projectile/muzzle/laser_omni
-    tracer_type = /obj/effect/projectile/tracer/laser_omni
-    impact_type = /obj/effect/projectile/impact/laser_omni
+	muzzle_type = /obj/effect/projectile/muzzle/laser_omni
+	tracer_type = /obj/effect/projectile/tracer/laser_omni
+	impact_type = /obj/effect/projectile/impact/laser_omni
 
 /obj/item/projectile/beam/shock
 	name = "shock beam"
@@ -432,6 +389,45 @@
 	tracer_type = /obj/effect/projectile/tracer/darkmatter
 	impact_type = /obj/effect/projectile/impact/darkmatter
 	hud_state = "plasma_rifle_blast"
+
+/obj/item/projectile/beam/rainbow
+	name = "rainbow"
+	fire_sound = 'sound/weapons/sparkle.ogg'
+	icon_state = "rainbow"
+	light_color = "#ffffff"
+	muzzle_type = /obj/effect/projectile/muzzle/rainbow
+	tracer_type = /obj/effect/projectile/tracer/rainbow
+	impact_type = /obj/effect/projectile/impact/rainbow
+	hud_state = "laser"
+	damage = 20
+
+/obj/item/projectile/beam/rainbow/non_lethal
+	damage = 0
+	agony = 50
+	damage_type = HALLOSS
+
+/obj/item/projectile/beam/sparkledog
+	name = "rainbow"
+	fire_sound = 'sound/weapons/sparkle.ogg'
+	icon_state = "rainbow"
+	light_color = "#ffffff"
+	muzzle_type = /obj/effect/projectile/muzzle/rainbow
+	tracer_type = /obj/effect/projectile/tracer/rainbow
+	impact_type = /obj/effect/projectile/impact/rainbow
+	hud_state = "laser"
+	damage = 0
+	nodamage = TRUE
+
+/obj/item/projectile/beam/sparkledog/on_hit(atom/target, blocked = 0)
+	if(ishuman(target))
+		var/mob/living/carbon/human/M = target
+		M.druggy = max(M.druggy, 20)
+		if(M.health < M.getMaxHealth())
+			to_chat(target, span_notice("As the beam strikes you, you feel a little healthier!"))
+			M.adjustBruteLoss(-5)
+			M.adjustFireLoss(-5)
+	return 1
+
 //
 // Projectile Beam Definitions
 //
@@ -449,6 +445,20 @@
 	tracer_type = /obj/effect/projectile/tracer/pointdefense
 	impact_type = /obj/effect/projectile/impact/pointdefense
 
+/obj/item/projectile/beam/coildefense
+	name = "defense coil salvo"
+	icon_state = "coil"
+	damage = 15
+	damage_type = ELECTROCUTE //You should be safe inside a voidsuit
+	sharp = FALSE //"Wide" spectrum beam
+	light_color = "#FFFFFF"
+
+	excavation_amount = 200 // Good at shooting rocks
+
+	muzzle_type = /obj/effect/projectile/muzzle/coildefense
+	tracer_type = /obj/effect/projectile/tracer/coildefense
+	impact_type = /obj/effect/projectile/impact/coildefense
+
 //
 // Energy Net
 //
@@ -462,17 +472,35 @@
 	hud_state = "flame_green"
 	hud_state_empty = "flame_empty"
 
+	var/net_type = /obj/item/energy_net
+
 	muzzle_type = /obj/effect/projectile/muzzle/xray
 	tracer_type = /obj/effect/projectile/tracer/xray
 	impact_type = /obj/effect/projectile/impact/xray
 
-/obj/item/projectile/beam/energy_net/on_hit(var/atom/netted)
+/obj/item/projectile/beam/energy_net/on_hit(atom/netted)
 	do_net(netted)
 	..()
 
-/obj/item/projectile/beam/energy_net/proc/do_net(var/mob/M)
-	var/obj/item/weapon/energy_net/net = new (get_turf(M))
-	net.throw_impact(M)
+/obj/item/projectile/beam/energy_net/proc/do_net(mob/M)
+	var/obj/item/energy_net/net = new net_type(get_turf(M))
+	net.throw_impact(M, throwing)
+
+//
+// Shrinking Energy Net
+//
+/obj/item/projectile/beam/energy_net/shrink
+	name = "compactor energy net projection"
+	icon_state = "omnilaser"
+	light_color = "#00CC33"
+	hud_state = "flame_blue"
+	hud_state_empty = "flame_empty"
+
+	net_type = /obj/item/energy_net/shrink
+
+	muzzle_type = /obj/effect/projectile/muzzle/laser_omni
+	tracer_type = /obj/effect/projectile/tracer/laser_omni
+	impact_type = /obj/effect/projectile/impact/laser_omni
 
 //
 // Healing Beam
@@ -493,20 +521,24 @@
 	tracer_type = /obj/effect/projectile/tracer/medigun
 	impact_type = /obj/effect/projectile/impact/medigun
 
-/obj/item/projectile/beam/medigun/on_hit(var/atom/target, var/blocked = 0)
-	if(istype(target, /mob/living/carbon/human))
+/obj/item/projectile/beam/medigun/on_hit(atom/target, blocked = 0)
+	if(ishuman(target))
 		var/mob/living/carbon/human/M = target
-		if(M.health < M.maxHealth)
+		if(M.health < M.getMaxHealth())
 			var/obj/effect/overlay/pulse = new /obj/effect/overlay(get_turf(M))
 			pulse.icon = 'icons/effects/effects.dmi'
-			pulse.icon_state = "heal"
-			pulse.name = "heal"
+			pulse.icon_state = XENO_CHEM_HEAL
+			pulse.name = XENO_CHEM_HEAL
 			pulse.anchored = TRUE
 			spawn(20)
 				qdel(pulse)
-			to_chat(target, "<span class='notice'>As the beam strikes you, your injuries close up!</span>")
+			to_chat(target, span_notice("As the beam strikes you, your injuries close up!"))
 			M.adjustBruteLoss(-15)
 			M.adjustFireLoss(-15)
 			M.adjustToxLoss(-5)
 			M.adjustOxyLoss(-5)
 	return 1
+
+/obj/item/projectile/beam/laser_vision
+	name = "laser"
+	damage = 10

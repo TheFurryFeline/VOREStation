@@ -1,4 +1,9 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"aa" = (
+/obj/structure/bed/chair/sofa/corp,
+/obj/structure/ghost_pod/ghost_activated/maint_lurker/redgate,
+/turf/simulated/floor/lino,
+/area/redgate/stardog/lounge)
 "ac" = (
 /turf/simulated/floor/flesh/mover{
 	dir = 4
@@ -226,7 +231,7 @@
 /turf/simulated/floor/lino,
 /area/redgate/stardog/lounge)
 "ud" = (
-/obj/item/weapon/pickaxe/hand,
+/obj/item/pickaxe/hand,
 /turf/simulated/floor/flesh,
 /area/redgate/stardog/flesh_abyss/stomach)
 "uQ" = (
@@ -9391,7 +9396,7 @@ aj
 aj
 jf
 jM
-Pg
+aa
 aj
 aj
 jf

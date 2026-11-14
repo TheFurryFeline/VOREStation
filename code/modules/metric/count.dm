@@ -2,18 +2,18 @@
  * Procs for counting active players in different situations. Returns the number of active players within the given cutoff.
  */
 
-/datum/metric/proc/count_all_outdoor_mobs(var/cutoff = 75)
+/datum/metric/proc/count_all_outdoor_mobs(cutoff = 75)
 	var/num = 0
-	for(var/mob/living/L in player_list)
+	for(var/mob/living/L in GLOB.player_list)
 		var/turf/T = get_turf(L)
 		if(istype(T) && !istype(T, /turf/space) && T.is_outdoors())
 			if(assess_player_activity(L) >= cutoff)
 				num++
 	return num
 
-/datum/metric/proc/count_all_space_mobs(var/cutoff = 75, var/respect_z = TRUE)
+/datum/metric/proc/count_all_space_mobs(cutoff = 75, respect_z = TRUE)
 	var/num = 0
-	for(var/mob/living/L in player_list)
+	for(var/mob/living/L in GLOB.player_list)
 		var/turf/T = get_turf(L)
 		if(istype(T, /turf/space) && istype(T.loc, /area/space))
 			if(respect_z && !(L.z in using_map.station_levels))
@@ -26,7 +26,7 @@
 // Note that `ignore_synths` makes this proc ignore posibrains and drones, but NOT cyborgs, as they are still the same species in-universe.
 /datum/metric/proc/count_all_of_specific_species(species_name, ignore_synths = TRUE, cutoff = 75, respect_z = TRUE)
 	var/num = 0
-	for(var/mob/living/carbon/human/H in player_list)
+	for(var/mob/living/carbon/human/H in GLOB.player_list)
 		if(respect_z && !(H.z in using_map.station_levels))
 			continue
 		if(ignore_synths && H.isSynthetic() && H.get_FBP_type() != FBP_CYBORG)
@@ -39,7 +39,7 @@
 // Gives a count of how many FBPs of a specific type there are on the station.
 /datum/metric/proc/count_all_FBPs_of_kind(desired_FBP_class, cutoff = 75, respect_z = TRUE)
 	var/num = 0
-	for(var/mob/living/carbon/human/H in player_list)
+	for(var/mob/living/carbon/human/H in GLOB.player_list)
 		if(respect_z && !(H.z in using_map.station_levels))
 			continue
 		if(H.get_FBP_type() != desired_FBP_class)
@@ -58,8 +58,8 @@
 
 /datum/metric/proc/get_all_antags(cutoff = 75)
 	. = list()
-	for(var/mob/living/L in player_list)
-		if(L.mind && player_is_antag(L.mind) && assess_player_activity(L) >= cutoff)
+	for(var/mob/living/L in GLOB.player_list)
+		if(L.mind && SSantag_job.player_is_antag(L.mind) && assess_player_activity(L) >= cutoff)
 			. += L
 
 /datum/metric/proc/count_all_antags(cutoff = 75)

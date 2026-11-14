@@ -28,19 +28,15 @@
 
 //injector
 
-/obj/machinery/power/am_engine/injector/New()
-	..()
-	spawn( 13 )
-		var/loc = get_step(src, NORTH)
-		src.connected = locate(/obj/machinery/power/am_engine/engine, get_step(loc, NORTH))
-		return
-	return
+/obj/machinery/power/am_engine/injector/Initialize(mapload)
+	. = ..()
+	var/link_loc = get_step(src, NORTH)
+	src.connected = locate(/obj/machinery/power/am_engine/engine, get_step(link_loc, NORTH))
 
-
-/obj/machinery/power/am_engine/injector/attackby(obj/item/weapon/fuel/F, mob/user)
+/obj/machinery/power/am_engine/injector/attackby(obj/item/fuel/F, mob/user)
 	if( (stat & BROKEN) || !connected) return
 
-	if(istype(F, /obj/item/weapon/fuel/H))
+	if(istype(F, /obj/item/fuel/H))
 		if(injecting)
 			to_chat(user, "There's already a fuel rod in the injector!")
 			return
@@ -50,10 +46,10 @@
 		qdel(F)
 		spawn( 300 )
 			injecting = 0
-			new/obj/item/weapon/fuel(src.loc)
+			new/obj/item/fuel(src.loc)
 			connected.H_fuel += fuel
 
-	if(istype(F, /obj/item/weapon/fuel/antiH))
+	if(istype(F, /obj/item/fuel/antiH))
 		if(injecting)
 			to_chat(user, "There's already a fuel rod in the injector!")
 			return
@@ -63,7 +59,7 @@
 		qdel(F)
 		spawn( 300 )
 			injecting = 0
-			new /obj/item/weapon/fuel(src.loc)
+			new /obj/item/fuel(src.loc)
 			connected.antiH_fuel += fuel
 
 	return
@@ -72,13 +68,10 @@
 //engine
 
 
-/obj/machinery/power/am_engine/engine/New()
-	..()
-	spawn( 7 )
-		var/loc = get_step(src, SOUTH)
-		src.connected = locate(/obj/machinery/power/am_engine/injector, get_step(loc, SOUTH))
-		return
-	return
+/obj/machinery/power/am_engine/engine/Initialize(mapload)
+	. = ..()
+	var/link_loc = get_step(src, SOUTH)
+	src.connected = locate(/obj/machinery/power/am_engine/injector, get_step(link_loc, SOUTH))
 
 
 /obj/machinery/power/am_engine/engine/proc/engine_go()

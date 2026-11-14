@@ -205,18 +205,6 @@
 /obj/effect/floor_decal/rust,
 /turf/simulated/floor/plating/virgo2,
 /area/tether_away/aerostat/solars)
-"aC" = (
-/obj/machinery/atmospherics/binary/algae_farm,
-/obj/machinery/atmospherics/pipe/simple/hidden/black{
-	dir = 5;
-	icon_state = "intact"
-	},
-/obj/machinery/atmospherics/pipe/simple/hidden/black{
-	dir = 5;
-	icon_state = "intact"
-	},
-/turf/simulated/floor/tiled/techfloor/virgo2,
-/area/tether_away/aerostat/inside)
 "aD" = (
 /obj/effect/floor_decal/rust,
 /turf/simulated/floor/plating/virgo2,
@@ -309,17 +297,11 @@
 	},
 /obj/machinery/power/apc{
 	alarms_hidden = 1;
-	cell_type = /obj/item/weapon/cell/high/empty;
+	cell_type = /obj/item/cell/high/empty;
 	dir = 4;
 	name = "east bump";
 	pixel_x = 28;
 	req_access = list()
-	},
-/turf/simulated/floor/bluegrid/virgo2,
-/area/tether_away/aerostat/inside)
-"aQ" = (
-/obj/structure/cable{
-	icon_state = "2-4"
 	},
 /turf/simulated/floor/bluegrid/virgo2,
 /area/tether_away/aerostat/inside)
@@ -430,11 +412,6 @@
 "be" = (
 /turf/simulated/floor/plating/virgo2,
 /area/tether_away/aerostat/inside)
-"bf" = (
-/obj/structure/grille,
-/obj/structure/window/reinforced/full,
-/turf/simulated/floor/plating/virgo2,
-/area/tether_away/aerostat/inside)
 "bg" = (
 /turf/simulated/shuttle/floor/yellow,
 /area/shuttle/aerostat)
@@ -473,7 +450,6 @@
 /turf/simulated/floor/plating/virgo2,
 /area/tether_away/aerostat/inside)
 "bo" = (
-/obj/structure/grille,
 /obj/structure/grille,
 /obj/structure/window/reinforced/full,
 /turf/simulated/floor/plating/virgo2,
@@ -1088,7 +1064,6 @@
 /area/tether_away/aerostat/inside)
 "di" = (
 /obj/structure/cable/heavyduty{
-	dir = 2;
 	icon_state = "0-4"
 	},
 /obj/structure/cable/yellow,
@@ -1348,7 +1323,6 @@
 	dir = 8
 	},
 /obj/structure/cable/heavyduty{
-	dir = 2;
 	icon_state = "0-4"
 	},
 /obj/structure/cable{
@@ -1569,7 +1543,7 @@
 /area/tether_away/aerostat/inside)
 "uU" = (
 /obj/structure/table/standard,
-/obj/item/weapon/gun/energy/taser/xeno,
+/obj/item/gun/energy/taser/xeno,
 /obj/random/cigarettes,
 /turf/simulated/floor/tiled/techfloor/virgo2,
 /area/tether_away/aerostat/inside)
@@ -1703,7 +1677,7 @@
 /area/tether_away/aerostat)
 "Ym" = (
 /obj/structure/table/standard,
-/obj/item/weapon/gun/energy/taser/xeno,
+/obj/item/gun/energy/taser/xeno,
 /turf/simulated/floor/tiled/techfloor/virgo2,
 /area/tether_away/aerostat/inside)
 "ZK" = (
@@ -8994,16 +8968,16 @@ ac
 ac
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
 ac
@@ -9187,16 +9161,16 @@ ac
 ac
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
 ac
@@ -9278,16 +9252,16 @@ ac
 ac
 ac
 ac
-bf
-bf
-ac
-ac
-bf
-bf
+bo
+bo
 ac
 ac
 bo
-bf
+bo
+ac
+ac
+bo
+bo
 ac
 ac
 ac
@@ -9471,16 +9445,16 @@ ce
 ac
 ac
 ac
-bf
-bf
-ac
-ac
-bf
-bf
+bo
+bo
 ac
 ac
 bo
-bf
+bo
+ac
+ac
+bo
+bo
 ac
 ac
 ac
@@ -10897,11 +10871,11 @@ be
 be
 be
 be
-bf
-bf
-bf
-bf
-bf
+bo
+bo
+bo
+bo
+bo
 aw
 aw
 aw
@@ -10979,11 +10953,11 @@ aw
 aw
 aw
 aw
-bf
-bf
-bf
-bf
-bf
+bo
+bo
+bo
+bo
+bo
 be
 be
 be
@@ -11043,7 +11017,7 @@ be
 be
 be
 be
-bf
+bo
 aw
 aw
 aw
@@ -11121,7 +11095,7 @@ aw
 aw
 aw
 aw
-bf
+bo
 Wk
 be
 be
@@ -11185,7 +11159,7 @@ be
 be
 be
 be
-bf
+bo
 aw
 aw
 aw
@@ -11263,7 +11237,7 @@ aw
 aw
 aw
 aw
-bf
+bo
 be
 be
 bi
@@ -11400,11 +11374,11 @@ aw
 aw
 ac
 bo
-bf
+bo
 ac
 ac
 bo
-bf
+bo
 ac
 be
 be
@@ -11437,7 +11411,7 @@ cI
 be
 ac
 aK
-aQ
+aM
 dn
 dn
 dN
@@ -11472,11 +11446,11 @@ bq
 ac
 ac
 bo
-bf
+bo
 ac
 ac
 bo
-bf
+bo
 ac
 aw
 aw
@@ -11826,11 +11800,11 @@ aw
 aw
 ac
 bo
-bf
+bo
 ac
 ac
 bo
-bf
+bo
 ac
 be
 be
@@ -11898,11 +11872,11 @@ bq
 ac
 ac
 bo
-bf
+bo
 ac
 ac
 bo
-bf
+bo
 ac
 aw
 aw
@@ -11973,7 +11947,7 @@ aw
 aw
 aw
 aw
-bf
+bo
 be
 be
 bk
@@ -12115,7 +12089,7 @@ aw
 aw
 aw
 aw
-bf
+bo
 be
 be
 be
@@ -12179,7 +12153,7 @@ be
 be
 be
 be
-bf
+bo
 aw
 aw
 aw
@@ -12257,11 +12231,11 @@ aw
 aw
 aw
 aw
-bf
-bf
-bf
-bf
-bf
+bo
+bo
+bo
+bo
+bo
 be
 be
 be
@@ -12321,7 +12295,7 @@ be
 be
 be
 be
-bf
+bo
 aw
 aw
 aw
@@ -12459,11 +12433,11 @@ be
 be
 be
 be
-bf
-bf
-bf
-bf
-bf
+bo
+bo
+bo
+bo
+bo
 aw
 aw
 aw
@@ -13003,7 +12977,7 @@ bv
 ci
 ci
 bv
-aC
+az
 bR
 az
 bR
@@ -13873,16 +13847,16 @@ ce
 ac
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
 ac
@@ -13964,16 +13938,16 @@ ac
 ac
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
-bf
-bf
+bo
+bo
 ac
 ac
 ac
@@ -14157,16 +14131,16 @@ ac
 ac
 ac
 ac
-bf
-bf
-ac
-ac
-bf
-bf
+bo
+bo
 ac
 ac
 bo
-bf
+bo
+ac
+ac
+bo
+bo
 ac
 ac
 ac
@@ -14248,16 +14222,16 @@ ac
 ac
 ac
 ac
-bf
-bf
-ac
-ac
-bf
-bf
+bo
+bo
 ac
 ac
 bo
-bf
+bo
+ac
+ac
+bo
+bo
 ac
 ac
 ac

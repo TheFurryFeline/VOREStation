@@ -39,7 +39,7 @@
 	energy_drain = 40
 	equip_cooldown = 10
 	projectile = /obj/item/projectile/beam/stun
-	fire_sound = 'sound/weapons/Taser.ogg'
+	fire_sound = 'sound/weapons/taser.ogg'
 	equip_type = EQUIP_MICRO_WEAPON
 	required_type = list(/obj/mecha/micro/sec)
 
@@ -51,8 +51,8 @@
 	icon_state = "micromech_shotgun"
 	equip_cooldown = 15
 	var/mode = 0 //0 - buckshot, 1 - beanbag, 2 - slug.
-	projectile = /obj/item/projectile/bullet/pellet/shotgun
-	fire_sound = 'sound/weapons/Gunshot_shotgun.ogg'
+	projectile = /obj/item/projectile/scatter/shotgun
+	fire_sound = 'sound/weapons/gunshot_shotgun.ogg'
 	fire_volume = 80
 	projectiles = 6
 	projectiles_per_shot = 1
@@ -68,7 +68,7 @@
 		switch(mode)
 			if(0)
 				occupant_message("Now firing buckshot.")
-				projectile = /obj/item/projectile/bullet/pellet/shotgun
+				projectile = /obj/item/projectile/scatter/shotgun
 			if(1)
 				occupant_message("Now firing beanbags.")
 				projectile = /obj/item/projectile/bullet/shotgun/beanbag
@@ -79,7 +79,7 @@
 	return
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/microshotgun/get_equip_info()
-	return "[..()] \[<a href='?src=\ref[src];mode=0'>BS</a>|<a href='?src=\ref[src];mode=1'>BB</a>|<a href='?src=\ref[src];mode=2'>S</a>\]"
+	return "[..()] \[<a href='byond://?src=\ref[src];mode=0'>BS</a>|<a href='byond://?src=\ref[src];mode=1'>BB</a>|<a href='byond://?src=\ref[src];mode=2'>S</a>\]"
 
 
 /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/missile_rack/grenade/microflashbang
@@ -120,8 +120,8 @@
 		if(!target_obj.vars.Find("unacidable") || target_obj.unacidable)	return
 	set_ready_state(0)
 	chassis.use_power(energy_drain)
-	chassis.visible_message("<span class='danger'>[chassis] starts to drill [target]</span>", "<span class='warning'>You hear the drill.</span>")
-	occupant_message("<span class='danger'>You start to drill [target]</span>")
+	chassis.visible_message(span_danger("[chassis] starts to drill [target]"), span_warning("You hear the drill."))
+	occupant_message(span_danger("You start to drill [target]"))
 	var/T = chassis.loc
 	var/C = target.loc	//why are these backwards? we may never know -Pete
 	if(do_after_cooldown(target))
@@ -129,26 +129,26 @@
 			if(istype(target, /turf/simulated/wall))
 				var/turf/simulated/wall/W = target
 				if(W.reinf_material)
-					occupant_message("<span class='warning'>[target] is too durable to drill through.</span>")
+					occupant_message(span_warning("[target] is too durable to drill through."))
 				else
-					log_message("Drilled through [target]")
+					src.mecha_log_message("Drilled through [target]")
 					target.ex_act(2)
-			else if(istype(target, /turf/simulated/mineral))
+			else if(ismineralturf(target))
 				for(var/turf/simulated/mineral/M in range(chassis,1))
 					if(get_dir(chassis,M)&chassis.dir)
 						M.GetDrilled()
-				log_message("Drilled through [target]")
+				src.mecha_log_message("Drilled through [target]")
 				var/obj/item/mecha_parts/mecha_equipment/tool/micro/orescoop/ore_box = (locate(/obj/item/mecha_parts/mecha_equipment/tool/micro/orescoop) in chassis.equipment)
 				if(ore_box)
-					for(var/obj/item/weapon/ore/ore in range(chassis,1))
+					for(var/obj/item/ore/ore in range(chassis,1))
 						if(get_dir(chassis,ore)&chassis.dir)
 							if (ore_box.contents.len >= ore_box.orecapacity)
-								occupant_message("<span class='warning'>The ore compartment is full.</span>")
+								occupant_message(span_warning("The ore compartment is full."))
 								return 1
 							else
 								ore.forceMove(ore_box)
 			else if(target.loc == C)
-				log_message("Drilled through [target]")
+				src.mecha_log_message("Drilled through [target]")
 				target.ex_act(2)
 	return 1
 
@@ -169,16 +169,16 @@
 	if(!action_checks(target)) return
 	set_ready_state(0)
 	chassis.use_power(energy_drain)
-	chassis.visible_message("<span class='info'>[chassis] sweeps around with its ore scoop.</span>")
-	occupant_message("<span class='info'>You sweep around the area with the scoop.</span>")
+	chassis.visible_message(span_info("[chassis] sweeps around with its ore scoop."))
+	occupant_message(span_info("You sweep around the area with the scoop."))
 	var/T = chassis.loc
 	//var/C = target.loc	//why are these backwards? we may never know -Pete
 	if(do_after_cooldown(target))
 		if(T == chassis.loc && src == chassis.selected)
-			for(var/obj/item/weapon/ore/ore in range(chassis,1))
+			for(var/obj/item/ore/ore in range(chassis,1))
 				if(get_dir(chassis,ore)&chassis.dir)
 					if (contents.len >= orecapacity)
-						occupant_message("<span class='warning'>The ore compartment is full.</span>")
+						occupant_message(span_warning("The ore compartment is full."))
 						return 1
 					else
 						ore.Move(src)
@@ -190,21 +190,21 @@
 		if(contents.len < 1)
 			occupant_message("The ore compartment is empty.")
 			return
-		for (var/obj/item/weapon/ore/O in contents)
+		for (var/obj/item/ore/O in contents)
 			contents -= O
 			O.loc = chassis.loc
 		occupant_message("Ore compartment emptied.")
 
 /obj/item/mecha_parts/mecha_equipment/tool/micro/orescoop/get_equip_info()
-	return "[..()] <br /><a href='?src=\ref[src];empty_box=1'>Empty ore compartment</a>"
+	return "[..()] <br /><a href='byond://?src=\ref[src];empty_box=1'>Empty ore compartment</a>"
 
 /obj/item/mecha_parts/mecha_equipment/tool/orescoop/verb/empty_box() //so you can still get the ore out if someone detaches it from the mech
 	set name = "Empty Ore compartment"
 	set category = "Object"
 	set src in view(1)
 
-	if(!istype(usr, /mob/living/carbon/human)) //Only living, intelligent creatures with hands can empty ore boxes.
-		to_chat(usr, "<span class='warning'>You are physically incapable of emptying the ore box.</span>")
+	if(!ishuman(usr)) //Only living, intelligent creatures with hands can empty ore boxes.
+		to_chat(usr, span_warning("You are physically incapable of emptying the ore box."))
 		return
 
 	if( usr.stat || usr.restrained() )
@@ -217,12 +217,12 @@
 	add_fingerprint(usr)
 
 	if(contents.len < 1)
-		to_chat(usr, "<span class='warning'>The ore box is empty</span>")
+		to_chat(usr, span_warning("The ore box is empty"))
 		return
 
-	for (var/obj/item/weapon/ore/O in contents)
+	for (var/obj/item/ore/O in contents)
 		contents -= O
 		O.loc = src.loc
-	to_chat(usr, "<span class='info'>You empty the ore box</span>")
+	to_chat(usr, span_info("You empty the ore box"))
 
 	return

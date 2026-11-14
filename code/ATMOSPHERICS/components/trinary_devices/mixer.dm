@@ -21,7 +21,7 @@
 
 	//node 3 is the outlet, nodes 1 & 2 are intakes
 
-/obj/machinery/atmospherics/trinary/mixer/update_icon(var/safety = 0)
+/obj/machinery/atmospherics/trinary/mixer/update_icon(safety = 0)
 	if(tee)
 		icon_state = "t"
 	else if(mirrored)
@@ -37,8 +37,9 @@
 		icon_state += "off"
 		update_use_power(USE_POWER_OFF)
 
-/obj/machinery/atmospherics/trinary/mixer/New()
-	..()
+/obj/machinery/atmospherics/trinary/mixer/Initialize(mapload)
+	. = ..()
+
 	air1.volume = ATMOS_DEFAULT_VOLUME_MIXER
 	air2.volume = ATMOS_DEFAULT_VOLUME_MIXER
 	air3.volume = ATMOS_DEFAULT_VOLUME_MIXER * 1.5
@@ -99,36 +100,6 @@
 	if(..())
 		return
 	tgui_interact(user)
-	// src.add_fingerprint(usr)
-	// if(!src.allowed(user))
-	// 	to_chat(user, "<span class='warning'>Access denied.</span>")
-	// 	return
-	// usr.set_machine(src)
-	// var/list/node_connects = get_node_connect_dirs()
-	// var/dat = {"<b>Power: </b><a href='?src=\ref[src];power=1'>[use_power?"On":"Off"]</a><br>
-	// 			<b>Set Flow Rate Limit: </b>
-	// 			[set_flow_rate]L/s | <a href='?src=\ref[src];set_press=1'>Change</a>
-	// 			<br>
-	// 			<b>Flow Rate: </b>[round(last_flow_rate, 0.1)]L/s
-	// 			<br><hr>
-	// 			<b>Node 1 ([dir_name(node_connects[1],TRUE)]) Concentration:</b>
-	// 			<a href='?src=\ref[src];node1_c=-0.1'><b>-</b></a>
-	// 			<a href='?src=\ref[src];node1_c=-0.01'>-</a>
-	// 			[mixing_inputs[air1]]([mixing_inputs[air1]*100]%)
-	// 			<a href='?src=\ref[src];node1_c=0.01'><b>+</b></a>
-	// 			<a href='?src=\ref[src];node1_c=0.1'>+</a>
-	// 			<br>
-	// 			<b>Node 2 ([dir_name(node_connects[2],TRUE)]) Concentration:</b>
-	// 			<a href='?src=\ref[src];node2_c=-0.1'><b>-</b></a>
-	// 			<a href='?src=\ref[src];node2_c=-0.01'>-</a>
-	// 			[mixing_inputs[air2]]([mixing_inputs[air2]*100]%)
-	// 			<a href='?src=\ref[src];node2_c=0.01'><b>+</b></a>
-	// 			<a href='?src=\ref[src];node2_c=0.1'>+</a>
-	// 			"}
-
-	// user << browse("<HEAD><TITLE>[src.name] control</TITLE></HEAD><TT>[dat]</TT>", "window=atmo_mixer")
-	// onclose(user, "atmo_mixer")
-	// return
 
 /obj/machinery/atmospherics/trinary/mixer/tgui_act(action, params)
 	if(..())

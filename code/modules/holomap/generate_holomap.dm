@@ -26,7 +26,7 @@
 /// Generates all the holo minimaps, initializing it all nicely, probably.
 /datum/controller/subsystem/holomaps/proc/generateHoloMinimaps()
 	var/start_time = world.timeofday
-	
+
 	// Starting over if we're running midround (it runs real fast, so that's possible)
 	holoMiniMaps.Cut()
 	extraMiniMaps.Cut()
@@ -45,14 +45,14 @@
 			smooshTetherHolomaps(smoosh_list)
 
 	holomaps_initialized = TRUE
-	admin_notice("<span class='notice'>Holomaps initialized in [round(0.1*(world.timeofday-start_time),0.1)] seconds.</span>", R_DEBUG)
+	admin_notice(span_notice("Holomaps initialized in [round(0.1*(world.timeofday-start_time),0.1)] seconds."), R_DEBUG)
 
 	// TODO - Check - They had a delayed init perhaps?
 	for (var/obj/machinery/station_map/S in station_holomaps)
 		S.setup_holomap()
 
 // Generates the "base" holomap for one z-level, showing only the physical structure of walls and paths.
-/datum/controller/subsystem/holomaps/proc/generateHoloMinimap(var/zLevel = 1)
+/datum/controller/subsystem/holomaps/proc/generateHoloMinimap(zLevel = 1)
 	// Sanity checks - Better to generate a helpful error message now than have DrawBox() runtime
 	var/icon/canvas = icon(HOLOMAP_ICON, "blank")
 	if(world.maxx > canvas.Width())
@@ -78,7 +78,7 @@
 // This seems to do the drawing thing, but draws only the areas, having nothing to do with the tiles.
 // Leshana: I'm guessing this map will get overlayed on top of the base map at runtime? We'll see.
 // Wait, seems we actually blend the area map on top of it right now! Huh.
-/datum/controller/subsystem/holomaps/proc/generateStationMinimap(var/zLevel)
+/datum/controller/subsystem/holomaps/proc/generateStationMinimap(zLevel)
 	// Sanity checks - Better to generate a helpful error message now than have DrawBox() runtime
 	var/icon/canvas = icon(HOLOMAP_ICON, "blank")
 	if(world.maxx > canvas.Width())
@@ -121,11 +121,13 @@
 	extraMiniMaps["[HOLOMAP_EXTRA_STATIONMAPSMALL]_[zLevel]"] = actual_small_map
 
 // For tiny multi-z maps like the tether, we want to smoosh em together into a nice big one!
-/datum/controller/subsystem/holomaps/proc/smooshTetherHolomaps(var/list/zlevels)
+/datum/controller/subsystem/holomaps/proc/smooshTetherHolomaps(list/zlevels)
 	var/icon/big_map = icon(HOLOMAP_ICON, "stationmap")
 	var/icon/small_map = icon(HOLOMAP_ICON, "blank")
 	// For each zlevel in turn, overlay them on top of each other
 	for(var/zLevel in zlevels)
+		if(!isnum(zLevel))
+			zLevel = GLOB.map_templates_loaded[zLevel]
 		var/offset_x = HOLOMAP_PIXEL_OFFSET_X(zLevel) || 1
 		var/offset_y = HOLOMAP_PIXEL_OFFSET_Y(zLevel) || 1
 
@@ -133,7 +135,7 @@
 		z_terrain.Blend(HOLOMAP_HOLOFIER, ICON_MULTIPLY, offset_x, offset_y)
 		big_map.Blend(z_terrain, ICON_OVERLAY, offset_x, offset_y)
 		small_map.Blend(z_terrain, ICON_OVERLAY, offset_x, offset_y)
-		
+
 		var/icon/z_areas = extraMiniMaps["[HOLOMAP_EXTRA_STATIONMAPAREAS]_[zLevel]"]
 		big_map.Blend(z_areas, ICON_OVERLAY, offset_x, offset_y)
 		small_map.Blend(z_areas, ICON_OVERLAY, offset_x, offset_y)

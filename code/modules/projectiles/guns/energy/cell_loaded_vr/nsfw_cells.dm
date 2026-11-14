@@ -2,8 +2,6 @@
 /obj/item/ammo_casing/microbattery/combat
 	name = "\'NSFW\' microbattery - UNKNOWN"
 	desc = "A miniature battery for an energy weapon."
-	catalogue_data = list(/datum/category_item/catalogue/information/organization/khi)
-	origin_tech = list(TECH_COMBAT = 2, TECH_MATERIAL = 1, TECH_MAGNETS = 2)
 
 /obj/item/ammo_casing/microbattery/combat/lethal
 	name = "\'NSFW\' microbattery - LETHAL"
@@ -36,7 +34,7 @@
 	projectile_type = /obj/item/projectile/bullet/pellet/e_shot_stun
 
 /obj/item/projectile/bullet/pellet/e_shot_stun
-	icon_state = "spell"
+	icon_state = "spark"
 	damage = 2
 	agony = 20
 	pellets = 6			//number of pellets
@@ -67,7 +65,7 @@
 	sharp = FALSE
 	check_armour = "melee"
 
-/obj/item/projectile/bullet/stripper/on_hit(var/atom/stripped)
+/obj/item/projectile/bullet/stripper/on_hit(atom/stripped)
 	if(ishuman(stripped))
 		var/mob/living/carbon/human/H = stripped
 		if(H.wear_suit)
@@ -101,7 +99,7 @@
 	tracer_type = /obj/effect/projectile/tracer/laser_omni
 	impact_type = /obj/effect/projectile/impact/laser_omni
 
-/obj/item/projectile/beam/final_option/on_hit(var/atom/impacted)
+/obj/item/projectile/beam/final_option/on_hit(atom/impacted)
 	if(isliving(impacted))
 		var/mob/living/L = impacted
 		if(L.mind)

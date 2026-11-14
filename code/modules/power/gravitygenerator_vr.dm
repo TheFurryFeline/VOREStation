@@ -20,7 +20,7 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 
 /obj/machinery/gravity_generator
 	name = "gravitational generator"
-	desc = "A device which produces a graviton field when set up."
+	desc = "A device which produces a graviton field when set up. This one is a Nebulon XTR-9, a reliable example found aboard many Nanotrasen stations. It is manufactured by Aether Atmospherics as an unusual departure from their usual product line."
 	icon = 'icons/obj/machines/gravity_generator.dmi'
 	anchored = TRUE
 	density = TRUE
@@ -37,10 +37,6 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 /obj/machinery/gravity_generator/blob_act(obj/structure/blob/B)
 	if(prob(20))
 		set_broken()
-
-/obj/machinery/gravity_generator/tesla_act(power, tesla_flags)
-	..()
-	qdel(src)//like the singulo, tesla deletes it. stops it from exploding over and over
 
 /obj/machinery/gravity_generator/update_icon()
 	icon_state = "[get_status()]_[sprite_number]"
@@ -93,7 +89,7 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 	use_power = USE_POWER_ACTIVE
 	current_overlay = "activated"
 
-/obj/machinery/gravity_generator/main/station/Initialize()
+/obj/machinery/gravity_generator/main/station/Initialize(mapload)
 	. = ..()
 	setup_parts()
 	middle.add_overlay("activated")
@@ -127,14 +123,13 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 	var/list/levels = list()
 	var/list/areas = list()
 
-/obj/machinery/gravity_generator/main/Initialize()
+/obj/machinery/gravity_generator/main/Initialize(mapload)
 	..()
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/machinery/gravity_generator/main/LateInitialize() //Needs to happen after overmap sectors are initialized so we can figure out where we are
 	update_list()
 	update_areas()
-	return ..()
 
 /obj/machinery/gravity_generator/main/set_fix()
 	. = ..()
@@ -205,16 +200,16 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 	switch(broken_state)
 		if(GRAV_NEEDS_SCREWDRIVER)
 			if(I.has_tool_quality(TOOL_SCREWDRIVER))
-				to_chat(user, "<span class='notice'>You secure the screws of the framework.</span>")
+				to_chat(user, span_notice("You secure the screws of the framework."))
 				playsound(src, I.usesound, 75, 1)
 				broken_state++
 				update_icon()
 				return
 		if(GRAV_NEEDS_WELDING)
 			if(I.has_tool_quality(TOOL_WELDER))
-				var/obj/item/weapon/weldingtool/W = I.get_welder()
+				var/obj/item/weldingtool/W = I.get_welder()
 				if(W.remove_fuel(0,user))
-					to_chat(user, "<span class='notice'>You mend the damaged framework.</span>")
+					to_chat(user, span_notice("You mend the damaged framework."))
 					broken_state++
 					update_icon()
 				return
@@ -223,16 +218,16 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 				var/obj/item/stack/material/plasteel/PS = I
 				if(PS.get_amount() >= 10)
 					PS.use(10)
-					to_chat(user, "<span class='notice'>You add the plating to the framework.</span>")
+					to_chat(user, span_notice("You add the plating to the framework."))
 					playsound(src, 'sound/machines/click.ogg', 75, 1)
 					broken_state++
 					update_icon()
 				else
-					to_chat(user, "<span class='warning'>You need 10 sheets of plasteel!</span>")
+					to_chat(user, span_warning("You need 10 sheets of plasteel!"))
 				return
 		if(GRAV_NEEDS_WRENCH)
 			if(I.has_tool_quality(TOOL_WRENCH))
-				to_chat(user, "<span class='notice'>You secure the plating to the framework.</span>")
+				to_chat(user, span_notice("You secure the plating to the framework."))
 				playsound(src, I.usesound, 75, 1)
 				set_fix()
 				return
@@ -261,14 +256,14 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 
 	return data
 
-/obj/machinery/gravity_generator/main/tgui_act(action, params)
+/obj/machinery/gravity_generator/main/tgui_act(action, params, datum/tgui/ui)
 	if((..()))
 		return TRUE
 
 	switch(action)
 		if("gentoggle")
 			breaker = !breaker
-			investigate_log("was toggled [breaker ? "<font color='green'>ON</font>" : "<font color='red'>OFF</font>"] by [key_name(usr)].", "gravity")
+			investigate_log("was toggled [breaker ? span_green("ON") : span_red("OFF")] by [key_name(ui.user)].", "gravity")
 			set_power()
 			return TOPIC_REFRESH
 
@@ -331,7 +326,6 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 	update_list()
 	update_gravity(new_state)
 	update_icon()
-	src.updateUsrDialog()
 
 	if(alert)
 		shake_everyone()
@@ -355,7 +349,6 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 			if(charge_count % 4 == 0 && prob(75)) // Let them know it is charging/discharging.
 				playsound(src, 'sound/effects/empulse.ogg', 100, 1)
 
-			updateDialog()
 			if(prob(25)) // To help stop "Your clothes feel warm." spam.
 				pulse_radiation()
 
@@ -381,19 +374,26 @@ GLOBAL_LIST_EMPTY(gravity_generators)
 
 
 /obj/machinery/gravity_generator/main/proc/pulse_radiation()
-	SSradiation.radiate(src, 200)
+	radiation_pulse(
+		src,
+		max_range = 7,
+		threshold = RAD_HEAVY_INSULATION,
+		chance = DEFAULT_RADIATION_CHANCE * 2,
+		minimum_exposure_time = URANIUM_RADIATION_MINIMUM_EXPOSURE_TIME,
+		strength = charge_count * 2
+	)
 
-/obj/machinery/gravity_generator/main/proc/update_gravity(var/on)
+/obj/machinery/gravity_generator/main/proc/update_gravity(on)
 	for(var/area/A in src.areas)
 		A.gravitychange(on)
 
 // Shake everyone on the z level to let them know that gravity was enagaged/disenagaged.
 /obj/machinery/gravity_generator/main/proc/shake_everyone()
 	var/sound/alert_sound = sound('sound/effects/alert.ogg')
-	for(var/mob/M as anything in player_list)
+	for(var/mob/M as anything in GLOB.player_list)
 		if(!(M.z in levels))
 			continue
-		M.update_gravity(M.mob_has_gravity())
+		M.update_gravity(M.mob_get_gravity())
 		shake_camera(M, 15, 1)
 		M.playsound_local(src, null, 50, 1, 0.5, S = alert_sound)
 

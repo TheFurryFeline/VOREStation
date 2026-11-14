@@ -25,7 +25,7 @@
 	icon_dead = "miningdrone_dead"
 	has_eye_glow = TRUE
 
-	faction = "malf_drone"
+	faction = FACTION_MALF_DRONE
 
 	maxHealth = 50
 	health = 50
@@ -40,41 +40,41 @@
 	response_disarm = "gently pushes aside"
 	response_harm = "hits"
 
-	organ_names = /decl/mob_organ_names/miningdrone
+	organ_names = /datum/decl/mob_organ_names/miningdrone
 
 	ai_holder_type = /datum/ai_holder/simple_mob/ranged/kiting/threatening
 	say_list_type = /datum/say_list/malf_drone/mining
 
 	tame_items = list(
-	/obj/item/weapon/ore/verdantium = 90,
-	/obj/item/weapon/ore/hydrogen = 90,
-	/obj/item/weapon/ore/osmium = 70,
-	/obj/item/weapon/ore/diamond = 70,
-	/obj/item/weapon/ore/gold = 55,
-	/obj/item/weapon/ore/silver = 55,
-	/obj/item/weapon/ore/lead = 40,
-	/obj/item/weapon/ore/marble = 30,
-	/obj/item/weapon/ore/coal = 25,
-	/obj/item/weapon/ore/iron = 25,
-	/obj/item/weapon/ore/glass = 15,
-	/obj/item/weapon/ore = 5
+	/obj/item/ore/verdantium = 90,
+	/obj/item/ore/hydrogen = 90,
+	/obj/item/ore/osmium = 70,
+	/obj/item/ore/diamond = 70,
+	/obj/item/ore/gold = 55,
+	/obj/item/ore/silver = 55,
+	/obj/item/ore/lead = 40,
+	/obj/item/ore/marble = 30,
+	/obj/item/ore/coal = 25,
+	/obj/item/ore/iron = 25,
+	/obj/item/ore/glass = 15,
+	/obj/item/ore = 5
 	)
 
 	var/datum/effect/effect/system/ion_trail_follow/ion_trail = null
 	var/obj/item/shield_projector/shields = null
-	var/obj/item/weapon/storage/bag/ore/my_storage = null
+	var/obj/item/ore_bag/my_storage = null
 
 	var/last_search = 0
 	var/search_cooldown = 5 SECONDS
 	var/ignoreunarmed = TRUE
-	var/allowedtools = list(/obj/item/weapon/pickaxe, /obj/item/weapon/gun/energy/kinetic_accelerator, /obj/item/weapon/gun/magnetic/matfed/phoronbore, /obj/item/weapon/kinetic_crusher, /obj/item/weapon/melee/shock_maul)
+	var/allowedtools = list(/obj/item/pickaxe, /obj/item/gun/energy/kinetic_accelerator, /obj/item/gun/magnetic/matfed/phoronbore, /obj/item/kinetic_crusher, /obj/item/melee/shock_maul)
 
-/mob/living/simple_mob/mechanical/mining_drone/Initialize()
+/mob/living/simple_mob/mechanical/mining_drone/Initialize(mapload)
 	ion_trail = new
 	ion_trail.set_up(src)
 	ion_trail.start()
 
-	my_storage = new /obj/item/weapon/storage/bag/ore(src)
+	my_storage = new /obj/item/ore_bag(src)
 	shields = new /obj/item/shield_projector/rectangle/automatic/drone(src)
 	return ..()
 
@@ -90,7 +90,7 @@
 	..(null,"suddenly breaks apart.")
 	qdel(src)
 
-/mob/living/simple_mob/mechanical/mining_drone/Process_Spacemove(var/check_drift = 0)
+/mob/living/simple_mob/mechanical/mining_drone/Process_Spacemove(check_drift = 0)
 	return TRUE
 
 /mob/living/simple_mob/mechanical/mining_drone/IIsAlly(mob/living/L)
@@ -106,7 +106,7 @@
 
 		var/has_tool = FALSE
 		var/obj/item/I = H.get_active_hand()
-		if(!istype(I,/obj/item/weapon))
+		if(!istype(I,/obj/item))
 			if(ignoreunarmed)
 				return TRUE
 			else //just so they don't attack "miners" for having their mining gear in their offhand
@@ -137,12 +137,12 @@
 		if(ai_holder)
 			ai_holder.add_attacker(L)
 
-/mob/living/simple_mob/mechanical/mining_drone/bullet_act(var/obj/item/projectile/P, var/def_zone)
+/mob/living/simple_mob/mechanical/mining_drone/bullet_act(obj/item/projectile/P, def_zone)
 	..()
 	if(ai_holder && P.firer)
 		ai_holder.add_attacker(P.firer)
 
-/mob/living/simple_mob/mechanical/mining_drone/hit_with_weapon(obj/item/I, mob/living/user, var/effective_force, var/hit_zone)
+/mob/living/simple_mob/mechanical/mining_drone/hit_with_weapon(obj/item/I, mob/living/user, effective_force, hit_zone, hide_attack_message)
 	..()
 	if(ai_holder)
 		ai_holder.add_attacker(user)
@@ -155,12 +155,12 @@
 			if(my_storage.contents.len >= my_storage.max_storage_space)
 				break
 
-			if((locate(/obj/item/weapon/ore) in T) && prob(40))
+			if((locate(/obj/item/ore) in T) && prob(40))
 				src.Beam(T, icon_state = "holo_beam", time = 0.5 SECONDS)
 				my_storage.rangedload(T, src)
 
 		if(my_storage.contents.len >= my_storage.max_storage_space)
-			visible_message("<b>\The [src]</b> emits a shrill beep, indicating its storage is full.")
+			visible_message(span_infoplain(span_bold("\The [src]") + " emits a shrill beep, indicating its storage is full."))
 
 		var/obj/structure/ore_box/OB = locate() in view(2, src)
 
@@ -169,7 +169,7 @@
 			for(var/obj/item/I in my_storage)
 				my_storage.remove_from_storage(I, OB)
 
-/decl/mob_organ_names/miningdrone
+/datum/decl/mob_organ_names/miningdrone
 	hit_zones = list("chassis", "comms array", "sensor suite", "left excavator module", "right excavator module", "maneuvering thruster")
 
 /datum/say_list/malf_drone/mining
@@ -178,5 +178,5 @@
 /mob/living/simple_mob/mechanical/mining_drone/scavenger //more aggro version for the debris field, with a weaker weapon
 	name = "scavenger drone"
 	ignoreunarmed = FALSE
-	allowedtools = list(/obj/item/weapon/pickaxe)
+	allowedtools = list(/obj/item/pickaxe)
 	projectiletype = /obj/item/projectile/energy/excavate/weak

@@ -1,6 +1,6 @@
 /datum/wires/rig
 	randomize = TRUE
-	holder_type = /obj/item/weapon/rig
+	holder_type = /obj/item/rig
 	wire_count = 5
 
 /datum/wires/rig/New(atom/_holder)
@@ -14,7 +14,7 @@
  */
 
 /datum/wires/rig/on_cut(wire, mend)
-	var/obj/item/weapon/rig/rig = holder
+	var/obj/item/rig/rig = holder
 	switch(wire)
 		if(WIRE_RIG_SECURITY)
 			if(mend)
@@ -22,10 +22,10 @@
 				rig.req_one_access = initial(rig.req_one_access)
 		if(WIRE_RIG_INTERFACE_SHOCK)
 			rig.electrified = mend ? 0 : -1
-			rig.shock(usr,100)
+			rig.shock(usr,100) // TODO - REMOVE USR
 
 /datum/wires/rig/on_pulse(wire)
-	var/obj/item/weapon/rig/rig = holder
+	var/obj/item/rig/rig = holder
 	switch(wire)
 		if(WIRE_RIG_SECURITY)
 			rig.security_check_enabled = !rig.security_check_enabled
@@ -37,17 +37,17 @@
 			rig.malfunctioning += 10
 			if(rig.malfunction_delay <= 0)
 				rig.malfunction_delay = 20
-			rig.shock(usr,100)
+			rig.shock(usr,100) // TODO - REMOVE USR
 		if(WIRE_RIG_INTERFACE_LOCK)
 			rig.interface_locked = !rig.interface_locked
 			rig.visible_message("\The [rig] clicks audibly as the software interface [rig.interface_locked?"darkens":"brightens"].")
 		if(WIRE_RIG_INTERFACE_SHOCK)
 			if(rig.electrified != -1)
 				rig.electrified = 30
-			rig.shock(usr,100)
+			rig.shock(usr,100) // TODO - REMOVE USR
 
 /datum/wires/rig/interactable(mob/user)
-	var/obj/item/weapon/rig/rig = holder
+	var/obj/item/rig/rig = holder
 	if(rig.open)
 		return TRUE
 	return FALSE

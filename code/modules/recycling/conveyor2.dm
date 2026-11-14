@@ -14,7 +14,7 @@
 	layer = ABOVE_TURF_LAYER
 	anchored = TRUE
 	active_power_usage = 100
-	circuit = /obj/item/weapon/circuitboard/conveyor
+	circuit = /obj/item/circuitboard/conveyor
 	var/operating = OFF	// 1 if running forward, -1 if backwards, 0 if off
 	var/operable = 1	// true if can operate (no broken segments in this belt run)
 	var/forwards		// this is the default (forward) direction, set by the map dir
@@ -40,7 +40,7 @@
 
 	default_apply_parts()
 
-/obj/machinery/conveyor/proc/toggle_speed(var/forced)
+/obj/machinery/conveyor/proc/toggle_speed(forced)
 	if(forced)
 		speed_process = forced
 	else
@@ -51,7 +51,7 @@
 		update_active_power_usage(initial(idle_power_usage))
 	update()
 
-/obj/machinery/conveyor/proc/set_operating(var/new_operating)
+/obj/machinery/conveyor/proc/set_operating(new_operating)
 	if(new_operating == operating)
 		return // No change
 	operating = new_operating
@@ -68,7 +68,7 @@
 	update_dir()
 
 /obj/machinery/conveyor/proc/update_dir()
-	if(!(dir in cardinal)) // Diagonal. Forwards is *away* from dir, curving to the right.
+	if(!(dir in GLOB.cardinal)) // Diagonal. Forwards is *away* from dir, curving to the right.
 		forwards = turn(dir, 45)
 		backwards = turn(dir, 135)
 	else
@@ -113,6 +113,8 @@
 		for(var/atom/movable/A in affecting)
 			if(istype(A,/obj/effect/abstract)) // Flashlight's lights are not physical objects
 				continue
+			if(A.is_incorporeal())
+				continue
 			if(!A.anchored)
 				if(A.loc == src.loc) // prevents the object from being affected if it's not currently here.
 					step(A,movedir)
@@ -121,7 +123,7 @@
 				break
 
 // attack with item, place item on conveyor
-/obj/machinery/conveyor/attackby(var/obj/item/I, mob/user)
+/obj/machinery/conveyor/attackby(obj/item/I, mob/user)
 	if(isrobot(user))	return //Carn: fix for borgs dropping their modules on conveyor belts
 	if(I.loc != user)	return // This should stop mounted modules ending up outside the module.
 
@@ -130,14 +132,14 @@
 	if(default_deconstruction_crowbar(user, I))
 		return
 
-	if(istype(I, /obj/item/device/multitool))
+	if(istype(I, /obj/item/multitool))
 		if(panel_open)
-			var/input = sanitize(tgui_input_text(usr, "What id would you like to give this conveyor?", "Multitool-Conveyor interface", id))
+			var/input = tgui_input_text(user, "What id would you like to give this conveyor?", "Multitool-Conveyor interface", id, MAX_MESSAGE_LEN)
 			if(!input)
 				to_chat(user, "No input found. Please hang up and try your call again.")
 				return
 			id = input
-			for(var/obj/machinery/conveyor_switch/C in machines)
+			for(var/obj/machinery/conveyor_switch/C in GLOB.machines)
 				if(C.id == id)
 					C.conveyors |= src
 			return
@@ -196,6 +198,10 @@
 	if((. = ..()))
 		update()
 
+#undef OFF
+#undef FORWARDS
+#undef BACKWARDS
+
 // the conveyor control switch
 //
 //
@@ -219,18 +225,18 @@
 
 
 
-/obj/machinery/conveyor_switch/Initialize()
+/obj/machinery/conveyor_switch/Initialize(mapload)
 	..()
 	update()
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/machinery/conveyor_switch/LateInitialize()
 	conveyors = list()
-	for(var/obj/machinery/conveyor/C in machines)
+	for(var/obj/machinery/conveyor/C in GLOB.machines)
 		if(C.id == id)
 			conveyors += C
 
-/obj/machinery/conveyor_switch/proc/toggle_speed(var/forced)
+/obj/machinery/conveyor_switch/proc/toggle_speed(forced)
 	speed_active = !speed_active // switching gears
 	if(speed_active) // high gear
 		for(var/obj/machinery/conveyor/C in conveyors)
@@ -264,7 +270,7 @@
 // attack with hand, switch position
 /obj/machinery/conveyor_switch/attack_hand(mob/user)
 	if(!allowed(user))
-		to_chat(user, "<span class='warning'>Access denied.</span>")
+		to_chat(user, span_warning("Access denied."))
 		return
 
 	if(position == 0)
@@ -282,12 +288,12 @@
 	update()
 
 	// find any switches with same id as this one, and set their positions to match us
-	for(var/obj/machinery/conveyor_switch/S in machines)
+	for(var/obj/machinery/conveyor_switch/S in GLOB.machines)
 		if(S.id == src.id)
 			S.position = position
 			S.update()
 
-/obj/machinery/conveyor_switch/attackby(var/obj/item/I, mob/user)
+/obj/machinery/conveyor_switch/attackby(obj/item/I, mob/user)
 	if(default_deconstruction_screwdriver(user, I))
 		return
 
@@ -295,26 +301,26 @@
 		return
 
 	if(I.has_tool_quality(TOOL_WELDER))
-		var/obj/item/weapon/weldingtool/WT = I.get_welder()
+		var/obj/item/weldingtool/WT = I.get_welder()
 		if(!WT.remove_fuel(0, user))
 			to_chat(user, "The welding tool must be on to complete this task.")
 			return
 		playsound(src, WT.usesound, 50, 1)
-		if(do_after(user, 20 * WT.toolspeed))
+		if(do_after(user, 2 SECONDS * WT.toolspeed, target = src))
 			if(!src || !WT.isOn()) return
-			to_chat(user, "<span class='notice'>You deconstruct the frame.</span>")
+			to_chat(user, span_notice("You deconstruct the frame."))
 			new /obj/item/stack/material/steel( src.loc, 2 )
 			qdel(src)
 			return
 
 	if(I.has_tool_quality(TOOL_MULTITOOL))
-		var/input = sanitize(tgui_input_text(usr, "What id would you like to give this conveyor switch?", "Multitool-Conveyor interface", id))
+		var/input = tgui_input_text(user, "What id would you like to give this conveyor switch?", "Multitool-Conveyor interface", id, MAX_MESSAGE_LEN)
 		if(!input)
 			to_chat(user, "No input found. Please hang up and try your call again.")
 			return
 		id = input
 		conveyors = list() // Clear list so they aren't double added.
-		for(var/obj/machinery/conveyor/C in machines)
+		for(var/obj/machinery/conveyor/C in GLOB.machines)
 			if(C.id == id)
 				conveyors += C
 		return
@@ -331,11 +337,13 @@
 			playsound(src, I.usesound, 50, 1)
 			return
 
-	//Ports making conveyors fast from CHOMPstation
 	if(I.has_tool_quality(TOOL_WIRECUTTER))
 		toggle_speed()
 		to_chat(user, "You adjust the speed of the conveyor switch")
 		return
+
+/obj/machinery/conveyor_switch/allow_pai_interaction(mob/living/silicon/pai/user, proximity_flag)
+	return proximity_flag
 
 /obj/machinery/conveyor_switch/oneway
 	oneway = 1
@@ -343,4 +351,4 @@
 /obj/machinery/conveyor_switch/examine()
 	.=..()
 	if(oneway == 1)
-		. += " It appears to only go in one direction."
+		. += "It appears to only go in one direction."

@@ -38,7 +38,7 @@
 	melee_damage_lower = 5	// Doesn't do a lot of damage, since the goal is to make more spiders with egg attacks.
 	melee_damage_upper = 10
 	poison_per_bite = 5
-	poison_type = "stoxin"
+	poison_type = REAGENT_ID_STOXIN
 
 	player_msg = "You can spin webs on an adjacent tile, or cocoon an object by clicking on it.<br>\
 	You can also cocoon a dying or dead entity by clicking on them, and you will gain charges for egg-laying.<br>\
@@ -68,7 +68,7 @@
 				var/obj/effect/spider/eggcluster/eggs = new egg_type(O, src)
 				O.implants += eggs
 				eggs.faction = faction
-				to_chat(H, span("critical", "\The [src] injects something into your [O.name]!") ) // Oh god its laying eggs in me!
+				to_chat(H, span_critical("\The [src] injects something into your [O.name]!") ) // Oh god its laying eggs in me!
 
 // Webs target in a web if able to.
 /mob/living/simple_mob/animal/giant_spider/nurse/attack_target(atom/A)
@@ -82,6 +82,12 @@
 		var/mob/living/L = A
 		if(!L.stat)
 			return ..()
+		else
+			if (L.anchored && L.buckled && !(L.pulledby || L.buckled.pulledby)) //don't have them trying to unbuckle someone on something that's being pulled because that's just annoying as fuck esp for a medic or something
+				L.buckled.unbuckle_mob(L)
+			if (!L.anchored)
+				return spin_cocoon(L)
+			return
 
 	if(!istype(A, /atom/movable))
 		return
@@ -95,28 +101,30 @@
 /mob/living/simple_mob/animal/giant_spider/nurse/proc/spin_cocoon(atom/movable/AM)
 	if(!istype(AM))
 		return FALSE // We can't cocoon walls sadly.
-	visible_message(span("notice", "\The [src] begins to secrete a sticky substance around \the [AM].") )
+	if(istype(AM, /mob/living/simple_mob/animal/giant_spider))
+		return FALSE
+	visible_message(span_notice("\The [src] begins to secrete a sticky substance around \the [AM]."))
 
 	// Get our AI to stay still.
 	set_AI_busy(TRUE)
 
-	if(!do_mob(src, AM, 5 SECONDS))
+	if(!do_after(src,5 SECONDS, AM))
 		set_AI_busy(FALSE)
-		to_chat(src, span("warning", "You need to stay still to spin a web around \the [AM]."))
+		to_chat(src, span_warning("You need to stay still to spin a web around \the [AM]."))
 		return FALSE
 
 	set_AI_busy(FALSE)
 
 	if(!AM) // Make sure it didn't get deleted for whatever reason.
-		to_chat(src, span("warning", "Whatever you were spinning a web for, its no longer there..."))
+		to_chat(src, span_warning("Whatever you were spinning a web for, its no longer there..."))
 		return FALSE
 
 	if(!isturf(AM.loc))
-		to_chat(src, span("warning", "You can't spin \the [AM] in a web while it is inside \the [AM.loc]."))
+		to_chat(src, span_warning("You can't spin \the [AM] in a web while it is inside \the [AM.loc]."))
 		return FALSE
 
 	if(!Adjacent(AM))
-		to_chat(src, span("warning", "You need to be next to \the [AM] to spin it into a web."))
+		to_chat(src, span_warning("You need to be next to \the [AM] to spin it into a web."))
 		return FALSE
 
 	// Finally done with the checks.
@@ -126,8 +134,8 @@
 		if(istype(L, /mob/living/simple_mob/animal/giant_spider)) // Cannibalism is bad.
 			continue
 		fed++
-		visible_message(span("warning","\The [src] sticks a proboscis into \the [L], and sucks a viscous substance out."))
-		to_chat(src, span("notice", "You've fed upon \the [L], and can now lay [fed] cluster\s of eggs."))
+		visible_message(span_warning("\The [src] sticks a proboscis into \the [L], and sucks a viscous substance out."))
+		to_chat(src, span_notice("You've fed upon \the [L], and can now lay [fed] cluster\s of eggs."))
 		L.forceMove(C)
 		large_cocoon = TRUE
 		break
@@ -162,13 +170,13 @@
 	if(W)
 		return FALSE // Already got webs here.
 
-	visible_message(span("notice", "\The [src] begins to secrete a sticky substance.") )
+	visible_message(span_notice("\The [src] begins to secrete a sticky substance.") )
 	// Get our AI to stay still.
 	set_AI_busy(TRUE)
 
-	if(!do_mob(src, T, 5 SECONDS))
+	if(!do_after(src, 5 SECONDS, T))
 		set_AI_busy(FALSE)
-		to_chat(src, span("warning", "You need to stay still to spin a web on \the [T]."))
+		to_chat(src, span_warning("You need to stay still to spin a web on \the [T]."))
 		return FALSE
 
 	W = locate() in T
@@ -194,15 +202,15 @@
 	if(E)
 		return FALSE // Already got eggs here.
 
-	visible_message(span("notice", "\The [src] begins to lay a cluster of eggs.") )
+	visible_message(span_notice("\The [src] begins to lay a cluster of eggs.") )
 	// Get our AI to stay still.
 	set_AI_busy(TRUE)
 	// Stop players from spamming eggs.
 	laying_eggs = TRUE
 
-	if(!do_mob(src, T, 5 SECONDS))
+	if(!do_after(src, 5 SECONDS, T))
 		set_AI_busy(FALSE)
-		to_chat(src, span("warning", "You need to stay still to lay eggs on \the [T]."))
+		to_chat(src, span_warning("You need to stay still to lay eggs on \the [T]."))
 		return FALSE
 
 	E = locate() in T
@@ -260,10 +268,14 @@
 
 	return ..(targets)
 
-/datum/ai_holder/simple_mob/melee/nurse_spider/can_attack(atom/movable/the_target, var/vision_required = TRUE)
+/datum/ai_holder/simple_mob/melee/nurse_spider/can_attack(atom/movable/the_target, vision_required = TRUE)
 	. = ..()
 	if(!.) // Parent returned FALSE.
-		if(istype(the_target, /obj))
+		if (istype(the_target, /mob/living/simple_mob/animal/giant_spider))
+			var/mob/living/L = the_target
+			if (L.stat)
+				return FALSE
+		if(istype(the_target, /obj) && (!vision_required || can_see_target(the_target)))
 			var/obj/O = the_target
 			if(!O.anchored)
 				return TRUE

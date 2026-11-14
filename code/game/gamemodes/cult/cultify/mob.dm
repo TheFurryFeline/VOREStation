@@ -11,28 +11,28 @@
 		icon = 'icons/mob/mob.dmi'
 		icon_state = "ghost-narsie"
 		overlays = 0
-		invisibility = 0
-		to_chat(src, "<span class='sinister'>Even as a non-corporal being, you can feel Nar-Sie's presence altering you. You are now visible to everyone.</span>")
+		invisibility = INVISIBILITY_NONE
+		to_chat(src, span_sinister("Even as a non-corporal being, you can feel Nar-Sie's presence altering you. You are now visible to everyone."))
 
 /mob/living/cultify()
 	if(iscultist(src) && client)
 		var/mob/living/simple_mob/construct/harvester/C = new(get_turf(src))
 		mind.transfer_to(C)
-		to_chat(C, "<span class='sinister'>The Geometer of Blood is overjoyed to be reunited with its followers, and accepts your body in sacrifice. As reward, you have been gifted with the shell of an Harvester.<br>Your tendrils can use and draw runes without need for a tome, your eyes can see beings through walls, and your mind can open any door. Use these assets to serve Nar-Sie and bring him any remaining living human in the world.<br>You can teleport yourself back to Nar-Sie along with any being under yourself at any time using your \"Harvest\" spell.</span>")
+		to_chat(C, span_sinister("The Geometer of Blood is overjoyed to be reunited with its followers, and accepts your body in sacrifice. As reward, you have been gifted with the shell of an Harvester.<br>Your tendrils can use and draw runes without need for a tome, your eyes can see beings through walls, and your mind can open any door. Use these assets to serve Nar-Sie and bring him any remaining living human in the world.<br>You can teleport yourself back to Nar-Sie along with any being under yourself at any time using your \"Harvest\" spell."))
 		dust()
 	else if(client)
 		var/mob/observer/dead/G = (ghostize())
 		G.icon = 'icons/mob/mob.dmi'
 		G.icon_state = "ghost-narsie"
 		G.overlays = 0
-		G.invisibility = 0
-		to_chat(G, "<span class='sinister'>You feel relieved as what's left of your soul finally escapes its prison of flesh.</span>")
+		G.invisibility = INVISIBILITY_NONE
+		to_chat(G, span_sinister("You feel relieved as what's left of your soul finally escapes its prison of flesh."))
 
-		cult.harvested += G.mind
+		GLOB.cult.harvested += G.mind
 	else
 		dust()
 
-/mob/proc/see_narsie(var/obj/singularity/narsie/large/N, var/dir)
+/mob/proc/see_narsie(obj/singularity/narsie/large/N, dir)
 	if(N.chained)
 		if(narsimage)
 			qdel(narsimage)

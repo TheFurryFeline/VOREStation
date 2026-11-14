@@ -1,21 +1,21 @@
 /*
  * Wirecutters
  */
-/obj/item/weapon/tool/wirecutters
+/obj/item/tool/wirecutters
 	name = "wirecutters"
 	desc = "This cuts wires."
 	description_fluff = "This could be used to engrave messages on suitable surfaces if you really put your mind to it! Alt-click a floor or wall to engrave with it." //This way it's not a completely hidden, arcane art to engrave.
 	icon = 'icons/obj/tools.dmi'
 	icon_state = "cutters"
 	item_state = "cutters"
-	center_of_mass = list("x" = 18,"y" = 10)
+	center_of_mass_x = 18
+	center_of_mass_y = 10
 	slot_flags = SLOT_BELT
 	force = 6
 	throw_speed = 2
 	throw_range = 9
 	w_class = ITEMSIZE_SMALL
-	origin_tech = list(TECH_MATERIAL = 1, TECH_ENGINEERING = 1)
-	matter = list(MAT_STEEL = 80)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.04))
 	attack_verb = list("pinched", "nipped")
 	hitsound = 'sound/items/wirecutter.ogg'
 	usesound = 'sound/items/wirecutter.ogg'
@@ -27,7 +27,8 @@
 	tool_qualities = list(TOOL_WIRECUTTER)
 	var/random_color = TRUE
 
-/obj/item/weapon/tool/wirecutters/New()
+/obj/item/tool/wirecutters/Initialize(mapload)
+	. = ..()
 	if(random_color)
 		switch(pick("red","blue","yellow"))
 			if ("red")
@@ -41,19 +42,21 @@
 				item_state = "cutters_yellow"
 
 	if (prob(75))
-		src.pixel_y = rand(0, 16)
-	..()
+		pixel_y = rand(0, 16)
 
-/obj/item/weapon/tool/wirecutters/attack(mob/living/carbon/C as mob, mob/user as mob)
-	if(istype(C) && user.a_intent == I_HELP && (C.handcuffed) && (istype(C.handcuffed, /obj/item/weapon/handcuffs/cable)))
-		usr.visible_message("\The [usr] cuts \the [C]'s restraints with \the [src]!",\
+/obj/item/tool/wirecutters/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	if(!iscarbon(M))
+		return ..()
+	var/mob/living/carbon/C = M
+	if(istype(C) && user.a_intent == I_HELP && (C.handcuffed) && (istype(C.handcuffed, /obj/item/handcuffs/cable)))
+		user.visible_message("\The [user] cuts \the [C]'s restraints with \the [src]!",\
 		"You cut \the [C]'s restraints with \the [src]!",\
 		"You hear cable being cut.")
 		C.handcuffed = null
 		if(C.buckled && C.buckled.buckle_require_restraints)
 			C.buckled.unbuckle_mob()
 		C.update_handcuffed()
-		return
+		return ITEM_INTERACT_SUCCESS
 	else
 		..()
 
@@ -70,34 +73,27 @@
 	energy and signals, just as humans do."
 	value = CATALOGUER_REWARD_EASY
 
-/obj/item/weapon/tool/wirecutters/alien
+/obj/item/tool/wirecutters/alien
 	name = "alien wirecutters"
 	desc = "Extremely sharp wirecutters, made out of a silvery-green metal."
 	catalogue_data = list(/datum/category_item/catalogue/anomalous/precursor_a/alien_wirecutters)
 	icon = 'icons/obj/abductor.dmi'
 	icon_state = "cutters"
 	toolspeed = 0.1
-	origin_tech = list(TECH_MATERIAL = 5, TECH_ENGINEERING = 4)
 	random_color = FALSE
 
-/obj/item/weapon/tool/wirecutters/cyborg
-	name = "wirecutters"
-	desc = "This cuts wires.  With science."
-	usesound = 'sound/items/jaws_cut.ogg'
-	toolspeed = 0.5
-
-/obj/item/weapon/tool/wirecutters/hybrid
+/obj/item/tool/wirecutters/hybrid
 	name = "strange wirecutters"
-	desc = "This cuts wires.  With <span class='alien'>Science!</span>"
+	desc = "This cuts wires. With " + span_purple("Science!")
 	icon_state = "hybcutters"
+	random_color = FALSE
 	w_class = ITEMSIZE_NORMAL
-	origin_tech = list(TECH_MATERIAL = 3, TECH_ENGINEERING = 3, TECH_PHORON = 2)
 	attack_verb = list("pinched", "nipped", "warped", "blasted")
 	usesound = 'sound/effects/stealthoff.ogg'
 	toolspeed = 0.4
 	reach = 2
 
-/obj/item/weapon/tool/wirecutters/power
+/obj/item/tool/wirecutters/power
 	name = "power cutters"
 	desc = "You shouldn't see this."
 	usesound = 'sound/items/jaws_cut.ogg'

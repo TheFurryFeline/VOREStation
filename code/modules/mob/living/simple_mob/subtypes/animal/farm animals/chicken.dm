@@ -20,20 +20,20 @@ GLOBAL_VAR_INIT(chicken_count, 0)	// How mant chickens DO we have?
 	response_harm   = "kicks"
 	attacktext = list("pecked")
 
-	organ_names = /decl/mob_organ_names/chicken
+	organ_names = /datum/decl/mob_organ_names/chicken
 
 	has_langs = list(LANGUAGE_ANIMAL)
 
 	say_list_type = /datum/say_list/chicken
 
 	meat_amount = 4
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/chicken
+	meat_type = /obj/item/reagent_containers/food/snacks/meat/chicken
 
 	var/eggsleft = 0
 	var/body_color
 
-/mob/living/simple_mob/animal/passive/chicken/New()
-	..()
+/mob/living/simple_mob/animal/passive/chicken/Initialize(mapload)
+	. = ..()
 	if(!body_color)
 		body_color = pick( list("brown","black","white") )
 	icon_state = "chicken_[body_color]"
@@ -44,13 +44,14 @@ GLOBAL_VAR_INIT(chicken_count, 0)	// How mant chickens DO we have?
 	GLOB.chicken_count += 1
 
 /mob/living/simple_mob/animal/passive/chicken/Destroy()
-	..()
+	. = ..()
 	GLOB.chicken_count -= 1
 
-/mob/living/simple_mob/animal/passive/chicken/attackby(var/obj/item/O as obj, var/mob/user as mob)
-	if(istype(O, /obj/item/weapon/reagent_containers/food/snacks/grown)) //feedin' dem chickens
-		var/obj/item/weapon/reagent_containers/food/snacks/grown/G = O
-		if(G.seed && G.seed.kitchen_tag == "wheat")
+
+/mob/living/simple_mob/animal/passive/chicken/attackby(obj/item/O as obj, mob/user as mob)
+	if(istype(O, /obj/item/reagent_containers/food/snacks/grown)) //feedin' dem chickens
+		var/obj/item/reagent_containers/food/snacks/grown/G = O
+		if(G.seed && G.seed.kitchen_tag == PLANT_WHEAT)
 			if(!stat && eggsleft < 8)
 				user.visible_message(span_blue("[user] feeds [O] to [name]! It clucks happily."),span_blue("You feed [O] to [name]! It clucks happily."))
 				user.drop_item()
@@ -70,7 +71,7 @@ GLOBAL_VAR_INIT(chicken_count, 0)	// How mant chickens DO we have?
 	if(!stat && prob(3) && eggsleft > 0)
 		visible_message("[src] [pick("lays an egg.","squats down and croons.","begins making a huge racket.","begins clucking raucously.")]")
 		eggsleft--
-		var/obj/item/weapon/reagent_containers/food/snacks/egg/E = new(get_turf(src))
+		var/obj/item/reagent_containers/food/snacks/egg/E = new(get_turf(src))
 		E.pixel_x = rand(-6,6)
 		E.pixel_y = rand(-6,6)
 		if(GLOB.chicken_count < GLOB.MAX_CHICKENS && prob(10))
@@ -82,10 +83,10 @@ GLOBAL_VAR_INIT(chicken_count, 0)	// How mant chickens DO we have?
 
 
 
-/obj/item/weapon/reagent_containers/food/snacks/egg/var/amount_grown = 0
+/obj/item/reagent_containers/food/snacks/egg/var/amount_grown = 0
 
 // This only starts normally if there are less than MAX_CHICKENS chickens
-/obj/item/weapon/reagent_containers/food/snacks/egg/process()
+/obj/item/reagent_containers/food/snacks/egg/process()
 	if(isturf(loc))
 		amount_grown += rand(1,2)
 		if(amount_grown >= 100)
@@ -127,12 +128,12 @@ GLOBAL_VAR_INIT(chicken_count, 0)	// How mant chickens DO we have?
 	say_list_type = /datum/say_list/chick
 
 	meat_amount = 1
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/chicken
+	meat_type = /obj/item/reagent_containers/food/snacks/meat/chicken
 
 	var/amount_grown = 0
 
-/mob/living/simple_mob/animal/passive/chick/New()
-	..()
+/mob/living/simple_mob/animal/passive/chick/Initialize(mapload)
+	. = ..()
 	pixel_x = rand(-6, 6)
 	pixel_y = rand(0, 10)
 
@@ -143,12 +144,10 @@ GLOBAL_VAR_INIT(chicken_count, 0)	// How mant chickens DO we have?
 	if(!stat)
 		amount_grown += rand(1,2)
 		if(amount_grown >= 100)
-		//VOREStation Edit Begin
 			var/mob/living/simple_mob/animal/passive/chicken/C = new (src.loc)
 			C.ghostjoin = 1
 			C.ghostjoin_icon()
-			active_ghost_pods |= C
-		//VOREStation Edit End
+			GLOB.active_ghost_pods += C
 			qdel(src)
 
 // Say Lists
@@ -162,5 +161,5 @@ GLOBAL_VAR_INIT(chicken_count, 0)	// How mant chickens DO we have?
 	emote_hear = list("cheeps")
 	emote_see = list("pecks at the ground","flaps its tiny wings")
 
-/decl/mob_organ_names/chicken
+/datum/decl/mob_organ_names/chicken
 	hit_zones = list("head", "body", "left wing", "right wing", "left leg", "right leg", "tendies")

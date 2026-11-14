@@ -4,13 +4,44 @@
 	anchored = TRUE
 	density = TRUE
 
-/obj/structure/signpost/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/structure/signpost/attackby(obj/item/W as obj, mob/user as mob)
 	return attack_hand(user)
 
 /obj/structure/signpost/attack_hand(mob/user as mob)
 	if(tgui_alert(user, "Travel back to ss13?","Return?",list("Yes","No")) == "Yes")
 		if(user.z != src.z)	return
-		user.forceMove(pick(latejoin))
+		user.forceMove(get_turf(pick(GLOB.latejoin)))
+
+/obj/structure/signpost_fake
+	icon = 'icons/obj/stationobjs.dmi'
+	icon_state = "signpost"
+	anchored = TRUE
+	density = TRUE
+
+/obj/structure/signpostwood
+	name = "signpost"
+	desc = "It's a signpost that tells you things!"
+	icon = 'icons/obj/stationobjs.dmi'
+	icon_state = "signpostwood"
+	anchored = TRUE
+	density = TRUE
+
+/obj/structure/signevent //Designed for scene events for people to put their OOC notes on BEFORE going into a room with them.
+	name = "sign"
+	desc = "It's a sign that tells you things!"
+	icon = 'icons/obj/stationobjs.dmi'
+	icon_state = "sign_event_green"
+	anchored = TRUE
+	density = FALSE
+
+/obj/structure/signevent/blue
+	icon_state = "sign_event_blue"
+
+/obj/structure/signevent/red
+	icon_state = "sign_event_red"
+
+/obj/structure/signevent/yellow
+	icon_state = "sign_event_yellow"
 
 /obj/effect/mark
 		var/mark = ""
@@ -40,10 +71,10 @@
  * This item is completely unused, but removing it will break something in R&D and Radio code causing PDA and Ninja code to fail on compile
  */
 
-/var/list/acting_rank_prefixes = list("acting", "temporary", "interim", "provisional")
+GLOBAL_LIST_INIT(acting_rank_prefixes, list("acting", "temporary", "interim", "provisional"))
 
 /proc/make_list_rank(rank)
-	for(var/prefix in acting_rank_prefixes)
+	for(var/prefix in GLOB.acting_rank_prefixes)
 		if(findtext(rank, "[prefix] ", 1, 2+length(prefix)))
 			return copytext(rank, 2+length(prefix))
 	return rank
@@ -74,6 +105,18 @@
 	anchored = TRUE
 	unacidable = TRUE//temporary until I decide whether the borg can be removed. -veyveyr
 
+/obj/structure/showcase/monkey
+	desc = "It looks almost lifelike."
+	icon = 'icons/obj/statue.dmi'
+	icon_state = "monkey"
+	name = "Statue"
+
+/obj/structure/showcase/human
+	desc = "It looks almost lifelike."
+	icon = 'icons/obj/statue.dmi'
+	icon_state = "Human_male"
+	name = "Statue"
+
 /obj/structure/showcase/sign
 	name = "WARNING: WILDERNESS"
 	icon = 'icons/obj/stationobjs.dmi'
@@ -82,7 +125,7 @@
 
 /obj/item/mouse_drag_pointer = MOUSE_ACTIVE_POINTER
 
-/obj/item/weapon/beach_ball
+/obj/item/beach_ball
 	icon = 'icons/misc/beach.dmi'
 	icon_state = "beachball"
 	name = "beach ball"
@@ -96,11 +139,11 @@
 	drop_sound = 'sound/items/drop/rubber.ogg'
 	pickup_sound = 'sound/items/pickup/rubber.ogg'
 
-/obj/item/weapon/beach_ball/afterattack(atom/target as mob|obj|turf|area, mob/user as mob)
+/obj/item/beach_ball/afterattack(atom/target as mob|obj|turf|area, mob/user as mob)
 	user.drop_item()
 	src.throw_at(target, throw_range, throw_speed, user)
 
-/obj/item/weapon/beach_ball/dodgeball
+/obj/item/beach_ball/dodgeball
 	icon = 'icons/obj/balls_vr.dmi'
 	icon_state = "dodgeball"
 	item_state = "dodgeball"

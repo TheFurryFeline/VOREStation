@@ -4,6 +4,7 @@
 	icon_state = "blublatri"
 	requires_power = TRUE
 	dynamic_lighting = TRUE
+	flags = AREA_BLOCK_INSTANT_BUILDING
 
 /area/maintenance/stellardelight
 	name = "Maintenance"
@@ -125,13 +126,7 @@
 /area/stellardelight/deck1/dorms
 	name = "Dormitory"
 	sound_env = SMALL_SOFTFLOOR
-	flags = RAD_SHIELDED| BLUE_SHIELDED |AREA_FLAG_IS_NOT_PERSISTENT
-	soundproofed = TRUE
-	limit_mob_size = FALSE
-	block_suit_sensors = TRUE
-	block_tracking = TRUE
-	forbid_events = TRUE
-	forbid_singulo = TRUE
+	flags = RAD_SHIELDED| BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_FORBID_SINGULO | AREA_SOUNDPROOF | AREA_ALLOW_LARGE_SIZE | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING | AREA_BLOCK_INSTANT_BUILDING | AREA_CRYOPLANET_SHIELDED
 
 /area/stellardelight/deck1/dorms/dorm1
 	name = "Dormitory One"
@@ -274,21 +269,16 @@
 
 /area/stellardelight/deck3/transitgateway
 	name = "Transit Gateway"
-	forbid_events = TRUE
-	forbid_singulo = TRUE
+	flags = AREA_FORBID_EVENTS | AREA_FORBID_SINGULO | AREA_BLOCK_INSTANT_BUILDING
+
 /area/stellardelight/deck3/cryo
 	name = "Cryogenic Storage"
-	forbid_events = TRUE
-	forbid_singulo = TRUE
+	flags = AREA_FORBID_EVENTS | AREA_FORBID_SINGULO | AREA_BLOCK_INSTANT_BUILDING
 
 /area/stellardelight/deck3/readingroom
 	name = "Reading Rooms"
 	sound_env = SMALL_SOFTFLOOR
-	flags = RAD_SHIELDED| BLUE_SHIELDED |AREA_FLAG_IS_NOT_PERSISTENT
-	soundproofed = TRUE
-	block_suit_sensors = TRUE
-	block_tracking = TRUE
-	forbid_events = TRUE
+	flags = RAD_SHIELDED| BLUE_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT | AREA_FORBID_EVENTS | AREA_SOUNDPROOF | AREA_BLOCK_SUIT_SENSORS | AREA_BLOCK_TRACKING | AREA_BLOCK_INSTANT_BUILDING
 
 /area/stellardelight/deck3/portdock
 	name = "Port Dock"
@@ -303,7 +293,14 @@
 
 /area/stellardelight/deck1/exterior
 	name = "Deck One Exterior"
+	flags = NONE // To allow shelter capsules to activate here specifically
 /area/stellardelight/deck2/exterior
 	name = "Deck Two Exterior"
+	flags = NONE // To allow shelter capsules to activate here specifically
 /area/stellardelight/deck3/exterior
 	name = "Deck Three Exterior"
+	flags = NONE // To allow shelter capsules to activate here specifically
+
+/area/stellardelight/deck1/entrepreneur
+	name = "\improper Shared Office"
+	icon_state = "entertainment"

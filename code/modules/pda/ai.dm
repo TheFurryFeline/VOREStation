@@ -1,17 +1,20 @@
 
 // Special AI/pAI PDAs that cannot explode.
-/obj/item/device/pda/ai
+/obj/item/pda/ai
 	icon_state = "NONE"
 	ttone = "data"
-	detonate = 0
+	detonate = FALSE
 	touch_silent = TRUE
 	programs = list(
 		new/datum/data/pda/app/main_menu,
 		new/datum/data/pda/app/notekeeper,
 		new/datum/data/pda/app/news,
-		new/datum/data/pda/app/messenger)
+		new/datum/data/pda/app/messenger,
+		new/datum/data/pda/app/game_launcher,
+		new/datum/data/pda/app/goals)
+	special_handling = TRUE
 
-/obj/item/device/pda/ai/proc/set_name_and_job(newname as text, newjob as text, newrank as null|text)
+/obj/item/pda/ai/proc/set_name_and_job(newname as text, newjob as text, newrank as null|text)
 	owner = newname
 	ownjob = newjob
 	if(newrank)
@@ -21,8 +24,8 @@
 	name = newname + " (" + ownjob + ")"
 
 //AI verb and proc for sending PDA messages.
-/obj/item/device/pda/ai/verb/cmd_pda_open_ui()
-	set category = "AI IM"
+/obj/item/pda/ai/verb/cmd_pda_open_ui()
+	set category = "Abilities.AI"
 	set name = "Use PDA"
 	set src in usr
 
@@ -30,29 +33,38 @@
 		return
 	tgui_interact(usr)
 
-/obj/item/device/pda/ai/can_use()
+/obj/item/pda/ai/can_use()
 	return 1
 
-/obj/item/device/pda/ai/attack_self(mob/user as mob)
+/obj/item/pda/ai/tgui_static_data(mob/user)
+	. = ..()
+	if(isrobot(loc))
+		var/mob/living/silicon/robot/robot_owner = loc
+		.["theme"] = robot_owner.get_ui_theme()
+
+/obj/item/pda/ai/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if ((honkamt > 0) && (prob(60)))//For clown virus.
 		honkamt--
 		playsound(src, 'sound/items/bikehorn.ogg', 30, 1)
 	return
 
 
-/obj/item/device/pda/ai/pai
+/obj/item/pda/ai/pai
 	ttone = "assist"
 	var/our_owner = null // Ref to a pAI
 
-/obj/item/device/pda/ai/pai/New(mob/living/silicon/pai/P)
-	if(istype(P))
-		our_owner = REF(P)
-	return ..()
+/obj/item/pda/ai/pai/Initialize(mapload)
+	. = ..()
+	if(ispAI(loc))
+		our_owner = REF(loc)
 
-/obj/item/device/pda/ai/pai/tgui_status(mob/living/silicon/pai/user, datum/tgui_state/state)
+/obj/item/pda/ai/pai/tgui_status(mob/living/silicon/pai/user, datum/tgui_state/state)
 	if(!istype(user) || REF(user) != our_owner) // Only allow our pAI to interface with us
 		return STATUS_CLOSE
 	return ..()
 
-/obj/item/device/pda/ai/shell
+/obj/item/pda/ai/shell
 	spam_proof = TRUE // Since empty shells get a functional PDA.

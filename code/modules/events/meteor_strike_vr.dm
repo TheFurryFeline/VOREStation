@@ -11,7 +11,7 @@
 		kill()
 
 /datum/event/meteor_strike/announce()
-	command_announcement.Announce("A meteoroid has been detected entering the atmosphere on a trajectory that will terminate near the surface facilty. Brace for impact.", "NanoTrasen Orbital Monitoring")
+	GLOB.command_announcement.Announce("A meteoroid has been detected entering the atmosphere on a trajectory that will terminate near the surface facilty. Brace for impact.", "NanoTrasen Orbital Monitoring")
 
 /datum/event/meteor_strike/start()
 	new /obj/effect/meteor_falling(strike_target)
@@ -23,14 +23,14 @@
 	icon_state = "large"
 	anchored = TRUE
 
-/obj/effect/meteor_falling/New()
-	..()
+/obj/effect/meteor_falling/Initialize(mapload)
+	. = ..()
 	SpinAnimation()
 	meteor_fall()
 
 /obj/effect/meteor_falling/proc/meteor_fall()
 	var/turf/current = get_turf(src)
-	if(istype(current, /turf/simulated/open) || istype(current, /turf/space))
+	if(isopenturf(current))
 		var/turf/below = GetBelow(src)
 		if(below.density)
 			meteor_impact()
@@ -55,14 +55,14 @@
 			impacted = P
 			break
 	if(impacted)
-		for(var/mob/living/L in mob_list)
+		for(var/mob/living/L in GLOB.mob_list)
 			if(!istype(L))
 				continue
 			var/turf/mob_turf = get_turf(L)
 			if(!mob_turf || !(mob_turf.z in impacted.expected_z_levels))
 				continue
 			if(L.client)
-				to_chat(L, "<span class='danger'>The ground lurches beneath you!</span>")
+				to_chat(L, span_danger("The ground lurches beneath you!"))
 				shake_camera(L, 6, 1)
 				if(!L.ear_deaf)
 					L << 'sound/effects/explosionfar.ogg'
@@ -74,36 +74,36 @@
 	icon = 'icons/obj/meteor.dmi'
 	icon_state = "large"
 	density = TRUE
-	climbable = TRUE
 
-/obj/structure/meteorite/New()
-	..()
+/obj/structure/meteorite/Initialize(mapload)
+	. = ..()
 	icon = turn(icon, 90)
 	switch(rand(1,100))
 		if(1 to 60)
 			for(var/i=1 to rand(12,36))
-				new /obj/item/weapon/ore/iron(src)
+				new /obj/item/ore/iron(src)
 		if(61 to 90)
 			for(var/i=1 to rand(8,24))
-				new /obj/item/weapon/ore/silver(src)
-				new /obj/item/weapon/ore/gold(src)
-				new /obj/item/weapon/ore/osmium(src)
-				new /obj/item/weapon/ore/diamond(src)
+				new /obj/item/ore/silver(src)
+				new /obj/item/ore/gold(src)
+				new /obj/item/ore/osmium(src)
+				new /obj/item/ore/diamond(src)
 		if(91 to 100)
 			new /obj/machinery/artifact(src)
+	AddElement(/datum/element/climbable)
 
 /obj/structure/meteorite/ex_act()
 	return
 
-/obj/structure/meteorite/attackby(var/obj/item/I, var/mob/M)
-	if(istype(I, /obj/item/weapon/pickaxe))
-		var/obj/item/weapon/pickaxe/P = I
-		M.visible_message("<span class='warning'>[M] starts [P.drill_verb] \the [src].</span>", "<span class='warning'>You start [P.drill_verb] \the [src].</span>")
+/obj/structure/meteorite/attackby(obj/item/I, mob/M)
+	if(istype(I, /obj/item/pickaxe))
+		var/obj/item/pickaxe/P = I
+		M.visible_message(span_warning("[M] starts [P.drill_verb] \the [src]."), span_warning("You start [P.drill_verb] \the [src]."))
 
-		if(!do_after(M, P.digspeed*3))
+		if(!do_after(M, P.digspeed*3, target = src))
 			return
 
-		M.visible_message("<span cleass='warning'>[M] breaks apart \the [src].</span>", "<span cleass='warning'>You break apart \the [src].</span>")
+		M.visible_message(span_warning("[M] breaks apart \the [src]."), span_warning("You break apart \the [src]."))
 		for(var/obj/O in src)
 			O.forceMove(get_turf(src))
 		qdel(src)

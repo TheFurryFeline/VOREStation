@@ -40,7 +40,7 @@
 
 	poison_chance = 15
 	poison_per_bite = 3
-	poison_type = "serotrotium_v"
+	poison_type = REAGENT_ID_SEROTROTIUMV
 
 //	ai_holder_type = /datum/ai_holder/simple_mob/melee/tunneler
 
@@ -93,7 +93,7 @@
 	sleep(tunnel_warning) // For the telegraphing.
 
 	// Do the dig!
-	visible_message(span("danger","\The [src] tunnels towards \the [A]!"))
+	visible_message(span_danger("\The [src] tunnels towards \the [A]!"))
 	submerge()
 
 	if(handle_tunnel(destination) == FALSE)
@@ -114,9 +114,9 @@
 		if(L == src)
 			continue
 
-		visible_message(span("danger","\The [src] erupts from underneath, and hits \the [L]!"))
+		visible_message(span_danger("\The [src] erupts from underneath, and hits \the [L]!"))
 		playsound(src, 'sound/weapons/heavysmash.ogg', 75, 1)
-		L.Weaken(3)
+		L.add_modifier(/datum/modifier/entangled, 3 SECONDS) //L.Weaken(3)
 		overshoot = FALSE
 
 	if(!overshoot) // We hit the target, or something, at destination, so we're done.
@@ -125,7 +125,7 @@
 		return TRUE
 
 	// Otherwise we need to keep going.
-	to_chat(src, span("warning", "You overshoot your target!"))
+	to_chat(src, span_warning("You overshoot your target!"))
 	playsound(src, 'sound/weapons/punchmiss.ogg', 75, 1)
 	var/dir_to_go = get_dir(starting_turf, destination)
 	for(var/i = 1 to rand(2, 4))
@@ -150,13 +150,17 @@
 	for(var/i = 1 to get_dist(src, destination))
 		if(stat)
 			return FALSE // We died or got knocked out on the way.
-		if(loc == destination)
+
+		var/last_loc = loc
+		if(last_loc == destination)
 			break // We somehow got there early.
 
 		// Update T.
 		T = get_step(src, get_dir(src, destination))
+		if(!T) //There is no turf in that direction.
+			return FALSE //Hit a non-existant turf.
 		if(T.check_density(ignore_mobs = TRUE))
-			to_chat(src, span("critical", "You hit something really solid!"))
+			to_chat(src, span_critical("You hit something really solid!"))
 			playsound(src, "punch", 75, 1)
 			Weaken(5)
 			add_modifier(/datum/modifier/tunneler_vulnerable, 10 SECONDS)
@@ -174,6 +178,8 @@
 		dig_under_floor(get_turf(src))
 		playsound(src, 'sound/effects/break_stone.ogg', 75, 1)
 		sleep(tunnel_tile_speed)
+		if(last_loc == loc)
+			return FALSE
 
 // For visuals.
 /mob/living/simple_mob/animal/giant_spider/tunneler/proc/submerge()
@@ -188,7 +194,7 @@
 	new /obj/effect/temporary_effect/tunneler_hole(get_turf(src))
 
 /mob/living/simple_mob/animal/giant_spider/tunneler/proc/dig_under_floor(turf/T)
-	new /obj/item/weapon/ore/glass(T) // This will be rather weird when on station but the alternative is too much work.
+	new /obj/item/ore/glass(T) // This will be rather weird when on station but the alternative is too much work.
 
 /obj/effect/temporary_effect/tunneler_hole
 	name = "hole"
@@ -199,9 +205,24 @@
 /datum/modifier/tunneler_vulnerable
 	name = "Vulnerable"
 	desc = "You are vulnerable to more harm than usual."
-	on_created_text = "<span class='warning'>You feel vulnerable...</span>"
-	on_expired_text = "<span class='notice'>You feel better.</span>"
+	on_created_text = span_warning("You feel vulnerable...")
+	on_expired_text = span_notice("You feel better.")
 	stacks = MODIFIER_STACK_EXTEND
 
 	incoming_damage_percent = 2
 	evasion = -100
+
+/mob/living/simple_mob/animal/giant_spider/tunneler/cave
+	name = "cave spider"
+	desc = "Sandy and brown, it makes you shudder to look at it. However, this one doesn't seem very interested in bothering you."
+	maxHealth = 25
+	health = 25
+	harm_intent_damage = 5
+	melee_damage_lower = 5
+	melee_damage_upper = 5
+	ai_holder_type = /datum/ai_holder/simple_mob/retaliate
+	meat_amount = 1 // Scrawny little things! It's no wonder they don't want to fight you!
+
+/mob/living/simple_mob/animal/giant_spider/tunneler/cave/Initialize(mapload)
+	. = ..()
+	resize(0.50)

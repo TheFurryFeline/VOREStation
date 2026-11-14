@@ -1,16 +1,16 @@
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:33
 
 
-/*
-field_generator power level display
-   The icon used for the field_generator need to have 'num_power_levels' number of icon states
-   named 'Field_Gen +p[num]' where 'num' ranges from 1 to 'num_power_levels'
-
-   The power level is displayed using overlays. The current displayed power level is stored in 'powerlevel'.
-   The overlay in use and the powerlevel variable must be kept in sync.  A powerlevel equal to 0 means that
-   no power level overlay is currently in the overlays list.
-   -Aygar
-*/
+/**
+ * field_generator power level display
+ * The icon used for the field_generator need to have 'num_power_levels' number of icon states
+ * named 'Field_Gen +p[num]' where 'num' ranges from 1 to 'num_power_levels'
+ *
+ * The power level is displayed using overlays. The current displayed power level is stored in 'powerlevel'.
+ * The overlay in use and the powerlevel variable must be kept in sync.  A powerlevel equal to 0 means that
+ * no power level overlay is currently in the overlays list.
+ * -Aygar
+ */
 
 #define field_generator_max_power 250000
 /obj/machinery/field_generator
@@ -44,11 +44,11 @@ field_generator power level display
 	. = ..()
 	switch(state)
 		if(0)
-			. += "<span class='warning'>It is not secured in place!</span>"
+			. += span_warning("It is not secured in place!")
 		if(1)
-			. += "<span class='warning'>It has been bolted down securely, but not welded into place.</span>"
+			. += span_warning("It has been bolted down securely, but not welded into place.")
 		if(2)
-			. += "<span class='notice'>It has been bolted down securely and welded down into place.</span>"
+			. += span_notice("It has been bolted down securely and welded down into place.")
 
 /obj/machinery/field_generator/update_icon()
 	cut_overlays()
@@ -68,11 +68,12 @@ field_generator power level display
 	return
 
 
-/obj/machinery/field_generator/New()
-	..()
+/obj/machinery/field_generator/Initialize(mapload)
+	. = ..()
 	fields = list()
 	connected_gens = list()
-	return
+	AddElement(/datum/element/climbable)
+	AddElement(/datum/element/empprotection, EMP_PROTECT_SELF)
 
 /obj/machinery/field_generator/process()
 	if(Varedit_start == 1)
@@ -104,7 +105,7 @@ field_generator power level display
 					"You hear heavy droning")
 				turn_on()
 				log_game("FIELDGEN([x],[y],[z]) Activated by [key_name(user)]")
-				investigate_log("<font color='green'>activated</font> by [user.key].","singulo")
+				investigate_log(span_green("activated") + " by [user.key].","singulo")
 
 				src.add_fingerprint(user)
 	else
@@ -136,7 +137,7 @@ field_generator power level display
 				to_chat(user, span_red("The [src.name] needs to be unwelded from the floor."))
 				return
 	else if(W.has_tool_quality(TOOL_WELDER))
-		var/obj/item/weapon/weldingtool/WT = W.get_welder()
+		var/obj/item/weldingtool/WT = W.get_welder()
 		switch(state)
 			if(0)
 				to_chat(user, span_red("The [src.name] needs to be wrenched to the floor."))
@@ -147,7 +148,7 @@ field_generator power level display
 					user.visible_message("[user.name] starts to weld the [src.name] to the floor.", \
 						"You start to weld the [src] to the floor.", \
 						"You hear welding")
-					if (do_after(user,20 * WT.toolspeed))
+					if (do_after(user, 2 SECONDS * WT.toolspeed, target = src))
 						if(!src || !WT.isOn()) return
 						state = 2
 						to_chat(user, "You weld the field generator to the floor.")
@@ -159,7 +160,7 @@ field_generator power level display
 					user.visible_message("[user.name] starts to cut the [src.name] free from the floor.", \
 						"You start to cut the [src] free from the floor.", \
 						"You hear welding")
-					if (do_after(user,20 * WT.toolspeed))
+					if (do_after(user, 2 SECONDS * WT.toolspeed, target = src))
 						if(!src || !WT.isOn()) return
 						state = 1
 						to_chat(user, "You cut the [src] free from the floor.")
@@ -169,11 +170,7 @@ field_generator power level display
 		..()
 		return
 
-
-/obj/machinery/field_generator/emp_act()
-	return 0
-
-/obj/machinery/field_generator/bullet_act(var/obj/item/projectile/Proj)
+/obj/machinery/field_generator/bullet_act(obj/item/projectile/Proj)
 	if(istype(Proj, /obj/item/projectile/beam))
 		power += Proj.damage * EMITTER_DAMAGE_POWER_TRANSFER
 		update_icon()
@@ -230,12 +227,12 @@ field_generator power level display
 			M.show_message(span_red("\The [src] shuts down!"))
 		turn_off()
 		log_game("FIELDGEN([x],[y],[z]) Lost power and was ON.")
-		investigate_log("ran out of power and <font color='red'>deactivated</font>","singulo")
+		investigate_log("ran out of power and " + span_red("deactivated"),"singulo")
 		src.power = 0
 		return 0
 
 //Tries to draw the needed power from our own power reserve, or connected generators if we can. Returns the amount of power we were able to get.
-/obj/machinery/field_generator/proc/draw_power(var/draw = 0, var/list/flood_list = list())
+/obj/machinery/field_generator/proc/draw_power(draw = 0, list/flood_list = list())
 	flood_list += src
 
 	if(src.power >= draw)//We have enough power
@@ -270,7 +267,7 @@ field_generator power level display
 	src.active = 2
 
 
-/obj/machinery/field_generator/proc/setup_field(var/NSEW)
+/obj/machinery/field_generator/proc/setup_field(NSEW)
 	var/turf/T = src.loc
 	var/obj/machinery/field_generator/G
 	var/steps = 0
@@ -348,12 +345,21 @@ field_generator power level display
 	//I want to avoid using global variables.
 	spawn(1)
 		var/temp = 1 //stops spam
-		for(var/obj/singularity/O in machines)
+		for(var/obj/singularity/O in GLOB.machines)
 			if(O.last_warning && temp)
 				if((world.time - O.last_warning) > 50) //to stop message-spam
 					temp = 0
 					admin_chat_message(message = "SINGUL/TESLOOSE!", color = "#FF2222") //VOREStation Add
-					message_admins("A singulo exists and a containment field has failed.",1)
-					investigate_log("has <font color='red'>failed</font> whilst a singulo exists.","singulo")
+					message_admins("A singulo exists and a containment field has failed.")
+					investigate_log("has " + span_red("failed") + " whilst a singulo exists.","singulo")
 					log_game("FIELDGEN([x],[y],[z]) Containment failed while singulo/tesla exists.")
 			O.last_warning = world.time
+
+/obj/machinery/field_generator/pre_mapped
+	state = 2 //Start welded.
+	anchored = TRUE
+
+
+/obj/machinery/field_generator/pre_mapped/Initialize(mapload)
+	. = ..()
+	update_icon()

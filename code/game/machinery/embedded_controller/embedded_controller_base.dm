@@ -1,5 +1,6 @@
 /obj/machinery/embedded_controller
 	name = "Embedded Controller"
+	layer = ABOVE_WINDOW_LAYER
 	anchored = TRUE
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 10
@@ -7,7 +8,7 @@
 	var/list/valid_actions = list()
 	var/on = 1
 
-/obj/machinery/embedded_controller/Initialize()
+/obj/machinery/embedded_controller/Initialize(mapload)
 	if(ispath(program))
 		program = new program(src)
 	return ..()
@@ -16,6 +17,11 @@
 	if(istype(program))
 		qdel(program) // the program will clear the ref in its Destroy
 	return ..()
+
+/obj/machinery/embedded_controller/examine(mob/user, infix, suffix)
+	. = ..()
+	if(in_range(src, user))
+		. += "It has an ID tag of \"[program?.id_tag]\""
 
 /obj/machinery/embedded_controller/proc/post_signal(datum/signal/signal, comm_line)
 	return 0
@@ -28,16 +34,17 @@
 
 /obj/machinery/embedded_controller/Topic()
 	. = ..()
-	stack_trace("WARNING: Embedded controller [src] ([type]) had Topic() called unexpectedly. Please report this.")
+	// stack_trace("WARNING: Embedded controller [src] ([type]) had Topic() called unexpectedly. Please report this.") // statpanel means that topic can always be called for clicking
 
-/obj/machinery/embedded_controller/tgui_act(action, params)
+/obj/machinery/embedded_controller/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
 	if(LAZYLEN(valid_actions))
 		if(action in valid_actions)
 			program.receive_user_command(action)
-	if(usr)
-		add_fingerprint(usr)
+			return TRUE
+	if(ui.user)
+		add_fingerprint(ui.user)
 
 /obj/machinery/embedded_controller/process()
 	if(program)
@@ -69,22 +76,23 @@
 	power_channel = ENVIRON
 	density = FALSE
 	unacidable = TRUE
+	flags = WALL_ITEM
 
 	var/id_tag
 	//var/radio_power_use = 50 //power used to xmit signals
 
-	var/frequency = 1379
+	var/frequency = AIRLOCK_FREQ
 	var/radio_filter = null
 	var/datum/radio_frequency/radio_connection
 
-/obj/machinery/embedded_controller/radio/Initialize()
+/obj/machinery/embedded_controller/radio/Initialize(mapload)
 	set_frequency(frequency) // Set it before parent instantiates program
 	. = ..()
 
 /obj/machinery/embedded_controller/radio/Destroy()
-	if(radio_controller)
-		radio_controller.remove_object(src,frequency)
-	..()
+	if(SSradio)
+		SSradio.remove_object(src,frequency)
+	. = ..()
 
 /obj/machinery/embedded_controller/radio/update_icon()
 	if(on && program)
@@ -95,7 +103,7 @@
 	else
 		icon_state = "airlock_control_off"
 
-/obj/machinery/embedded_controller/radio/post_signal(datum/signal/signal, var/radio_filter = null)
+/obj/machinery/embedded_controller/radio/post_signal(datum/signal/signal, radio_filter = null)
 	signal.transmission_method = TRANSMISSION_RADIO
 	if(radio_connection)
 		//use_power(radio_power_use)	//neat idea, but causes way too much lag.
@@ -104,6 +112,6 @@
 		qdel(signal)
 
 /obj/machinery/embedded_controller/radio/proc/set_frequency(new_frequency)
-	radio_controller.remove_object(src, frequency)
+	SSradio.remove_object(src, frequency)
 	frequency = new_frequency
-	radio_connection = radio_controller.add_object(src, frequency, radio_filter)
+	radio_connection = SSradio.add_object(src, frequency, radio_filter)

@@ -3,18 +3,20 @@
 // however this makes it a lot easier to test, and it is natively supported by BYOND.
 SUBSYSTEM_DEF(sqlite)
 	name = "SQLite"
-	init_order = INIT_ORDER_SQLITE
+	dependencies = list(
+		/datum/controller/subsystem/dbcore
+	)
 	flags = SS_NO_FIRE
 	var/database/sqlite_db = null
 
-/datum/controller/subsystem/sqlite/Initialize(timeofday)
+/datum/controller/subsystem/sqlite/Initialize()
 	connect()
 	if(sqlite_db)
 		init_schema(sqlite_db)
-	return ..()
+	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/sqlite/proc/connect()
-	if(!config.sqlite_enabled)
+	if(!CONFIG_GET(flag/sqlite_enabled))
 		return
 
 	if(!sqlite_db)
@@ -22,10 +24,10 @@ SUBSYSTEM_DEF(sqlite)
 
 
 	if(!sqlite_db)
-		to_world_log("Failed to load or create a SQLite database.")
-		log_debug("ERROR: SQLite database is active in config but failed to load.")
+		log_sql("Failed to load or create a SQLite database.")
+		log_sql("ERROR: SQLite database is active in config but failed to load.")
 	else
-		to_world_log("Sqlite database connected.")
+		log_sql("Sqlite database connected.")
 
 // Makes the tables, if they do not already exist in the sqlite file.
 /datum/controller/subsystem/sqlite/proc/init_schema(database/sqlite_object)
@@ -33,14 +35,14 @@ SUBSYSTEM_DEF(sqlite)
 	// Note that this is for direct feedback from players using the in-game feedback system and NOT for stat tracking.
 	// Player ckeys are not stored in this table as a unique key due to a config option to hash the keys to encourage more honest feedback.
 	/*
-	 * id			- Primary unique key to ID a specific piece of feedback.
-	 					NOT used to id people submitting feedback.
-	 * author		- The person who submitted it. Will be the ckey, or a hash of the ckey,
-	 					if both the config supports it, and the user wants it.
-	 * topic		- A specific category to organize feedback under. Options are defined in the config file.
-	 * content		- What the author decided to write to the staff. Limited to MAX_FEEDBACK_LENGTH.
-	 * datetime		- When the author submitted their feedback, acts as a timestamp.
-	 */
+		* id			- Primary unique key to ID a specific piece of feedback.
+							NOT used to id people submitting feedback.
+		* author		- The person who submitted it. Will be the ckey, or a hash of the ckey,
+							if both the config supports it, and the user wants it.
+		* topic		- A specific category to organize feedback under. Options are defined in the config file.
+		* content		- What the author decided to write to the staff. Limited to MAX_FEEDBACK_LENGTH.
+		* datetime		- When the author submitted their feedback, acts as a timestamp.
+	*/
 	var/database/query/init_schema = new(
 		{"
 		CREATE TABLE IF NOT EXISTS [SQLITE_TABLE_FEEDBACK]
@@ -62,9 +64,9 @@ SUBSYSTEM_DEF(sqlite)
 // General error checking for SQLite.
 // Returns true if something went wrong. Also writes a log.
 // The desc parameter should be unique for each call, to make it easier to track down where the error occured.
-/datum/controller/subsystem/sqlite/proc/sqlite_check_for_errors(var/database/query/query_used, var/desc)
+/datum/controller/subsystem/sqlite/proc/sqlite_check_for_errors(database/query/query_used, desc)
 	if(query_used && query_used.ErrorMsg())
-		log_debug("SQLite Error: [desc] : [query_used.ErrorMsg()]")
+		log_sql("SQLite Error: [desc] : [query_used.ErrorMsg()]")
 		return TRUE
 	return FALSE
 
@@ -104,17 +106,17 @@ SUBSYSTEM_DEF(sqlite)
 	return !sqlite_check_for_errors(query, "Insert Feedback")
 
 /datum/controller/subsystem/sqlite/proc/can_submit_feedback(client/C)
-	if(!config.sqlite_enabled)
+	if(!CONFIG_GET(flag/sqlite_enabled))
 		return FALSE
-	if(config.sqlite_feedback_min_age && !is_old_enough(C))
+	if(CONFIG_GET(number/sqlite_feedback_min_age) && !is_old_enough(C))
 		return FALSE
-	if(config.sqlite_feedback_cooldown > 0 && get_feedback_cooldown(C.key, config.sqlite_feedback_cooldown, sqlite_db) > 0)
+	if(CONFIG_GET(number/sqlite_feedback_cooldown) > 0 && get_feedback_cooldown(C.key, CONFIG_GET(number/sqlite_feedback_cooldown), sqlite_db) > 0)
 		return FALSE
 	return TRUE
 
 // Returns TRUE if the player is 'old' enough, according to the config.
 /datum/controller/subsystem/sqlite/proc/is_old_enough(client/C)
-	if(get_player_age(C.key) < config.sqlite_feedback_min_age)
+	if(get_player_age(C.key) < CONFIG_GET(number/sqlite_feedback_min_age))
 		return FALSE
 	return TRUE
 
@@ -169,7 +171,7 @@ SUBSYSTEM_DEF(sqlite)
 // This stops mods/admins/etc from guessing the author by shoving names in an MD5 hasher until they pick the right one.
 // Don't use this for things needing actual security.
 /datum/controller/subsystem/sqlite/proc/get_feedback_pepper()
-	var/pepper_file = file2list("config/sqlite_feedback_pepper.txt")
+	var/pepper_file = world.file2list("config/sqlite_feedback_pepper.txt")
 	var/pepper = null
 	for(var/line in pepper_file)
 		if(!line)

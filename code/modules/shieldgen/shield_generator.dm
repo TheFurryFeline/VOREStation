@@ -6,9 +6,8 @@
 	desc = "A heavy-duty shield generator and capacitor, capable of generating energy shields at large distances."
 	icon = 'icons/obj/machines/shielding_vr.dmi'
 	icon_state = "generator0"
-	circuit = /obj/item/weapon/circuitboard/shield_generator
+	circuit = /obj/item/circuitboard/shield_generator
 	density = TRUE
-	var/datum/wires/shield_generator/wires = null
 	var/list/field_segments = list()    // List of all shield segments owned by this generator.
 	var/list/damaged_segments = list()  // List of shield segments that have failed and are currently regenerating.
 	var/shield_modes = 0                // Enabled shield mode flags
@@ -50,13 +49,9 @@
 		set_light(0)
 
 
-/obj/machinery/power/shield_generator/Initialize()
+/obj/machinery/power/shield_generator/Initialize(mapload)
 	. = ..()
-	if(!wires)
-		wires = new(src)
-	// TODO - Remove this bit once machines are converted to Initialize
-	if(ispath(circuit))
-		circuit = new circuit(src)
+	set_wires(new /datum/wires/shield_generator(src))
 	default_apply_parts()
 	connect_to_network()
 
@@ -77,12 +72,12 @@
 /obj/machinery/power/shield_generator/RefreshParts()
 	max_energy = 0
 	full_shield_strength = 0
-	for(var/obj/item/weapon/smes_coil/S in component_parts)
+	for(var/obj/item/smes_coil/S in component_parts)
 		full_shield_strength += (S.ChargeCapacity * 5)
 	max_energy = full_shield_strength * 20
 	current_energy = between(0, current_energy, max_energy)
 
-	mitigation_max = MAX_MITIGATION_BASE + MAX_MITIGATION_RESEARCH * total_component_rating_of_type(/obj/item/weapon/stock_parts/capacitor)
+	mitigation_max = MAX_MITIGATION_BASE + MAX_MITIGATION_RESEARCH * total_component_rating_of_type(/obj/item/stock_parts/capacitor)
 	mitigation_em = between(0, mitigation_em, mitigation_max)
 	mitigation_physical = between(0, mitigation_physical, mitigation_max)
 	mitigation_heat = between(0, mitigation_heat, mitigation_max)
@@ -128,7 +123,7 @@
 
 		for(var/obj/effect/shield/SE in field_segments)
 			var/adjacent_fields = 0
-			for(var/direction in cardinal)
+			for(var/direction in GLOB.cardinal)
 				var/turf/T = get_step(SE, direction)
 				var/obj/effect/shield/S = locate() in T
 				if(S)
@@ -184,7 +179,7 @@
 		//Corners
 		for(var/obj/effect/shield/S in corners)
 			var/adjacent = corners[S]
-			if(adjacent in cornerdirs)
+			if(adjacent in GLOB.cornerdirs)
 				do_corner_shield(S, adjacent) //Dir is adjacent fields direction
 			else
 				// Okay first a quick hack. If only one nonshield...
@@ -206,7 +201,7 @@
 
 					else
 						var/list/touchnonshield = list()
-						for(var/direction in cornerdirs)
+						for(var/direction in GLOB.cornerdirs)
 							var/turf/T = get_step(S, direction)
 							if(!isspace(T))
 								touchnonshield += T
@@ -220,7 +215,7 @@
 
 		for(var/obj/effect/shield/S in startends)
 			var/adjacent = startends[S]
-			log_debug("Processing startend [S] at [S?.x],[S?.y] adjacent=[adjacent]")
+			// to_chat(world, "Processing startend [S] at [S?.x],[S?.y] adjacent=[adjacent]")
 			var/turf/T = get_step(S, adjacent)
 			var/obj/effect/shield/SO = locate() in T
 			S.set_dir(SO.dir)
@@ -251,7 +246,7 @@
 	//Phew, update our own icon
 	update_icon()
 
-/obj/machinery/power/shield_generator/proc/do_corner_shield(var/obj/effect/shield/S, var/new_dir, var/force_outside)
+/obj/machinery/power/shield_generator/proc/do_corner_shield(obj/effect/shield/S, new_dir, force_outside)
 	S.enabled_icon_state = "blank"
 	S.set_dir(new_dir)
 	var/inside = force_outside ? FALSE : isspace(get_step(S, new_dir))
@@ -362,12 +357,12 @@
 		return TRUE
 	if(default_deconstruction_screwdriver(user, O))
 		return
-	if(O?.has_tool_quality(TOOL_CROWBAR) || O?.has_tool_quality(TOOL_WRENCH) || istype(O, /obj/item/weapon/storage/part_replacer))
+	if(O?.has_tool_quality(TOOL_CROWBAR) || O?.has_tool_quality(TOOL_WRENCH) || istype(O, /obj/item/storage/part_replacer))
 		if(offline_for)
-			to_chat(user, "<span class='warning'>Wait until \the [src] cools down from emergency shutdown first!</span>")
+			to_chat(user, span_warning("Wait until \the [src] cools down from emergency shutdown first!"))
 			return
 		if(running)
-			to_chat(user, "<span class='notice'>Turn off \the [src] first!</span>")
+			to_chat(user, span_notice("Turn off \the [src] first!"))
 			return
 	if(default_deconstruction_crowbar(user, O))
 		return
@@ -386,7 +381,7 @@
 		for(var/obj/effect/shield/S in field_segments)
 			S.fail(1)
 
-/obj/machinery/power/shield_generator/proc/set_idle(var/new_state)
+/obj/machinery/power/shield_generator/proc/set_idle(new_state)
 	if(new_state)
 		if(running == SHIELD_IDLE)
 			return
@@ -458,8 +453,8 @@
 		if("begin_shutdown")
 			if(running < SHIELD_RUNNING) // Discharging or off
 				return
-			var/alert = tgui_alert(usr, "Are you sure you wish to do this? It will drain the power inside the internal storage rapidly.", "Are you sure?", list("Yes", "No"))
-			if(tgui_status(usr, state) != STATUS_INTERACTIVE)
+			var/alert = tgui_alert(ui.user, "Are you sure you wish to do this? It will drain the power inside the internal storage rapidly.", "Are you sure?", list("Yes", "No"))
+			if(tgui_status(ui.user, state) != STATUS_INTERACTIVE)
 				return
 			if(running < SHIELD_RUNNING)
 				return
@@ -485,7 +480,7 @@
 			if(!running)
 				return TRUE
 
-			var/choice = tgui_alert(usr, "Are you sure that you want to initiate an emergency shield shutdown? This will instantly drop the shield, and may result in unstable release of stored electromagnetic energy. Proceed at your own risk.", "Confirmation", list("No", "Yes"))
+			var/choice = tgui_alert(ui.user, "Are you sure that you want to initiate an emergency shield shutdown? This will instantly drop the shield, and may result in unstable release of stored electromagnetic energy. Proceed at your own risk.", "Confirmation", list("No", "Yes"))
 			if((choice != "Yes") || !running)
 				return TRUE
 
@@ -493,7 +488,7 @@
 			offline_for = round(current_energy / (SHIELD_SHUTDOWN_DISPERSION_RATE / 1.5))
 			var/old_energy = current_energy
 			shutdown_field()
-			log_and_message_admins("has triggered \the [src]'s emergency shutdown!", usr)
+			log_and_message_admins("has triggered \the [src]'s emergency shutdown!", ui.user)
 			spawn()
 				empulse(src, old_energy / 60000000, old_energy / 32000000, 1) // If shields are charged at 450 MJ, the EMP will be 7.5, 14.0625. 90 MJ, 1.5, 2.8125
 			old_energy = 0
@@ -505,14 +500,14 @@
 
 	switch(action)
 		if("set_range")
-			var/new_range = tgui_input_number(usr, "Enter new field range (1-[world.maxx]). Leave blank to cancel.", "Field Radius Control", field_radius, world.maxx, 1)
+			var/new_range = tgui_input_number(ui.user, "Enter new field range (1-[world.maxx]). Leave blank to cancel.", "Field Radius Control", field_radius, world.maxx, 1)
 			if(!new_range)
 				return TRUE
 			target_radius = between(1, new_range, world.maxx)
 			return TRUE
 
 		if("set_input_cap")
-			var/new_cap = round(tgui_input_number(usr, "Enter new input cap (in kW). Enter 0 or nothing to disable input cap.", "Generator Power Control", round(input_cap / 1000)))
+			var/new_cap = round(tgui_input_number(ui.user, "Enter new input cap (in kW). Enter 0 or nothing to disable input cap.", "Generator Power Control", round(input_cap / 1000)))
 			if(!new_cap)
 				input_cap = 0
 				return
@@ -542,7 +537,7 @@
 
 
 // Takes specific amount of damage
-/obj/machinery/power/shield_generator/proc/deal_shield_damage(var/damage, var/shield_damtype)
+/obj/machinery/power/shield_generator/proc/deal_shield_damage(damage, shield_damtype)
 	var/energy_to_use = damage * ENERGY_PER_HP
 	if(check_flag(MODEFLAG_MODULATE))
 		mitigation_em -= MITIGATION_HIT_LOSS
@@ -581,11 +576,11 @@
 
 
 // Checks whether specific flags are enabled
-/obj/machinery/power/shield_generator/proc/check_flag(var/flag)
+/obj/machinery/power/shield_generator/proc/check_flag(flag)
 	return (shield_modes & flag)
 
 
-/obj/machinery/power/shield_generator/proc/toggle_flag(var/flag)
+/obj/machinery/power/shield_generator/proc/toggle_flag(flag)
 	shield_modes ^= flag
 	update_upkeep_multiplier()
 	for(var/obj/effect/shield/S in field_segments)
@@ -654,7 +649,7 @@
 		var/area/TA = null // Variable for area checking. Defining it here so memory does not have to be allocated repeatedly.
 		for(var/turf/T in trange(field_radius, gen_turf))
 			// Don't expand to space or on shuttle areas.
-			if(istype(T, /turf/space) || istype(T, /turf/simulated/open))
+			if(isopenturf(T))
 				continue
 
 			// Find adjacent space/shuttle tiles and cover them. Shuttles won't be blocked if shield diffuser is mapped in and turned on.
@@ -695,23 +690,23 @@
 
 
 // Starts fully charged
-/obj/machinery/power/shield_generator/charged/Initialize()
+/obj/machinery/power/shield_generator/charged/Initialize(mapload)
 	. = ..()
 	current_energy = max_energy
 
 // Starts with the best SMES coil and capacitor (and fully charged)
-/obj/machinery/power/shield_generator/upgraded/Initialize()
+/obj/machinery/power/shield_generator/upgraded/Initialize(mapload)
 	. = ..()
-	for(var/obj/item/weapon/smes_coil/sc in component_parts)
+	for(var/obj/item/smes_coil/sc in component_parts)
 		component_parts -= sc
 		qdel(sc)
 
-	for(var/obj/item/weapon/stock_parts/capacitor/cap in component_parts)
+	for(var/obj/item/stock_parts/capacitor/cap in component_parts)
 		component_parts -= cap
 		qdel(cap)
 
-	component_parts += new /obj/item/weapon/stock_parts/capacitor/hyper(src)
-	component_parts += new /obj/item/weapon/smes_coil/super_capacity(src)
+	component_parts += new /obj/item/stock_parts/capacitor/hyper(src)
+	component_parts += new /obj/item/smes_coil/super_capacity(src)
 	RefreshParts()
 	current_energy = max_energy
 

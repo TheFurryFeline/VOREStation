@@ -1,5 +1,7 @@
-/decl/hierarchy/outfit/military
+/datum/decl/hierarchy/outfit/military
 	name = "Military Uniform"
-	hierarchy_type = /decl/hierarchy/outfit/military
+	hierarchy_type = /datum/decl/hierarchy/outfit/military
 
-	l_ear = /obj/item/device/radio/headset
+	headset = /obj/item/radio/headset
+	headset_alt = /obj/item/radio/headset
+	headset_earbud = /obj/item/radio/headset

@@ -71,50 +71,13 @@
 			chain.Draw()
 	return
 
-/obj/item/projectile/energy/hook/on_hit(var/atom/target, var/blocked = 0, var/def_zone = null)
+/obj/item/projectile/energy/hook/on_hit(atom/target, blocked = 0, def_zone = null)
 	if(..())
 		perform_intent_unique(target)
 
 
-/obj/item/projectile/energy/hook/on_impact(var/atom/A)
+/obj/item/projectile/energy/hook/on_impact(atom/A)
 	perform_intent_unique(get_turf(A))
-
-/obj/item/projectile/energy/hook/proc/ranged_disarm(var/mob/living/carbon/human/H)
-	if(istype(H))
-		var/list/holding = list(H.get_active_hand() = 60, H.get_inactive_hand() = 40)
-
-		for(var/obj/item/weapon/gun/W in holding)	// Guns are complex devices, both of a mechanical and electronic nature. A weird gravity ball or other type of object trying to pull or grab it is likely not safe.
-			if(W && prob(holding[W]))
-				var/list/turfs = list()
-				for(var/turf/T in view())
-					turfs += T
-				if(turfs.len)
-					var/turf/target = pick(turfs)
-					visible_message("<span class='danger'>[H]'s [W] goes off due to \the [src]!</span>")
-					return W.afterattack(target,H)
-
-		if(!(H.species.flags & NO_SLIP) && prob(50))
-			var/armor_check = H.run_armor_check(def_zone, "melee")
-			H.apply_effect(3, WEAKEN, armor_check)
-			playsound(src, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-			if(armor_check < 60)
-				visible_message("<span class='danger'>\The [src] has pushed [H]!</span>")
-			else
-				visible_message("<span class='warning'>\The [src] attempted to push [H]!</span>")
-			return
-
-		else
-			if(H.break_all_grabs(firer))
-				playsound(src, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-				return
-
-			for(var/obj/item/I in holding)
-				if(I)
-					H.drop_from_inventory(I)
-					visible_message("<span class='danger'>\The [src] has disarmed [H]!</span>")
-					playsound(src, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-					return
-
 
 /obj/item/projectile/energy/hook/proc/perform_intent_unique(atom/target)
 	playsound(src, impact_sound, 40, 1)
@@ -133,7 +96,7 @@
 			else if(firer)
 				var/obj/T
 
-				if(original in target.contents && istype(original, /obj))
+				if((original in target.contents) && istype(original, /obj))
 					T = original
 
 				var/list/possible_targets = list()
@@ -151,7 +114,7 @@
 
 				spawn(2)
 					playsound(target, crack_sound, 40, 1)
-				visible_message("<span class='notice'>\The [T] is snatched by \the [src]!</span>")
+				visible_message(span_notice("\The [T] is snatched by \the [src]!"))
 				T.throw_at(get_turf(firer), 7, 1, src)
 				success = TRUE
 	else if(isliving(target) && !done_mob_unique)
@@ -163,20 +126,20 @@
 					if(message == "slaps")
 						spawn(1)
 							playsound(src, 'sound/effects/snap.ogg', 50, 1)
-					visible_message("<span class='notice'>\The [src] [message] [target].</span>")
+					visible_message(span_notice("\The [src] [message] [target]."))
 					done_mob_unique = TRUE
 					success = TRUE
 				if(I_HURT)
-					if(prob(10) && istype(L, /mob/living/carbon/human))
-						to_chat(L, "<span class='warning'>\The [src] rips at your hands!</span>")
-						ranged_disarm(L)
+					if(prob(10) && ishuman(L))
+						to_chat(L, span_warning("\The [src] rips at your hands!"))
+						ranged_disarm(L, null)
 					success = TRUE
 					done_mob_unique = TRUE
 				if(I_DISARM)
-					if(prob(disarm_chance) && istype(L, /mob/living/carbon/human))
-						ranged_disarm(L)
+					if(prob(disarm_chance) && ishuman(L))
+						ranged_disarm(L, null)
 					else
-						L.visible_message("<span class='danger'>\The [src] sends \the [L] stumbling backwards.</span>")
+						L.visible_message(span_danger("\The [src] sends \the [L] stumbling backwards."))
 						L.throw_at(get_turf(get_step(L,get_dir(firer,L))), 1, 1, src)
 					done_mob_unique = TRUE
 					success = TRUE
@@ -184,7 +147,7 @@
 					var/turf/STurf = get_turf(L)
 					spawn(2)
 						playsound(STurf, crack_sound, 60, 1)
-					L.visible_message("<span class='critical'>\The [src] rips [L] towards \the [firer]!</span>")
+					L.visible_message(span_critical("\The [src] rips [L] towards \the [firer]!"))
 					L.throw_at(get_turf(get_step(firer,get_dir(firer,L))), 6, 1, src)
 					done_mob_unique = TRUE
 					success = TRUE

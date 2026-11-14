@@ -11,7 +11,7 @@
 	icon_living = "scel_orange"
 	icon_state = "scel_orange"
 	icon_rest = "scel_orange-rest"
-	faction = "scel"
+	faction = FACTION_SCEL
 	old_x = -48
 	old_y = 0
 	vis_height = 92
@@ -56,8 +56,10 @@
 		"scel_green"
 	)
 
-/mob/living/simple_mob/vore/scel/New()
-	..()
+	allow_mind_transfer = TRUE
+
+/mob/living/simple_mob/vore/scel/Initialize(mapload)
+	. = ..()
 	if(random_skin)
 		icon_living = pick(skins)
 		icon_rest = "[icon_living]-rest"
@@ -75,24 +77,25 @@
 	vore_icons = SA_ICON_LIVING | SA_ICON_REST
 	vore_capacity = 1
 	swallowTime = 50
-	vore_ignores_undigestable = TRUE
+	vore_ignores_undigestable = FALSE
 	vore_default_mode = DM_SELECT
 	vore_pounce_maxhealth = 125
 	vore_bump_emote = "tries to devour"
+	can_be_drop_prey = FALSE
 
 /mob/living/simple_mob/vore/scel/Login()
 	. = ..()
 	if(!riding_datum)
 		riding_datum = new /datum/riding/simple_mob(src)
-	verbs |= /mob/living/simple_mob/proc/animal_mount
-	verbs |= /mob/living/proc/toggle_rider_reins
-	verbs |= /mob/living/proc/glow_toggle
-	verbs |= /mob/living/proc/glow_color
-	verbs |= /mob/living/proc/long_vore
-	verbs |= /mob/living/proc/target_lunge
+	add_verb(src, /mob/living/simple_mob/proc/animal_mount)
+	add_verb(src, /mob/living/proc/toggle_rider_reins)
+	add_verb(src, /mob/living/proc/glow_toggle)
+	add_verb(src, /mob/living/proc/glow_color)
+	add_verb(src, /mob/living/proc/long_vore)
+	add_verb(src, /mob/living/proc/target_lunge)
 	movement_cooldown = -1
 
-/mob/living/simple_mob/vore/scel/init_vore()
+/mob/living/simple_mob/vore/scel/load_default_bellies()
 	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stomach"
@@ -100,7 +103,7 @@
 	B.vore_sound = "Tauric Swallow"
 	B.release_sound = "Pred Escape"
 	B.mode_flags = DM_FLAG_THICKBELLY
-	B.belly_fullscreen = "a_anim_belly"
+	B.belly_fullscreen = "VBOanim_belly1"
 	B.fancy_vore = 1
 	B.selective_preference = DM_SELECT
 	B.vore_verb = "devour"
@@ -160,8 +163,8 @@
 		return FALSE
 
 	set_AI_busy(TRUE)
-	visible_message(span("warning","\The [src] rears back, ready to lunge!"))
-	to_chat(L, span("danger","\The [src] focuses on you!"))
+	visible_message(span_warning("\The [src] rears back, ready to lunge!"))
+	to_chat(L, span_danger("\The [src] focuses on you!"))
 	// Telegraph, since getting stunned suddenly feels bad.
 	do_windup_animation(A, leap_warmup)
 	sleep(leap_warmup) // For the telegraphing.
@@ -172,7 +175,7 @@
 
 	// Do the actual leap.
 	status_flags |= LEAPING // Lets us pass over everything.
-	visible_message(span("critical","\The [src] leaps at \the [L]!"))
+	visible_message(span_critical("\The [src] leaps at \the [L]!"))
 	throw_at(get_step(L, get_turf(src)), special_attack_max_range+1, 1, src)
 	playsound(src, leap_sound, 75, 1)
 
@@ -187,7 +190,7 @@
 
 /mob/living/simple_mob/vore/scel/proc/tongue(atom/A)
 	var/obj/item/projectile/P = new /obj/item/projectile/beam/appendage(get_turf(src))
-	src.visible_message("<span class='danger'>\The [src] launches a black appendage at \the [A]!</span>")
+	src.visible_message(span_danger("\The [src] launches a black appendage at \the [A]!"))
 	playsound(src, "sound/effects/slime_squish.ogg", 50, 1)
 	P.launch_projectile(A, BP_TORSO, src)
 
@@ -242,20 +245,3 @@
 	icon_state = "scel_red"
 	icon_rest = "scel_red-rest"
 	random_skin = 0
-
-/mob/living/simple_mob/vore/scel/handle_light()
-	if(glow_override)
-		return FALSE
-
-	if(instability >= TECHNOMANCER_INSTABILITY_MIN_GLOW)
-		var/distance = round(sqrt(instability / 2))
-		if(distance)
-			set_light(distance, distance * 4, l_color = "#660066")
-			return TRUE
-
-	else if(glow_toggle)
-		set_light(glow_range, glow_intensity, glow_color)
-
-	else
-		set_light(0)
-		return FALSE

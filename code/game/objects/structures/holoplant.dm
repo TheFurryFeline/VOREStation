@@ -9,24 +9,17 @@
 	active_power_usage = 5
 	var/interference = FALSE
 	var/icon/plant = null
-	var/global/list/possible_plants = list(
-		"plant-1",
-		"plant-10",
-		"plant-09",
-		"plant-15",
-		"plant-13"
-	)
 
-/obj/machinery/holoplant/Initialize()
+/obj/machinery/holoplant/Initialize(mapload)
 	. = ..()
 	activate()
 
-/obj/machinery/holoplant/attack_hand(var/mob/living/user)
+/obj/machinery/holoplant/attack_hand(mob/living/user)
 	if(!istype(user) || interference)
 		return
 
 	if(!anchored)
-		to_chat(user,"<span class='warning'>\The [src] must be anchored before activation!</span>")
+		to_chat(user,span_warning("\The [src] must be anchored before activation!"))
 		return
 
 	if(!plant)
@@ -34,7 +27,7 @@
 	else
 		deactivate()
 
-/obj/machinery/holoplant/attackby(var/obj/item/O as obj, var/mob/user as mob)
+/obj/machinery/holoplant/attackby(obj/item/O as obj, mob/user as mob)
 	if(default_unfasten_wrench(user, O, 10))
 		deactivate()
 		return
@@ -80,9 +73,9 @@
 		set_light(2)
 		interference = FALSE
 
-/obj/machinery/holoplant/proc/prepare_icon(var/state)
+/obj/machinery/holoplant/proc/prepare_icon(state)
 	if(!state)
-		state = pick(possible_plants)
+		state = pick(GLOB.possible_plants)
 	var/plant_icon = icon(icon, state)
 	return getHologramIcon(plant_icon, 0)
 
@@ -95,12 +88,13 @@
 		deactivate()
 	activate()
 
-/obj/machinery/holoplant/Crossed(var/mob/living/L)
+/obj/machinery/holoplant/Crossed(mob/living/L)
+	. = ..()
 	if(!interference && plant && istype(L))
 		flicker()
 
 
 /obj/machinery/holoplant/shipped
 	anchored = FALSE
-/obj/machinery/holoplant/shipped/Initialize()
+/obj/machinery/holoplant/shipped/Initialize(mapload)
 	. = ..()

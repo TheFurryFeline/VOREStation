@@ -9,7 +9,7 @@
 
 /obj/machinery/power/sensor
 	name = "Powernet Sensor"
-	desc = "Small machine which transmits data about specific powernet"
+	desc = "A small machine which transmits data about the state of a specific powernet. Or, in plain terms, it reports currents to an engineering console."
 	anchored = TRUE
 	density = FALSE
 	layer = ABOVE_UTILITY
@@ -25,14 +25,12 @@
 	var/next_record = 0
 	var/is_secret_monitor = FALSE
 
-// Proc: New()
+// Proc: Initialize(mapload)
 // Parameters: None
 // Description: Automatically assigns name according to ID tag.
-/obj/machinery/power/sensor/New()
-	..()
-	auto_set_name()
-/obj/machinery/power/sensor/Initialize()
+/obj/machinery/power/sensor/Initialize(mapload)
 	. = ..()
+	auto_set_name()
 	history["supply"] = list()
 	history["demand"] = list()
 
@@ -45,7 +43,7 @@
 /obj/machinery/power/sensor/Destroy()
 	. = ..()
 	// TODO - Switch power_monitor to register deletion events instead of this.
-	for(var/obj/machinery/computer/power_monitor/PM in machines)
+	for(var/obj/machinery/computer/power_monitor/PM in GLOB.machines)
 		if(PM.power_monitor)
 			PM.power_monitor.refresh_sensors()
 	history.Cut()
@@ -127,7 +125,7 @@
 // Proc: reading_to_text()
 // Parameters: 1 (amount - Power in Watts to be converted to W, kW or MW)
 // Description: Helper proc that converts reading in Watts to kW or MW (returns string version of amount parameter)
-/obj/machinery/power/sensor/proc/reading_to_text(var/amount = 0)
+/obj/machinery/power/sensor/proc/reading_to_text(amount = 0)
 	var/units = ""
 	// 10kW and less - Watts
 	if(amount < 10000)
@@ -177,7 +175,7 @@
 	var/list/L = find_apcs()
 	var/total_apc_load = 0
 	if(L.len <= 0) 	// No APCs found.
-		out = "<b>No APCs located in connected powernet!</b>"
+		out = span_bold("No APCs located in connected powernet!")
 	else			// APCs found. Create very ugly (but working!) HTML table.
 
 		out += "<table><tr><th>Name<th>EQUIP<th>LIGHT<th>ENVIRON<th>CELL<th>LOAD"
@@ -247,7 +245,7 @@
 			APC_entry["total_load"] = reading_to_text(A.lastused_total)
 			// Hopefully removes those goddamn \improper s which are screwing up the UI
 			var/N = A.area.name
-			if(findtext(N, "�"))
+			if(findtext(N, "\improper"))
 				N = copytext(N, 3)
 			APC_entry["name"] = N
 			// Add data into main list of APC data.
@@ -266,8 +264,3 @@
 		data["load_percentage"] = 100
 	data["alarm"] = powernet.problem ? 1 : 0
 	return data
-
-
-
-
-

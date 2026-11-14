@@ -1,6 +1,7 @@
-/obj/item/device/analyzer
+/obj/item/analyzer
 	name = "gas analyzer"
 	desc = "A hand-held environmental scanner which reports current gas levels."
+	icon = 'icons/obj/device.dmi'
 	icon_state = "atmos"
 	item_state = "analyzer"
 	w_class = ITEMSIZE_SMALL
@@ -9,28 +10,38 @@
 	throw_speed = 4
 	throw_range = 20
 
-	matter = list(MAT_STEEL = 30,MAT_GLASS = 20)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.015),MAT_GLASS = MATERIAL_COST(0.01))
 
-	origin_tech = list(TECH_MAGNET = 1, TECH_ENGINEERING = 1)
 
-/obj/item/device/analyzer/atmosanalyze(var/mob/user)
+	pickup_sound = 'sound/items/pickup/device.ogg'
+	drop_sound = 'sound/items/drop/device.ogg'
+
+	///Var for attack_self chain
+	var/special_handling = FALSE
+
+/obj/item/analyzer/atmosanalyze(mob/user)
 	var/air = user.return_air()
 	if (!air)
 		return
 
 	return atmosanalyzer_scan(src, air, user)
 
-/obj/item/device/analyzer/attack_self(mob/user as mob)
+/obj/item/analyzer/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+	if(special_handling)
+		return FALSE
 	if (user.stat)
 		return
 	if (!user.IsAdvancedToolUser())
-		to_chat(usr, "<span class='warning'>You don't have the dexterity to do this!</span>")
+		to_chat(user, span_warning("You don't have the dexterity to do this!"))
 		return
 
 	analyze_gases(src, user)
 	return
 
-/obj/item/device/analyzer/afterattack(var/obj/O, var/mob/user, var/proximity)
+/obj/item/analyzer/afterattack(obj/O, mob/user, proximity)
 	if(proximity)
 		analyze_gases(O, user)
 	return

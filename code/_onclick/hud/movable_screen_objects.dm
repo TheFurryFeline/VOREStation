@@ -8,45 +8,53 @@
 //Movable Screen Object
 //Not tied to the grid, places it's center where the cursor is
 
-/obj/screen/movable
+/atom/movable/screen/movable
+	mouse_drag_pointer = 'icons/effects/mouse_pointers/screen_drag.dmi'
 	var/snap2grid = FALSE
+	// TODO: Check if these can safely be deleted
 	var/moved = FALSE
-	var/x_off = -16 
+	var/locked = FALSE
+	var/x_off = -16
 	var/y_off = -16
 
 //Snap Screen Object
 //Tied to the grid, snaps to the nearest turf
 
-/obj/screen/movable/snap
+/atom/movable/screen/movable/snap
 	snap2grid = TRUE
 
 
-/obj/screen/movable/MouseDrop(over_object, src_location, over_location, src_control, over_control, params)
-	var/list/PM = params2list(params)
-
-	//No screen-loc information? abort.
-	if(!PM || !PM["screen-loc"])
+/atom/movable/screen/movable/MouseDrop(over_object, src_location, over_location, src_control, over_control, params)
+	if(locked) // no! i am locked! begone!
+		return
+	var/position = mouse_params_to_position(params)
+	if(!position)
 		return
 
-	//Split screen-loc up into X+Pixel_X and Y+Pixel_Y
-	var/list/screen_loc_params = splittext(PM["screen-loc"], ",")
+	screen_loc = position
+	moved = screen_loc
 
-	//Split X+Pixel_X up into list(X, Pixel_X)
-	var/list/screen_loc_X = splittext(screen_loc_params[1],":")
-	screen_loc_X[1] = encode_screen_X(text2num(screen_loc_X[1]))
-	//Split Y+Pixel_Y up into list(Y, Pixel_Y)
-	var/list/screen_loc_Y = splittext(screen_loc_params[2],":")
-	screen_loc_Y[1] = encode_screen_Y(text2num(screen_loc_Y[1]))
+/// Takes mouse parmas as input, returns a string representing the appropriate mouse position
+/atom/movable/screen/movable/proc/mouse_params_to_position(params)
+	var/list/modifiers = params2list(params)
+
+	//No screen-loc information? abort.
+	if(!LAZYACCESS(modifiers, SCREEN_LOC))
+		return
+
+	var/client/our_client = usr.client
+	var/list/offset = screen_loc_to_offset(LAZYACCESS(modifiers, SCREEN_LOC), our_client?.view)
 
 	if(snap2grid) //Discard Pixel Values
-		screen_loc = "[screen_loc_X[1]],[screen_loc_Y[1]]"
-
+		offset[1] = FLOOR(offset[1], ICON_SIZE_X) // drops any pixel offset
+		offset[2] = FLOOR(offset[2], ICON_SIZE_Y) // drops any pixel offset
 	else //Normalise Pixel Values (So the object drops at the center of the mouse, not 16 pixels off)
-		var/pix_X = text2num(screen_loc_X[2]) + x_off
-		var/pix_Y = text2num(screen_loc_Y[2]) + y_off
-		screen_loc = "[screen_loc_X[1]]:[pix_X],[screen_loc_Y[1]]:[pix_Y]"
+		offset[1] += x_off
+		offset[2] += y_off
+	return offset_to_screen_loc(offset[1], offset[2], our_client?.view)
 
-/obj/screen/movable/proc/encode_screen_X(X)
+// Must stay for now, for subtypes
+/atom/movable/screen/movable/proc/encode_screen_X(X)
 	var/view_dist = world.view
 	if(view_dist)
 		view_dist = view_dist
@@ -57,7 +65,7 @@
 	else
 		. = "CENTER"
 
-/obj/screen/movable/proc/decode_screen_X(X)
+/atom/movable/screen/movable/proc/decode_screen_X(X)
 	var/view_dist = world.view
 	if(view_dist)
 		view_dist = view_dist
@@ -74,8 +82,10 @@
 		. = num+1
 	else if(findtext(X,"CENTER"))
 		. = view_dist+1
+	else
+		. = text2num(X)
 
-/obj/screen/movable/proc/encode_screen_Y(Y)
+/atom/movable/screen/movable/proc/encode_screen_Y(Y)
 	var/view_dist = world.view
 	if(view_dist)
 		view_dist = view_dist
@@ -86,7 +96,7 @@
 	else
 		. = "CENTER"
 
-/obj/screen/movable/proc/decode_screen_Y(Y)
+/atom/movable/screen/movable/proc/decode_screen_Y(Y)
 	var/view_dist = world.view
 	if(view_dist)
 		view_dist = view_dist
@@ -102,13 +112,15 @@
 		. = num+1
 	else if(findtext(Y,"CENTER"))
 		. = view_dist+1
+	else
+		. = text2num(Y)
 
 //Debug procs
 /client/proc/test_movable_UI()
 	set category = "Debug"
 	set name = "Spawn Movable UI Object"
 
-	var/obj/screen/movable/M = new()
+	var/atom/movable/screen/movable/M = new()
 	M.name = "Movable UI Object"
 	M.icon_state = "block"
 	M.maptext = "Movable"
@@ -127,7 +139,7 @@
 	set category = "Debug"
 	set name = "Spawn Snap UI Object"
 
-	var/obj/screen/movable/snap/S = new()
+	var/atom/movable/screen/movable/snap/S = new()
 	S.name = "Snap UI Object"
 	S.icon_state = "block"
 	S.maptext = "Snap"

@@ -33,7 +33,7 @@
 	icon_living = "oregrub"
 	icon_dead = "oregrub-dead"
 
-	faction = "grubs"
+	faction = FACTION_GRUBS
 	maxHealth = 50 //oregrubs are quite hardy
 	health = 50
 
@@ -42,7 +42,7 @@
 
 	movement_cooldown = 3.5
 
-	meat_type = /obj/item/weapon/ore/coal
+	meat_type = /obj/item/ore/coal
 
 	response_help = "pokes"
 	response_disarm = "pushes"
@@ -52,17 +52,17 @@
 	say_list_type = /datum/say_list/oregrub
 
 	var/poison_per_bite = 2.5
-	var/poison_type = "thermite_v" //burn baby burn
+	var/poison_type = REAGENT_ID_THERMITEV //burn baby burn
 	var/poison_chance = 50
 
 	var/min_ore = 4
 	var/max_ore = 7
 
-	vore_bump_chance = 0 //disabled for now
+	vore_bump_chance = 60
 	vore_bump_emote = "applies minimal effort to try and slurp up"
-	vore_active = 0 //disabled for now
+	vore_active = 1
 	vore_capacity = 1
-	vore_pounce_chance = 0 //grubs only eat incapacitated targets
+	vore_pounce_chance = 50 // Might seem unforgiving, but these guys run away from enemies, making them more of an environmental hazard than a real threat. You have to bump them.
 	vore_default_mode = DM_DIGEST
 
 	min_oxy = 0
@@ -88,6 +88,9 @@
 				"rad"		= 100
 				)
 
+	can_be_drop_prey = FALSE
+	glow_override = TRUE
+
 /mob/living/simple_mob/vore/oregrub/lava
 	name = "mature lavagrub"
 	desc = "A mature, rocky lavagrub"
@@ -99,6 +102,8 @@
 	movement_cooldown = 2
 	maxHealth = 75 //lavagrubs are really hardy
 	health = 75
+	vore_pounce_chance = 80 // Full-grown grubs should pounce. More homf opportunities if you're dumb enough to poke it.
+	vore_pounce_maxhealth = 100 // They won't pounce by default, as they're passive. This is just so the nom check succeeds (and allows it to try and eat you) once you poke the damn thing. :u
 	ai_holder_type = /datum/ai_holder/simple_mob/oregrub/lava
 	//lavagrubs have even more armor than oregrubs
 	armor = list(
@@ -120,7 +125,7 @@
 /datum/say_list/oregrub
 	emote_see = list("burbles", "chitters", "snuffles around for fresh ore")
 
-/mob/living/simple_mob/vore/oregrub/apply_melee_effects(var/atom/A)
+/mob/living/simple_mob/vore/oregrub/apply_melee_effects(atom/A)
 	if(isliving(A))
 		var/mob/living/L = A
 		var/target_zone = pick(BP_TORSO,BP_TORSO,BP_TORSO,BP_L_LEG,BP_R_LEG,BP_L_ARM,BP_R_ARM,BP_HEAD)
@@ -128,10 +133,10 @@
 			inject_poison(L, target_zone)
 
 /mob/living/simple_mob/vore/oregrub/death()
-	visible_message("<span class='warning'>\The [src] shudders and collapses, expelling the ores it had devoured!</span>")
+	visible_message(span_warning("\The [src] shudders and collapses, expelling the ores it had devoured!"))
 	var/i = rand(min_ore,max_ore)
 	while(i>1)
-		var/ore = pick(/obj/item/weapon/ore/glass,/obj/item/weapon/ore/coal,/obj/item/weapon/ore/iron,/obj/item/weapon/ore/lead,/obj/item/weapon/ore/marble,/obj/item/weapon/ore/phoron,/obj/item/weapon/ore/silver,/obj/item/weapon/ore/gold)
+		var/ore = pick(/obj/item/ore/glass,/obj/item/ore/coal,/obj/item/ore/iron,/obj/item/ore/lead,/obj/item/ore/marble,/obj/item/ore/phoron,/obj/item/ore/silver,/obj/item/ore/gold)
 		new ore(src.loc)
 		i--
 	..()
@@ -141,12 +146,14 @@
 	if(. == 0 && !is_dead())
 		set_light(2.5, 1, COLOR_ORANGE)
 		return 1
+	else if(is_dead())
+		glow_override = FALSE
 
 /mob/living/simple_mob/vore/oregrub/lava/death()
 	set_light(0)
 	var/p = rand(lava_min_ore,lava_max_ore)
 	while(p>1)
-		var/ore = pick(/obj/item/weapon/ore/osmium,/obj/item/weapon/ore/uranium,/obj/item/weapon/ore/hydrogen,/obj/item/weapon/ore/diamond,/obj/item/weapon/ore/verdantium)
+		var/ore = pick(/obj/item/ore/osmium,/obj/item/ore/uranium,/obj/item/ore/hydrogen,/obj/item/ore/diamond,/obj/item/ore/verdantium)
 		new ore(src.loc)
 		p--
 	..()
@@ -154,20 +161,39 @@
 // Does actual poison injection, after all checks passed.
 /mob/living/simple_mob/vore/oregrub/proc/inject_poison(mob/living/L, target_zone)
 	if(prob(poison_chance))
-		to_chat(L, "<span class='warning'>You feel fire running through your veins!</span>")
+		to_chat(L, span_warning("You feel fire running through your veins!"))
 		L.reagents.add_reagent(poison_type, poison_per_bite)
 
-//I'm no good at writing this stuff, so I've just left it as placeholders and disabled the chances of them eating you.
-/*
-/mob/living/simple_mob/vore/oregrub/init_vore()
-	..()
+/mob/living/simple_mob/vore/oregrub/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stomach"
-	B.desc = "PLACEHOLDER!"
+	B.desc = "Through either grave error, overwhelming willingness, or some other factor, you find yourself lodged halfway past the grub's mandibles. While it had initially hissed and chittered in glee at the prospect of a new meal, it is clearly more versed in crunching ores to feed off of; inch by inch, bit by bit, it undulates forth to slowly, noisily gulp you down its short esophagus... and right into its extra-cramped, surprisingly hot stomach. As the rest of you spills out into the plush-walled chamber, the grub's soft body bulges outwards here and there with your compressed figure. Before long, a thick slime oozes out from the surrounding stomach walls; only time will tell how effective it is on something fleshy like you, although given it's usual diet..."
+	B.vore_sound = "Tauric Swallow"
+	B.release_sound = "Pred Escape"
+	B.fancy_vore = 1
+	B.belly_fullscreen_color = "#1b4ba3"
+	B.belly_fullscreen = "VBOanim_belly1"
+	B.colorization_enabled = TRUE
 
+	// Yes, these are copied + modified from the solargrub list. These are better placeholders than ~nothing~, and will give us more voremobs to work with.
 	B.emote_lists[DM_HOLD] = list(
-		"PLACEHOLDER!")
+		"The air trapped within the grub is hot, humid, and tinged with soot, but otherwise mercifully harmless to you aside from being heavy on the lungs.",
+		"Your doughy, squishy surroundings heavily pulse around your body as the grub attempts to wriggle elsewhere, its solid prey weighing it down quite a bit.",
+		"A mineral cracks underneath the pressure of the grub's gut, briefly illuminating the interior of the thing's gut with a reddish glow!",
+		"The grub's inner muscles are in a constant state of clenching all over you, adding an extra element to your full-body massage.",
+		"For a moment, the grub's stomach walls clench down even more firmly than before, working into your muscles, steadily relaxing them down.",
+		"The incredible heat trapped within the grub helps daze and disorient you, ensuring that its new filling wouldn't interfere in its mineral-hunting.")
 
 	B.emote_lists[DM_DIGEST] = list(
-		"PLACEHOLDER!")
-*/
+		"Every breath taken inside the grub is swelteringly hot, painfully thick, and more than subtly caustic, worsening with every passing moment spent inside!",
+		"As the grub wriggles off somewhere quiet to digest its meal, the resulting undulations help crush you down into a more compact, easier to handle morsel!",
+		"From time to time, minerals crush inwards against your body, helping ensure that the grub's food was thoroughly worked over into a softer, rougher state!",
+		"The grub's inner muscles are in a constant state of clenching all over you, adding an additional layer of processing to its stomach's slow, steady churning, helping break you down faster!",
+		"The grub chitters in irritation at your continued solidity, followed by a string of crushingly tight stomach clenches that grind its caustic stomach ooze into your body!",
+		"The deceptively severe heat trapped within the grub works in tandem with its inner muscles and your tingling, prickling stomach juice bath to weaken you!")
+
+/mob/living/simple_mob/vore/oregrub/lava/load_default_bellies() // Should inherit everything from parent, and then change our belly fullscreen color.
+	.=..()
+	var/obj/belly/B = vore_selected
+	B.belly_fullscreen_color = "#cf741e"

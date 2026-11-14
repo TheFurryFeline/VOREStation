@@ -1,18 +1,18 @@
 #define LOADOUT_BAN_STRING "Custom loadout"
 
-/datum/gear_tweak/proc/get_contents(var/metadata)
+/datum/gear_tweak/proc/get_contents(metadata)
 	return
 
-/datum/gear_tweak/proc/get_metadata(var/user, var/metadata)
+/datum/gear_tweak/proc/get_metadata(user, metadata)
 	return
 
 /datum/gear_tweak/proc/get_default()
 	return
 
-/datum/gear_tweak/proc/tweak_gear_data(var/metadata, var/datum/gear_data)
+/datum/gear_tweak/proc/tweak_gear_data(metadata, datum/gear_data)
 	return
 
-/datum/gear_tweak/proc/tweak_item(var/obj/item/I, var/metadata)
+/datum/gear_tweak/proc/tweak_item(obj/item/I, metadata)
 	return
 
 /*
@@ -22,25 +22,69 @@
 /datum/gear_tweak/color
 	var/list/valid_colors
 
-/datum/gear_tweak/color/New(var/list/valid_colors)
+/datum/gear_tweak/color/New(list/valid_colors)
 	src.valid_colors = valid_colors
 	..()
 
-/datum/gear_tweak/color/get_contents(var/metadata)
-	return "Color: <font color='[metadata]'>&#9899;</font>"
+/datum/gear_tweak/color/get_contents(metadata)
+	return "Color: <font color='[metadata]'>&#11044;</font>"
 
 /datum/gear_tweak/color/get_default()
 	return valid_colors ? valid_colors[1] : COLOR_GRAY
 
-/datum/gear_tweak/color/get_metadata(var/user, var/metadata, var/title = "Character Preference")
+/datum/gear_tweak/color/get_metadata(user, metadata, title = "Character Preference")
 	if(valid_colors)
 		return tgui_input_list(user, "Choose a color.", title, valid_colors, metadata)
-	return input(user, "Choose a color.", title, metadata) as color|null
+	return tgui_color_picker(user, "Choose a color.", title, metadata)
 
-/datum/gear_tweak/color/tweak_item(var/obj/item/I, var/metadata)
+/datum/gear_tweak/color/tweak_item(obj/item/I, metadata)
 	if(valid_colors && !(metadata in valid_colors))
 		return
-	I.color = metadata
+	if(!metadata || (metadata == "#ffffff"))
+		return
+	if(istype(I))
+		I.add_atom_colour(metadata, FIXED_COLOUR_PRIORITY)
+	else
+		I.color = metadata
+
+GLOBAL_DATUM_INIT(gear_tweak_free_matrix_recolor, /datum/gear_tweak/matrix_recolor, new)
+
+/datum/gear_tweak/matrix_recolor
+
+/datum/gear_tweak/matrix_recolor/get_contents(metadata)
+	if(islist(metadata) && length(metadata))
+		return "Matrix Recolor: [english_list(metadata)]"
+	return "Matrix Recolor"
+
+/datum/gear_tweak/matrix_recolor/get_default()
+	return null
+
+/datum/gear_tweak/matrix_recolor/get_metadata(user, metadata, datum/gear/gear)
+	if(!istype(gear))
+		CRASH("Matrix metadata called by [user] without gear!")
+	var/list/returned = tgui_input_colormatrix(user, "Pick a color matrix for this item", "Matrix Recolor", gear.path, metadata, TRUE)
+	if(!returned)
+		return metadata
+	var/identity = TRUE
+	var/static/list/ones = list(1, 5, 9)
+	var/static/list/offsets = list(10, 11, 12)
+	for(var/i in 1 to length(returned))
+		if(returned[i] != ((i in ones) ? 1 : 0))
+			identity = FALSE
+			break
+		if(returned[i] != ((i in offsets) ? 0 : 1))
+			identity = FALSE
+			break
+	return identity ? list() : returned
+
+/datum/gear_tweak/matrix_recolor/tweak_item(obj/item/I, metadata)
+	. = ..()
+	if(!islist(metadata) || (length(metadata) < 12))
+		return
+	if(istype(I))
+		I.add_atom_colour(metadata, FIXED_COLOUR_PRIORITY)
+	else
+		I.color = metadata
 
 /*
 * Path adjustment
@@ -49,20 +93,20 @@
 /datum/gear_tweak/path
 	var/list/valid_paths
 
-/datum/gear_tweak/path/New(var/list/valid_paths)
+/datum/gear_tweak/path/New(list/valid_paths)
 	src.valid_paths = valid_paths
 	..()
 
-/datum/gear_tweak/path/get_contents(var/metadata)
+/datum/gear_tweak/path/get_contents(metadata)
 	return "Type: [metadata]"
 
 /datum/gear_tweak/path/get_default()
 	return valid_paths[1]
 
-/datum/gear_tweak/path/get_metadata(var/user, var/metadata)
+/datum/gear_tweak/path/get_metadata(user, metadata)
 	return tgui_input_list(user, "Choose a type.", "Character Preference", valid_paths, metadata)
 
-/datum/gear_tweak/path/tweak_gear_data(var/metadata, var/datum/gear_data/gear_data)
+/datum/gear_tweak/path/tweak_gear_data(metadata, datum/gear_data/gear_data)
 	if(!(metadata in valid_paths))
 		return
 	gear_data.path = valid_paths[metadata]
@@ -78,7 +122,7 @@
 	valid_contents = args.Copy()
 	..()
 
-/datum/gear_tweak/contents/get_contents(var/metadata)
+/datum/gear_tweak/contents/get_contents(metadata)
 	return "Contents: [english_list(metadata, and_text = ", ")]"
 
 /datum/gear_tweak/contents/get_default()
@@ -86,7 +130,7 @@
 	for(var/i = 1 to valid_contents.len)
 		. += "Random"
 
-/datum/gear_tweak/contents/get_metadata(var/user, var/list/metadata)
+/datum/gear_tweak/contents/get_metadata(user, list/metadata)
 	. = list()
 	for(var/i = metadata.len to valid_contents.len)
 		metadata += "Random"
@@ -97,7 +141,7 @@
 		else
 			return metadata
 
-/datum/gear_tweak/contents/tweak_item(var/obj/item/I, var/list/metadata)
+/datum/gear_tweak/contents/tweak_item(obj/item/I, list/metadata)
 	if(metadata.len != valid_contents.len)
 		return
 	for(var/i = 1 to valid_contents.len)
@@ -110,6 +154,11 @@
 			continue
 		else
 			path = 	contents[metadata[i]]
+		if(!path)
+			var/mob/user = ismob(I.loc) ? I.loc : I.loc?.loc
+			if(istype(user))
+				to_chat(user, span_warning("The content \"[metadata[i]]\" from \"[I]\" does no longer exist and has not been loaded. Please replace it in the character setup."))
+			continue
 		new path(I)
 
 /*
@@ -119,22 +168,22 @@
 /datum/gear_tweak/reagents
 	var/list/valid_reagents
 
-/datum/gear_tweak/reagents/New(var/list/reagents)
+/datum/gear_tweak/reagents/New(list/reagents)
 	valid_reagents = reagents.Copy()
 	..()
 
-/datum/gear_tweak/reagents/get_contents(var/metadata)
+/datum/gear_tweak/reagents/get_contents(metadata)
 	return "Reagents: [metadata]"
 
 /datum/gear_tweak/reagents/get_default()
 	return "Random"
 
-/datum/gear_tweak/reagents/get_metadata(var/user, var/list/metadata)
+/datum/gear_tweak/reagents/get_metadata(user, list/metadata)
 	. = tgui_input_list(user, "Choose an entry.", "Character Preference", valid_reagents + list("Random", "None"), metadata)
 	if(!.)
 		return metadata
 
-/datum/gear_tweak/reagents/tweak_item(var/obj/item/I, var/list/metadata)
+/datum/gear_tweak/reagents/tweak_item(obj/item/I, list/metadata)
 	if(metadata == "None")
 		return
 	if(metadata == "Random")
@@ -144,38 +193,43 @@
 	I.reagents.add_reagent(., I.reagents.get_free_space())
 
 //Custom name and desciption code
-//note to devs downstream: where 'gear_tweaks = list(gear_tweak_free_color_choice)' was used before for color selection
-//in the loadout, now 'gear_tweaks += gear_tweak_free_color_choice' will need to be used, otherwise the item will not
+//note to devs downstream: where 'gear_tweaks = list(GLOB.gear_tweak_free_color_choice)' was used before for color selection
+//in the loadout, now 'gear_tweaks += GLOB.gear_tweak_free_color_choice' will need to be used, otherwise the item will not
 // be able to be given a custom name or description
 /*
 Custom Name
 */
 
-var/datum/gear_tweak/custom_name/gear_tweak_free_name = new()
+GLOBAL_DATUM_INIT(gear_tweak_free_name, /datum/gear_tweak/custom_name, new)
 
 /datum/gear_tweak/custom_name
 	var/list/valid_custom_names
 
-/datum/gear_tweak/custom_name/New(var/list/valid_custom_names)
+/datum/gear_tweak/custom_name/New(list/valid_custom_names)
 	src.valid_custom_names = valid_custom_names
 	..()
 
-/datum/gear_tweak/custom_name/get_contents(var/metadata)
+/datum/gear_tweak/custom_name/get_contents(metadata)
 	return "Name: [metadata]"
 
 /datum/gear_tweak/custom_name/get_default()
 	return ""
 
-/datum/gear_tweak/custom_name/get_metadata(var/user, var/metadata)
+/datum/gear_tweak/custom_name/get_metadata(user, metadata)
 	if(jobban_isbanned(user, LOADOUT_BAN_STRING))
-		to_chat(user, SPAN_WARNING("You are banned from using custom loadout names/descriptions."))
+		to_chat(user, span_warning("You are banned from using custom loadout names/descriptions."))
 		return
 	if(valid_custom_names)
-		return tgui_input_list(user, "Choose an item name.", "Character Preference", valid_custom_names, metadata)
-	var/san_input = sanitize(tgui_input_text(user, "Choose the item's name. Leave it blank to use the default name.", "Item Name", metadata, MAX_LNAME_LEN), MAX_LNAME_LEN, extra = 0)
+		var/list_input = tgui_input_list(user, "Choose an item name.", "Character Preference", valid_custom_names, metadata)
+		if(isnull(list_input))
+			return metadata
+		return list_input ? list_input : get_default()
+	var/san_input = tgui_input_text(user, "Choose the item's name. Leave it blank to use the default name.", "Item Name", metadata, MAX_LNAME_LEN)
+	if(isnull(san_input))
+		return metadata
 	return san_input ? san_input : get_default()
 
-/datum/gear_tweak/custom_name/tweak_item(var/obj/item/I, var/metadata)
+/datum/gear_tweak/custom_name/tweak_item(obj/item/I, metadata)
 	if(!metadata)
 		return I.name
 	I.name = metadata
@@ -183,47 +237,80 @@ var/datum/gear_tweak/custom_name/gear_tweak_free_name = new()
 /*
 Custom Description
 */
-var/datum/gear_tweak/custom_desc/gear_tweak_free_desc = new()
+GLOBAL_DATUM_INIT(gear_tweak_free_desc, /datum/gear_tweak/custom_desc, new)
 
 /datum/gear_tweak/custom_desc
 	var/list/valid_custom_desc
 
-/datum/gear_tweak/custom_desc/New(var/list/valid_custom_desc)
+/datum/gear_tweak/custom_desc/New(list/valid_custom_desc)
 	src.valid_custom_desc = valid_custom_desc
 	..()
 
-/datum/gear_tweak/custom_desc/get_contents(var/metadata)
+/datum/gear_tweak/custom_desc/get_contents(metadata)
 	return "Description: [metadata]"
 
 /datum/gear_tweak/custom_desc/get_default()
 	return ""
 
-/datum/gear_tweak/custom_desc/get_metadata(var/user, var/metadata)
+/datum/gear_tweak/custom_desc/get_metadata(user, metadata)
 	if(jobban_isbanned(user, LOADOUT_BAN_STRING))
-		to_chat(user, SPAN_WARNING("You are banned from using custom loadout names/descriptions."))
+		to_chat(user, span_warning("You are banned from using custom loadout names/descriptions."))
 		return
 	if(valid_custom_desc)
-		return tgui_input_list(user, "Choose an item description.", "Character Preference",valid_custom_desc, metadata)
-	var/san_input = sanitize(tgui_input_text(user, "Choose the item's description. Leave it blank to use the default description.", "Item Description", metadata, multiline = TRUE, prevent_enter = TRUE), extra = 0)
+		var/list_input = tgui_input_list(user, "Choose an item description.", "Character Preference",valid_custom_desc, metadata)
+		if(isnull(list_input))
+			return metadata
+		return list_input ? list_input : get_default()
+	var/san_input = tgui_input_text(user, "Choose the item's description. Leave it blank to use the default description.", "Item Description", metadata, MAX_MESSAGE_LEN, TRUE, prevent_enter = TRUE)
+	if(isnull(san_input))
+		return metadata
 	return san_input ? san_input : get_default()
 
-/datum/gear_tweak/custom_desc/tweak_item(var/obj/item/I, var/metadata)
+/datum/gear_tweak/custom_desc/tweak_item(obj/item/I, metadata)
 	if(!metadata)
 		return I.desc
 	I.desc = metadata
 
+/*
+Toggle Digestable
+*/
+
+GLOBAL_DATUM_INIT(gear_tweak_free_digestable, /datum/gear_tweak/toggle_digestable, new)
+
+/datum/gear_tweak/toggle_digestable
+
+/datum/gear_tweak/toggle_digestable/get_contents(metadata)
+	return "Digestable: [metadata ? "Yes" : "No"]"
+
+/datum/gear_tweak/toggle_digestable/get_default()
+	return TRUE
+
+/datum/gear_tweak/toggle_digestable/get_metadata(user, metadata)
+	var/san_input = tgui_alert(user, "Turn digestable on or off", "Toggle Digestable", list("Enable", "Disable", "Cancel"))
+	switch(san_input)
+		if("Enable")
+			return TRUE
+		if("Disable")
+			return FALSE
+	return metadata
+
+/datum/gear_tweak/toggle_digestable/tweak_item(obj/item/I, metadata)
+	if(isnull(metadata))
+		return I.digestable
+	I.digestable = metadata
+
 //end of custom description
 
 /datum/gear_tweak/tablet
-	var/list/ValidProcessors = list(/obj/item/weapon/computer_hardware/processor_unit/small)
-	var/list/ValidBatteries = list(/obj/item/weapon/computer_hardware/battery_module/nano, /obj/item/weapon/computer_hardware/battery_module/micro, /obj/item/weapon/computer_hardware/battery_module)
-	var/list/ValidHardDrives = list(/obj/item/weapon/computer_hardware/hard_drive/micro, /obj/item/weapon/computer_hardware/hard_drive/small, /obj/item/weapon/computer_hardware/hard_drive)
-	var/list/ValidNetworkCards = list(/obj/item/weapon/computer_hardware/network_card, /obj/item/weapon/computer_hardware/network_card/advanced)
-	var/list/ValidNanoPrinters = list(null, /obj/item/weapon/computer_hardware/nano_printer)
-	var/list/ValidCardSlots = list(null, /obj/item/weapon/computer_hardware/card_slot)
-	var/list/ValidTeslaLinks = list(null, /obj/item/weapon/computer_hardware/tesla_link)
+	var/list/ValidProcessors = list(/obj/item/computer_hardware/processor_unit/small)
+	var/list/ValidBatteries = list(/obj/item/computer_hardware/battery_module/nano, /obj/item/computer_hardware/battery_module/micro, /obj/item/computer_hardware/battery_module)
+	var/list/ValidHardDrives = list(/obj/item/computer_hardware/hard_drive/micro, /obj/item/computer_hardware/hard_drive/small, /obj/item/computer_hardware/hard_drive)
+	var/list/ValidNetworkCards = list(/obj/item/computer_hardware/network_card, /obj/item/computer_hardware/network_card/advanced)
+	var/list/ValidNanoPrinters = list(null, /obj/item/computer_hardware/nano_printer)
+	var/list/ValidCardSlots = list(null, /obj/item/computer_hardware/card_slot)
+	var/list/ValidTeslaLinks = list(null, /obj/item/computer_hardware/tesla_link)
 
-/datum/gear_tweak/tablet/get_contents(var/list/metadata)
+/datum/gear_tweak/tablet/get_contents(list/metadata)
 	var/list/names = list()
 	var/obj/O = ValidProcessors[metadata[1]]
 	if(O)
@@ -248,7 +335,7 @@ var/datum/gear_tweak/custom_desc/gear_tweak_free_desc = new()
 		names += initial(O.name)
 	return "[english_list(names, and_text = ", ")]"
 
-/datum/gear_tweak/tablet/get_metadata(var/user, var/metadata)
+/datum/gear_tweak/tablet/get_metadata(user, metadata)
 	. = list()
 
 	var/list/names = list()
@@ -338,7 +425,7 @@ var/datum/gear_tweak/custom_desc/gear_tweak_free_desc = new()
 /datum/gear_tweak/tablet/get_default()
 	return list(1, 1, 1, 1, 1, 1, 1)
 
-/datum/gear_tweak/tablet/tweak_item(var/obj/item/modular_computer/tablet/I, var/list/metadata)
+/datum/gear_tweak/tablet/tweak_item(obj/item/modular_computer/tablet/I, list/metadata)
 	if(ValidProcessors[metadata[1]])
 		var/t = ValidProcessors[metadata[1]]
 		I.processor_unit = new t(I)
@@ -364,15 +451,15 @@ var/datum/gear_tweak/custom_desc/gear_tweak_free_desc = new()
 	I.update_verbs()
 
 /datum/gear_tweak/laptop
-	var/list/ValidProcessors = list(/obj/item/weapon/computer_hardware/processor_unit/small, /obj/item/weapon/computer_hardware/processor_unit)
-	var/list/ValidBatteries = list(/obj/item/weapon/computer_hardware/battery_module, /obj/item/weapon/computer_hardware/battery_module/advanced, /obj/item/weapon/computer_hardware/battery_module/super)
-	var/list/ValidHardDrives = list(/obj/item/weapon/computer_hardware/hard_drive, /obj/item/weapon/computer_hardware/hard_drive/advanced, /obj/item/weapon/computer_hardware/hard_drive/super)
-	var/list/ValidNetworkCards = list(/obj/item/weapon/computer_hardware/network_card, /obj/item/weapon/computer_hardware/network_card/advanced)
-	var/list/ValidNanoPrinters = list(null, /obj/item/weapon/computer_hardware/nano_printer)
-	var/list/ValidCardSlots = list(null, /obj/item/weapon/computer_hardware/card_slot)
-	var/list/ValidTeslaLinks = list(null, /obj/item/weapon/computer_hardware/tesla_link)
+	var/list/ValidProcessors = list(/obj/item/computer_hardware/processor_unit/small, /obj/item/computer_hardware/processor_unit)
+	var/list/ValidBatteries = list(/obj/item/computer_hardware/battery_module, /obj/item/computer_hardware/battery_module/advanced, /obj/item/computer_hardware/battery_module/super)
+	var/list/ValidHardDrives = list(/obj/item/computer_hardware/hard_drive, /obj/item/computer_hardware/hard_drive/advanced, /obj/item/computer_hardware/hard_drive/super)
+	var/list/ValidNetworkCards = list(/obj/item/computer_hardware/network_card, /obj/item/computer_hardware/network_card/advanced)
+	var/list/ValidNanoPrinters = list(null, /obj/item/computer_hardware/nano_printer)
+	var/list/ValidCardSlots = list(null, /obj/item/computer_hardware/card_slot)
+	var/list/ValidTeslaLinks = list(null, /obj/item/computer_hardware/tesla_link)
 
-/datum/gear_tweak/laptop/get_contents(var/list/metadata)
+/datum/gear_tweak/laptop/get_contents(list/metadata)
 	var/list/names = list()
 	var/obj/O = ValidProcessors[metadata[1]]
 	if(O)
@@ -397,7 +484,7 @@ var/datum/gear_tweak/custom_desc/gear_tweak_free_desc = new()
 		names += initial(O.name)
 	return "[english_list(names, and_text = ", ")]"
 
-/datum/gear_tweak/laptop/get_metadata(var/user, var/metadata)
+/datum/gear_tweak/laptop/get_metadata(user, metadata)
 	. = list()
 
 	var/list/names = list()
@@ -487,7 +574,7 @@ var/datum/gear_tweak/custom_desc/gear_tweak_free_desc = new()
 /datum/gear_tweak/laptop/get_default()
 	return list(1, 1, 1, 1, 1, 1, 1)
 
-/datum/gear_tweak/laptop/tweak_item(var/obj/item/modular_computer/laptop/preset/I, var/list/metadata)
+/datum/gear_tweak/laptop/tweak_item(obj/item/modular_computer/laptop/preset/I, list/metadata)
 	if(ValidProcessors[metadata[1]])
 		var/t = ValidProcessors[metadata[1]]
 		I.processor_unit = new t(I)
@@ -543,14 +630,35 @@ var/datum/gear_tweak/custom_desc/gear_tweak_free_desc = new()
 /datum/gear_tweak/implant_location/get_default()
 	return bodypart_names_to_tokens[1]
 
-/datum/gear_tweak/implant_location/tweak_item(var/obj/item/weapon/implant/I, var/metadata)
+/datum/gear_tweak/implant_location/tweak_item(obj/item/implant/I, metadata)
 	if(istype(I))
 		I.initialize_loc = bodypart_names_to_tokens[metadata] || BP_TORSO
 
-/datum/gear_tweak/implant_location/get_contents(var/metadata)
+/datum/gear_tweak/implant_location/get_contents(metadata)
 	return "Location: [metadata]"
 
-/datum/gear_tweak/implant_location/get_metadata(var/user, var/metadata)
-	return (tgui_input_list(user, "Select a bodypart for the implant to be implanted inside.", "Implant Location", bodypart_names_to_tokens || bodypart_tokens_to_names[BP_TORSO]))
+/datum/gear_tweak/implant_location/get_metadata(user, metadata)
+	var/list_input = tgui_input_list(user, "Select a bodypart for the implant to be implanted inside.", "Implant Location", bodypart_names_to_tokens || bodypart_tokens_to_names[BP_TORSO])
+	if(isnull(list_input))
+		return metadata
+	return list_input
+
+/datum/gear_tweak/collar_tag/get_contents(metadata)
+	return "Tag: [metadata]"
+
+/datum/gear_tweak/collar_tag/get_default()
+	return ""
+
+/datum/gear_tweak/collar_tag/get_metadata(user, metadata)
+	var/text_input = tgui_input_text(user, "Choose the tag text.", "Character Preference", metadata, MAX_NAME_LEN)
+	if(isnull(text_input))
+		return metadata
+	return text_input
+
+/datum/gear_tweak/collar_tag/tweak_item(obj/item/clothing/accessory/collar/C, metadata)
+	if(metadata == "")
+		return ..()
+	else
+		C.initialize_tag(metadata)
 
 #undef LOADOUT_BAN_STRING

@@ -1,14 +1,14 @@
-#define OVERLAY_CACHE_LEN 50
+#define overlay_cache_LEN 50
 
-/obj/item/device/t_scanner
+/obj/item/t_scanner
 	name = "\improper T-ray scanner"
 	desc = "A terahertz-ray emitter and scanner used to detect underfloor objects such as cables and pipes."
+	icon = 'icons/obj/device.dmi'
 	icon_state = "t-ray0"
 	item_state = "t-ray"
 	slot_flags = SLOT_BELT
 	w_class = ITEMSIZE_SMALL
-	matter = list(MAT_STEEL = 150)
-	origin_tech = list(TECH_MAGNET = 1, TECH_ENGINEERING = 1)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.075))
 
 	var/scan_range = 1
 
@@ -17,15 +17,19 @@
 	var/client/user_client //since making sure overlays are properly added and removed is pretty important, so we track the current user explicitly
 	var/flicker = 0
 
-	var/global/list/overlay_cache = list() //cache recent overlays
+	pickup_sound = 'sound/items/pickup/device.ogg'
+	drop_sound = 'sound/items/drop/device.ogg'
 
-/obj/item/device/t_scanner/update_icon()
+/obj/item/t_scanner/update_icon()
 	icon_state = "t-ray[on]"
 
-/obj/item/device/t_scanner/attack_self(mob/user)
+/obj/item/t_scanner/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	set_active(!on)
 
-/obj/item/device/t_scanner/proc/set_active(var/active)
+/obj/item/t_scanner/proc/set_active(active)
 	on = active
 	if(on)
 		START_PROCESSING(SSobj, src)
@@ -36,7 +40,7 @@
 	update_icon()
 
 //If reset is set, then assume the client has none of our overlays, otherwise we only send new overlays.
-/obj/item/device/t_scanner/process()
+/obj/item/t_scanner/process()
 	if(!on) return
 
 	//handle clients changing
@@ -75,11 +79,11 @@
 	flicker = !flicker
 
 //creates a new overlay for a scanned object
-/obj/item/device/t_scanner/proc/get_overlay(obj/scanned)
+/obj/item/t_scanner/proc/get_overlay(obj/scanned)
 	//Use a cache so we don't create a whole bunch of new images just because someone's walking back and forth in a room.
 	//Also means that images are reused if multiple people are using t-rays to look at the same objects.
-	if(scanned in overlay_cache)
-		. = overlay_cache[scanned]
+	if(scanned in GLOB.overlay_cache)
+		. = GLOB.overlay_cache[scanned]
 	else
 		var/image/I = image(loc = scanned, icon = scanned.icon, icon_state = scanned.icon_state, layer = HUD_LAYER)
 
@@ -94,11 +98,11 @@
 		. = I
 
 	// Add it to cache, cutting old entries if the list is too long
-	overlay_cache[scanned] = .
-	if(overlay_cache.len > OVERLAY_CACHE_LEN)
-		overlay_cache.Cut(1, overlay_cache.len-OVERLAY_CACHE_LEN-1)
+	GLOB.overlay_cache[scanned] = .
+	if(GLOB.overlay_cache.len > overlay_cache_LEN)
+		GLOB.overlay_cache.Cut(1, GLOB.overlay_cache.len-overlay_cache_LEN-1)
 
-/obj/item/device/t_scanner/proc/get_scanned_objects(var/scan_dist)
+/obj/item/t_scanner/proc/get_scanned_objects(scan_dist)
 	. = list()
 
 	var/turf/center = get_turf(src.loc)
@@ -115,7 +119,7 @@
 				continue //if it's already visible don't need an overlay for it
 			. += O
 
-/obj/item/device/t_scanner/proc/set_user_client(var/client/new_client)
+/obj/item/t_scanner/proc/set_user_client(client/new_client)
 	if(new_client == user_client)
 		return
 	if(user_client)
@@ -129,22 +133,23 @@
 
 	user_client = new_client
 
-/obj/item/device/t_scanner/dropped(mob/user)
+/obj/item/t_scanner/dropped(mob/user, equipping, slot)
+	if(equipping)
+		return ..()
 	set_user_client(null)
+	..()
 
-/obj/item/device/t_scanner/upgraded
+/obj/item/t_scanner/upgraded
 	name = "Upgraded T-ray Scanner"
 	desc = "An upgraded version of the terahertz-ray emitter and scanner used to detect underfloor objects such as cables and pipes."
-	matter = list(MAT_STEEL = 500, PHORON = 150)
-	origin_tech = list(TECH_MAGNET = 4, TECH_ENGINEERING = 5)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.25), PHORON = 150)
 	scan_range = 3
 
-/obj/item/device/t_scanner/advanced
+/obj/item/t_scanner/advanced
 	name = "Advanced T-ray Scanner"
 	desc = "An advanced version of the terahertz-ray emitter and scanner used to detect underfloor objects such as cables and pipes."
-	matter = list(MAT_STEEL = 1500, PHORON = 200, SILVER = 250)
-	origin_tech = list(TECH_MAGNET = 7, TECH_ENGINEERING = 7, TECH_MATERIAL = 6)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.75), PHORON = 200, SILVER = 250)
 	scan_range = 7
 
 
-#undef OVERLAY_CACHE_LEN
+#undef overlay_cache_LEN

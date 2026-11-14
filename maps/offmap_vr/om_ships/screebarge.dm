@@ -1,5 +1,5 @@
 // Compile in the map for CI testing if we're testing compileability of all the maps
-#if MAP_TEST
+#ifdef MAP_TEST
 #include "screebarge.dmm"
 #endif
 
@@ -7,7 +7,7 @@
 /datum/map_template/om_ships/screebarge
 	name = "OM Ship - Battle Barge"
 	desc = "The BATTLE BARGE."
-	mappath = 'screebarge.dmm'
+	mappath = "maps/offmap_vr/om_ships/screebarge.dmm"
 	annihilate = TRUE
 
 // The shuttle's area(s)
@@ -25,7 +25,7 @@
 /obj/machinery/computer/shuttle_control/explore/screebarge
 	name = "short jump console"
 	shuttle_tag = "XN-29 Prototype Shuttle"
-	req_one_access = list(access_pilot)
+	req_one_access = list(ACCESS_PILOT)
 
 // A shuttle lateloader landmark
 /obj/effect/shuttle_landmark/shuttle_initializer/screebarge

@@ -13,7 +13,10 @@
 
 // Sorts subsystems by init_order
 /proc/cmp_subsystem_init(datum/controller/subsystem/a, datum/controller/subsystem/b)
-	return initial(b.init_order) - initial(a.init_order)	//uses initial() so it can be used on types
+	return a.init_order - b.init_order
+
+/proc/cmp_subsystem_init_stage(datum/controller/subsystem/a, datum/controller/subsystem/b)
+	return initial(a.init_stage) - initial(b.init_stage)
 
 // Sorts subsystems by priority
 /proc/cmp_subsystem_priority(datum/controller/subsystem/a, datum/controller/subsystem/b)
@@ -33,7 +36,7 @@
 		. = B.qdels - A.qdels
 
 // Sorts jobs by department, and then by flag within department
-/proc/cmp_job_datums(var/datum/job/a, var/datum/job/b)
+/proc/cmp_job_datums(datum/job/a, datum/job/b)
 	. = 0
 	if( LAZYLEN(a.departments) && LAZYLEN(b.departments) )
 		var/list/common_departments = a.departments & b.departments // Makes a list that contains only departments that were in both.
@@ -46,7 +49,7 @@
 	if(. == 0) //Already in same sorting order, sort by name
 		. = sorttext(b.title, a.title)
 
-/proc/cmp_department_datums(var/datum/department/a, var/datum/department/b)
+/proc/cmp_department_datums(datum/department/a, datum/department/b)
 	. = b.sorting_order - a.sorting_order // First, sort by the sorting order vars.
 	if(. == 0) // If they have the same var, then sort by name.
 		. = sorttext(b.name, a.name)
@@ -58,8 +61,8 @@
 		. = B[STAT_ENTRY_COUNT] - A[STAT_ENTRY_COUNT]
 
 /proc/cmp_typepaths_asc(A, B)
-	return sorttext("[B]","[A]") 
-	
+	return sorttext("[B]","[A]")
+
 /**
  * Sorts crafting recipe requirements before the crafting recipe is inserted into GLOB.crafting_recipes
  *
@@ -83,7 +86,7 @@
 /proc/cmp_media_track_asc(datum/track/A, datum/track/B)
 	var/genre_sort = sorttext(B.genre || "Uncategorized", A.genre || "Uncategorized")
 	return genre_sort || sorttext(B.title, A.title)
-	
+
 ///Filters have a numerical priority.
 /proc/cmp_filter_data_priority(list/A, list/B)
 	return A["priority"] - B["priority"]
@@ -98,3 +101,30 @@
 
 /proc/cmp_stored_item_name(datum/stored_item/A, datum/stored_item/B)
 	return sorttext(B.item_name, A.item_name)
+
+/proc/cmp_embed_text_asc(a,b)
+	if(isdatum(a))
+		a = REF(a)
+	if(isdatum(b))
+		b = REF(b)
+	return sorttext("[b]", "[a]")
+
+/proc/cmp_embed_text_dsc(a,b)
+	if(isdatum(a))
+		a = REF(a)
+	if(isdatum(b))
+		b = REF(b)
+	return sorttext("[a]", "[b]")
+
+
+/proc/cmp_name_asc(atom/a, atom/b)
+	return sorttext(b.name, a.name)
+
+/proc/cmp_name_dsc(atom/a, atom/b)
+	return sorttext(a.name, b.name)
+
+/proc/cmp_advdisease_resistance_asc(datum/disease/advance/A, datum/disease/advance/B)
+	return A.resistance - B.resistance
+
+/proc/cmp_advdisease_symptomid_asc(datum/symptom/A, datum/symptom/B)
+	return sorttext(B.id, A.id)

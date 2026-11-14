@@ -20,23 +20,23 @@
 	var/production_modifier = 2			// Multiplier on the ammo_casing's matter cost
 	var/production_delay = 75			// If we're in a gun, how long since it last shot do we need to wait before making bullets?
 
-	var/obj/item/weapon/gun/holding_gun = null	// What gun are we in, if any?
+	var/obj/item/gun/holding_gun = null	// What gun are we in, if any?
 
-	var/obj/item/weapon/cell/device/attached_cell = null	// What cell are we using, if any?
+	var/obj/item/cell/device/attached_cell = null	// What cell are we using, if any?
 
 	var/emagged = 0		// If you emag the smart mag, you can get the bullets out by clicking it
 
-/obj/item/ammo_magazine/smart/New()
+/obj/item/ammo_magazine/smart/Initialize(mapload)
+	. = ..()
 	START_PROCESSING(SSobj, src)
-	..()
 
 /obj/item/ammo_magazine/smart/Destroy()
 	STOP_PROCESSING(SSobj, src)
-	..()
+	. = ..()
 
 /obj/item/ammo_magazine/smart/process()
 	if(!holding_gun)	// Yes, this is awful, sorry. Don't know a better way to figure out if we've been moved into or out of a gun.
-		if(istype(src.loc, /obj/item/weapon/gun))
+		if(istype(src.loc, /obj/item/gun))
 			holding_gun = src.loc
 
 	if(caliber && ammo_type && attached_cell)
@@ -53,9 +53,9 @@
 	. = ..()
 
 	if(attached_cell)
-		. += "<span class='notice'>\The [src] is loaded with a [attached_cell.name]. It is [round(attached_cell.percent())]% charged.</span>"
+		. += span_notice("\The [src] is loaded with a [attached_cell.name]. It is [round(attached_cell.percent())]% charged.")
 	else
-		. += "<span class='warning'>\The [src] does not appear to have a power source installed.</span>"
+		. += span_warning("\The [src] does not appear to have a power source installed.")
 
 /obj/item/ammo_magazine/smart/update_icon()
 	if(attached_cell)
@@ -64,22 +64,22 @@
 		icon_state = "smartmag-empty"
 
 // Emagging lets you remove bullets from your bullet-making magazine
-/obj/item/ammo_magazine/smart/emag_act(var/remaining_charges, var/mob/user)
+/obj/item/ammo_magazine/smart/emag_act(remaining_charges, mob/user)
 	if(!emagged)
-		to_chat(user, "<span class='notice'>You overload \the [src]'s security measures causing widespread destabilisation. It is likely you could empty \the [src] now.</span>")
+		to_chat(user, span_notice("You overload \the [src]'s security measures causing widespread destabilisation. It is likely you could empty \the [src] now."))
 		emagged = TRUE
 		can_remove_ammo = TRUE
 		return TRUE
 	return FALSE
 
-/obj/item/ammo_magazine/smart/attackby(var/obj/item/I as obj, mob/user)
-	if(istype(I, /obj/item/weapon/cell/device))
+/obj/item/ammo_magazine/smart/attackby(obj/item/I as obj, mob/user)
+	if(istype(I, /obj/item/cell/device))
 		if(attached_cell)
-			to_chat(user, "<span class='notice'>\The [src] already has a [attached_cell.name] attached.</span>")
+			to_chat(user, span_notice("\The [src] already has a [attached_cell.name] attached."))
 			return
 		else
 			to_chat(user, "You begin inserting \the [I] into \the [src].")
-			if(do_after(user, 25))
+			if(do_after(user, 25, target = src))
 				user.drop_item()
 				I.forceMove(src)
 				attached_cell = I
@@ -90,7 +90,7 @@
 	else if(I.has_tool_quality(TOOL_SCREWDRIVER))
 		if(attached_cell)
 			to_chat(user, "You begin removing \the [attached_cell] from \the [src].")
-			if(do_after(user, 10))	// Faster than doing it by hand
+			if(do_after(user, 1 SECOND, target = src))	// Faster than doing it by hand
 				attached_cell.update_icon()
 				attached_cell.forceMove(get_turf(src.loc))
 				attached_cell = null
@@ -113,7 +113,7 @@
 	if(user.get_inactive_hand() == src)
 		if(attached_cell)
 			to_chat(user, "You struggle to remove \the [attached_cell] from \the [src].")
-			if(do_after(user, 40))
+			if(do_after(user, 4 SECONDS, target = src))
 				attached_cell.update_icon()
 				user.put_in_hands(attached_cell)
 				attached_cell = null
@@ -121,12 +121,6 @@
 				update_icon()
 				return
 	..()
-
-// Classic emp_act, just drains the battery
-/obj/item/ammo_magazine/smart/emp_act(severity)
-	..()
-	if(attached_cell)
-		attached_cell.emp_act(severity)
 
 // Finds the cell for the magazine, used by rechargers
 /obj/item/ammo_magazine/smart/get_cell()
@@ -137,8 +131,8 @@
 	return attached_cell && attached_cell.checked_use(production_cost)
 
 // Sets how much energy is drained to make each bullet
-/obj/item/ammo_magazine/smart/proc/set_production_cost(var/obj/item/ammo_casing/A)
-	var/list/matters = ammo_repository.get_materials_from_object(A)
+/obj/item/ammo_magazine/smart/proc/set_production_cost(obj/item/ammo_casing/A)
+	var/list/matters = GLOB.ammo_repository.get_materials_from_object(A)
 	var/tempcost
 	for(var/key in matters)
 		var/value = matters[key]
@@ -182,7 +176,7 @@
 		msg += "ammunition type."
 
 	if(change)
-		to_chat(user, "<span class='notice'>[msg]</span>")
+		to_chat(user, span_notice("[msg]"))
 		caliber = new_caliber
 		ammo_type = new_ammo_type
 		set_production_cost(ammo_type)	// Update our cost
@@ -204,7 +198,7 @@
 	set category = "Object"
 	set src in usr
 
-	if(!istype(src.loc, /mob/living))	// Needs to be in your hands to reset
+	if(!isliving(src.loc))	// Needs to be in your hands to reset
 		return
 
 	var/mob/living/carbon/human/H = usr
@@ -214,10 +208,10 @@
 		return
 
 	if(LAZYLEN(stored_ammo))
-		to_chat(usr, "<span class='warning'>You can't reset \the [src] unless it's empty!</span>")
+		to_chat(H, span_warning("You can't reset \the [src] unless it's empty!"))
 		return
 
-	to_chat(usr, "<span class='notice'>You clear \the [src]'s data buffers.</span>")
+	to_chat(H, span_notice("You clear \the [src]'s data buffers."))
 
 	caliber = null
 	ammo_type = null

@@ -11,14 +11,12 @@
 /area/submap/debrisfield/old_tele)
 "d" = (
 /obj/machinery/teleport/station{
-	icon = 'icons/obj/stationobjs.dmi'
+	icon_state = "controller_old"
 	},
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/old_tele)
 "e" = (
-/obj/machinery/teleport/hub{
-	icon = 'icons/obj/stationobjs.dmi'
-	},
+/obj/machinery/teleport/hub,
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/old_tele)
 "f" = (
@@ -36,7 +34,7 @@
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/old_tele)
 "g" = (
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/old_tele)
 "h" = (
@@ -62,7 +60,7 @@
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/old_tele)
 "m" = (
-/obj/item/weapon/storage/toolbox/mechanical,
+/obj/item/storage/toolbox/mechanical,
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/old_tele)
 "n" = (

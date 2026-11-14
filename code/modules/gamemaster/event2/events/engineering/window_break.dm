@@ -11,7 +11,7 @@
 	event_type = /datum/event2/event/window_break
 
 /datum/event2/meta/window_break/get_weight()
-	return (metric.count_people_in_department(DEPARTMENT_ENGINEERING) * 20) / (times_ran + 1)
+	return (GLOB.metric.count_people_in_department(DEPARTMENT_ENGINEERING) * 20) / (times_ran + 1)
 
 
 
@@ -27,7 +27,7 @@
 /datum/event2/event/window_break/set_up()
 	var/list/areas = find_random_areas()
 	if(!LAZYLEN(areas))
-		log_debug("Window Break event could not find any areas. Aborting.")
+		log_game("Window Break event could not find any areas. Aborting.")
 		abort()
 		return
 
@@ -43,18 +43,18 @@
 			break // Break out of the inner loop.
 
 		if(chosen_turf_with_windows)
-			log_debug("Window Break event has chosen turf '[chosen_turf_with_windows.name]' in [chosen_turf_with_windows.loc].")
+			log_game("Window Break event has chosen turf '[chosen_turf_with_windows.name]' in [chosen_turf_with_windows.loc].")
 			break // Then the outer loop.
 
 	if(!chosen_turf_with_windows)
-		log_debug("Window Break event could not find a turf with valid windows to break. Aborting.")
+		log_game("Window Break event could not find a turf with valid windows to break. Aborting.")
 		abort()
 		return
 
 /datum/event2/event/window_break/announce()
 	if(chosen_window)
-		command_announcement.Announce("Structural integrity of space-facing windows at \the [get_area(chosen_turf_with_windows)] are failing. \
-		Repair of the damaged window is advised. Personnel without EVA suits in the area should leave until repairs are complete.", "Structural Alert")
+		GLOB.command_announcement.Announce("Structural integrity of space-facing windows at \the [get_area(chosen_turf_with_windows)] are failing. \
+		Repair of the damaged window is advised. Personnel without EVA suits in the area should leave until repairs are complete.", "Structural Alert", ANNOUNCER_MSG_WINDOWBREAK)
 
 /datum/event2/event/window_break/start()
 	if(!chosen_turf_with_windows)
@@ -78,7 +78,7 @@
 
 	chosen_window.take_damage(chosen_window.maxhealth * 0.8)
 	playsound(chosen_window, 'sound/effects/Glasshit.ogg', 100, 1)
-	chosen_window.visible_message(span("danger", "\The [chosen_window] suddenly begins to crack!"))
+	chosen_window.visible_message(span_danger("\The [chosen_window] suddenly begins to crack!"))
 
 /datum/event2/event/window_break/should_end()
 	. = ..()
@@ -91,7 +91,7 @@
 /datum/event2/event/window_break/end()
 	// If someone fixed the window, then everything is fine.
 	if(chosen_window && chosen_window.anchored && chosen_window.health == chosen_window.maxhealth)
-		log_debug("Window Break event ended with window repaired.")
+		log_game("Window Break event ended with window repaired.")
 		return
 
 	// Otherwise a bunch of windows shatter.
@@ -102,7 +102,7 @@
 		var/obj/structure/window/W = collateral_windows[i]
 		W?.shatter()
 
-	log_debug("Window Break event ended with [windows_to_shatter] shattered windows and a breach.")
+	log_game("Window Break event ended with [windows_to_shatter] shattered windows and a breach.")
 
 // Checks if a window is adjacent to a space tile, and also that the opposite direction is open.
 // This is done to avoid getting caught in corner parts of windows.
@@ -116,7 +116,7 @@
 	return FALSE
 
 //TL;DR: breadth first search for all connected turfs with windows
-/datum/event2/event/window_break/proc/gather_collateral_windows(var/obj/structure/window/target_window)
+/datum/event2/event/window_break/proc/gather_collateral_windows(obj/structure/window/target_window)
 	var/list/turf/frontier_set = list(target_window.loc)
 	var/list/obj/structure/window/result_set = list()
 	var/list/turf/explored_set = list()

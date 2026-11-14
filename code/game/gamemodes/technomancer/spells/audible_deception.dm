@@ -4,11 +4,11 @@
 	enhancement_desc = "An extremely loud bike horn sound that costs  large amount of energy and instability becomes available, \
 	which will deafen and stun all who are near the targeted tile, including yourself if unprotected."
 	cost = 50
-	obj_path = /obj/item/weapon/spell/audible_deception
+	obj_path = /obj/item/spell/audible_deception
 	ability_icon_state = "tech_audibledeception"
 	category = UTILITY_SPELLS
 
-/obj/item/weapon/spell/audible_deception
+/obj/item/spell/audible_deception
 	name = "audible deception"
 	icon_state = "audible_deception"
 	desc = "Make them all paranoid!"
@@ -31,16 +31,16 @@
 		"Shotgun Pumping"		=	'sound/weapons/shotgunpump.ogg',
 		"Flash"					=	'sound/weapons/flash.ogg',
 		"Bite"					=	'sound/weapons/bite.ogg',
-		"Gun Firing"			=	'sound/weapons/Gunshot1.ogg',
-		"Desert Eagle Firing"	=	'sound/weapons/Gunshot_deagle.ogg',
-		"Rifle Firing"			=	'sound/weapons/Gunshot_generic_rifle.ogg',
-		"Sniper Rifle Firing"	=	'sound/weapons/Gunshot_sniper.ogg',
-		"AT Rifle Firing"		=	'sound/weapons/Gunshot_cannon.ogg',
-		"Shotgun Firing"		=	'sound/weapons/Gunshot_shotgun.ogg',
+		"Gun Firing"			=	'sound/weapons/gunshot1.ogg',
+		"Desert Eagle Firing"	=	'sound/weapons/gunshot_deagle.ogg',
+		"Rifle Firing"			=	'sound/weapons/gunshot_generic_rifle.ogg',
+		"Sniper Rifle Firing"	=	'sound/weapons/gunshot_sniper.ogg',
+		"AT Rifle Firing"		=	'sound/weapons/gunshot_cannon.ogg',
+		"Shotgun Firing"		=	'sound/weapons/gunshot_shotgun.ogg',
 		"Handgun Firing"		=	'sound/weapons/Gunshot2.ogg',
-		"Machinegun Firing"		=	'sound/weapons/Gunshot_machinegun.ogg',
+		"Machinegun Firing"		=	'sound/weapons/gunshot_machinegun.ogg',
 		"Rocket Launcher Firing"=	'sound/weapons/rpg.ogg',
-		"Taser Firing"			=	'sound/weapons/Taser.ogg',
+		"Taser Firing"			=	'sound/weapons/taser.ogg',
 		"Laser Gun Firing"		=	'sound/weapons/laser.ogg',
 		"E-Luger Firing"		=	'sound/weapons/eLuger.ogg',
 		"Xray Gun Firing"		=	'sound/weapons/laser3.ogg',
@@ -64,15 +64,15 @@
 		)
 	var/selected_sound = null
 
-/obj/item/weapon/spell/audible_deception/on_use_cast(mob/user)
+/obj/item/spell/audible_deception/on_use_cast(mob/user)
 	var/list/sound_options = available_sounds
 	if(check_for_scepter())
 		sound_options["!!AIR HORN!!"] = 'sound/items/AirHorn.ogg'
-	var/new_sound = tgui_input_list(usr, "Select the sound you want to make.", "Sounds", sound_options)
+	var/new_sound = tgui_input_list(user, "Select the sound you want to make.", "Sounds", sound_options)
 	if(new_sound)
 		selected_sound = sound_options[new_sound]
 
-/obj/item/weapon/spell/audible_deception/on_ranged_cast(atom/hit_atom, mob/living/user)
+/obj/item/spell/audible_deception/on_ranged_cast(atom/hit_atom, mob/living/user)
 	var/turf/T = get_turf(hit_atom)
 	if(selected_sound && pay_energy(200))
 		playsound(src, selected_sound, 80, 1, -1)
@@ -90,6 +90,7 @@
 				if(prob(30))
 					M.Stun(10)
 					M.Paralyse(4)
+					M.Sleeping(4)
 				else
 					M.make_jittery(50)
-				to_chat(M, span_red("<font size='7'><b>HONK</b></font>"))
+				to_chat(M, span_red(span_massive(span_bold("HONK"))))

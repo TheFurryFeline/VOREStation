@@ -20,11 +20,7 @@
 /obj/structure/cable{
 	icon_state = "0-4"
 	},
-/obj/machinery/power/smes/batteryrack/mapped{
-	input_attempt = 1;
-	mode = 3;
-	output_attempt = 1
-	},
+/obj/machinery/power/smes/batteryrack/mapped/input_and_output_on,
 /turf/simulated/floor/tiled/airless,
 /area/submap/debrisfield/mining_outpost)
 "f" = (
@@ -81,14 +77,14 @@
 /turf/simulated/floor/tiled/airless,
 /area/submap/debrisfield/mining_outpost)
 "p" = (
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /mob/living/simple_mob/mechanical/mining_drone/scavenger,
 /turf/space,
 /area/space)
 "q" = (
 /obj/structure/sign/poster{
 	pixel_y = 32;
-	poster_decl = "/decl/poster/bay_50"
+	poster_decl = "/datum/decl/poster/bay_50"
 	},
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/mining_outpost)
@@ -108,7 +104,7 @@
 /turf/simulated/floor/tiled/asteroid_steel/airless,
 /area/submap/debrisfield/mining_outpost)
 "u" = (
-/obj/item/weapon/ore,
+/obj/item/ore,
 /obj/effect/floor_decal/asteroid,
 /turf/simulated/floor/tiled/asteroid_steel/airless,
 /area/submap/debrisfield/mining_outpost)
@@ -116,7 +112,7 @@
 /turf/template_noop,
 /area/space)
 "w" = (
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /obj/structure/grille/broken,
 /obj/item/stack/rods,
 /turf/simulated/floor/airless,
@@ -149,7 +145,7 @@
 /turf/simulated/floor/tiled/airless,
 /area/submap/debrisfield/mining_outpost)
 "D" = (
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /obj/effect/floor_decal/steeldecal/steel_decals_central5{
 	dir = 4
 	},
@@ -183,7 +179,7 @@
 	},
 /obj/item/stack/medical/bruise_pack,
 /obj/item/stack/medical/ointment,
-/obj/item/weapon/storage/mre/random,
+/obj/item/storage/mre/random,
 /obj/effect/floor_decal/rust/part_rusted3,
 /turf/simulated/floor/tiled/airless,
 /area/submap/debrisfield/mining_outpost)
@@ -194,7 +190,7 @@
 /turf/simulated/floor/tiled/airless,
 /area/submap/debrisfield/mining_outpost)
 "I" = (
-/obj/item/weapon/storage/toolbox/syndicate,
+/obj/item/storage/toolbox/syndicate,
 /obj/structure/table/rack/steel,
 /turf/simulated/floor/tiled/airless,
 /area/submap/debrisfield/mining_outpost)

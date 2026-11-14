@@ -1,13 +1,17 @@
+###Files and folders specified here will never be tracked.
+
+#Ignore compiled files and other files generated during compilation.
+*.dmb
+*.rsc
+*.m.dme
+*.test.dme
+*.lk
+*.int
+*.backup
+
 #ignore misc BYOND files
 Thumbs.db
-vchat.db
-vchat.db*
 *.log
-*.int
-*.rsc
-*.dmb
-*.lk
-*.backup
 *.before
 *.pyc
 *.pid
@@ -19,6 +23,7 @@ cfg/
 #Ignore everything in datafolder and subdirectories
 /data/**/*
 /tmp/**/*
+/cache/**/*
 
 #Visual studio stuff
 *.vscode/*
@@ -27,7 +32,28 @@ cfg/
 !/.vscode/settings.json
 !/.vscode/tasks.json
 
+#Ignore IDE files we don't need in the repo.
+/.vs/**/*
+/v17/**/*
+/v18/**/*
+/v19/**/*
+/v20/**/*
+/v21/**/*
+/v22/**/*
+
 temp.dmi
 
 node_modules/
 package-lock.json
+
+# CBT Things
+.cache
+
+#These get built by some automatic process
+tgui/public/tgui.bundle.css
+tgui/public/tgui.bundle.js
+#ignore tracy dll
+prof.dll
+
+# From /tools/define_sanity/check.py - potential output file that we load onto the user's machine that we don't want to have committed.
+define_sanity_output.txt

@@ -10,20 +10,19 @@
 	active_power_usage = 1000	// Blowers running
 	power_rating = 100000	//100 kW ~ 135 HP
 
-	var/global/gid = 1
+	var/static/gid = 1
 	var/id = 0
 
-/obj/machinery/portable_atmospherics/powered/pump/huge/New()
-	..()
-	cell = null
+/obj/machinery/portable_atmospherics/powered/pump/huge/Initialize(mapload)
+	. = ..(mapload, TRUE)
 
 	id = gid
 	gid++
 
 	name = "[name] (ID [id])"
 
-/obj/machinery/portable_atmospherics/powered/pump/huge/attack_hand(var/mob/user)
-	to_chat(user, "<span class='notice'>You can't directly interact with this machine. Use the pump control console.</span>")
+/obj/machinery/portable_atmospherics/powered/pump/huge/attack_hand(mob/user)
+	to_chat(user, span_notice("You can't directly interact with this machine. Use the pump control console."))
 
 /obj/machinery/portable_atmospherics/powered/pump/huge/update_icon()
 	cut_overlays()
@@ -82,26 +81,26 @@
 		use_power(power_draw)
 		update_connected_network()
 
-/obj/machinery/portable_atmospherics/powered/pump/huge/attackby(var/obj/item/I, var/mob/user)
+/obj/machinery/portable_atmospherics/powered/pump/huge/attackby(obj/item/I, mob/user)
 	if(I.has_tool_quality(TOOL_WRENCH))
 		if(on)
-			to_chat(user, "<span class='warning'>Turn \the [src] off first!</span>")
+			to_chat(user, span_warning("Turn \the [src] off first!"))
 			return
 
 		anchored = !anchored
 		playsound(src, I.usesound, 50, 1)
-		to_chat(user, "<span class='notice'>You [anchored ? "wrench" : "unwrench"] \the [src].</span>")
+		to_chat(user, span_notice("You [anchored ? "wrench" : "unwrench"] \the [src]."))
 
 		return
 
 	//doesn't use power cells
-	if(istype(I, /obj/item/weapon/cell))
+	if(istype(I, /obj/item/cell))
 		return
 	if (I.has_tool_quality(TOOL_SCREWDRIVER))
 		return
 
 	//doesn't hold tanks
-	if(istype(I, /obj/item/weapon/tank))
+	if(istype(I, /obj/item/tank))
 		return
 
 	..()
@@ -110,9 +109,9 @@
 /obj/machinery/portable_atmospherics/powered/pump/huge/stationary
 	name = "Stationary Air Pump"
 
-/obj/machinery/portable_atmospherics/powered/pump/huge/stationary/attackby(var/obj/item/I, var/mob/user)
+/obj/machinery/portable_atmospherics/powered/pump/huge/stationary/attackby(obj/item/I, mob/user)
 	if(I.has_tool_quality(TOOL_WRENCH))
-		to_chat(user, "<span class='warning'>The bolts are too tight for you to unscrew!</span>")
+		to_chat(user, span_warning("The bolts are too tight for you to unscrew!"))
 		return
 
 	..()

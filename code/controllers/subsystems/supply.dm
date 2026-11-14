@@ -7,26 +7,37 @@ SUBSYSTEM_DEF(supply)
 	//Initializes at default time
 	flags = SS_NO_TICK_CHECK
 
-	//supply points
+	/// Supply points
 	var/points = 50
-	var/points_per_process = 1.0	// Processes every 20 seconds, so this is 3 per minute
+	/// How many points we get every SSSupply fire.
+	var/points_per_process = 1.0
+	/// How much money we get for every stamped slip we return to Central
 	var/points_per_slip = 2
-	var/points_per_money = 0.02 // 1 point for $50
+	/// How much money one SP is worth in thalers. Shows up in the end of round stats.
+	var/money_per_points = 50
+	/// How much power we've sold this round.
+	var/watts_sold = 0
+	/// How many watts that have to be sold for a point - NYI
+	var/points_per_watt = 10 MEGAWATTS
+	/// How many TTVs we have sold this round.
+	var/warheads_sold = 0
+	/// How many points we've made selling TTVs
+	var/warheads_value = 0
+
 	//control
-	var/ordernum
+	var/ordernum = 0						// Start at zero, it's per-shift tracking
 	var/list/shoppinglist = list()			// Approved orders
 	var/list/supply_pack = list()			// All supply packs
 	var/list/exported_crates = list()		// Crates sent from the station
 	var/list/order_history = list()			// History of orders, showing edits made by users
 	var/list/adm_order_history = list() 	// Complete history of all orders, for admin use
 	var/list/adm_export_history = list()	// Complete history of all crates sent back on the shuttle, for admin use
+	var/list/exported_research_mobs = list()// Number of mob types sold from cargo, used to calculate diminishing returns
 	//shuttle movement
 	var/movetime = 1200
 	var/datum/shuttle/autodock/ferry/supply/shuttle
 
 /datum/controller/subsystem/supply/Initialize()
-	ordernum = rand(1,9000)
-
 	// build master supply list
 	for(var/typepath in subtypesof(/datum/supply_pack))
 		var/datum/supply_pack/P = new typepath()
@@ -35,29 +46,35 @@ SUBSYSTEM_DEF(supply)
 		else
 			qdel(P)
 
-	. = ..()
+	return SS_INIT_SUCCESS
 
 // Supply shuttle ticker - handles supply point regeneration. Just add points over time.
 /datum/controller/subsystem/supply/fire()
 	points += points_per_process
 
-/datum/controller/subsystem/supply/stat_entry()
-	..("Points: [points]")
+/datum/controller/subsystem/supply/stat_entry(msg)
+	msg = "Points: [points]"
+	return ..()
 
 //To stop things being sent to CentCom which should not be sent to centcomm. Recursively checks for these types.
 /datum/controller/subsystem/supply/proc/forbidden_atoms_check(atom/A)
 	if(isliving(A))
-		return 1
-	if(istype(A,/obj/item/weapon/disk/nuclear))
+		var/mob/living/check_living = A
+		// Mobs inside stasis cages can be sold. otherwise loose mobs or mobs with clients are forbidden.
+		if(!istype(check_living.loc, /obj/structure/stasis_cage) || check_living.client)
+			return 1
+	if(istype(A,/obj/item/disk/nuclear))
 		return 1
 	if(istype(A,/obj/machinery/nuclearbomb))
 		return 1
-	if(istype(A,/obj/item/device/radio/beacon))
+	if(istype(A,/obj/item/radio/beacon))
 		return 1
-	if(istype(A,/obj/item/device/perfect_tele_beacon))	//VOREStation Addition: Translocator beacons
-		return 1										//VOREStation Addition: Translocator beacons
-	if(istype(A,/obj/machinery/power/quantumpad)) //	//VOREStation Add: Quantum pads
-		return 1					//VOREStation Add: Quantum pads
+	if(istype(A,/obj/item/perfect_tele_beacon))
+		return 1
+	if(istype(A,/obj/machinery/power/quantumpad))
+		return 1
+	if(istype(A,/obj/structure/extraction_point))
+		return 1
 
 	for(var/atom/B in A.contents)
 		if(.(B))
@@ -66,10 +83,10 @@ SUBSYSTEM_DEF(supply)
 //Selling
 /datum/controller/subsystem/supply/proc/sell()
 	// Loop over each area in the supply shuttle
+	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_SUPPLY_SHUTTLE_DEPART, shuttle.shuttle_area)
 	for(var/area/subarea in shuttle.shuttle_area)
-		callHook("sell_shuttle", list(subarea));
 		for(var/atom/movable/MA in subarea)
-			if(MA.anchored)
+			if(MA.anchored && !istype(MA,/obj/mecha))
 				continue
 
 			var/datum/exported_crate/EC = new /datum/exported_crate()
@@ -78,55 +95,25 @@ SUBSYSTEM_DEF(supply)
 			EC.contents = list()
 			var/base_value = 0
 
-			// Must be in a crate!
+			// Most items must be in a crate!
+			var/list/things_sold_successfully = list()
 			if(istype(MA,/obj/structure/closet/crate))
 				var/obj/structure/closet/crate/CR = MA
-				callHook("sell_crate", list(CR, subarea))
 
 				points += CR.points_per_crate
 				if(CR.points_per_crate)
 					base_value = CR.points_per_crate
-				var/find_slip = 1
 
+				// For each thing in the crate, get the value and quantity
 				for(var/atom/A in CR)
-					EC.contents[++EC.contents.len] = list(
-							"object" = "\proper[A.name]",
-							"value" = 0,
-							"quantity" = 1
-						)
-
-					// Sell manifests
-					if(find_slip && istype(A,/obj/item/weapon/paper/manifest))
-						var/obj/item/weapon/paper/manifest/slip = A
-						if(!slip.is_copy && slip.stamped && slip.stamped.len) //yes, the clown stamp will work. clown is the highest authority on the station, it makes sense
-							points += points_per_slip
-							EC.contents[EC.contents.len]["value"] = points_per_slip
-							find_slip = 0
-						continue
-
-					// Sell phoron and platinum
-					if(istype(A, /obj/item/stack))
-						var/obj/item/stack/P = A
-						var/datum/material/mat = P.get_material()
-						if(mat?.supply_conversion_value)
-							EC.contents[EC.contents.len]["value"] = P.get_amount() * mat.supply_conversion_value
-						EC.contents[EC.contents.len]["quantity"] = P.get_amount()
-						EC.value += EC.contents[EC.contents.len]["value"]
-
-					//Sell spacebucks
-					if(istype(A, /obj/item/weapon/spacecash))
-						var/obj/item/weapon/spacecash/cashmoney = A
-						EC.contents[EC.contents.len]["value"] = cashmoney.worth * points_per_money
-						EC.contents[EC.contents.len]["quantity"] = cashmoney.worth
-						EC.value += EC.contents[EC.contents.len]["value"]
-
-
-
-			// Make a log of it, but it wasn't shipped properly, and so isn't worth anything
+					if(SEND_SIGNAL(A,COMSIG_ITEM_EXPORTED,EC,TRUE))
+						things_sold_successfully += A
 			else
-				EC.contents = list(
-						"error" = "Error: Product was improperly packaged. Payment rendered null under terms of agreement."
-					)
+				// Selling things that are not in crates.
+				// Usually it just makes a log that it wasn't shipped properly, and so isn't worth anything
+				if(SEND_SIGNAL(MA,COMSIG_ITEM_EXPORTED,EC,FALSE))
+					things_sold_successfully += MA
+			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_SUPPLY_SHUTTLE_SELL_ITEM, MA, things_sold_successfully, EC, subarea)
 
 			exported_crates += EC
 			points += EC.value
@@ -166,19 +153,20 @@ SUBSYSTEM_DEF(supply)
 		if(SO.status == SUP_ORDER_APPROVED)
 			shoppinglist += SO
 
-	if(!shoppinglist.len)
+	var/orderedamount = length(shoppinglist)
+
+	if(!orderedamount)
 		return
-	var/orderedamount = shoppinglist.len
 
 	var/list/clear_turfs = get_clear_turfs()
 
 	var/shopping_log = "SUPPLY_BUY: "
 
 	for(var/datum/supply_order/SO in shoppinglist)
-		if(!clear_turfs.len)
+		if(!length(clear_turfs))
 			break
 
-		var/i = rand(1,clear_turfs.len)
+		var/i = rand(1,length(clear_turfs))
 		var/turf/pickedloc = clear_turfs[i]
 		clear_turfs.Cut(i,i+1)
 
@@ -186,13 +174,31 @@ SUBSYSTEM_DEF(supply)
 		var/datum/supply_pack/SP = SO.object
 		shopping_log += "[SP.name];"
 
-		var/obj/A = new SP.containertype(pickedloc)
-		A.name = "[SP.containername] [SO.comment ? "([SO.comment])":"" ]"
+		var/obj/A
+		if(SP.containertype)
+			A = new SP.containertype(pickedloc)
+			A.name = "[SP.containername] [SO.comment ? "([SO.comment])":"" ]"
+			if(SP.access)
+				if(isnum(SP.access))
+					A.req_access = list(SP.access)
+				else if(islist(SP.access) && SP.one_access)
+					var/list/L = SP.access // access var is a plain var, we need a list
+					A.req_one_access = L.Copy()
+					LAZYCLEARLIST(A.req_access)
+				else if(islist(SP.access) && !SP.one_access)
+					var/list/L = SP.access
+					A.req_access = L.Copy()
+					LAZYCLEARLIST(A.req_one_access)
+				else
+					log_runtime(span_danger("Supply pack with invalid access restriction [SP.access] encountered!"))
 
 		//supply manifest generation begin
-		var/obj/item/weapon/paper/manifest/slip
+		var/obj/item/paper/manifest/slip
 		if(!SP.contraband)
-			slip = new /obj/item/weapon/paper/manifest(A)
+			if(A)
+				slip = new /obj/item/paper/manifest(A)
+			else
+				slip = new /obj/item/paper/manifest(pickedloc)
 			slip.is_copy = 0
 			slip.info = "<h3>[command_name()] Shipping Manifest</h3><hr><br>"
 			slip.info +="Order #[SO.ordernum]<br>"
@@ -200,26 +206,11 @@ SUBSYSTEM_DEF(supply)
 			slip.info +="[orderedamount] PACKAGES IN THIS SHIPMENT<br>"
 			slip.info +="CONTENTS:<br><ul>"
 
-		//spawn the stuff, finish generating the manifest while you're at it
-		if(SP.access)
-			if(isnum(SP.access))
-				A.req_access = list(SP.access)
-			else if(islist(SP.access) && SP.one_access)
-				var/list/L = SP.access // access var is a plain var, we need a list
-				A.req_one_access = L.Copy()
-				LAZYCLEARLIST(A.req_access)
-			else if(islist(SP.access) && !SP.one_access)
-				var/list/L = SP.access
-				A.req_access = L.Copy()
-				LAZYCLEARLIST(A.req_one_access)
-			else
-				log_debug("<span class='danger'>Supply pack with invalid access restriction [SP.access] encountered!</span>")
-
 		var/list/contains
 		if(istype(SP,/datum/supply_pack/randomised))
 			var/datum/supply_pack/randomised/SPR = SP
 			contains = list()
-			if(SPR.contains.len)
+			if(length(SPR.contains))
 				for(var/j=1,j<=SPR.num_contained,j++)
 					contains += pick(SPR.contains)
 		else
@@ -231,7 +222,12 @@ SUBSYSTEM_DEF(supply)
 
 			var/number_of_items = max(1, contains[typepath])
 			for(var/j = 1 to number_of_items)
-				var/atom/B2 = new typepath(A)
+				var/atom/B2
+				if(A)
+					B2 = new typepath(A)
+				else
+					B2 = new typepath(pickedloc)
+
 				if(slip)
 					slip.info += "<li>[B2.name]</li>" //add the item to the manifest
 
@@ -244,7 +240,7 @@ SUBSYSTEM_DEF(supply)
 	return
 
 // Will attempt to purchase the specified order, returning TRUE on success, FALSE on failure
-/datum/controller/subsystem/supply/proc/approve_order(var/datum/supply_order/O, var/mob/user)
+/datum/controller/subsystem/supply/proc/approve_order(datum/supply_order/O, mob/user)
 	// Not enough points to purchase the crate
 	if(points <= O.object.cost)
 		return FALSE
@@ -277,7 +273,7 @@ SUBSYSTEM_DEF(supply)
 	return TRUE
 
 // Will deny the specified order. Only useful if the order is currently requested, but available at any status
-/datum/controller/subsystem/supply/proc/deny_order(var/datum/supply_order/O, var/mob/user)
+/datum/controller/subsystem/supply/proc/deny_order(datum/supply_order/O, mob/user)
 	// Based on the current model, there shouldn't be any entries in order_history, requestlist, or shoppinglist, that aren't matched in adm_order_history
 	var/datum/supply_order/adm_order
 	for(var/datum/supply_order/temp in adm_order_history)
@@ -303,13 +299,13 @@ SUBSYSTEM_DEF(supply)
 	return
 
 // Will deny all requested orders
-/datum/controller/subsystem/supply/proc/deny_all_pending(var/mob/user)
+/datum/controller/subsystem/supply/proc/deny_all_pending(mob/user)
 	for(var/datum/supply_order/O in order_history)
 		if(O.status == SUP_ORDER_REQUESTED)
 			deny_order(O, user)
 
 // Will delete the specified order from the user-side list
-/datum/controller/subsystem/supply/proc/delete_order(var/datum/supply_order/O, var/mob/user)
+/datum/controller/subsystem/supply/proc/delete_order(datum/supply_order/O, mob/user)
 	// Making sure they know what they're doing
 	if(tgui_alert(user, "Are you sure you want to delete this record? If it has been approved, cargo points will NOT be refunded!", "Delete Record",list("No","Yes")) == "Yes")
 		if(tgui_alert(user, "Are you really sure? There is no way to recover the order once deleted.", "Delete Record", list("No","Yes")) == "Yes")
@@ -318,7 +314,7 @@ SUBSYSTEM_DEF(supply)
 	return
 
 // Will generate a new, requested order, for the given supply pack type
-/datum/controller/subsystem/supply/proc/create_order(var/datum/supply_pack/S, var/mob/user, var/reason)
+/datum/controller/subsystem/supply/proc/create_order(datum/supply_pack/S, mob/user, reason)
 	var/datum/supply_order/new_order = new()
 	var/datum/supply_order/adm_order = new() // Admin-recorded order must be a separate copy in memory, or user-made edits will corrupt it
 
@@ -353,7 +349,7 @@ SUBSYSTEM_DEF(supply)
 	adm_order_history += adm_order
 
 // Will delete the specified export receipt from the user-side list
-/datum/controller/subsystem/supply/proc/delete_export(var/datum/exported_crate/E, var/mob/user)
+/datum/controller/subsystem/supply/proc/delete_export(datum/exported_crate/E, mob/user)
 	// Making sure they know what they're doing
 	if(tgui_alert(user, "Are you sure you want to delete this record?", "Delete Record",list("No","Yes")) == "Yes")
 		if(tgui_alert(user, "Are you really sure? There is no way to recover the receipt once deleted.", "Delete Record", list("No","Yes")) == "Yes")
@@ -362,7 +358,7 @@ SUBSYSTEM_DEF(supply)
 	return
 
 // Will add an item entry to the specified export receipt on the user-side list
-/datum/controller/subsystem/supply/proc/add_export_item(var/datum/exported_crate/E, var/mob/user)
+/datum/controller/subsystem/supply/proc/add_export_item(datum/exported_crate/E, mob/user)
 	var/new_name = tgui_input_text(user, "Name", "Please enter the name of the item.")
 	if(!new_name)
 		return
@@ -398,3 +394,6 @@ SUBSYSTEM_DEF(supply)
 	var/ordered_at							// Date and time the order was requested at
 	var/approved_at							// Date and time the order was approved at
 	var/status								// [Requested, Accepted, Denied, Shipped]
+
+/datum/controller/subsystem/supply/proc/points_to_cash(val)
+	return FLOOR(((val * money_per_points)), 1)

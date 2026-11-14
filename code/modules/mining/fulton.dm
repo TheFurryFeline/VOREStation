@@ -1,5 +1,3 @@
-var/global/list/total_extraction_beacons = list()
-
 /obj/item/extraction_pack
 	name = "fulton extraction pack"
 	desc = "A balloon that can be used to extract equipment or personnel to a Fulton Recovery Beacon. Anything not bolted down can be moved. Link the pack to a beacon by using the pack in hand."
@@ -17,8 +15,11 @@ var/global/list/total_extraction_beacons = list()
 	. += "It has [uses_left] use\s remaining."
 
 /obj/item/extraction_pack/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	var/list/possible_beacons = list()
-	for(var/obj/structure/extraction_point/EP as anything in global.total_extraction_beacons)
+	for(var/obj/structure/extraction_point/EP as anything in GLOB.total_extraction_beacons)
 		if(EP.beacon_network in beacon_networks)
 			possible_beacons += EP
 
@@ -29,7 +30,7 @@ var/global/list/total_extraction_beacons = list()
 	else
 		var/A
 
-		A = tgui_input_list(usr, "Select a beacon to connect to", "Balloon Extraction Pack", possible_beacons)
+		A = tgui_input_list(user, "Select a beacon to connect to", "Balloon Extraction Pack", possible_beacons)
 
 		if(!A)
 			return
@@ -57,9 +58,9 @@ var/global/list/total_extraction_beacons = list()
 			return
 		if(A.anchored)
 			return
-		to_chat(user, "<span class='notice'>You start attaching the pack to [A]...</span>")
-		if(do_after(user,50,target=A))
-			to_chat(user, "<span class='notice'>You attach the pack to [A] and activate it.</span>")
+		to_chat(user, span_notice("You start attaching the pack to [A]..."))
+		if(do_after(user, 5 SECONDS, target = A))
+			to_chat(user, span_notice("You attach the pack to [A] and activate it."))
 			/* No components, sorry. No convienence for you!
 			if(loc == user && istype(user.back, /obj/item/storage/backpack))
 				var/obj/item/storage/backpack/B = user.back
@@ -109,11 +110,17 @@ var/global/list/total_extraction_beacons = list()
 				var/mob/living/carbon/human/L = A
 				L.AdjustStunned(20)
 				L.drowsyness = 0
+				L.emote("scream")
 			sleep(30)
 			var/list/flooring_near_beacon = list()
+			var/had_option = FALSE
 			for(var/turf/simulated/floor/floor in orange(1, beacon))
+				had_option = TRUE
 				flooring_near_beacon += floor
-			holder_obj.forceMove(pick(flooring_near_beacon))
+			if(had_option)
+				holder_obj.forceMove(pick(flooring_near_beacon))
+			else
+				holder_obj.forceMove(beacon.loc)
 			animate(holder_obj, pixel_z = 10, time = 50)
 			sleep(50)
 			animate(holder_obj, pixel_z = 15, time = 10)
@@ -144,9 +151,14 @@ var/global/list/total_extraction_beacons = list()
 	icon_state = "subspace_amplifier"
 
 /obj/item/fulton_core/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	var/turf/T = get_turf(user)
-	var/outdoors = T.is_outdoors()
-	if(do_after(user,15,target = user) && !QDELETED(src) && outdoors)
+	if(!T)
+		to_chat(user, span_warning("You must be standing on solid ground to deploy an extraction beacon!"))
+		return
+	if(do_after(user, 1.5 SECONDS, target = user) && !QDELETED(src))
 		new /obj/structure/extraction_point(get_turf(user))
 		qdel(src)
 
@@ -159,14 +171,14 @@ var/global/list/total_extraction_beacons = list()
 	density = FALSE
 	var/beacon_network = "station"
 
-/obj/structure/extraction_point/Initialize()
+/obj/structure/extraction_point/Initialize(mapload)
 	. = ..()
 	name += " ([rand(100,999)]) ([get_area_name(src, TRUE)])"
-	global.total_extraction_beacons += src
+	GLOB.total_extraction_beacons += src
 
 /obj/structure/extraction_point/Destroy()
-	global.total_extraction_beacons -= src
-	..()
+	GLOB.total_extraction_beacons -= src
+	. = ..()
 
 /obj/effect/extraction_holder
 	name = "extraction holder"
@@ -184,9 +196,6 @@ var/global/list/total_extraction_beacons = list()
 			if(L.stat != DEAD)
 				return 1
 	return 0
-
-/obj/effect/extraction_holder/singularity_pull()
-	return
 
 /obj/effect/extraction_holder/singularity_pull()
 	return

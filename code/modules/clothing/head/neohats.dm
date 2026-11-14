@@ -2,8 +2,8 @@
 this file deals with hats/headwear. */
 
 /obj/item/clothing/head/helmet/HoS/hat/blue
-	name = "Blue Head of Security Hat"
-	desc = "The hat of the Head of Security. For showing the officers who's in charge."
+	name = "Blue " + JOB_HEAD_OF_SECURITY + " Hat"
+	desc = "The hat of the " + JOB_HEAD_OF_SECURITY + ". For showing the officers who's in charge."
 	icon = 'icons/inventory/head/item.dmi'
 	icon_state = "neo_hoshat_blue"
 	valid_accessory_slots = null
@@ -43,3 +43,10 @@ this file deals with hats/headwear. */
 	desc = "an old beat-up white papakha."
 	icon = 'icons/inventory/head/item.dmi'
 	icon_state = "neo_papakha_white"
+
+/obj/item/clothing/head/helmet/HoS/hat/red
+	name = "Red " + JOB_HEAD_OF_SECURITY + " Hat"
+	desc = "The hat of the " + JOB_HEAD_OF_SECURITY + ". For showing the officers who's in charge."
+	icon = 'icons/inventory/head/item.dmi'
+	icon_state = "neo_hoshat_red"
+	valid_accessory_slots = null

@@ -7,7 +7,7 @@
 	name = "supply ordering console"
 	desc = "Request crates from here! Delivery not guaranteed."
 	icon_screen = "request"
-	circuit = /obj/item/weapon/circuitboard/supplycomp
+	circuit = /obj/item/circuitboard/supplycomp
 	var/authorization = 0
 	var/temp = null
 	var/reqtime = 0 //Cooldown for requisitions - Quarxink
@@ -15,6 +15,7 @@
 	var/active_category = null
 	var/menu_tab = 0
 	var/list/expanded_packs = list()
+	var/price_mode = FALSE // Show in supply points(TRUE) or thalers(FALSE)
 
 // Supply control console
 /obj/machinery/computer/supplycomp/control
@@ -23,26 +24,24 @@
 	icon_keyboard = "tech_key"
 	icon_screen = "supply"
 	light_color = "#b88b2e"
-	req_access = list(access_cargo)
-	circuit = /obj/item/weapon/circuitboard/supplycomp/control
+	circuit = /obj/item/circuitboard/supplycomp/control
 	authorization = SUP_SEND_SHUTTLE | SUP_ACCEPT_ORDERS
 
-/obj/machinery/computer/supplycomp/attack_ai(var/mob/user as mob)
+/obj/machinery/computer/supplycomp/attack_ai(mob/user as mob)
 	return attack_hand(user)
 
-/obj/machinery/computer/supplycomp/attack_hand(var/mob/user as mob)
+/obj/machinery/computer/supplycomp/attack_hand(mob/user as mob)
 	if(..())
 		return
 	if(!allowed(user))
-		to_chat(user, "<span class='warning'>You don't have the required access to use this console.</span>")
+		to_chat(user, span_warning("You don't have the required access to use this console."))
 		return
-	user.set_machine(src)
 	tgui_interact(user)
 	return
 
-/obj/machinery/computer/supplycomp/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/computer/supplycomp/emag_act(remaining_charges, mob/user)
 	if(!can_order_contraband)
-		to_chat(user, "<span class='notice'>Special supplies unlocked.</span>")
+		to_chat(user, span_notice("Special supplies unlocked."))
 		authorization |= SUP_CONTRABAND
 		req_access = list()
 		can_order_contraband = TRUE
@@ -156,16 +155,19 @@
 	data["receipts"] = receipts
 	data["contraband"] = can_order_contraband || (authorization & SUP_CONTRABAND)
 	data["modal"] = tgui_modal_data(src)
+	data["price_mod"] = price_mode
+	data["cash_points"] = SSsupply.money_per_points
 	return data
 
 /obj/machinery/computer/supplycomp/tgui_static_data(mob/user)
 	var/list/data = ..()
-	
+
 	var/list/pack_list = list()
 	for(var/pack_name in SSsupply.supply_pack)
 		var/datum/supply_pack/P = SSsupply.supply_pack[pack_name]
 		var/list/pack = list(
 				"name" = P.name,
+				"desc" = P.desc,
 				"cost" = P.cost,
 				"group" = P.group,
 				"contraband" = P.contraband,
@@ -176,10 +178,10 @@
 
 		pack_list.Add(list(pack))
 	data["supply_packs"] = pack_list
-	data["categories"] = all_supply_groups
+	data["categories"] = GLOB.all_supply_groups
 	return data
 
-/obj/machinery/computer/supplycomp/tgui_act(action, params)
+/obj/machinery/computer/supplycomp/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
 	if(!SSsupply)
@@ -200,6 +202,7 @@
 				return FALSE
 			var/list/payload = list(
 				"name" = P.name,
+				"desc" = P.desc,
 				"cost" = P.cost,
 				"manifest" = uniqueList(P.manifest),
 				"ref" = "\ref[P]",
@@ -218,35 +221,35 @@
 				return FALSE
 
 			if(world.time < reqtime)
-				visible_message("<span class='warning'>[src]'s monitor flashes, \"[reqtime - world.time] seconds remaining until another requisition form may be printed.\"</span>")
+				visible_message(span_warning("[src]'s monitor flashes, \"[reqtime - world.time] seconds remaining until another requisition form may be printed.\""))
 				return FALSE
 
-			var/amount = clamp(tgui_input_number(usr, "How many crates? (0 to 20)", null, null, 20, 0), 0, 20)
+			var/amount = clamp(tgui_input_number(ui.user, "How many crates? (0 to 20)", null, null, 20, 0), 0, 20)
 			if(!amount)
 				return FALSE
 
 			var/timeout = world.time + 600
-			var/reason = sanitize(tgui_input_text(usr, "Reason:","Why do you require this item?",""))
+			var/reason = tgui_input_text(ui.user, "Reason:","Why do you require this item?","", MAX_MESSAGE_LEN)
 			if(world.time > timeout)
-				to_chat(usr, "<span class='warning'>Error. Request timed out.</span>")
+				to_chat(ui.user, span_warning("Error. Request timed out."))
 				return FALSE
 			if(!reason)
 				return FALSE
 
 			for(var/i in 1 to amount)
-				SSsupply.create_order(S, usr, reason)
+				SSsupply.create_order(S, ui.user, reason)
 
 			var/idname = "*None Provided*"
 			var/idrank = "*None Provided*"
-			if(ishuman(usr))
-				var/mob/living/carbon/human/H = usr
+			if(ishuman(ui.user))
+				var/mob/living/carbon/human/H = ui.user
 				idname = H.get_authentification_name()
 				idrank = H.get_assignment()
-			else if(issilicon(usr))
-				idname = usr.real_name
+			else if(issilicon(ui.user))
+				idname = ui.user.real_name
 				idrank = "Stationbound synthetic"
 
-			var/obj/item/weapon/paper/reqform = new /obj/item/weapon/paper(loc)
+			var/obj/item/paper/reqform = new /obj/item/paper(loc)
 			reqform.name = "Requisition Form - [S.name]"
 			reqform.info += "<h3>[station_name()] Supply Requisition Form</h3><hr>"
 			reqform.info += "INDEX: #[SSsupply.ordernum]<br>"
@@ -254,7 +257,7 @@
 			reqform.info += "RANK: [idrank]<br>"
 			reqform.info += "REASON: [reason]<br>"
 			reqform.info += "SUPPLY CRATE TYPE: [S.name]<br>"
-			reqform.info += "ACCESS RESTRICTION: [get_access_desc(S.access)]<br>"
+			reqform.info += "ACCESS RESTRICTION: [SSaccess.get_access_desc(S.access)]<br>"
 			reqform.info += "AMOUNT: [amount]<br>"
 			reqform.info += "CONTENTS:<br>"
 			reqform.info +=  S.get_html_manifest()
@@ -276,30 +279,30 @@
 				return FALSE
 
 			if(world.time < reqtime)
-				visible_message("<span class='warning'>[src]'s monitor flashes, \"[reqtime - world.time] seconds remaining until another requisition form may be printed.\"</span>")
+				visible_message(span_warning("[src]'s monitor flashes, \"[reqtime - world.time] seconds remaining until another requisition form may be printed.\""))
 				return FALSE
 
 			var/timeout = world.time + 600
-			var/reason = sanitize(tgui_input_text(usr, "Reason:","Why do you require this item?",""))
+			var/reason = tgui_input_text(ui.user, "Reason:","Why do you require this item?","", MAX_MESSAGE_LEN)
 			if(world.time > timeout)
-				to_chat(usr, "<span class='warning'>Error. Request timed out.</span>")
+				to_chat(ui.user, span_warning("Error. Request timed out."))
 				return FALSE
 			if(!reason)
 				return FALSE
 
-			SSsupply.create_order(S, usr, reason)
+			SSsupply.create_order(S, ui.user, reason)
 
 			var/idname = "*None Provided*"
 			var/idrank = "*None Provided*"
-			if(ishuman(usr))
-				var/mob/living/carbon/human/H = usr
+			if(ishuman(ui.user))
+				var/mob/living/carbon/human/H = ui.user
 				idname = H.get_authentification_name()
 				idrank = H.get_assignment()
-			else if(issilicon(usr))
-				idname = usr.real_name
+			else if(issilicon(ui.user))
+				idname = ui.user.real_name
 				idrank = "Stationbound synthetic"
 
-			var/obj/item/weapon/paper/reqform = new /obj/item/weapon/paper(loc)
+			var/obj/item/paper/reqform = new /obj/item/paper(loc)
 			reqform.name = "Requisition Form - [S.name]"
 			reqform.info += "<h3>[station_name()] Supply Requisition Form</h3><hr>"
 			reqform.info += "INDEX: #[SSsupply.ordernum]<br>"
@@ -307,7 +310,7 @@
 			reqform.info += "RANK: [idrank]<br>"
 			reqform.info += "REASON: [reason]<br>"
 			reqform.info += "SUPPLY CRATE TYPE: [S.name]<br>"
-			reqform.info += "ACCESS RESTRICTION: [get_access_desc(S.access)]<br>"
+			reqform.info += "ACCESS RESTRICTION: [SSaccess.get_access_desc(S.access)]<br>"
 			reqform.info += "CONTENTS:<br>"
 			reqform.info +=  S.get_html_manifest()
 			reqform.info += "<hr>"
@@ -323,7 +326,7 @@
 				return FALSE
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
-			var/new_val = sanitize(tgui_input_text(usr, params["edit"], "Enter the new value for this field:", params["default"]))
+			var/new_val = tgui_input_text(ui.user, params["edit"], "Enter the new value for this field:", params["default"], MAX_MESSAGE_LEN)
 			if(!new_val)
 				return FALSE
 
@@ -362,7 +365,7 @@
 				return FALSE
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
-			SSsupply.approve_order(O, usr)
+			SSsupply.approve_order(O, ui.user)
 			. = TRUE
 		if("deny_order")
 			var/datum/supply_order/O = locate(params["ref"])
@@ -370,7 +373,7 @@
 				return FALSE
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
-			SSsupply.deny_order(O, usr)
+			SSsupply.deny_order(O, ui.user)
 			. = TRUE
 		if("delete_order")
 			var/datum/supply_order/O = locate(params["ref"])
@@ -378,12 +381,12 @@
 				return FALSE
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
-			SSsupply.delete_order(O, usr)
+			SSsupply.delete_order(O, ui.user)
 			. = TRUE
 		if("clear_all_requests")
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
-			SSsupply.deny_all_pending(usr)
+			SSsupply.deny_all_pending(ui.user)
 			. = TRUE
 		// Exports
 		if("export_edit_field")
@@ -394,9 +397,11 @@
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
 			var/list/L = E.contents[params["index"]]
-			var/field = tgui_alert(usr, "Select which field to edit", "Field Choice", list("Name", "Quantity", "Value"))
+			var/field = tgui_alert(ui.user, "Select which field to edit", "Field Choice", list("Name", "Quantity", "Value"))
+			if(!field)
+				return FALSE
 
-			var/new_val = sanitize(tgui_input_text(usr, field, "Enter the new value for this field:", L[lowertext(field)]))
+			var/new_val = tgui_input_text(ui.user, field, "Enter the new value for this field:", L[lowertext(field)], MAX_MESSAGE_LEN)
 			if(!new_val)
 				return
 
@@ -430,7 +435,7 @@
 				return FALSE
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
-			SSsupply.add_export_item(E, usr)
+			SSsupply.add_export_item(E, ui.user)
 			. = TRUE
 		if("export_edit")
 			var/datum/exported_crate/E = locate(params["ref"])
@@ -439,7 +444,7 @@
 				return FALSE
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
-			var/new_val = sanitize(tgui_input_text(usr, params["edit"], "Enter the new value for this field:", params["default"]))
+			var/new_val = tgui_input_text(ui.user, params["edit"], "Enter the new value for this field:", params["default"], MAX_MESSAGE_LEN)
 			if(!new_val)
 				return
 
@@ -459,20 +464,20 @@
 				return FALSE
 			if(!(authorization & SUP_ACCEPT_ORDERS))
 				return FALSE
-			SSsupply.delete_export(E, usr)
+			SSsupply.delete_export(E, ui.user)
 			. = TRUE
 		if("send_shuttle")
 			switch(params["mode"])
 				if("send_away")
 					if (shuttle.forbidden_atoms_check())
-						to_chat(usr, "<span class='warning'>For safety reasons the automated supply shuttle cannot transport live organisms, classified nuclear weaponry or homing beacons.</span>")
+						to_chat(ui.user, span_warning("For safety reasons the automated supply shuttle cannot transport live organisms, classified nuclear weaponry or homing beacons."))
 					else
 						shuttle.launch(src)
-						to_chat(usr, "<span class='notice'>Initiating launch sequence.</span>")
+						to_chat(ui.user, span_notice("Initiating launch sequence."))
 
 				if("send_to_station")
 					shuttle.launch(src)
-					to_chat(usr, "<span class='notice'>The supply shuttle has been called and will arrive in approximately [round(SSsupply.movetime/600,1)] minutes.</span>")
+					to_chat(ui.user, span_notice("The supply shuttle has been called and will arrive in approximately [round(SSsupply.movetime/600,1)] minutes."))
 
 				if("cancel_shuttle")
 					shuttle.cancel_launch(src)
@@ -480,11 +485,13 @@
 				if("force_shuttle")
 					shuttle.force_launch(src)
 			. = TRUE
+		if("change_cash_mode")
+			price_mode = !price_mode
+			. = TRUE
+	add_fingerprint(ui.user)
 
-	add_fingerprint(usr)
-
-/obj/machinery/computer/supplycomp/proc/post_signal(var/command)
-	var/datum/radio_frequency/frequency = radio_controller.return_frequency(1435)
+/obj/machinery/computer/supplycomp/proc/post_signal(command)
+	var/datum/radio_frequency/frequency = SSradio.return_frequency(1435)
 
 	if(!frequency) return
 

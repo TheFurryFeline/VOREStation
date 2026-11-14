@@ -14,8 +14,8 @@
 	var/datum/pipe_network/network_node1
 	var/datum/pipe_network/network_node2
 
-/obj/machinery/clamp/New(loc, var/obj/machinery/atmospherics/pipe/simple/to_attach = null)
-	..()
+/obj/machinery/clamp/Initialize(mapload, obj/machinery/atmospherics/pipe/simple/to_attach = null)
+	. = ..()
 	if(istype(to_attach))
 		target = to_attach
 	else
@@ -23,7 +23,6 @@
 	if(target)
 		update_networks()
 		dir = target.dir
-	return 1
 
 /obj/machinery/clamp/proc/update_networks()
 	if(!target)
@@ -38,14 +37,14 @@
 			var/datum/pipeline/P2 = node2.parent
 			network_node2 = P2.network
 
-/obj/machinery/clamp/attack_hand(var/mob/user)
+/obj/machinery/clamp/attack_hand(mob/user)
 	if(!target)
 		return FALSE
 	if(!open)
 		open()
 	else
 		close()
-	to_chat(user, "<span class='notice'>You turn [open ? "off" : "on"] \the [src]</span>")
+	to_chat(user, span_notice("You turn [open ? "off" : "on"] \the [src]"))
 	return TRUE
 
 /obj/machinery/clamp/Destroy()
@@ -118,9 +117,9 @@
 		return
 
 	if(open && over_object == usr && Adjacent(usr))
-		to_chat(usr, "<span class='notice'>You begin to remove \the [src]...</span>")
-		if (do_after(usr, 30, src))
-			to_chat(usr, "<span class='notice'>You have removed \the [src].</span>")
+		to_chat(usr, span_notice("You begin to remove \the [src]..."))
+		if (do_after(usr, 3 SECONDS, target = src))
+			to_chat(usr, span_notice("You have removed \the [src]."))
 			var/obj/item/clamp/C = new/obj/item/clamp(src.loc)
 			C.forceMove(usr.loc)
 			if(ishuman(usr))
@@ -128,27 +127,26 @@
 			qdel(src)
 			return
 	else
-		to_chat(usr, "<span class='warning'>You can't remove \the [src] while it's active!</span>")
+		to_chat(usr, span_warning("You can't remove \the [src] while it's active!"))
 
 /obj/item/clamp
 	name = "stasis clamp"
 	desc = "A magnetic clamp which can halt the flow of gas in a pipe, via a localised stasis field."
 	icon = 'icons/atmos/clamp.dmi'
 	icon_state = "pclamp0"
-	origin_tech = list(TECH_ENGINEERING = 4, TECH_MAGNET = 4)
 
-/obj/item/clamp/afterattack(var/atom/A, mob/user as mob, proximity)
+/obj/item/clamp/afterattack(atom/A, mob/user as mob, proximity)
 	if(!proximity)
 		return
 
 	if (istype(A, /obj/machinery/atmospherics/pipe/simple))
-		to_chat(user, "<span class='notice'>You begin to attach \the [src] to \the [A]...</span>")
+		to_chat(user, span_notice("You begin to attach \the [src] to \the [A]..."))
 		var/C = locate(/obj/machinery/clamp) in get_turf(A)
-		if (do_after(user, 30, src) && !C)
+		if (do_after(user, 3 SECONDS, target = src) && !C)
 			if(!user.unEquip(src))
 				return
-			to_chat(user, "<span class='notice'>You have attached \the [src] to \the [A].</span>")
+			to_chat(user, span_notice("You have attached \the [src] to \the [A]."))
 			new/obj/machinery/clamp(A.loc, A)
 			qdel(src)
 		if(C)
-			to_chat(user, "<span class='notice'>\The [C] is already attached to the pipe at this location!</span>")
+			to_chat(user, span_notice("\The [C] is already attached to the pipe at this location!"))

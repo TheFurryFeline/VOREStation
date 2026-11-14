@@ -6,7 +6,7 @@
 	density = 1
 	blocks_air = TRUE
 
-/turf/space/internal_edge/Initialize()
+/turf/space/internal_edge/Initialize(mapload)
 	. = ..()
 	opacity = 1 // This will get reset due to using appearances that are precreated in SSskybox, and apps have opacity = 0
 	density = 1
@@ -54,7 +54,7 @@
 	var/obj/structure/fake_stairs/target //Don't set this manually, let it do it!
 	var/stepoff_dir
 
-/obj/structure/fake_stairs/Initialize(var/mapload)
+/obj/structure/fake_stairs/Initialize(mapload)
 	. = ..()
 
 	for(var/obj/structure/fake_stairs/FS in world)
@@ -63,7 +63,9 @@
 		if(FS._stair_tag == _stair_tag)
 			target = FS
 	if(!target && mapload)
-		to_world("<span class='danger'>Fake stairs at [x],[y],[z] couldn't get a target!</span>")
+		var/msg = span_danger("Fake stairs at [x],[y],[z] couldn't get a target!")
+		to_chat(world, msg)
+		log_mapping(msg)
 
 /obj/structure/fake_stairs/Destroy()
 	if(target)
@@ -71,16 +73,16 @@
 	target = null
 	return ..()
 
-/obj/structure/fake_stairs/Bumped(var/atom/movable/AM)
+/obj/structure/fake_stairs/Bumped(atom/movable/AM)
 	if(!target)
 		return
 	target.take(AM)
 
-/obj/structure/fake_stairs/proc/take(var/atom/movable/AM)
+/obj/structure/fake_stairs/proc/take(atom/movable/AM)
 	var/dir_to_use = stepoff_dir ? stepoff_dir : dir
 	var/turf/T = get_step(src, dir_to_use)
 	if(!T)
-		log_debug("Fake stairs at [x],[y],[z] couldn't move someone to their destination.")
+		log_mapping("Fake stairs at [x],[y],[z] couldn't move someone to their destination.")
 		return
 	AM.forceMove(T)
 	spawn AM.set_dir(dir_to_use)

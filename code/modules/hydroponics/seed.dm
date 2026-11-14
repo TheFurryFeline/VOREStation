@@ -26,11 +26,14 @@
 	var/has_item_product           // Item products. (Eggy)
 	var/force_layer
 	var/harvest_sound = null		//Vorestation edit - sound the plant makes when harvested
+	var/wiki_flag = 0
 
 // Making the assumption anything in HYDRO-ponics is capable of processing water, and nutrients commonly associated with it, leaving us with the below to be tweaked.
 	var/list/beneficial_reagents   // Reagents considered uniquely 'beneficial' by a plant.
 	var/list/mutagenic_reagents    // Reagents considered uniquely 'mutagenic' by a plant.
 	var/list/toxic_reagents        // Reagents considered uniquely 'toxic' by a plant.
+
+	var/ai_mob_product = 0 //This variable determines whether or not a mob product is meant to be ai-controlled. If set to 0, mob products die without a player to control them.
 
 /datum/seed/New()
 
@@ -78,19 +81,19 @@
 		sleep(-1)
 		update_growth_stages()
 
-/datum/seed/proc/get_trait(var/trait)
+/datum/seed/proc/get_trait(trait)
 	return traits["[trait]"]
 
 /datum/seed/proc/get_trash_type()
 	return trash_type
 
-/datum/seed/proc/set_trait(var/trait,var/nval,var/ubound,var/lbound, var/degrade)
+/datum/seed/proc/set_trait(trait,nval,ubound,lbound, degrade)
 	if(!isnull(degrade)) nval *= degrade
 	if(!isnull(ubound))  nval = min(nval,ubound)
 	if(!isnull(lbound))  nval = max(nval,lbound)
 	traits["[trait]"] =  nval
 
-/datum/seed/proc/create_spores(var/turf/T)
+/datum/seed/proc/create_spores(turf/T)
 	if(!T)
 		return
 	if(!istype(T))
@@ -110,7 +113,7 @@
 	S.start()
 
 // Does brute damage to a target.
-/datum/seed/proc/do_thorns(var/mob/living/carbon/human/target, var/obj/item/fruit, var/target_limb)
+/datum/seed/proc/do_thorns(mob/living/carbon/human/target, obj/item/fruit, target_limb)
 
 	if(!get_trait(TRAIT_CARNIVOROUS))
 		return
@@ -126,7 +129,6 @@
 
 	if(!target_limb) target_limb = pick(BP_ALL)
 	var/blocked = target.run_armor_check(target_limb, "melee")
-	var/soaked = target.get_armor_soak(target_limb, "melee")
 
 	if(blocked >= 100)
 		return
@@ -139,28 +141,28 @@
 		has_edge = prob(get_trait(TRAIT_POTENCY)/2)
 
 		if(affecting)
-			to_chat(target, "<span class='danger'>\The [fruit]'s thorns pierce your [affecting.name] greedily!</span>")
-			target.apply_damage(damage, BRUTE, target_limb, blocked, soaked, "Thorns", sharp = TRUE, edge=has_edge)
+			to_chat(target, span_danger("\The [fruit]'s thorns pierce your [affecting.name] greedily!"))
+			target.apply_damage(damage, BRUTE, target_limb, blocked, TRUE, has_edge)
 		else
-			to_chat(target, "<span class='danger'>\The [fruit]'s thorns pierce your flesh greedily!</span>")
+			to_chat(target, span_danger("\The [fruit]'s thorns pierce your flesh greedily!"))
 			target.adjustBruteLoss(damage)
 	else
 		damage = max(1, round(5*get_trait(TRAIT_POTENCY)/100, 1))
 		has_edge = prob(get_trait(TRAIT_POTENCY)/5)
 		if(affecting)
-			to_chat(target, "<span class='danger'>\The [fruit]'s thorns dig deeply into your [affecting.name]!</span>")
-			target.apply_damage(damage, BRUTE, target_limb, blocked, "Thorns", sharp = TRUE, edge=has_edge)
+			to_chat(target, span_danger("\The [fruit]'s thorns dig deeply into your [affecting.name]!"))
+			target.apply_damage(damage, BRUTE, target_limb, blocked, TRUE, has_edge)
 		else
-			to_chat(target, "<span class='danger'>\The [fruit]'s thorns dig deeply into your flesh!</span>")
+			to_chat(target, span_danger("\The [fruit]'s thorns dig deeply into your flesh!"))
 			target.adjustBruteLoss(damage)
 
 // Adds reagents to a target.
-/datum/seed/proc/do_sting(var/mob/living/carbon/human/target, var/obj/item/fruit)
+/datum/seed/proc/do_sting(mob/living/carbon/human/target, obj/item/fruit)
 	if(!get_trait(TRAIT_STINGS))
 		return
 	if(chems && chems.len)
 
-		var/body_coverage = HEAD|FACE|EYES|UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
+		var/body_coverage = HEAD|FACE|EYES|CHEST|LEGS|FEET|ARMS|HANDS
 
 		for(var/obj/item/clothing/clothes in target)
 			if(target.item_is_in_hands(clothes))
@@ -174,14 +176,14 @@
 		var/obj/item/organ/external/E = target.get_organ(target.hand ? BP_L_HAND : BP_R_HAND)
 		if(istype(E) && E.robotic < ORGAN_ROBOT && fruit)
 			var/injecting = min(5,max(1,get_trait(TRAIT_POTENCY)/5))
-			to_chat(target, SPAN_DANGER("You are stung by \the [fruit]!"))
+			to_chat(target, span_danger("You are stung by \the [fruit]!"))
 			for(var/chem in chems)
 				target.reagents.add_reagent(chem,injecting)
 				if (fruit.reagents)
 					fruit.reagents.remove_reagent(chem, injecting)
 
 //Splatter a turf.
-/datum/seed/proc/splatter(var/turf/T,var/obj/item/thrown)
+/datum/seed/proc/splatter(turf/T,obj/item/thrown)
 	if(splat_type && !(locate(/obj/effect/plant) in T))
 		var/obj/effect/plant/splat = new splat_type(T, src)
 		if(!istype(splat)) // Plants handle their own stuff.
@@ -204,7 +206,7 @@
 		for(var/mob/living/M in T.contents)
 			if(!M.reagents)
 				continue
-			var/body_coverage = HEAD|FACE|EYES|UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
+			var/body_coverage = HEAD|FACE|EYES|CHEST|LEGS|FEET|ARMS|HANDS
 			for(var/obj/item/clothing/clothes in M)
 				if(M.item_is_in_hands(clothes))
 					continue
@@ -220,7 +222,7 @@
 					R.add_reagent(chem,min(5,max(1,get_trait(TRAIT_POTENCY)/3)))
 
 //Applies an effect to a target atom.
-/datum/seed/proc/thrown_at(var/obj/item/thrown,var/atom/target, var/force_explode)
+/datum/seed/proc/thrown_at(obj/item/thrown,atom/target, force_explode)
 
 	var/splatted
 	var/turf/origin_turf = get_turf(target)
@@ -243,7 +245,7 @@
 			closed_turfs |= T
 			valid_turfs |= T
 
-			for(var/dir in alldirs)
+			for(var/dir in GLOB.alldirs)
 				var/turf/neighbor = get_step(T,dir)
 				if(!neighbor || (neighbor in closed_turfs) || (neighbor in open_turfs))
 					continue
@@ -254,11 +256,11 @@
 				var/no_los
 				var/turf/last_turf = origin_turf
 				for(var/turf/target_turf in getline(origin_turf,neighbor))
-					if(air_master.air_blocked(last_turf, target_turf))
+					if(SSair.air_blocked(last_turf, target_turf))
 						no_los = 1
 						break
 					last_turf = target_turf
-				if(!no_los && air_master.air_blocked(origin_turf, neighbor))
+				if(!no_los && SSair.air_blocked(origin_turf, neighbor))
 					no_los = 1
 				if(no_los)
 					closed_turfs |= neighbor
@@ -270,11 +272,11 @@
 				apply_special_effect(M)
 			splatter(T,thrown)
 		if(origin_turf)
-			origin_turf.visible_message("<span class='danger'>The [thrown.name] explodes!</span>")
+			origin_turf.visible_message(span_danger("The [thrown.name] explodes!"))
 		qdel(thrown)
 		return
 
-	if(istype(target,/mob/living))
+	if(isliving(target))
 		splatted = apply_special_effect(target,thrown)
 	else if(istype(target,/turf))
 		splatted = 1
@@ -284,10 +286,10 @@
 	if(get_trait(TRAIT_JUICY) && splatted)
 		splatter(origin_turf,thrown)
 		if(origin_turf)
-			origin_turf.visible_message("<span class='danger'>The [thrown.name] splatters against [target]!</span>")
+			origin_turf.visible_message(span_danger("The [thrown.name] splatters against [target]!"))
 		qdel(thrown)
 
-/datum/seed/proc/handle_environment(var/turf/current_turf, var/datum/gas_mixture/environment, var/light_supplied, var/check_only)
+/datum/seed/proc/handle_environment(turf/current_turf, datum/gas_mixture/environment, light_supplied, check_only)
 
 	var/health_change = 0
 	// Handle gas consumption.
@@ -295,7 +297,7 @@
 		var/missing_gas = 0
 		for(var/gas in consume_gasses)
 			if(environment && environment.gas && environment.gas[gas] && \
-			 environment.gas[gas] >= consume_gasses[gas])
+				environment.gas[gas] >= consume_gasses[gas])
 				if(!check_only)
 					environment.adjust_gas(gas,-consume_gasses[gas],1)
 			else
@@ -337,7 +339,7 @@
 
 	return health_change
 
-/datum/seed/proc/apply_special_effect(var/mob/living/target,var/obj/item/thrown)
+/datum/seed/proc/apply_special_effect(mob/living/target,obj/item/thrown)
 
 	var/impact = 1
 	do_sting(target,thrown)
@@ -445,38 +447,30 @@
 
 	if(prob(5))
 		consume_gasses = list()
-		var/gas = pick("oxygen","nitrogen","phoron","carbon_dioxide")
+		var/gas = pick(GAS_O2,GAS_N2,GAS_PHORON,GAS_CO2,GAS_CH4)
 		consume_gasses[gas] = rand(3,9)
 
 	if(prob(5))
 		exude_gasses = list()
-		var/gas = pick("oxygen","nitrogen","phoron","carbon_dioxide")
+		var/gas = pick(GAS_O2,GAS_N2,GAS_PHORON,GAS_CO2,GAS_CH4)
 		exude_gasses[gas] = rand(3,9)
 
 	chems = list()
 	if(prob(80))
-		chems["nutriment"] = list(rand(1,10),rand(10,20))
+		chems[REAGENT_ID_NUTRIMENT] = list(rand(1,10),rand(10,20))
 
 	var/additional_chems = rand(0,5)
 
 	if(additional_chems)
-		// VOREStation Edit Start: Modified exclusion list
-		var/list/banned_chems = list(
-			"adminordrazine",
-			"nutriment",
-			"macrocillin",
-			"microcillin",
-			"normalcillin",
-			"magicdust"
-			)
-		// VOREStation Edit End: Modified exclusion list
 
 		for(var/x=1;x<=additional_chems;x++)
 
 			var/new_chem = pick(SSchemistry.chemical_reagents)
-			if(new_chem in banned_chems)
+			var/list/currently_banned_chems = list()
+			currently_banned_chems += GLOB.obtainable_chemical_blacklist
+			if(new_chem in currently_banned_chems)
 				continue
-			banned_chems += new_chem
+			currently_banned_chems += new_chem
 			chems[new_chem] = list(rand(1,10),rand(10,20))
 
 	if(prob(5))
@@ -572,11 +566,11 @@
 	return pick(mutants)
 
 //Mutates the plant overall (randomly).
-/datum/seed/proc/mutate(var/degree,var/turf/source_turf)
+/datum/seed/proc/mutate(degree,turf/source_turf)
 
 	if(!degree || get_trait(TRAIT_IMMUTABLE) > 0) return
 
-	source_turf.visible_message("<b>\The [display_name]</b> quivers!")
+	source_turf.visible_message(span_infoplain(span_bold("\The [display_name]") + " quivers!"))
 
 	//This looks like shit, but it's a lot easier to read/change this way.
 	var/total_mutations = rand(1,1+degree)
@@ -584,7 +578,7 @@
 		switch(rand(0,11))
 			if(0) //Plant cancer!
 				set_trait(TRAIT_ENDURANCE,get_trait(TRAIT_ENDURANCE)-rand(10,20),null,0)
-				source_turf.visible_message("<span class='danger'>\The [display_name] withers rapidly!</span>")
+				source_turf.visible_message(span_danger("\The [display_name] withers rapidly!"))
 			if(1)
 				set_trait(TRAIT_NUTRIENT_CONSUMPTION,get_trait(TRAIT_NUTRIENT_CONSUMPTION)+rand(-(degree*0.1),(degree*0.1)),5,0)
 				set_trait(TRAIT_WATER_CONSUMPTION,   get_trait(TRAIT_WATER_CONSUMPTION)   +rand(-degree,degree),50,0)
@@ -613,7 +607,7 @@
 				if(prob(degree*5))
 					set_trait(TRAIT_CARNIVOROUS,     get_trait(TRAIT_CARNIVOROUS)+rand(-degree,degree),2, 0)
 					if(get_trait(TRAIT_CARNIVOROUS))
-						source_turf.visible_message("<b>\The [display_name]</b> shudders hungrily.")
+						source_turf.visible_message(span_infoplain(span_bold("\The [display_name]") + " shudders hungrily."))
 			if(6)
 				set_trait(TRAIT_WEED_TOLERANCE,      get_trait(TRAIT_WEED_TOLERANCE)+(rand(-2,2)*degree),10, 0)
 				if(prob(degree*5))
@@ -634,7 +628,7 @@
 				set_trait(TRAIT_POTENCY,             get_trait(TRAIT_POTENCY)+(rand(-20,20)*degree),200, 0)
 				if(prob(degree*5))
 					set_trait(TRAIT_SPREAD,          get_trait(TRAIT_SPREAD)+rand(-1,1),2, 0)
-					source_turf.visible_message("<b>\The [display_name]</b> spasms visibly, shifting in the tray.")
+					source_turf.visible_message(span_infoplain(span_bold("\The [display_name]") + " spasms visibly, shifting in the tray."))
 				if(prob(degree*3))
 					set_trait(TRAIT_SPORING,        !get_trait(TRAIT_SPORING))
 			if(9)
@@ -652,19 +646,19 @@
 				if(prob(degree*2))
 					set_trait(TRAIT_BIOLUM,         !get_trait(TRAIT_BIOLUM))
 					if(get_trait(TRAIT_BIOLUM))
-						source_turf.visible_message("<b>\The [display_name]</b> begins to glow!")
+						source_turf.visible_message(span_infoplain(span_bold("\The [display_name]") + " begins to glow!"))
 						if(prob(degree*2))
 							set_trait(TRAIT_BIOLUM_COLOUR,get_random_colour(0,75,190))
-							source_turf.visible_message("<span class='notice'>\The [display_name]'s glow </span><font color='[get_trait(TRAIT_BIOLUM_COLOUR)]'>changes colour</font>!")
+							source_turf.visible_message(span_notice("\The [display_name]'s glow") + " <font color='[get_trait(TRAIT_BIOLUM_COLOUR)]'>changes colour</font>!")
 					else
-						source_turf.visible_message("<span class='notice'>\The [display_name]'s glow dims...</span>")
+						source_turf.visible_message(span_notice("\The [display_name]'s glow dims..."))
 			if(11)
 				set_trait(TRAIT_TELEPORTING,1)
 
 	return
 
 //Mutates a specific trait/set of traits.
-/datum/seed/proc/apply_gene(var/datum/plantgene/gene)
+/datum/seed/proc/apply_gene(datum/plantgene/gene)
 
 	if(!gene || !gene.values || get_trait(TRAIT_IMMUTABLE) > 0) return
 
@@ -689,6 +683,10 @@
 				for(var/i=1;i<=gene_chem.len;i++)
 
 					if(isnull(gene_chem[i])) gene_chem[i] = 0
+
+					var/list/chems_rid = chems[rid]
+					if(istype(chems_rid) && (chems_rid.len < i))
+						continue
 
 					if(chems[rid][i])
 						chems[rid][i] = max(1,round((gene_chem[i] + chems[rid][i])/2))
@@ -729,7 +727,7 @@
 	update_growth_stages()
 
 //Returns a list of the desired trait values.
-/datum/seed/proc/get_gene(var/genetype)
+/datum/seed/proc/get_gene(genetype)
 
 	if(!genetype) return 0
 
@@ -774,7 +772,7 @@
 	return (P ? P : 0)
 
 //Place the plant products at the feet of the user.
-/datum/seed/proc/harvest(var/mob/user,var/yield_mod,var/harvest_sample,var/force_amount)
+/datum/seed/proc/harvest(mob/user,yield_mod,harvest_sample,force_amount,reagent_mod,reagent_mod_amount)
 
 	if(!user)
 		return
@@ -789,10 +787,10 @@
 
 	if(!force_amount && get_trait(TRAIT_YIELD) == 0 && !harvest_sample)
 		if(istype(user))
-			to_chat(user, "<span class='danger'>You fail to harvest anything useful.</span>")
+			to_chat(user, span_danger("You fail to harvest anything useful."))
 	else
 		if(istype(user))
-			to_chat(user, "<span class='filter_notice'>You [harvest_sample ? "take a sample" : "harvest"] from the [display_name].</span>")
+			to_chat(user, span_filter_notice("You [harvest_sample ? "take a sample" : "harvest"] from the [display_name]."))
 
 		//This may be a new line. Update the global if it is.
 		if(name == "new line" || !(name in SSplants.seeds))
@@ -815,7 +813,7 @@
 					yield_mod = 0
 					total_yield = get_trait(TRAIT_YIELD)
 				else
-					total_yield = get_trait(TRAIT_YIELD) + rand(yield_mod)
+					total_yield = get_trait(TRAIT_YIELD) + rand(0, yield_mod)
 				total_yield = max(1,total_yield)
 
 		for(var/i = 0;i<total_yield;i++)
@@ -825,11 +823,14 @@
 			else if(has_item_product)
 				product = new has_item_product(get_turf(user))
 			else
-				product = new /obj/item/weapon/reagent_containers/food/snacks/grown(get_turf(user),name)
+				product = new /obj/item/reagent_containers/food/snacks/grown(get_turf(user),name)
 			if (get_trait(TRAIT_PRODUCT_COLOUR))
-				if (istype(product,/obj/item/weapon/reagent_containers/food))
-					var/obj/item/weapon/reagent_containers/food/food = product
+				if (istype(product,/obj/item/reagent_containers/food))
+					var/obj/item/reagent_containers/food/food = product
 					food.filling_color = get_trait(TRAIT_PRODUCT_COLOUR)
+
+			if(reagent_mod && reagent_mod_amount)
+				product.reagents.add_reagent(reagent_mod,reagent_mod_amount)
 
 			if(mysterious)
 				product.name += "?"
@@ -839,24 +840,22 @@
 				var/clr
 				if(get_trait(TRAIT_BIOLUM_COLOUR))
 					clr = get_trait(TRAIT_BIOLUM_COLOUR)
-				//VOREStation Edit Start - Tons of super bright super long range lights everywhere is annoying and laggy, so let's limit it a bit.
 				var/blight = get_trait(TRAIT_BIOLUM)
 				if(blight >= 5)
 					blight = 5
 				product.set_light(blight, 0.5, l_color = clr)
-				//VOREStation Edit End
-			if(get_trait(TRAIT_STINGS))
+			if(get_trait(TRAIT_STINGS) && isitem(product)) //Sometimes the product can be a mob.
 				product.force = 1
 
 			//Handle spawning in living, mobile products (like dionaea).
-			if(istype(product,/mob/living))
-				product.visible_message("<span class='notice'>The pod disgorges [product]!</span>")
+			if(isliving(product))
+				product.visible_message(span_notice("The pod disgorges [product]!"))
 				handle_living_product(product)
 
 // When the seed in this machine mutates/is modified, the tray seed value
 // is set to a new datum copied from the original. This datum won't actually
 // be put into the global datum list until the product is harvested, though.
-/datum/seed/proc/diverge(var/modified)
+/datum/seed/proc/diverge(modified)
 
 	if(get_trait(TRAIT_IMMUTABLE) > 0) return
 

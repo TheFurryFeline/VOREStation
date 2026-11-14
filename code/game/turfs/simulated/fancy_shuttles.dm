@@ -25,10 +25,11 @@ GLOBAL_LIST_EMPTY(fancy_shuttles)
 	var/icon/split_icon
 	var/fancy_shuttle_tag
 
-/obj/effect/fancy_shuttle/New() // has to be very early so others can grab it
+INITIALIZE_IMMEDIATE(/obj/effect/fancy_shuttle)
+/obj/effect/fancy_shuttle/Initialize(mapload) // has to be very early so others can grab it
 	. = ..()
 	if(!fancy_shuttle_tag)
-		error("Fancy shuttle with no tag at [x],[y],[z]! Type is: [type]")
+		log_mapping("## ERROR Fancy shuttle with no tag at [x],[y],[z]! Type is: [type]")
 		return INITIALIZE_HINT_QDEL
 	split_icon = icon(split_file, null, dir)
 	GLOB.fancy_shuttles[fancy_shuttle_tag] = src
@@ -41,7 +42,7 @@ GLOBAL_LIST_EMPTY(fancy_shuttles)
 	layer = DISPOSAL_LAYER
 	alpha = 90
 
-/obj/effect/fancy_shuttle_floor_preview/Initialize()
+/obj/effect/fancy_shuttle_floor_preview/Initialize(mapload)
 	. = ..()
 	return INITIALIZE_HINT_QDEL
 
@@ -78,7 +79,7 @@ GLOBAL_LIST_EMPTY(fancy_shuttles)
 	return ..()
 
 // No girders, and Eris plating
-/turf/simulated/wall/fancy_shuttle/dismantle_wall(var/devastated, var/explode, var/no_product)
+/turf/simulated/wall/fancy_shuttle/dismantle_wall(devastated, explode, no_product)
 
 	playsound(src, 'sound/items/Welder.ogg', 100, 1)
 	if(!no_product && !devastated)
@@ -130,7 +131,7 @@ GLOBAL_LIST_EMPTY(fancy_shuttles)
 	if(fancy_shuttle_tag) // after a shuttle jump it won't be set anymore, but the shuttle jump proc will set our icon and state
 		var/obj/effect/fancy_shuttle/F = GLOB.fancy_shuttles[fancy_shuttle_tag]
 		if(!F)
-			warning("Fancy shuttle wall at [x],[y],[z] couldn't locate a helper with tag [fancy_shuttle_tag]")
+			WARNING("Fancy shuttle wall at [x],[y],[z] couldn't locate a helper with tag [fancy_shuttle_tag]")
 			return
 		icon = F.split_icon
 		icon_state = "walls [x - F.x],[y - F.y]"
@@ -161,10 +162,10 @@ GLOBAL_LIST_EMPTY(fancy_shuttles)
 	var/icon_file
 	var/fancy_shuttle_tag
 
-/obj/effect/floor_decal/fancy_shuttle/Initialize()
+/obj/effect/floor_decal/fancy_shuttle/Initialize(mapload)
 	var/obj/effect/fancy_shuttle/F = GLOB.fancy_shuttles[fancy_shuttle_tag]
 	if(!F)
-		warning("Fancy shuttle floor decal at [x],[y],[z] couldn't locate a helper with tag [fancy_shuttle_tag]")
+		WARNING("Fancy shuttle floor decal at [x],[y],[z] couldn't locate a helper with tag [fancy_shuttle_tag]")
 		return INITIALIZE_HINT_QDEL
 	icon = F.split_icon
 	icon_file = F.split_file
@@ -174,13 +175,13 @@ GLOBAL_LIST_EMPTY(fancy_shuttles)
 /obj/effect/floor_decal/fancy_shuttle/make_decal_image()
 	return image(icon = icon, icon_state = icon_state, layer = BUILTIN_DECAL_LAYER)
 
-/obj/effect/floor_decal/fancy_shuttle/get_cache_key(var/turf/T)
+/obj/effect/floor_decal/fancy_shuttle/get_cache_key(turf/T)
 	return "[alpha]-[color]-[dir]-[icon_state]-[T.layer]-[icon_file]"
 
 /**
  * Shuttle Glass
  */
- //OLD GLASS - USE NEW GLASS
+//OLD GLASS - USE NEW GLASS
 /turf/simulated/wall/fancy_shuttle/window
 	opacity = FALSE
 	icon_state = "hull_transparent"
@@ -207,7 +208,7 @@ GLOBAL_LIST_EMPTY(fancy_shuttles)
 	if(fancy_shuttle_tag) // after a shuttle jump it won't be set anymore, but the shuttle jump proc will set our icon and state
 		var/obj/effect/fancy_shuttle/F = GLOB.fancy_shuttles[fancy_shuttle_tag]
 		if(!F)
-			warning("Fancy shuttle wall at [x],[y],[z] couldn't locate a helper with tag [fancy_shuttle_tag]")
+			WARNING("Fancy shuttle wall at [x],[y],[z] couldn't locate a helper with tag [fancy_shuttle_tag]")
 			return
 		icon = F.split_icon
 		icon_state = "walls [x - F.x],[y - F.y]"

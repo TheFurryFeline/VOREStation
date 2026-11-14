@@ -36,11 +36,13 @@
 // Data limits.
 #define IC_MAX_LIST_LENGTH			200
 
-var/list/all_integrated_circuits = list()
+GLOBAL_LIST_INIT(all_integrated_circuits, initialize_integrated_circuits_list())
 
 /proc/initialize_integrated_circuits_list()
+	var/list/circuit_list = list()
 	for(var/thing in typesof(/obj/item/integrated_circuit))
-		all_integrated_circuits += new thing()
+		circuit_list += new thing()
+	return circuit_list
 
 /obj/item/integrated_circuit
 	name = "integrated circuit"
@@ -48,7 +50,7 @@ var/list/all_integrated_circuits = list()
 	icon = 'icons/obj/integrated_electronics/electronic_components.dmi'
 	icon_state = "template"
 	w_class = ITEMSIZE_TINY
-	var/obj/item/device/electronic_assembly/assembly = null // Reference to the assembly holding this circuit, if any.
+	var/obj/item/electronic_assembly/assembly = null // Reference to the assembly holding this circuit, if any.
 	var/extended_desc = null
 	var/list/inputs = list()
 	var/list/inputs_default = list()			// Assoc list which will fill a pin with data upon creation.  e.g. "2" = 0 will set input pin 2 to equal 0 instead of null.

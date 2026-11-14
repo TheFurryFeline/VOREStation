@@ -8,8 +8,8 @@
 	icon_state = "secbot0"
 	maxHealth = 100
 	health = 100
-	req_one_access = list(access_security, access_forensics_lockers)
-	botcard_access = list(access_security, access_sec_doors, access_forensics_lockers, access_maint_tunnels)
+	req_one_access = list(ACCESS_SECURITY, ACCESS_FORENSICS_LOCKERS)
+	botcard_access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_FORENSICS_LOCKERS, ACCESS_MAINT_TUNNELS)
 	patrol_speed = 2
 	target_speed = 3
 
@@ -20,7 +20,7 @@
 	var/check_records = FALSE // If true, arrests people without a record.
 	var/check_arrest = TRUE // If true, arrests people who are set to arrest.
 	var/arrest_type = FALSE // If true, doesn't handcuff. You monster.
-	var/declare_arrests = FALSE // If true, announces arrests over sechuds.
+	var/datum/declare_arrests = FALSE // If true, announces arrests over sechuds.
 	var/threat = 0 // How much of a threat something is. Set upon acquiring a target.
 	var/attacked = FALSE // If true, gives the bot enough threat assessment to attack immediately.
 	var/retaliates = TRUE //If this type of secbot should retaliate at all - so that slime securitrons don't go ballistic the second they get glomped.
@@ -32,7 +32,7 @@
 	var/xeno_harm_strength = 15 	// How hard to hit simple_mobs.
 	var/baton_glow = "#FF6A00"
 
-	var/used_weapon	= /obj/item/weapon/melee/baton	//Weapon used by the bot
+	var/used_weapon	= /obj/item/melee/baton	//Weapon used by the bot
 
 	var/list/threat_found_sounds = list('sound/voice/bcriminal.ogg', 'sound/voice/bjustice.ogg', 'sound/voice/bfreeze.ogg')
 	var/list/preparing_arrest_sounds = list('sound/voice/bgod.ogg', 'sound/voice/biamthelaw.ogg', 'sound/voice/bsecureday.ogg', 'sound/voice/bradio.ogg', 'sound/voice/bcreep.ogg')
@@ -50,7 +50,7 @@
 				var/mob/living/L = pulledby
 				UnarmedAttack(L)
 				say("Do not interfere with active law enforcement routines!")
-				global_announcer.autosay("[src] was interfered with in <b>[get_area(src)]</b>, activating defense routines.", "[src]", "Security")
+				GLOB.global_announcer.autosay("[src] was interfered with in <b>[get_area(src)]</b>, activating defense routines.", "[src]", "Security")
 //VOREStation Add End
 /mob/living/bot/secbot/beepsky
 	name = "Officer Beepsky"
@@ -68,9 +68,9 @@
 
 	xeno_harm_strength = 9 // Weaker than regular slimesky but they can stun.
 	baton_glow = "#33CCFF"
-	req_one_access = list(access_research, access_robotics)
-	botcard_access = list(access_research, access_robotics, access_xenobiology, access_xenoarch, access_tox, access_tox_storage, access_maint_tunnels)
-	used_weapon = /obj/item/weapon/melee/baton/slime
+	req_one_access = list(ACCESS_RESEARCH, ACCESS_ROBOTICS)
+	botcard_access = list(ACCESS_RESEARCH, ACCESS_ROBOTICS, ACCESS_XENOBIOLOGY, ACCESS_XENOARCH, ACCESS_TOX, ACCESS_TOX_STORAGE, ACCESS_MAINT_TUNNELS)
+	used_weapon = /obj/item/melee/baton/slime
 	var/xeno_stun_strength = 5 // How hard to slimebatoned()'d naughty slimes. 5 works out to 2 discipline and 5 weaken.
 
 /mob/living/bot/secbot/slime/slimesky
@@ -122,18 +122,18 @@
 
 	return data
 
-/mob/living/bot/secbot/attack_hand(var/mob/user)
+/mob/living/bot/secbot/attack_hand(mob/user)
 	tgui_interact(user)
 
 /mob/living/bot/secbot/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
 	if(..())
 		return
 
-	add_fingerprint(usr)
+	add_fingerprint(ui.user)
 
 	switch(action)
 		if("power")
-			if(!access_scanner.allowed(usr))
+			if(!access_scanner.allowed(ui.user))
 				return FALSE
 			if(on)
 				turn_off()
@@ -141,7 +141,7 @@
 				turn_on()
 			. = TRUE
 
-	if(locked && !issilicon(usr))
+	if(locked && !issilicon(ui.user))
 		return TRUE
 
 	switch(action)
@@ -164,25 +164,25 @@
 			declare_arrests = !declare_arrests
 			. = TRUE
 
-/mob/living/bot/secbot/emag_act(var/remaining_uses, var/mob/user)
+/mob/living/bot/secbot/emag_act(remaining_uses, mob/user)
 	. = ..()
 	if(!emagged)
 		if(user)
-			to_chat(user, "<span class='notice'>\The [src] buzzes and beeps.</span>")
+			to_chat(user, span_notice("\The [src] buzzes and beeps."))
 		emagged = TRUE
 		patrol_speed = 3
 		target_speed = 4
 		return TRUE
 	else
-		to_chat(user, "<span class='notice'>\The [src] is already corrupt.</span>")
+		to_chat(user, span_notice("\The [src] is already corrupt."))
 
-/mob/living/bot/secbot/attackby(var/obj/item/O, var/mob/user)
+/mob/living/bot/secbot/attackby(obj/item/O, mob/user)
 	var/curhealth = health
 	. = ..()
 	if(health < curhealth && on == TRUE)
 		react_to_attack(user)
 
-/mob/living/bot/secbot/bullet_act(var/obj/item/projectile/P)
+/mob/living/bot/secbot/bullet_act(obj/item/projectile/P)
 	var/curhealth = health
 	var/mob/shooter = P.firer
 	. = ..()
@@ -190,7 +190,7 @@
 	if(!target && health < curhealth && shooter && (shooter in view(world.view, src)))
 		react_to_attack(shooter)
 
-/mob/living/bot/secbot/attack_generic(var/mob/attacker)
+/mob/living/bot/secbot/attack_generic(mob/attacker)
 	if(attacker)
 		react_to_attack(attacker)
 	..()
@@ -201,29 +201,32 @@
 
 	if(!target)
 		playsound(src, pick(threat_found_sounds), 50)
-		global_announcer.autosay("[src] was attacked by a hostile <b>[target_name(attacker)]</b> in <b>[get_area(src)]</b>.", "[src]", "Security")
+		GLOB.global_announcer.autosay("[src] was attacked by a hostile <b>[target_name(attacker)]</b> in <b>[get_area(src)]</b>.", "[src]", "Security")
 	target = attacker
 	attacked = TRUE
 
 // Say "freeze!" and demand surrender
-/mob/living/bot/secbot/proc/demand_surrender(mob/target, var/threat)
+/mob/living/bot/secbot/proc/demand_surrender(mob/target, threat)
 	var/suspect_name = target_name(target)
 	if(declare_arrests)
-		global_announcer.autosay("[src] is [arrest_type ? "detaining" : "arresting"] a level [threat] suspect <b>[suspect_name]</b> in <b>[get_area(src)]</b>.", "[src]", "Security")
+		GLOB.global_announcer.autosay("[src] is [arrest_type ? "detaining" : "arresting"] a level [threat] suspect <b>[suspect_name]</b> in <b>[get_area(src)]</b>.", "[src]", "Security")
 	say("Down on the floor, [suspect_name]! You have [SECBOT_WAIT_TIME*2] seconds to comply.")
 	playsound(src, pick(preparing_arrest_sounds), 50)
 	// Register to be told when the target moves
-	GLOB.moved_event.register(target, src, /mob/living/bot/secbot/proc/target_moved)
+	target.AddComponent(/datum/component/recursive_move)
+	RegisterSignal(target, COMSIG_MOVABLE_ATTEMPTED_MOVE, /mob/living/bot/secbot/proc/target_moved)
 
 // Callback invoked if the registered target moves
 /mob/living/bot/secbot/proc/target_moved(atom/movable/moving_instance, atom/old_loc, atom/new_loc)
+	SIGNAL_HANDLER
 	if(get_dist(get_turf(src), get_turf(target)) >= 1)
 		awaiting_surrender = INFINITY	// Done waiting!
-		GLOB.moved_event.unregister(moving_instance, src)
+		UnregisterSignal(moving_instance, COMSIG_MOVABLE_ATTEMPTED_MOVE)
 
 /mob/living/bot/secbot/resetTarget()
 	..()
-	GLOB.moved_event.unregister(target, src)
+	if(target)
+		UnregisterSignal(target, COMSIG_MOVABLE_ATTEMPTED_MOVE)
 	awaiting_surrender = 0
 	attacked = FALSE
 	walk_to(src, 0)
@@ -233,7 +236,7 @@
 		return
 	..()
 
-/mob/living/bot/secbot/confirmTarget(var/atom/A)
+/mob/living/bot/secbot/confirmTarget(atom/A)
 	if(!..())
 		return FALSE
 	check_threat(A)
@@ -248,7 +251,7 @@
 			target = M
 			awaiting_surrender = 0
 			say("Level [threat] infraction alert!")
-			custom_emote(1, "points at [M.name]!")
+			automatic_custom_emote(VISIBLE_MESSAGE, "points at [M.name]!")
 			playsound(src, pick(threat_found_sounds), 50)
 			return
 
@@ -264,7 +267,7 @@
 			var/action = arrest_type ? "detaining" : "arresting"
 			if(!ishuman(target))
 				action = "fighting"
-			global_announcer.autosay("[src] is [action] a level [threat] [action != "fighting" ? "suspect" : "threat"] <b>[target_name(target)]</b> in <b>[get_area(src)]</b>.", "[src]", "Security")
+			GLOB.global_announcer.autosay("[src] is [action] a level [threat] [action != "fighting" ? "suspect" : "threat"] <b>[target_name(target)]</b> in <b>[get_area(src)]</b>.", "[src]", "Security")
 		UnarmedAttack(target)
 
 /mob/living/bot/secbot/handlePanic()	// Speed modification based on alert level.
@@ -294,7 +297,7 @@
 	return .
 
 // So Beepsky talks while beating up simple mobs.
-/mob/living/bot/secbot/proc/insult(var/mob/living/L)
+/mob/living/bot/secbot/proc/insult(mob/living/L)
 	if(can_next_insult > world.time)
 		return
 	if(threat >= 10)
@@ -305,7 +308,7 @@
 		can_next_insult = world.time + 5 SECONDS
 
 
-/mob/living/bot/secbot/UnarmedAttack(var/mob/M, var/proximity)
+/mob/living/bot/secbot/UnarmedAttack(mob/M, proximity)
 	if(!..())
 		return
 
@@ -319,29 +322,29 @@
 		if(!H.lying || H.handcuffed || arrest_type)
 			cuff = FALSE
 		if(!cuff)
-			H.stun_effect_act(0, stun_strength, null)
-			playsound(src, 'sound/weapons/Egloves.ogg', 50, 1, -1)
+			H.stun_effect_act(0, stun_strength, null, electric = TRUE)
+			playsound(src, 'sound/weapons/egloves.ogg', 50, 1, -1)
 			do_attack_animation(H)
 			busy = TRUE
 			update_icons()
 			spawn(2)
 				busy = FALSE
 				update_icons()
-			visible_message("<span class='warning'>\The [H] was prodded by \the [src] with a stun baton!</span>")
+			visible_message(span_warning("\The [H] was prodded by \the [src] with a stun baton!"))
 			insult(H)
 		else
 			playsound(src, 'sound/weapons/handcuffs.ogg', 30, 1, -2)
-			visible_message("<span class='warning'>\The [src] is trying to put handcuffs on \the [H]!</span>")
+			visible_message(span_warning("\The [src] is trying to put handcuffs on \the [H]!"))
 			busy = TRUE
-			if(do_mob(src, H, 60))
+			if(do_after(src, 6 SECONDS, H))
 				if(!H.handcuffed)
-					if(istype(H.back, /obj/item/weapon/rig) && istype(H.gloves,/obj/item/clothing/gloves/gauntlets/rig))
-						H.handcuffed = new /obj/item/weapon/handcuffs/cable(H) // Better to be cable cuffed than stun-locked
+					if(istype(H.back, /obj/item/rig) && istype(H.gloves,/obj/item/clothing/gloves/gauntlets/rig))
+						H.handcuffed = new /obj/item/handcuffs/cable(H) // Better to be cable cuffed than stun-locked
 					else
-						H.handcuffed = new /obj/item/weapon/handcuffs(H)
+						H.handcuffed = new /obj/item/handcuffs(H)
 					H.update_handcuffed()
 			busy = FALSE
-	else if(istype(M, /mob/living))
+	else if(isliving(M))
 		var/mob/living/L = M
 		L.adjustBruteLoss(xeno_harm_strength)
 		do_attack_animation(M)
@@ -351,10 +354,10 @@
 		spawn(2)
 			busy = FALSE
 			update_icons()
-		visible_message("<span class='warning'>\The [M] was beaten by \the [src] with a stun baton!</span>")
+		visible_message(span_warning("\The [M] was beaten by \the [src] with a stun baton!"))
 		insult(L)
 
-/mob/living/bot/secbot/slime/UnarmedAttack(var/mob/living/L, var/proximity)
+/mob/living/bot/secbot/slime/UnarmedAttack(mob/living/L, proximity)
 	..()
 
 	if(istype(L, /mob/living/simple_mob/slime/xenobio))
@@ -362,14 +365,14 @@
 		S.slimebatoned(src, xeno_stun_strength)
 
 /mob/living/bot/secbot/explode()
-	visible_message("<span class='warning'>[src] blows apart!</span>")
+	visible_message(span_warning("[src] blows apart!"))
 	var/turf/Tsec = get_turf(src)
 
-	var/obj/item/weapon/secbot_assembly/Sa = new /obj/item/weapon/secbot_assembly(Tsec)
+	var/obj/item/secbot_assembly/Sa = new /obj/item/secbot_assembly(Tsec)
 	Sa.build_step = 1
 	Sa.add_overlay("hs_hole")
 	Sa.created_name = name
-	new /obj/item/device/assembly/prox_sensor(Tsec)
+	new /obj/item/assembly/prox_sensor(Tsec)
 	new used_weapon(Tsec)
 	if(prob(50))
 		new /obj/item/robot_parts/l_arm(Tsec)
@@ -388,7 +391,7 @@
 		return H.get_id_name("unidentified person")
 	return "unidentified lifeform"
 
-/mob/living/bot/secbot/proc/check_threat(var/mob/living/M)
+/mob/living/bot/secbot/proc/check_threat(mob/living/M)
 	if(!M || !istype(M) || M.stat == DEAD || src == M)
 		threat = 0
 
@@ -402,7 +405,7 @@
 
 //Secbot Construction
 
-/obj/item/clothing/head/helmet/attackby(var/obj/item/device/assembly/signaler/S, mob/user as mob)
+/obj/item/clothing/head/helmet/attackby(obj/item/assembly/signaler/S, mob/user as mob)
 	..()
 	if(!issignaler(S))
 		..()
@@ -413,7 +416,7 @@
 
 	if(S.secured)
 		qdel(S)
-		var/obj/item/weapon/secbot_assembly/A = new /obj/item/weapon/secbot_assembly
+		var/obj/item/secbot_assembly/A = new /obj/item/secbot_assembly
 		user.put_in_hands(A)
 		to_chat(user, "You add the signaler to the helmet.")
 		user.drop_from_inventory(src)
@@ -421,7 +424,7 @@
 	else
 		return
 
-/obj/item/weapon/secbot_assembly
+/obj/item/secbot_assembly
 	name = "helmet/signaler assembly"
 	desc = "Some sort of bizarre assembly."
 	icon = 'icons/obj/aibots.dmi'
@@ -434,10 +437,10 @@
 	var/build_step = 0
 	var/created_name = "Securitron"
 
-/obj/item/weapon/secbot_assembly/attackby(var/obj/item/W, var/mob/user)
+/obj/item/secbot_assembly/attackby(obj/item/W, mob/user)
 	..()
 	if(W.has_tool_quality(TOOL_WELDER) && !build_step)
-		var/obj/item/weapon/weldingtool/WT = W.get_welder()
+		var/obj/item/weldingtool/WT = W.get_welder()
 		if(WT.remove_fuel(0, user))
 			build_step = 1
 			add_overlay("hs_hole")
@@ -459,10 +462,10 @@
 		add_overlay("hs_arm")
 		qdel(W)
 
-	else if(istype(W, /obj/item/weapon/melee/baton) && build_step == 3)
+	else if(istype(W, /obj/item/melee/baton) && build_step == 3)
 		user.drop_item()
 		to_chat(user, "You complete the Securitron! Beep boop.")
-		if(istype(W, /obj/item/weapon/melee/baton/slime))
+		if(istype(W, /obj/item/melee/baton/slime))
 			var/mob/living/bot/secbot/slime/S = new /mob/living/bot/secbot/slime(get_turf(src))
 			S.name = created_name
 		else
@@ -471,10 +474,14 @@
 		qdel(W)
 		qdel(src)
 
-	else if(istype(W, /obj/item/weapon/pen))
-		var/t = sanitizeSafe(tgui_input_text(user, "Enter new robot name", name, created_name, MAX_NAME_LEN), MAX_NAME_LEN)
+	else if(istype(W, /obj/item/pen))
+		var/t = sanitizeSafe(tgui_input_text(user, "Enter new robot name", name, created_name, MAX_NAME_LEN, encode = FALSE), MAX_NAME_LEN)
 		if(!t)
 			return
 		if(!in_range(src, user) && loc != user)
 			return
 		created_name = t
+
+#undef SECBOT_WAIT_TIME
+#undef SECBOT_THREAT_ARREST
+#undef SECBOT_THREAT_ATTACK

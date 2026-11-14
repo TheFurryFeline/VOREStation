@@ -19,11 +19,13 @@
 /obj/structure/closet/gmcloset
 	name = "formal closet"
 	desc = "It's a storage unit for formal clothing."
-	closet_appearance = /decl/closet_appearance/wardrobe/suit
+	closet_appearance = /datum/decl/closet_appearance/wardrobe/suit
 
 	starts_with = list(
 		/obj/item/clothing/head/that = 2,
-		/obj/item/device/radio/headset/headset_service = 2,
+		/obj/item/radio/headset/service = 2,
+		/obj/item/radio/headset/alt/service = 2,
+		/obj/item/radio/headset/earbud/service = 2,
 		/obj/item/clothing/head/pin/flower,
 		/obj/item/clothing/head/pin/flower/pink,
 		/obj/item/clothing/head/pin/flower/yellow,
@@ -46,16 +48,18 @@
 /obj/structure/closet/chefcloset
 	name = "chef's closet"
 	desc = "It's a storage unit for foodservice garments."
-	closet_appearance = /decl/closet_appearance/wardrobe/white
+	closet_appearance = /datum/decl/closet_appearance/wardrobe/white
 
 	starts_with = list(
 		/obj/item/clothing/under/sundress,
 		/obj/item/clothing/under/waiter = 2,
-		/obj/item/device/radio/headset/headset_service = 2,
-		/obj/item/weapon/storage/box/mousetraps = 2,
+		/obj/item/radio/headset/service = 2,
+		/obj/item/radio/headset/alt/service = 2,
+		/obj/item/radio/headset/earbud/service = 2,
+		/obj/item/storage/box/mousetraps = 2,
 		/obj/item/clothing/under/rank/chef,
 		/obj/item/clothing/head/chefhat,
-		/obj/item/weapon/storage/bag/food = 2
+		/obj/item/storage/bag/food = 2
 		)
 
 /*
@@ -64,23 +68,27 @@
 /obj/structure/closet/jcloset
 	name = "custodial closet"
 	desc = "It's a storage unit for janitorial clothes and gear."
-	closet_appearance = /decl/closet_appearance/wardrobe/janitor
+	closet_appearance = /datum/decl/closet_appearance/wardrobe/janitor
 
 	starts_with = list(
 		/obj/item/clothing/under/rank/janitor,
 		/obj/item/clothing/under/dress/maid/janitor,
-		/obj/item/device/radio/headset/headset_service,
-		/obj/item/weapon/cartridge/janitor,
+		/obj/item/radio/headset/service,
+		/obj/item/radio/headset/alt/service,
+		/obj/item/radio/headset/earbud/service,
+		/obj/item/cartridge/janitor,
 		/obj/item/clothing/suit/storage/hooded/wintercoat/janitor,
 		/obj/item/clothing/gloves/black,
 		/obj/item/clothing/head/soft/purple,
 		/obj/item/clothing/head/beret/purple,
-		/obj/item/device/flashlight,
+		/obj/item/flashlight,
 		/obj/item/clothing/suit/caution = 4,
-		/obj/item/device/lightreplacer,
-		/obj/item/weapon/storage/bag/trash,
-		/obj/item/weapon/storage/belt/janitor,
-		/obj/item/clothing/shoes/galoshes
+		/obj/item/lightreplacer,
+		/obj/item/storage/bag/trash,
+		/obj/item/storage/belt/janitor,
+		/obj/item/vac_attachment,
+		/obj/item/clothing/shoes/galoshes,
+		/obj/item/clothing/glasses/hud/janitor
 		)
 
 /*
@@ -89,7 +97,7 @@
 /obj/structure/closet/lawcloset
 	name = "legal closet"
 	desc = "It's a storage unit for courtroom apparel and items."
-	closet_appearance = /decl/closet_appearance/wardrobe/suit
+	closet_appearance = /datum/decl/closet_appearance/wardrobe/suit
 
 	starts_with = list(
 		/obj/item/clothing/under/lawyer/female = 2,
@@ -110,7 +118,7 @@
 		/obj/item/clothing/glasses/sunglasses/big = 2,
 		/obj/item/clothing/under/lawyer/blue = 2,
 		/obj/item/clothing/under/lawyer/blue/skirt = 2,
-		/obj/item/device/tape/random = 2
+		/obj/item/rectape/random = 2
 		)
 
 /*
@@ -119,14 +127,14 @@
 /obj/structure/closet/jequipcloset
 	name = "custodial equipment closet"
 	desc = "It's a storage unit for janitorial clothes and gear."
-	closet_appearance = /decl/closet_appearance/wardrobe/janitor
+	closet_appearance = /datum/decl/closet_appearance/wardrobe/janitor
 
 	starts_with = list(
-		/obj/item/device/flashlight = 5,
+		/obj/item/flashlight = 5,
 		/obj/item/clothing/suit/caution = 12,
-		/obj/item/device/lightreplacer = 3,
-		/obj/item/weapon/storage/bag/trash = 3,
-		/obj/item/weapon/storage/box/lights/mixed = 3,
-		/obj/item/weapon/storage/box/mousetraps = 1,
-		/obj/item/weapon/grenade/chem_grenade/cleaner = 4
+		/obj/item/lightreplacer = 3,
+		/obj/item/storage/bag/trash = 3,
+		/obj/item/storage/box/lights/mixed = 3,
+		/obj/item/storage/box/mousetraps = 1,
+		/obj/item/grenade/chem_grenade/cleaner = 4
 		)

@@ -1,11 +1,11 @@
-var/datum/uplink/uplink = new()
+GLOBAL_DATUM_INIT(uplink, /datum/uplink, new)
 
 /datum/uplink
 	var/list/items_assoc
 	var/list/datum/uplink_item/items
 	var/list/datum/uplink_category/categories
 
-/datum/uplink/New(var/type)
+/datum/uplink/New(type)
 	items_assoc = list()
 	items = init_subtypes(/datum/uplink_item)
 	categories = init_subtypes(/datum/uplink_category)
@@ -43,7 +43,7 @@ var/datum/uplink/uplink = new()
 
 
 
-/datum/uplink_item/proc/buy(var/obj/item/device/uplink/U, var/mob/user)
+/datum/uplink_item/proc/buy(obj/item/uplink/U, mob/user)
 	var/extra_args = extra_args(user)
 	if(!extra_args)
 		return
@@ -66,16 +66,16 @@ var/datum/uplink/uplink = new()
 	return goods
 
 // Any additional arguments you wish to send to the get_goods
-/datum/uplink_item/proc/extra_args(var/mob/user)
+/datum/uplink_item/proc/extra_args(mob/user)
 	return TRUE
 
-/datum/uplink_item/proc/can_buy(var/obj/item/device/uplink/U, var/telecrystals)
+/datum/uplink_item/proc/can_buy(obj/item/uplink/U, telecrystals)
 	if(cost(U, telecrystals) > telecrystals)
 		return FALSE
 
 	return TRUE
 
-/datum/uplink_item/proc/cost(obj/item/device/uplink/U, mob/M)
+/datum/uplink_item/proc/cost(obj/item/uplink/U, telecrystals)
 	. = item_cost
 	if(U)
 		. = U.get_item_cost(src, .)
@@ -84,7 +84,7 @@ var/datum/uplink/uplink = new()
 	return desc
 
 // get_goods does not necessarily return physical objects, it is simply a way to acquire the uplink item without paying
-/datum/uplink_item/proc/get_goods(var/obj/item/device/uplink/U, var/loc, mob/user)
+/datum/uplink_item/proc/get_goods(obj/item/uplink/U, location, mob/user)
 	return FALSE
 
 /datum/uplink_item/proc/log_icon()
@@ -103,7 +103,7 @@ var/datum/uplink/uplink = new()
 *	Physical Uplink Entries		*
 *                           	*
 ********************************/
-/datum/uplink_item/item/buy(var/obj/item/device/uplink/U, var/mob/user)
+/datum/uplink_item/item/buy(obj/item/uplink/U, mob/user)
 	var/obj/item/I = ..()
 	if(!I)
 		return
@@ -117,8 +117,8 @@ var/datum/uplink/uplink = new()
 		A.put_in_any_hand_if_possible(I)
 	return I
 
-/datum/uplink_item/item/get_goods(var/obj/item/device/uplink/U, var/loc, var/mob/user)
-	var/obj/item/I = new path(loc)
+/datum/uplink_item/item/get_goods(obj/item/uplink/U, location, mob/user)
+	var/obj/item/I = new path(location)
 	return I
 
 /datum/uplink_item/item/description()
@@ -130,7 +130,7 @@ var/datum/uplink/uplink = new()
 
 /datum/uplink_item/item/log_icon()
 	var/obj/I = path
-	return "\icon[I][bicon(I)]"
+	return "[bicon(I)]"
 
 /********************************
 *                           	*
@@ -144,7 +144,7 @@ var/datum/uplink/uplink = new()
 	if(!default_abstract_uplink_icon)
 		default_abstract_uplink_icon = image('icons/obj/pda.dmi', "pda-syn")
 
-	return "\icon[default_abstract_uplink_icon][bicon(default_abstract_uplink_icon)]"
+	return "[bicon(default_abstract_uplink_icon)]"
 
 /*
  * Crated goods.
@@ -154,8 +154,8 @@ var/datum/uplink/uplink = new()
 	var/crate_path = /obj/structure/largecrate
 	var/list/paths = list()	// List of paths to be spawned into the crate.
 
-/datum/uplink_item/crated/get_goods(var/obj/item/device/uplink/U, var/loc)
-	var/obj/L = new crate_path(get_turf(loc))
+/datum/uplink_item/crated/get_goods(obj/item/uplink/U, location, mob/user)
+	var/obj/L = new crate_path(get_turf(location))
 
 	L.adjust_scale(rand(9, 12) / 10, rand(9, 12) / 10)	// Some variation in the crate / locker size.
 
@@ -174,30 +174,30 @@ var/datum/uplink/uplink = new()
 
 /datum/uplink_item/crated/log_icon()
 	var/obj/I = crate_path
-	return "\icon[I]"
+	return "[bicon(I)]"
 
 /****************
 * Support procs *
 ****************/
-/proc/get_random_uplink_items(var/obj/item/device/uplink/U, var/remaining_TC, var/loc)
+/proc/get_random_uplink_items(obj/item/uplink/U, remaining_TC, location)
 	var/list/bought_items = list()
 	while(remaining_TC)
-		var/datum/uplink_item/I = default_uplink_selection.get_random_item(remaining_TC, U, bought_items)
+		var/datum/uplink_item/I = GLOB.default_uplink_selection.get_random_item(remaining_TC, U, bought_items)
 		if(!I)
 			break
 		bought_items += I
-		remaining_TC -= I.cost(remaining_TC, U)
+		remaining_TC -= I.cost(U, remaining_TC)
 
 	return bought_items
 
-/proc/get_surplus_items(var/obj/item/device/uplink/U, var/remaining_TC, var/loc)
+/proc/get_surplus_items(obj/item/uplink/U, remaining_TC, location)
 	var/list/bought_items = list()
 	var/override = TRUE
 	while(remaining_TC)
-		var/datum/uplink_item/I = all_uplink_selection.get_random_item(remaining_TC, U, bought_items, override)
+		var/datum/uplink_item/I = GLOB.all_uplink_selection.get_random_item(remaining_TC, U, bought_items, override)
 		if(!I)
 			break
 		bought_items += I
-		remaining_TC -= I.cost(remaining_TC, U)
+		remaining_TC -= I.cost(U, remaining_TC)
 
 	return bought_items

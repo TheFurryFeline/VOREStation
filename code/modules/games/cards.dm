@@ -3,77 +3,89 @@
 	var/card_icon = "card_back"
 	var/back_icon = "card_back"
 
-/obj/item/weapon/deck
+/obj/item/deck
 	w_class = ITEMSIZE_SMALL
 	icon = 'icons/obj/playing_cards.dmi'
+	description_info = "Alt click to shuffle, Ctrl click to deal, Ctrl+Shift click to deal multiple."
 	var/list/cards = list()
 	var/cooldown = 0 // to prevent spam shuffle
 
-/obj/item/weapon/deck/holder
+/obj/item/deck/holder
 	name = "card box"
 	desc = "A small leather case to show how classy you are compared to everyone else."
 	icon_state = "card_holder"
 
-/obj/item/weapon/deck/cards
+/obj/item/deck/cards
 	name = "deck of cards"
 	desc = "A simple deck of playing cards."
 	icon_state = "deck"
 	drop_sound = 'sound/items/drop/paper.ogg'
 	pickup_sound = 'sound/items/pickup/paper.ogg'
+	var/card_icon_prefix = ""
+	var/deck_size = 1 // # of times we will generate cards within this deck
 
-/obj/item/weapon/deck/cards/New()
-	..()
-	var/datum/playingcard/P
-	for(var/suit in list("spades","clubs","diamonds","hearts"))
+/obj/item/deck/cards/proc/init_cards()
+	PROTECTED_PROC(TRUE)
+	var/datum/playingcard/pcard
+	for(var/i = 0, i < deck_size, i++)
+		for(var/suit in list("spades","clubs","diamonds","hearts"))
+			var/colour
+			switch(suit)
+				if("clubs", "spades")
+					colour = "black_"
+				else
+					colour = "red_"
 
-		var/colour
-		if(suit == "spades" || suit == "clubs")
-			colour = "black_"
-		else
-			colour = "red_"
+			for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten"))
+				pcard = new()
+				pcard.name = "[number] of [suit]"
+				pcard.card_icon = "[card_icon_prefix][colour]num"
+				pcard.back_icon = "[card_icon_prefix]card_back"
+				cards += pcard
 
-		for(var/number in list("ace","two","three","four","five","six","seven","eight","nine","ten"))
-			P = new()
-			P.name = "[number] of [suit]"
-			P.card_icon = "[colour]num"
-			P.back_icon = "card_back"
-			cards += P
+			for(var/number in list("jack","queen","king"))
+				pcard = new()
+				pcard.name = "[number] of [suit]"
+				pcard.card_icon = "[card_icon_prefix][colour]col"
+				pcard.back_icon = "[card_icon_prefix]card_back"
+				cards += pcard // Make it so.
 
-		for(var/number in list("jack","queen","king"))
-			P = new()
-			P.name = "[number] of [suit]"
-			P.card_icon = "[colour]col"
-			P.back_icon = "card_back"
-			cards += P
+		init_jokers()
 
+/obj/item/deck/cards/proc/init_jokers()
+	var/datum/playingcard/pcard
 	for(var/i = 0, i<2, i++)
-		P = new()
-		P.name = "joker"
-		P.card_icon = "joker"
-		cards += P
+		pcard = new()
+		pcard.name = "joker"
+		pcard.card_icon = "joker"
+		cards += pcard
 
-/obj/item/weapon/deck/attackby(obj/O as obj, mob/user as mob)
-	if(istype(O,/obj/item/weapon/hand))
-		var/obj/item/weapon/hand/H = O
+/obj/item/deck/cards/Initialize(mapload)
+	. = ..()
+	init_cards()
+
+/obj/item/deck/attackby(obj/O, mob/user)
+	if(istype(O,/obj/item/hand))
+		var/obj/item/hand/H = O
 		if(H.parentdeck == src)
 			for(var/datum/playingcard/P in H.cards)
 				cards += P
 			qdel(H)
-			to_chat(user,"<span class='notice'>You place your cards on the bottom of \the [src]</span>.")
+			to_chat(user,span_notice("You place your cards on the bottom of \the [src]."))
 			return
 		else
-			to_chat(user,"<span class='warning'>You can't mix cards from other decks!</span>")
+			to_chat(user,span_warning("You can't mix cards from other decks!"))
 			return
 	..()
 
-/obj/item/weapon/deck/attack_hand(mob/user as mob)
+/obj/item/deck/attack_hand(mob/user as mob)
 	var/mob/living/carbon/human/H = user
-	if(istype(src.loc, /obj/item/weapon/storage) || src == H.r_store || src == H.l_store || src.loc == user) // so objects can be removed from storage containers or pockets. also added a catch-all, so if it's in the mob you'll pick it up.
+	if(ishuman(H) && (istype(src.loc, /obj/item/storage) || src == H.r_store || src == H.l_store || src.loc == user)) // so objects can be removed from storage containers or pockets. also added a catch-all, so if it's in the mob you'll pick it up. Human only, however!
 		..()
 	else // but if they're not, or are in your hands, you can still draw cards.
 		draw_card()
 
-/obj/item/weapon/deck/verb/draw_card()
+/obj/item/deck/verb/draw_card()
 
 	set category = "Object"
 	set name = "Draw"
@@ -82,22 +94,22 @@
 
 	var/mob/living/carbon/user = usr
 
-	if(usr.stat || !Adjacent(usr)) return
+	if(user.stat || !Adjacent(user)) return
 
 	if(user.hands_are_full()) // Safety check lest the card disappear into oblivion
-		to_chat(user,"<span class='notice'>Your hands are full!</span>")
+		to_chat(user,span_notice("Your hands are full!"))
 		return
 
-	if(!istype(usr,/mob/living/carbon))
+	if(!iscarbon(user))
 		return
 
 	if(!cards.len)
-		to_chat(user,"<span class='notice'>There are no cards in the deck.</span>")
+		to_chat(user,span_notice("There are no cards in the deck."))
 		return
 
-	var/obj/item/weapon/hand/H = user.get_type_in_hands(/obj/item/weapon/hand)
+	var/obj/item/hand/H = user.get_type_in_hands(/obj/item/hand)
 	if(H && !(H.parentdeck == src))
-		to_chat(user,"<span class='warning'>You can't mix cards from different decks!</span>")
+		to_chat(user,span_warning("You can't mix cards from different decks!"))
 		return
 
 	if(!H)
@@ -111,10 +123,10 @@
 	cards -= P
 	H.parentdeck = src
 	H.update_icon()
-	user.visible_message("<b>\The [user]</b> draws a card.")
-	to_chat(user,"<span class='notice'>It's the [P].</span>")
+	user.visible_message(span_infoplain(span_bold("\The [user]") + " draws a card."))
+	to_chat(user,span_notice("It's the [P]."))
 
-/obj/item/weapon/deck/verb/deal_card()
+/obj/item/deck/verb/deal_card()
 
 	set category = "Object"
 	set name = "Deal"
@@ -124,7 +136,7 @@
 	if(usr.stat || !Adjacent(usr)) return
 
 	if(!cards.len)
-		to_chat(usr,"<span class='notice'>There are no cards in the deck.</span>")
+		to_chat(usr,span_notice("There are no cards in the deck."))
 		return
 
 	var/list/players = list()
@@ -138,7 +150,7 @@
 
 	deal_at(usr, M, 1)
 
-/obj/item/weapon/deck/verb/deal_card_multi()
+/obj/item/deck/verb/deal_card_multi()
 
 	set category = "Object"
 	set name = "Deal Multiple Cards"
@@ -148,7 +160,7 @@
 	if(usr.stat || !Adjacent(usr)) return
 
 	if(!cards.len)
-		to_chat(usr,"<span class='notice'>There are no cards in the deck.</span>")
+		to_chat(usr,span_notice("There are no cards in the deck."))
 		return
 
 	var/list/players = list()
@@ -165,8 +177,90 @@
 
 	deal_at(usr, M, dcard)
 
-/obj/item/weapon/deck/proc/deal_at(mob/user, mob/target, dcard) // Take in the no. of card to be dealt
-	var/obj/item/weapon/hand/H = new(get_step(user, user.dir))
+/obj/item/deck/verb/search_cards()
+
+	set category = "Object"
+	set name = "Search for Cards"
+	set desc = "Search for and draw a specific card (or cards) in the deck. This will be an obvious action to all observers."
+	set src in view(1)
+
+	var/mob/living/carbon/user = usr
+
+	if(user.stat || !Adjacent(user)) return
+
+	if(user.hands_are_full()) // Safety check lest the card disappear into oblivion
+		to_chat(user,span_notice("Your hands are full!"))
+		return
+
+	if(!iscarbon(user))
+		return
+
+	if(!cards.len)
+		to_chat(user, span_notice("There are no cards in the deck."))
+		return
+
+	var/obj/item/hand/H = user.get_type_in_hands(/obj/item/hand)
+	if(H && !(H.parentdeck == src))
+		to_chat(user, span_warning("You can't mix cards from different decks!"))
+		return
+
+
+	user.visible_message(span_notice("\The [user] looks into \the [src] and searches within it...")) // Emote before doing anything so you can't cheat!
+
+	// We store the card names as a dictionary with the card name as the key and the number of duplicates of that card
+	// 		because otherwise the TGUI checkbox checks all duplicate names if you tick just one
+	var/list/card_names = list()
+	for(var/datum/playingcard/P in cards)
+		var/name = P.name
+		// If we haven't yet found any cards with this name...
+		if(!card_names[name])
+			// ... Add them to a new list, where we'll store any duplicates!
+			card_names[name] = list()
+		card_names[name] += name
+
+
+	var/list/cards_to_choose = list()
+	for(var/key, value in card_names)
+		var/list/L = value
+		for(var/i = 0, i < length(L), i++)
+			cards_to_choose += "[key] ([i+1])"
+
+	var/list/cards_to_draw = tgui_input_checkboxes(user, "Which cards do you want to retrieve?", "Choose your cards", cards_to_choose, 1)
+
+	if(!LAZYLEN(cards_to_draw))
+		user.visible_message(span_notice("\The [user] searches for specific cards in \the [src], but draws none."))
+		return
+
+	if(!H)
+		H = new(get_turf(src))
+		user.put_in_hands(H)
+
+	if(!H || !user)
+		return // Sanity check
+
+	// Search through our cards for every card the user chose, and remove them from the deck if the name matches!
+	for(var/to_draw in cards_to_draw)
+		for(var/i = length(cards), i > 0, i--)
+			// Ignore the duplicate number at the end, we just want the card name itself!
+			var/TDN = copytext(to_draw, 1, length(to_draw) - 3)
+			var/datum/playingcard/P = cards[i]
+			if(TDN == P.name)
+				H.cards += P
+				cards -= P
+				H.parentdeck = src
+				break
+	H.update_icon()
+
+	user.visible_message(span_notice("\The [user] searches for specific cards in \the [src], and draws [cards_to_draw.len]."))
+
+/obj/item/deck/item_ctrl_click(mob/user)
+	deal_card()
+
+/obj/item/deck/click_ctrl_shift(mob/user)
+	deal_card_multi()
+
+/obj/item/deck/proc/deal_at(mob/user, mob/target, dcard) // Take in the no. of card to be dealt
+	var/obj/item/hand/H = new(get_step(user, user.dir))
 	var/i
 	for(i = 0, i < dcard, i++)
 		H.cards += cards[1]
@@ -175,28 +269,27 @@
 		H.concealed = 1
 		H.update_icon()
 	if(user==target)
-		var/datum/gender/TU = gender_datums[user.get_visible_gender()]
-		user.visible_message("<span class = 'notice'>\The [user] deals [dcard] card(s) to [TU.himself].</span>")
+		user.visible_message(span_notice("\The [user] deals [dcard] card(s) to [user.p_themselves()]."))
 	else
-		user.visible_message("<span class = 'notice'>\The [user] deals [dcard] card(s) to \the [target].</span>")
+		user.visible_message(span_notice("\The [user] deals [dcard] card(s) to \the [target]."))
 	H.throw_at(get_step(target,target.dir),10,1,H)
 
 
-/obj/item/weapon/hand/attackby(obj/O as obj, mob/user as mob)
-	if(cards.len == 1 && istype(O, /obj/item/weapon/pen))
+/obj/item/hand/attackby(obj/O as obj, mob/user as mob)
+	if(cards.len == 1 && istype(O, /obj/item/pen))
 		var/datum/playingcard/P = cards[1]
 		if(P.name != "Blank Card")
-			to_chat(user,"<span class = 'notice'>You cannot write on that card.</span>")
+			to_chat(user,span_notice("You cannot write on that card."))
 			return
-		var/cardtext = sanitize(tgui_input_text(user, "What do you wish to write on the card?", "Card Editing", null, MAX_PAPER_MESSAGE_LEN), MAX_PAPER_MESSAGE_LEN)
+		var/cardtext = tgui_input_text(user, "What do you wish to write on the card?", "Card Editing", null, MAX_PAPER_MESSAGE_LEN)
 		if(!cardtext)
 			return
 		P.name = cardtext
 		// SNOWFLAKE FOR CAG, REMOVE IF OTHER CARDS ARE ADDED THAT USE THIS.
 		P.card_icon = "cag_white_card"
 		update_icon()
-	else if(istype(O,/obj/item/weapon/hand))
-		var/obj/item/weapon/hand/H = O
+	else if(istype(O,/obj/item/hand))
+		var/obj/item/hand/H = O
 		if(H.parentdeck == src.parentdeck) // Prevent cardmixing
 			for(var/datum/playingcard/P in cards)
 				H.cards += P
@@ -206,24 +299,26 @@
 			H.update_icon()
 			return
 		else
-			to_chat(user,"<span class = 'notice'>You cannot mix cards from other decks!</span>")
+			to_chat(user,span_notice("You cannot mix cards from other decks!"))
 			return
 
 	..()
 
-/obj/item/weapon/deck/attack_self()
-	shuffle()
+/obj/item/deck/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+	shuffle(user)
 
 
-/obj/item/weapon/deck/verb/verb_shuffle()
+/obj/item/deck/verb/verb_shuffle()
 	set category = "Object"
 	set name = "Shuffle"
 	set desc = "Shuffle the cards in the deck."
 	set src in view(1)
-	shuffle()
+	shuffle(usr)
 
-/obj/item/weapon/deck/proc/shuffle()
-	var/mob/living/user = usr
+/obj/item/deck/proc/shuffle(mob/user)
 	if (cooldown < world.time - 10) // 15 ticks cooldown
 		var/list/newcards = list()
 		while(cards.len)
@@ -231,50 +326,59 @@
 			newcards += P
 			cards -= P
 		cards = newcards
-		user.visible_message("<span class = 'notice'>\The [user] shuffles [src].</span>")
+		user.visible_message(span_notice("\The [user] shuffles [src]."))
 		playsound(src, 'sound/items/cardshuffle.ogg', 50, 1)
 		cooldown = world.time
 	else
 		return
 
+/obj/item/deck/click_alt(mob/user)
+	if(user.stat || !Adjacent(user))
+		return
+	shuffle(user)
 
-/obj/item/weapon/deck/MouseDrop(mob/user as mob) // Code from Paper bin, so you can still pick up the deck
-	if((user == usr && (!( usr.restrained() ) && (!( usr.stat ) && (usr.contents.Find(src) || in_range(src, usr))))))
-		if(!istype(usr, /mob/living/simple_mob))
-			if( !usr.get_active_hand() )		//if active hand is empty
+/obj/item/deck/MouseDrop(mob/user) // Code from Paper bin, so you can still pick up the deck
+	if((user == usr && (!( user.restrained() ) && (!( user.stat ) && (user.contents.Find(src) || in_range(src, user))))))
+		if(!isanimal(user))
+			if( !user.get_active_hand() )		//if active hand is empty
 				var/mob/living/carbon/human/H = user
-				var/obj/item/organ/external/temp = H.organs_by_name["r_hand"]
+				var/obj/item/organ/external/temp = H.organs_by_name[BP_R_HAND]
 
 				if (H.hand)
-					temp = H.organs_by_name["l_hand"]
+					temp = H.organs_by_name[BP_L_HAND]
 				if(temp && !temp.is_usable())
-					to_chat(user,"<span class='notice'>You try to move your [temp.name], but cannot!</span>")
+					to_chat(user,span_notice("You try to move your [temp.name], but cannot!"))
 					return
 
-				to_chat(user,"<span class='notice'>You pick up [src].</span>")
+				to_chat(user,span_notice("You pick up [src]."))
 				user.put_in_hands(src)
 
 	return
 
-/obj/item/weapon/deck/verb_pickup() // Snowflaked so pick up verb work as intended
+/obj/item/deck/verb_pickup() // Snowflaked so pick up verb work as intended
 	var/mob/user = usr
-	if((istype(user) && (!( usr.restrained() ) && (!( usr.stat ) && (usr.contents.Find(src) || in_range(src, usr))))))
-		if(!istype(usr, /mob/living/simple_mob))
-			if( !usr.get_active_hand() )		//if active hand is empty
+	if((istype(user) && (!( user.restrained() ) && (!( user.stat ) && (user.contents.Find(src) || in_range(src, user))))))
+		if(!isanimal(user))
+			if( !user.get_active_hand() )		//if active hand is empty
 				var/mob/living/carbon/human/H = user
-				var/obj/item/organ/external/temp = H.organs_by_name["r_hand"]
+				var/obj/item/organ/external/temp = H.organs_by_name[BP_R_HAND]
 
 				if (H.hand)
-					temp = H.organs_by_name["l_hand"]
+					temp = H.organs_by_name[BP_L_HAND]
 				if(temp && !temp.is_usable())
-					to_chat(user,"<span class='notice'>You try to move your [temp.name], but cannot!</span>")
+					to_chat(user,span_notice("You try to move your [temp.name], but cannot!"))
 					return
 
-				to_chat(user,"<span class='notice'>You pick up [src].</span>")
+				to_chat(user,span_notice("You pick up [src]."))
 				user.put_in_hands(src)
 	return
 
-/obj/item/weapon/pack/
+/obj/item/deck/cards/triple
+	name = "big deck of cards"
+	desc = "A simple deck of playing cards with triple the number of cards."
+	deck_size = 3
+
+/obj/item/pack/
 	name = "Card Pack"
 	desc = "For those with disposible income."
 
@@ -287,9 +391,12 @@
 	pickup_sound = 'sound/items/pickup/paper.ogg'
 
 
-/obj/item/weapon/pack/attack_self(var/mob/user as mob)
-	user.visible_message("<span class ='danger'>[user] rips open \the [src]!</span>")
-	var/obj/item/weapon/hand/H = new()
+/obj/item/pack/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+	user.visible_message(span_danger("[user] rips open \the [src]!"))
+	var/obj/item/hand/H = new()
 
 	H.cards += cards
 	H.parentdeck = src.parentdeck
@@ -300,9 +407,10 @@
 	H.update_icon()
 	user.put_in_active_hand(H)
 
-/obj/item/weapon/hand
+/obj/item/hand
 	name = "hand of cards"
 	desc = "Some playing cards."
+	description_info = "Alt click to remove a card, Ctrl click to discard cards."
 	icon = 'icons/obj/playing_cards.dmi'
 	icon_state = "empty"
 	drop_sound = 'sound/items/drop/paper.ogg'
@@ -313,7 +421,7 @@
 	var/list/cards = list()
 	var/parentdeck = null
 
-/obj/item/weapon/hand/verb/discard()
+/obj/item/hand/verb/discard()
 
 	set category = "Object"
 	set name = "Discard"
@@ -335,33 +443,36 @@
 		var/datum/playingcard/card = to_discard[discarding]
 		to_discard.Cut()
 
-		var/obj/item/weapon/hand/H = new(src.loc)
+		var/obj/item/hand/H = new(src.loc)
 		H.cards += card
 		cards -= card
 		H.concealed = 0
 		H.parentdeck = src.parentdeck
 		H.update_icon()
 		src.update_icon()
-		usr.visible_message("<span class = 'notice'>\The [usr] plays \the [discarding].</span>")
+		usr.visible_message(span_notice("\The [usr] plays \the [discarding]."))
 		H.loc = get_turf(usr)
 		H.Move(get_step(usr,usr.dir))
 
 	if(!cards.len)
 		qdel(src)
 
-/obj/item/weapon/hand/attack_self(var/mob/user as mob)
+/obj/item/hand/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	concealed = !concealed
 	update_icon()
-	user.visible_message("<span class = 'notice'>\The [user] [concealed ? "conceals" : "reveals"] their hand.</span>")
+	user.visible_message(span_notice("\The [user] [concealed ? "conceals" : "reveals"] their hand."))
 
-/obj/item/weapon/hand/examine(mob/user)
+/obj/item/hand/examine(mob/user)
 	. = ..()
 	if((!concealed) && cards.len)
 		. += "It contains: "
 		for(var/datum/playingcard/P in cards)
 			. += "\The [P.name]."
 
-/obj/item/weapon/hand/verb/Removecard()
+/obj/item/hand/verb/Removecard()
 
 	set category = "Object"
 	set name = "Remove card"
@@ -373,19 +484,19 @@
 	if(user.stat || !Adjacent(user)) return
 
 	if(user.hands_are_full()) // Safety check lest the card disappear into oblivion
-		to_chat(usr,"<span class='danger'>Your hands are full!</span>")
+		to_chat(user,span_danger("Your hands are full!"))
 		return
 
 	var/pickablecards = list()
 	for(var/datum/playingcard/P in cards)
-		pickablecards[P.name] += P
-	var/pickedcard = tgui_input_list(usr, "Which card do you want to remove from the hand?", "Card Selection", pickablecards)
+		pickablecards[P.name] = P
+	var/pickedcard = tgui_input_list(user, "Which card do you want to remove from the hand?", "Card Selection", pickablecards)
 
-	if(!pickedcard || !pickablecards[pickedcard] || !usr || !src) return
+	if(!pickedcard || !pickablecards[pickedcard] || !user || !src) return
 
 	var/datum/playingcard/card = pickablecards[pickedcard]
 
-	var/obj/item/weapon/hand/H = new(get_turf(src))
+	var/obj/item/hand/H = new(get_turf(src))
 	user.put_in_hands(H)
 	H.cards += card
 	cards -= card
@@ -398,7 +509,7 @@
 		qdel(src)
 	return
 
-/obj/item/weapon/hand/update_icon(var/direction = 0)
+/obj/item/hand/update_icon(direction = 0)
 
 	var/cardNumber = cards.len
 
@@ -456,12 +567,21 @@
 		i++
 
 
-/obj/item/weapon/hand/dropped(mob/user as mob)
+/obj/item/hand/dropped(mob/user, equipping, slot)
+	..()
 	if(locate(/obj/structure/table, loc))
 		src.update_icon(user.dir)
 	else
 		update_icon()
 
-/obj/item/weapon/hand/pickup(mob/user as mob)
+/obj/item/hand/pickup(mob/user)
 	..()
 	src.update_icon()
+
+/obj/item/hand/item_ctrl_click(mob/user)
+	if(user.stat || !Adjacent(user))
+		return
+	discard()
+
+/obj/item/hand/click_alt(mob/user)
+	Removecard()

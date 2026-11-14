@@ -1,6 +1,5 @@
 // Infiltrator is a variant of Traitor, except that the traitors are in a team and can communicate with a special headset.
-
-var/datum/antagonist/traitor/infiltrator/infiltrators
+GLOBAL_DATUM(infiltrators, /datum/antagonist/traitor/infiltrator)
 
 // Inherits most of its vars from the base datum.
 /datum/antagonist/traitor/infiltrator
@@ -11,29 +10,29 @@ var/datum/antagonist/traitor/infiltrator/infiltrators
 	role_text = "Infiltrator"
 	role_text_plural = "Infiltrators"
 	welcome_text = "To speak on your team's private channel, use :t."
-	protected_jobs = list("Security Officer", "Warden", "Detective", "Internal Affairs Agent", "Head of Security", "Site Manager")
+	protected_jobs = list(JOB_SECURITY_OFFICER, JOB_WARDEN, JOB_DETECTIVE, JOB_INTERNAL_AFFAIRS_AGENT, JOB_HEAD_OF_SECURITY, JOB_SITE_MANAGER)
 	flags = ANTAG_SUSPICIOUS | ANTAG_RANDSPAWN | ANTAG_VOTABLE
 	can_speak_aooc = TRUE
 
 /datum/antagonist/traitor/infiltrator/New()
 	..()
-	infiltrators = src
+	GLOB.infiltrators = src
 
-/datum/antagonist/traitor/infiltrator/equip(var/mob/living/carbon/human/traitor_mob)
+/datum/antagonist/traitor/infiltrator/equip(mob/living/carbon/human/traitor_mob)
 	..() // Give the uplink and other stuff.
 	// Now for the special headset.
 
 	// Humans and the AI.
-	if(istype(traitor_mob) || istype(traitor_mob, /mob/living/silicon/ai))
-		var/obj/item/device/radio/headset/R
-		R = locate(/obj/item/device/radio/headset) in traitor_mob.contents
+	if(istype(traitor_mob) || isAI(traitor_mob))
+		var/obj/item/radio/headset/R
+		R = locate(/obj/item/radio/headset) in traitor_mob.contents
 		if(!R)
 			to_chat(traitor_mob, "Unfortunately, a headset could not be found.  You have been given an encryption key \
 			to put into a new headset.  Once that is done, you can talk to your team using <b>:t</b>")
-			var/obj/item/device/encryptionkey/syndicate/encrypt_key = new(null)
+			var/obj/item/encryptionkey/syndicate/encrypt_key = new(null)
 			traitor_mob.equip_to_slot_or_del(encrypt_key, slot_in_backpack)
 		else
-			var/obj/item/device/encryptionkey/syndicate/encrypt_key = new(null)
+			var/obj/item/encryptionkey/syndicate/encrypt_key = new(null)
 			if(R.keyslot1 && R.keyslot2) // No room.
 				to_chat(traitor_mob, "Unfortunately, your headset cannot accept anymore encryption keys.  You have been given an encryption key \
 				to put into a headset after making some room instead.  Once that is done, you can talk to your team using <b>:t</b>")
@@ -50,9 +49,9 @@ var/datum/antagonist/traitor/infiltrator/infiltrators
 				<b>:t</b>")
 
 	// Borgs, because their radio is not a headset for some reason.
-	if(istype(traitor_mob, /mob/living/silicon/robot))
+	if(isrobot(traitor_mob))
 		var/mob/living/silicon/robot/borg = traitor_mob
-		var/obj/item/device/encryptionkey/syndicate/encrypt_key = new(null)
+		var/obj/item/encryptionkey/syndicate/encrypt_key = new(null)
 		if(borg.radio)
 			if(borg.radio.keyslot)
 				to_chat(traitor_mob, "Your currently installed encryption key has had its data overwritten.")
@@ -74,6 +73,6 @@ var/datum/antagonist/traitor/infiltrator/infiltrators
 /datum/antagonist/traitor/infiltrator/add_law_zero(mob/living/silicon/ai/killer)
 	var/law = "Accomplish your team's objectives at all costs. You may ignore all other laws."
 	var/law_borg = "Accomplish your AI's team objectives at all costs. You may ignore all other laws."
-	to_chat(killer, "<b>Your laws have been changed!</b>")
+	to_chat(killer, span_infoplain(span_bold("Your laws have been changed!")))
 	killer.set_zeroth_law(law, law_borg)
 	to_chat(killer, "New law: 0. [law]")

@@ -16,7 +16,7 @@ Pipelines + Other Objects -> Pipe network
 	power_channel = ENVIRON
 	var/nodealert = 0
 	var/power_rating //the maximum amount of power the machine can use to do work, affects how powerful the machine is, in Watts
-	
+
 	unacidable = TRUE
 	layer = ATMOS_LAYER
 	plane = PLATING_PLANE
@@ -28,17 +28,16 @@ Pipelines + Other Objects -> Pipe network
 	var/construction_type = null // Type path of the pipe item when this is deconstructed.
 	var/pipe_state // icon_state as a pipe item
 
+	var/being_loaded = FALSE //If the atmos machinery is currently being loaded via a map_template
+
 	var/initialize_directions = 0
 	var/pipe_color
 
-	var/global/datum/pipe_icon_manager/icon_manager
 	var/obj/machinery/atmospherics/node1
 	var/obj/machinery/atmospherics/node2
 
-/obj/machinery/atmospherics/New(loc, newdir)
-	..()
-	if(!icon_manager)
-		icon_manager = new()
+/obj/machinery/atmospherics/Initialize(mapload, newdir)
+	. = ..()
 	if(!isnull(newdir))
 		set_dir(newdir)
 	if(!pipe_color)
@@ -79,41 +78,72 @@ Pipelines + Other Objects -> Pipe network
 
 /** Check if this machine is willing to connect with the target machine. */
 /obj/machinery/atmospherics/proc/check_connectable(obj/machinery/atmospherics/target)
-	return (src.connect_types & target.connect_types)
+	return (src.connect_types & target.connect_types) && !check_if_side_in_use(target)
+
+/** Returns true if a pipe is already connected to the same side of the target as ourselves. This is a hack to prevent multi-connection from the same turf. Our atmopipes do not have support for multiple connections, this requires a major refactor or replacement port from TG in the future. */
+/obj/machinery/atmospherics/proc/check_if_side_in_use(obj/machinery/atmospherics/target)
+	if(istype(src, /obj/machinery/atmospherics/pipe/simple/hidden/universal) \
+	|| istype(src, /obj/machinery/atmospherics/pipe/simple/visible/universal) \
+	|| istype(target, /obj/machinery/atmospherics/pipe/simple/visible/universal) \
+	|| istype(target, /obj/machinery/atmospherics/pipe/simple/visible/universal))
+		return FALSE // Snowflake to allow univerals pipe adaptors to bridge the gap on the same side
+	var/list/node_list = target.get_neighbor_nodes_for_init()
+	if(!length(node_list)) // Preserving original behavior
+		return TRUE
+	// By default, do not allow connections from the same side.
+	var/turf/our_turf = get_turf(src)
+	for(var/obj/machinery/atmospherics/check_node in node_list)
+		if(QDELETED(check_node) || check_node == src)
+			continue
+		if(get_turf(check_node) == our_turf)
+			return TRUE
+	return FALSE
+
+/// Prioritize pipes that are already trying to link to us, prevents mismatching when both sides call atmo_init() on their own
+/obj/machinery/atmospherics/proc/get_prioritized_nodes(turf/at_loc)
+	RETURN_TYPE(/list)
+
+	var/priority_target = null
+	var/list/viable_nodes = list()
+	for(var/obj/machinery/atmospherics/checking in at_loc)
+		var/list/node_list = checking.get_neighbor_nodes_for_init()
+		if(!priority_target) // Check for pipes already linking to us from their side. We want them to be priority to link back.
+			for(var/obj/machinery/atmospherics/node_check in node_list)
+				if(!priority_target && node_check == src)
+					priority_target = checking
+					break
+		// Otherwise we just want a list of all the viable targets we COULD link to. check_connectable() will be called after to see if they can be linked to properly.
+		if(checking != priority_target)
+			viable_nodes += checking
+
+	// So the goal of this proc is to organize the list so that the one trying to link to us will be FIRST, but the list of targets is always all available nodes
+	if(priority_target) // Put the priority target at the head
+		viable_nodes = list(priority_target) + viable_nodes
+
+	return viable_nodes
+
 
 /obj/machinery/atmospherics/attackby(atom/A, mob/user as mob)
-	if(istype(A, /obj/item/device/pipe_painter))
+	if(istype(A, /obj/item/pipe_painter))
 		return
 	..()
 
-/obj/machinery/atmospherics/proc/add_underlay(var/turf/T, var/obj/machinery/atmospherics/node, var/direction, var/icon_connect_type)
+/obj/machinery/atmospherics/proc/add_underlay(turf/T, obj/machinery/atmospherics/node, direction, icon_connect_type)
 	if(node)
 		if(!T.is_plating() && node.level == 1 && istype(node, /obj/machinery/atmospherics/pipe))
 			//underlays += icon_manager.get_atmos_icon("underlay_down", direction, color_cache_name(node))
-			underlays += icon_manager.get_atmos_icon("underlay", direction, color_cache_name(node), "down" + icon_connect_type)
+			underlays += GLOB.icon_manager.get_atmos_icon("underlay", direction, color_cache_name(node), "down" + icon_connect_type)
 		else
 			//underlays += icon_manager.get_atmos_icon("underlay_intact", direction, color_cache_name(node))
-			underlays += icon_manager.get_atmos_icon("underlay", direction, color_cache_name(node), "intact" + icon_connect_type)
+			underlays += GLOB.icon_manager.get_atmos_icon("underlay", direction, color_cache_name(node), "intact" + icon_connect_type)
 	else
 		//underlays += icon_manager.get_atmos_icon("underlay_exposed", direction, pipe_color)
-		underlays += icon_manager.get_atmos_icon("underlay", direction, color_cache_name(node), "exposed" + icon_connect_type)
+		underlays += GLOB.icon_manager.get_atmos_icon("underlay", direction, color_cache_name(node), "exposed" + icon_connect_type)
 
 /obj/machinery/atmospherics/proc/update_underlays()
-	if(check_icon_cache())
-		return 1
-	else
-		return 0
+	return TRUE
 
-/obj/machinery/atmospherics/proc/check_icon_cache(var/safety = 0)
-	if(!istype(icon_manager))
-		if(!safety) //to prevent infinite loops
-			icon_manager = new()
-			check_icon_cache(1)
-		return 0
-
-	return 1
-
-/obj/machinery/atmospherics/proc/color_cache_name(var/obj/machinery/atmospherics/node)
+/obj/machinery/atmospherics/proc/color_cache_name(obj/machinery/atmospherics/node)
 	//Don't use this for standard pipes
 	if(!istype(node))
 		return null
@@ -121,6 +151,8 @@ Pipelines + Other Objects -> Pipe network
 	return node.pipe_color
 
 /obj/machinery/atmospherics/process()
+	if(being_loaded) //If we're being maploaded, don't build the network just yet.
+		return
 	last_flow_rate = 0
 	last_power_draw = 0
 
@@ -132,7 +164,7 @@ Pipelines + Other Objects -> Pipe network
 
 	return null
 
-/obj/machinery/atmospherics/proc/build_network()
+/obj/machinery/atmospherics/proc/build_network(new_attachment)
 	// Called to build a network from this node
 
 	return null
@@ -158,19 +190,25 @@ Pipelines + Other Objects -> Pipe network
 	return null
 
 /obj/machinery/atmospherics/proc/can_unwrench()
+
+/* //Old version. We now handle unwrenching in the machinery itself.
 	var/datum/gas_mixture/int_air = return_air()
 	var/datum/gas_mixture/env_air = loc.return_air()
 	if((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
-		return 0
-	return 1
+		return FALSE
+*/
+	return TRUE
 
 // Deconstruct into a pipe item.
-/obj/machinery/atmospherics/proc/deconstruct()
+/obj/machinery/atmospherics/atom_deconstruct()
 	if(QDELETED(src))
 		return
 	if(construction_type)
 		var/obj/item/pipe/I = new construction_type(loc, null, null, src)
 		I.setPipingLayer(piping_layer)
+		if(istype(I, /obj/item/pipe/trinary/flippable))
+			var/obj/item/pipe/trinary/flippable/flip = I
+			flip.icon_state = "[flip.icon_state][flip.mirrored ? "m" : ""]"
 		transfer_fingerprints_to(I)
 	qdel(src)
 
@@ -188,13 +226,17 @@ Pipelines + Other Objects -> Pipe network
 	atmos_init()
 	if(QDELETED(src))
 		return // TODO - Eventually should get rid of the need for this.
-	build_network()
 	var/list/nodes = get_neighbor_nodes_for_init()
 	for(var/obj/machinery/atmospherics/A in nodes)
 		A.atmos_init()
-		A.build_network()
-	// TODO - Should we do src.build_network() before or after the nodes?
-	// We've historically done before, but /tg does after. TODO research if there is a difference.
+		A.build_network(TRUE)
+	build_network()
+
+	// There was a coder comment her from 7 years ago asking 'tg does it this way, should we?' and the answer was yes.
+	// By building the network BEFORE our nodes build their network, two things happened:
+	// 1. The network was built and none of the pipes got their temporary air vaiables, resulting in the  pipes having no air in them
+	// 2. The previous network was nulled but never deleted, resulting in a memory leak.
+	// So now, we build our network AFTER the nodes build their network AND we delete the previous network.
 
 // This sets our piping layer.  Hopefully its cool.
 /obj/machinery/atmospherics/proc/setPipingLayer(new_layer)
@@ -229,3 +271,40 @@ Pipelines + Other Objects -> Pipe network
 	// pixel_x = PIPE_PIXEL_OFFSET_X(piping_layer)
 	// pixel_y = PIPE_PIXEL_OFFSET_Y(piping_layer)
 	// layer = initial(layer) + PIPE_LAYER_OFFSET(piping_layer)
+
+/obj/machinery/atmospherics/proc/unsafe_pressure_release(mob/user, pressures = null)
+	if(!user)
+		return
+	if(!pressures)
+		var/datum/gas_mixture/int_air = return_air()
+		var/datum/gas_mixture/env_air = loc.return_air()
+		pressures = int_air.return_pressure() - env_air.return_pressure()
+
+	user.visible_message(span_danger("[user] is sent flying by pressure!"),span_userdanger("The pressure sends you flying!"))
+
+	// if get_dir(src, user) is not 0, target is the edge_target_turf on that dir
+	// otherwise, edge_target_turf uses a random cardinal direction
+	// range is pressures / 250
+	// speed is pressures / 1250
+	if(user.buckled)
+		user.buckled.unbuckle_mob(user, TRUE)
+	user.throw_at(get_edge_target_turf(user, get_dir(src, user) || pick(GLOB.cardinal)), pressures / 250, pressures / 1250)
+
+/// Blows out a pipe, deconstructing it, breaking the floor and releasing all mobs crawling inside it
+/obj/machinery/atmospherics/proc/blowout(mob/user)
+	// Deconstruct turf
+	var/turf/our_turf = loc
+	if(!our_turf.is_plating() && istype(our_turf,/turf/simulated/floor)) //intact floor, pop the tile
+		var/turf/simulated/floor/our_floor = our_turf
+		our_floor.make_plating(TRUE)
+	// Deconstruct pipe
+	var/datum/gas_mixture/int_air = return_air()
+	var/datum/gas_mixture/env_air = our_turf.return_air()
+	var/internal_pressure = int_air.return_pressure()-env_air.return_pressure()
+	atom_deconstruct()
+	// Release pressure
+	playsound(our_turf, 'sound/effects/bang.ogg', 70, 0, 0)
+	playsound(our_turf, 'sound/effects/clang2.ogg', 70, 0, 0)
+	if(internal_pressure > 2*ONE_ATMOSPHERE)
+		unsafe_pressure_release(user, internal_pressure)
+		playsound(our_turf, 'sound/machines/hiss.ogg', 50, 0, 0)

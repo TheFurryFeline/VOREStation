@@ -18,7 +18,7 @@
 	tt_desc = "S Pruinaeictis velocis" //Sivian frost weasel, fast
 	catalogue_data = list(/datum/category_item/catalogue/fauna/siffet)
 
-	faction = "siffet"
+	faction =FACTION_SIFFET
 
 	mob_size = MOB_SMALL
 
@@ -52,10 +52,13 @@
 
 /datum/ai_holder/simple_mob/siffet/post_melee_attack(atom/A) //Evasive
 	if(holder.Adjacent(A))
-		holder.IMove(get_step(holder, pick(alldirs)))
+		holder.IMove(get_step(holder, pick(GLOB.alldirs)))
 		holder.face_atom(A)
 
 /mob/living/simple_mob/animal/sif/siffet/IIsAlly(mob/living/L)
 	. = ..()
-	if(!. && L.mob_size > 10) //Attacks things it considers small enough to take on, otherwise only attacks if attacked.
+	if(!. && !istype(L, /mob/living))
 		return TRUE
+	else
+		if(!. && L.mob_size > 10) //Attacks things it considers small enough to take on, otherwise only attacks if attacked.
+			return TRUE

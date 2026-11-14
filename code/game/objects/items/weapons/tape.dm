@@ -1,6 +1,7 @@
-/obj/item/weapon/tape_roll
+/obj/item/tape_roll
 	name = "tape roll"
 	desc = "A roll of sticky tape. Possibly for taping ducks... or was that ducts?"
+	description_antag = "You could use this to tape someone's mouth shut. Or eyes."
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "taperoll"
 	w_class = ITEMSIZE_TINY
@@ -9,108 +10,109 @@
 
 	toolspeed = 2 //It is now used in surgery as a not awful, but probably dangerous option, due to speed.
 
-/obj/item/weapon/tape_roll/proc/can_place(var/mob/living/carbon/human/H, var/mob/user)
-	if(istype(user, /mob/living/silicon/robot) || user == H)
+/obj/item/tape_roll/proc/can_place(mob/living/carbon/human/H, mob/user)
+	if(isrobot(user) || user == H)
 		return TRUE
 
-	for (var/obj/item/weapon/grab/G in H.grabbed_by)
+	for (var/obj/item/grab/G in H.grabbed_by)
 		if (G.loc == user && G.state >= GRAB_AGGRESSIVE)
 			return TRUE
 
 	return FALSE
 
-/obj/item/weapon/tape_roll/attack(var/mob/living/carbon/human/H, var/mob/user)
-	if(istype(H))
+/obj/item/tape_roll/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
 		if(user.a_intent == I_HELP)
-			return
+			return ITEM_INTERACT_FAILURE
 		if(!can_place(H, user))
-			to_chat(user, "<span class='danger'>You need to have a firm grip on [H] before you can use \the [src]!</span>")
-			return
+			to_chat(user, span_danger("You need to have a firm grip on [H] before you can use \the [src]!"))
+			return ITEM_INTERACT_FAILURE
 		else
 			if(user.zone_sel.selecting == O_EYES)
 
 				if(!H.organs_by_name[BP_HEAD])
-					to_chat(user, "<span class='warning'>\The [H] doesn't have a head.</span>")
-					return
+					to_chat(user, span_warning("\The [H] doesn't have a head."))
+					return ITEM_INTERACT_FAILURE
 				if(!H.has_eyes())
-					to_chat(user, "<span class='warning'>\The [H] doesn't have any eyes.</span>")
-					return
+					to_chat(user, span_warning("\The [H] doesn't have any eyes."))
+					return ITEM_INTERACT_FAILURE
 				if(H.glasses)
-					to_chat(user, "<span class='warning'>\The [H] is already wearing something on their eyes.</span>")
-					return
+					to_chat(user, span_warning("\The [H] is already wearing something on their eyes."))
+					return ITEM_INTERACT_FAILURE
 				if(H.head && (H.head.body_parts_covered & FACE))
-					to_chat(user, "<span class='warning'>Remove their [H.head] first.</span>")
-					return
-				user.visible_message("<span class='danger'>\The [user] begins taping over \the [H]'s eyes!</span>")
+					to_chat(user, span_warning("Remove their [H.head] first."))
+					return ITEM_INTERACT_FAILURE
+				user.visible_message(span_danger("\The [user] begins taping over \the [H]'s eyes!"))
 
-				if(!do_after(user, 30))
-					return
+				if(!do_after(user, 3 SECONDS, target = src))
+					return ITEM_INTERACT_FAILURE
 
 				if(!can_place(H, user))
-					return
+					return ITEM_INTERACT_FAILURE
 
 				if(!H || !src || !H.organs_by_name[BP_HEAD] || !H.has_eyes() || H.glasses || (H.head && (H.head.body_parts_covered & FACE)))
-					return
+					return ITEM_INTERACT_FAILURE
 
-				user.visible_message("<span class='danger'>\The [user] has taped up \the [H]'s eyes!</span>")
+				user.visible_message(span_danger("\The [user] has taped up \the [H]'s eyes!"))
 				H.equip_to_slot_or_del(new /obj/item/clothing/glasses/sunglasses/blindfold/tape(H), slot_glasses, ignore_obstructions = FALSE)
 				H.update_inv_glasses()
 				playsound(src, 'sound/effects/tape.ogg',25)
 
 			else if(user.zone_sel.selecting == O_MOUTH || user.zone_sel.selecting == BP_HEAD)
 				if(!H.organs_by_name[BP_HEAD])
-					to_chat(user, "<span class='warning'>\The [H] doesn't have a head.</span>")
-					return
+					to_chat(user, span_warning("\The [H] doesn't have a head."))
+					return ITEM_INTERACT_FAILURE
 				if(!H.check_has_mouth())
-					to_chat(user, "<span class='warning'>\The [H] doesn't have a mouth.</span>")
-					return
+					to_chat(user, span_warning("\The [H] doesn't have a mouth."))
+					return ITEM_INTERACT_FAILURE
 				if(H.wear_mask)
-					to_chat(user, "<span class='warning'>\The [H] is already wearing a mask.</span>")
-					return
+					to_chat(user, span_warning("\The [H] is already wearing a mask."))
+					return ITEM_INTERACT_FAILURE
 				if(H.head && (H.head.body_parts_covered & FACE))
-					to_chat(user, "<span class='warning'>Remove their [H.head] first.</span>")
-					return
-				user.visible_message("<span class='danger'>\The [user] begins taping up \the [H]'s mouth!</span>")
+					to_chat(user, span_warning("Remove their [H.head] first."))
+					return ITEM_INTERACT_FAILURE
+				user.visible_message(span_danger("\The [user] begins taping up \the [H]'s mouth!"))
 
-				if(!do_after(user, 30))
-					return
+				if(!do_after(user, 3 SECONDS, target = src))
+					return ITEM_INTERACT_FAILURE
 
 				if(!can_place(H, user))
-					return
+					return ITEM_INTERACT_FAILURE
 
 				if(!H || !src || !H.organs_by_name[BP_HEAD] || !H.check_has_mouth() || (H.head && (H.head.body_parts_covered & FACE)))
-					return
+					return ITEM_INTERACT_FAILURE
 
-				user.visible_message("<span class='danger'>\The [user] has taped up \the [H]'s mouth!</span>")
+				user.visible_message(span_danger("\The [user] has taped up \the [H]'s mouth!"))
 
 				H.equip_to_slot_or_del(new /obj/item/clothing/mask/muzzle/tape(H), slot_wear_mask, ignore_obstructions = FALSE)
 				H.update_inv_wear_mask()
 				playsound(src, 'sound/effects/tape.ogg',25)
 
-			else if(user.zone_sel.selecting == "r_hand" || user.zone_sel.selecting == "l_hand")
+			else if(user.zone_sel.selecting == BP_R_HAND || user.zone_sel.selecting == BP_L_HAND)
 				if(!can_place(H, user))
-					return
+					return ITEM_INTERACT_FAILURE
 
-				var/obj/item/weapon/handcuffs/cable/tape/T = new(user)
+				var/obj/item/handcuffs/cable/tape/T = new(user)
 				playsound(src, 'sound/effects/tape.ogg',25)
 
-				if(!T.place_handcuffs(H, user))
+				if(!T.attempt_to_cuff(H, user))
 					user.unEquip(T)
 					qdel(T)
 			else
 				return ..()
-			return 1
+			return ITEM_INTERACT_SUCCESS
 
-/obj/item/weapon/tape_roll/proc/stick(var/obj/item/weapon/W, mob/user)
-	if(!istype(W, /obj/item/weapon/paper) || istype(W, /obj/item/weapon/paper/sticky) || !user.unEquip(W))
+/obj/item/tape_roll/proc/stick(obj/item/W, mob/user)
+	if(!istype(W, /obj/item/paper) || istype(W, /obj/item/paper/sticky) || !user.unEquip(W))
 		return
 	user.drop_from_inventory(W)
-	var/obj/item/weapon/ducttape/tape = new(get_turf(src))
+	var/obj/item/ducttape/tape = new(get_turf(src))
 	tape.attach(W)
 	user.put_in_hands(tape)
 	playsound(src, 'sound/effects/tape.ogg',25)
 
-/obj/item/weapon/ducttape
+/obj/item/ducttape
 	name = "tape"
 	desc = "A piece of sticky tape."
 	icon = 'icons/obj/bureaucracy.dmi'
@@ -119,24 +121,25 @@
 	plane = MOB_PLANE
 	anchored = FALSE
 	drop_sound = null
+	flags = NOBLUDGEON
 
-	var/obj/item/weapon/stuck = null
+	var/obj/item/stuck = null
 
-/obj/item/weapon/ducttape/New()
-	..()
-	flags |= NOBLUDGEON
-
-/obj/item/weapon/ducttape/examine(mob/user)
+/obj/item/ducttape/examine(mob/user)
+	SHOULD_CALL_PARENT(FALSE)
 	return stuck.examine(user)
 
-/obj/item/weapon/ducttape/proc/attach(var/obj/item/weapon/W)
+/obj/item/ducttape/proc/attach(obj/item/W)
 	stuck = W
 	W.forceMove(src)
 	icon_state = W.icon_state + "_taped"
 	name = W.name + " (taped)"
 	overlays = W.overlays
 
-/obj/item/weapon/ducttape/attack_self(mob/user)
+/obj/item/ducttape/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(!stuck)
 		return
 
@@ -149,20 +152,20 @@
 	overlays = null
 	qdel(src)
 
-/obj/item/weapon/ducttape/attackby(var/obj/item/I, var/mob/user)
-	if(!(istype(src, /obj/item/weapon/handcuffs/cable/tape) || istype(src, /obj/item/clothing/mask/muzzle/tape)))
+/obj/item/ducttape/attackby(obj/item/I, mob/user)
+	if(!(istype(src, /obj/item/handcuffs/cable/tape) || istype(src, /obj/item/clothing/mask/muzzle/tape)))
 		return ..()
 	else
 		user.drop_from_inventory(I)
 		I.loc = src
 		qdel(I)
-		to_chat(user, "<span-class='notice'>You place \the [I] back into \the [src].</span>")
+		to_chat(user, span_notice("You place \the [I] back into \the [src]."))
 
-/obj/item/weapon/ducttape/attack_hand(mob/living/L)
+/obj/item/ducttape/attack_hand(mob/living/L)
 	anchored = FALSE
 	return ..() // Pick it up now that it's unanchored.
 
-/obj/item/weapon/ducttape/afterattack(var/A, mob/user, flag, params)
+/obj/item/ducttape/afterattack(A, mob/user, flag, params)
 
 	if(!in_range(user, A) || istype(A, /obj/machinery/door) || !stuck)
 		return
@@ -173,8 +176,8 @@
 	var/dir_offset = 0
 	if(target_turf != source_turf)
 		dir_offset = get_dir(source_turf, target_turf)
-		if(!(dir_offset in cardinal))
-			to_chat(user, "You cannot reach that from here.")		// can only place stuck papers in cardinal directions, to
+		if(!(dir_offset in GLOB.cardinal))
+			to_chat(user, "You cannot reach that from here.")		// can only place stuck papers in GLOB.cardinal directions, to
 			return											// reduce papers around corners issue.
 
 	user.drop_from_inventory(src)
@@ -196,3 +199,8 @@
 				pixel_y += 32
 			else if(dir_offset & SOUTH)
 				pixel_y -= 32
+
+/obj/item/tape_roll/cyborg
+	name = "tape dispenser"
+	desc = "A dispenser for sticky tape. Possibly for taping ducks... cyber ducks..."
+	icon = 'icons/obj/bureaucracy.dmi'

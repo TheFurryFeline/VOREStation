@@ -8,45 +8,53 @@
 	density = TRUE
 	var/last_update = 0
 	var/list/stored_ore = list(
-		"sand" = 0,
-		"hematite" = 0,
-		"carbon" = 0,
-		"raw copper" = 0,
-		"raw tin" = 0,
-		"void opal" = 0,
-		"painite" = 0,
-		"quartz" = 0,
-		"raw bauxite" = 0,
-		"phoron" = 0,
-		"silver" = 0,
-		"gold" = 0,
-		"marble" = 0,
-		"uranium" = 0,
-		"diamond" = 0,
-		"platinum" = 0,
-		"lead" = 0,
-		"mhydrogen" = 0,
-		"verdantium" = 0,
-		"rutile" = 0)
+		ORE_SAND = 0,
+		ORE_HEMATITE = 0,
+		ORE_CARBON = 0,
+		ORE_COPPER = 0,
+		ORE_TIN = 0,
+		ORE_VOPAL = 0,
+		ORE_PAINITE = 0,
+		ORE_QUARTZ = 0,
+		ORE_BAUXITE = 0,
+		ORE_PHORON = 0,
+		ORE_SILVER = 0,
+		ORE_GOLD = 0,
+		ORE_MARBLE = 0,
+		ORE_URANIUM = 0,
+		ORE_DIAMOND = 0,
+		ORE_PLATINUM = 0,
+		ORE_LEAD = 0,
+		ORE_MHYDROGEN = 0,
+		ORE_VERDANTIUM = 0,
+		ORE_RUTILE = 0)
 
+/obj/structure/ore_box/Initialize(mapload)
+	. = ..()
+	AddElement(/datum/element/climbable)
 
-/obj/structure/ore_box/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if (istype(W, /obj/item/weapon/ore))
-		var/obj/item/weapon/ore/ore = W
+/obj/structure/ore_box/attackby(obj/item/W, mob/user)
+	if(istype(W, /obj/item/ore))
+		var/obj/item/ore/ore = W
 		stored_ore[ore.material]++
 		user.remove_from_mob(W)
 		qdel(ore)
+		return
 
-	else if (istype(W, /obj/item/weapon/storage/bag/ore))
-		var/obj/item/weapon/storage/bag/ore/S = W
-		S.hide_from(user)
+	if(istype(W, /obj/item/dogborg/sleeper/compactor/supply))
+		var/obj/item/dogborg/sleeper/compactor/supply/borg_sleeper = W
+		W = borg_sleeper.ore_bag
+
+	if(istype(W, /obj/item/ore_bag))
+		var/obj/item/ore_bag/S = W
 		for(var/ore in S.stored_ore)
 			if(S.stored_ore[ore] > 0)
 				var/ore_amount = S.stored_ore[ore]	// How many ores does the satchel have?
 				stored_ore[ore] += ore_amount 		// Add the ore to the machine.
 				S.stored_ore[ore] = 0 				// Set the value of the ore in the satchel to 0.
 				S.current_capacity = 0				// Set the amount of ore in the satchel  to 0.
-		to_chat(user, "<span class='notice'>You empty the satchel into the box.</span>")
+		to_chat(user, span_notice("You empty the satchel into the box."))
+		return
 
 	return
 
@@ -55,7 +63,7 @@
 
 	stored_ore = list()
 
-	for(var/obj/item/weapon/ore/O in contents)
+	for(var/obj/item/ore/O in contents)
 
 		if(stored_ore[O.name])
 			stored_ore[O.name]++
@@ -85,7 +93,7 @@
 //	set src in view(1)
 //
 //	if(!ishuman(usr) && !isrobot(usr)) //Only living, intelligent creatures with gripping aparatti can empty ore boxes.
-//		to_chat(usr, "<span class='warning'>You are physically incapable of emptying the ore box.</span>")
+//		to_chat(usr, span_warning("You are physically incapable of emptying the ore box."))
 //		return
 //	if(usr.stat || usr.restrained())
 //		return
@@ -97,13 +105,13 @@
 //	add_fingerprint(usr)
 //
 //	if(contents.len < 1)
-//		to_chat(usr, "<span class='warning'>The ore box is empty.</span>")
+//		to_chat(usr, span_warning("The ore box is empty."))
 //		return
 //
-//	for (var/obj/item/weapon/ore/O in contents)
+//	for (var/obj/item/ore/O in contents)
 //		contents -= O
 //		O.loc = src.loc
-//	to_chat(usr, "<span class='notice'>You empty the ore box.</span>")
+//	to_chat(usr, span_notice("You empty the ore box."))
 //
 //	return
 

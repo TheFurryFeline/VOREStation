@@ -6,30 +6,27 @@
 	desc = "Used to control a linked teleportation Hub and Station."
 	icon_keyboard = "teleport_key"
 	icon_screen = "teleport"
-	circuit = /obj/item/weapon/circuitboard/teleporter
+	circuit = /obj/item/circuitboard/teleporter
 	dir = 4
 	var/id = null
-	var/one_time_use = 0 //Used for one-time-use teleport cards (such as clown planet coordinates.)
-						 //Setting this to 1 will set locked to null after a player enters the portal and will not allow hand-teles to open portals to that location.
+	var/one_time_use = 0	//Used for one-time-use teleport cards (such as clown planet coordinates.)
+							//Setting this to 1 will set locked to null after a player enters the portal and will not allow hand-teles to open portals to that location.
 	var/datum/tgui_module/teleport_control/teleport_control
 
-/obj/machinery/computer/teleporter/New()
+/obj/machinery/computer/teleporter/Initialize(mapload)
 	id = "[rand(1000, 9999)]"
-	..()
-	underlays.Cut()
-	underlays += image('icons/obj/stationobjs_vr.dmi', icon_state = "telecomp-wires")	//VOREStation Edit: different direction for wires to account for dirs
-
-/obj/machinery/computer/teleporter/Initialize()
 	. = ..()
+	underlays.Cut()
+	underlays += image('icons/obj/stationobjs.dmi', icon_state = "telecomp-wires")
 	teleport_control = new(src)
 	var/obj/machinery/teleport/station/station = null
 	var/obj/machinery/teleport/hub/hub = null
 
 	// Search surrounding turfs for the station, and then search the station's surrounding turfs for the hub.
-	for(var/direction in cardinal)
+	for(var/direction in GLOB.cardinal)
 		station = locate(/obj/machinery/teleport/station, get_step(src, direction))
 		if(station)
-			for(direction in cardinal)
+			for(direction in GLOB.cardinal)
 				hub = locate(/obj/machinery/teleport/hub, get_step(station, direction))
 				if(hub)
 					break
@@ -48,14 +45,14 @@
 	return ..()
 
 /obj/machinery/computer/teleporter/attackby(I as obj, mob/living/user as mob)
-	if(istype(I, /obj/item/weapon/card/data/))
-		var/obj/item/weapon/card/data/C = I
+	if(istype(I, /obj/item/card/data/))
+		var/obj/item/card/data/C = I
 		if(stat & (NOPOWER|BROKEN) & (C.function != "teleporter"))
 			attack_hand()
 
 		var/obj/L = null
 
-		for(var/obj/effect/landmark/sloc in landmarks_list)
+		for(var/obj/effect/landmark/sloc in GLOB.landmarks_list)
 			if(sloc.name != C.data) continue
 			if(locate(/mob/living) in sloc.loc) continue
 			L = sloc
@@ -65,15 +62,15 @@
 			L = locate("landmark*[C.data]") // use old stype
 
 		if(istype(L, /obj/effect/landmark/) && istype(L.loc, /turf))
-			to_chat(usr, "You insert the coordinates into the machine.")
-			to_chat(usr, "A message flashes across the screen, reminding the user that the nuclear authentication disk is not transportable via insecure means.")
+			to_chat(user, "You insert the coordinates into the machine.")
+			to_chat(user, "A message flashes across the screen, reminding the user that the nuclear authentication disk is not transportable via insecure means.")
 			user.drop_item()
 			qdel(I)
 
 			if(C.data == "Clown Land")
 				//whoops
 				for(var/mob/O in hearers(src, null))
-					O.show_message("<span class='warning'>Incoming bluespace portal detected, unable to lock in.</span>", 2)
+					O.show_message(span_warning("Incoming bluespace portal detected, unable to lock in."), 2)
 
 				for(var/obj/machinery/teleport/hub/H in range(1))
 					var/amount = rand(2,5)
@@ -82,11 +79,11 @@
 				//
 			else
 				for(var/mob/O in hearers(src, null))
-					O.show_message("<span class='notice'>Locked In</span>", 2)
+					O.show_message(span_notice("Locked In"), 2)
 				teleport_control.locked = L
 				one_time_use = 1
 
-			add_fingerprint(usr)
+			add_fingerprint(user)
 	else
 		..()
 
@@ -110,7 +107,7 @@
 	set src in oview(1)
 	set desc = "ID Tag:"
 
-	if(stat & (NOPOWER|BROKEN) || !istype(usr,/mob/living))
+	if(stat & (NOPOWER|BROKEN) || !isliving(usr))
 		return
 	if(t)
 		id = t
@@ -132,17 +129,16 @@
 /obj/machinery/teleport/hub
 	name = "teleporter hub"
 	desc = "It's the hub of a teleporting machine."
-	icon = 'icons/obj/teleporter_vr.dmi' //VOREStation Add
 	icon_state = "tele0"
 	dir = 4
 	var/accurate = 0
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 10
 	active_power_usage = 2000
-	circuit = /obj/item/weapon/circuitboard/teleporter_hub
+	circuit = /obj/item/circuitboard/teleporter_hub
 	var/obj/machinery/computer/teleporter/com
 
-/obj/machinery/teleport/hub/Initialize()
+/obj/machinery/teleport/hub/Initialize(mapload)
 	. = ..()
 	underlays += image('icons/obj/stationobjs.dmi', icon_state = "tele-wires")
 	default_apply_parts()
@@ -164,11 +160,11 @@
 		return
 	if(!com.teleport_control.locked)
 		for(var/mob/O in hearers(src, null))
-			O.show_message("<span class='warning'>Failure: Cannot authenticate locked on coordinates. Please reinstate coordinate matrix.</span>")
+			O.show_message(span_warning("Failure: Cannot authenticate locked on coordinates. Please reinstate coordinate matrix."))
 		return
 	if(istype(M, /atom/movable))
 		//VOREStation Addition Start: Prevent taurriding abuse
-		if(istype(M, /mob/living))
+		if(isliving(M))
 			var/mob/living/L = M
 			if(LAZYLEN(L.buckled_mobs))
 				var/datum/riding/R = L.riding_datum
@@ -190,7 +186,7 @@
 		accurate = 1
 		spawn(3000)	accurate = 0 //Accurate teleporting for 5 minutes
 		for(var/mob/B in hearers(src, null))
-			B.show_message("<span class='notice'>Test fire completed.</span>")
+			B.show_message(span_notice("Test fire completed."))
 	return
 
 //////
@@ -199,7 +195,6 @@
 /obj/machinery/teleport/station
 	name = "station"
 	desc = "It's the station thingy of a teleport thingy." //seriously, wtf.
-	icon = 'icons/obj/teleporter_vr.dmi' //VOREStation Add
 	icon_state = "controller"
 	dir = 4
 	var/active = 0
@@ -207,10 +202,10 @@
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 10
 	active_power_usage = 2000
-	circuit = /obj/item/weapon/circuitboard/teleporter_station
+	circuit = /obj/item/circuitboard/teleporter_station
 	var/obj/machinery/teleport/hub/com
 
-/obj/machinery/teleport/station/Initialize()
+/obj/machinery/teleport/station/Initialize(mapload)
 	. = ..()
 	add_overlay("controller-wires")
 	default_apply_parts()
@@ -230,7 +225,7 @@
 		update_use_power(USE_POWER_ACTIVE)
 		com.update_use_power(USE_POWER_ACTIVE)
 		for(var/mob/O in hearers(src, null))
-			O.show_message("<span class='notice'>Teleporter engaged!</span>", 2)
+			O.show_message(span_notice("Teleporter engaged!"), 2)
 	add_fingerprint(usr)
 	engaged = 1
 	return
@@ -245,7 +240,7 @@
 		com.update_use_power(USE_POWER_IDLE)
 		update_use_power(USE_POWER_IDLE)
 		for(var/mob/O in hearers(src, null))
-			O.show_message("<span class='notice'>Teleporter disengaged!</span>", 2)
+			O.show_message(span_notice("Teleporter disengaged!"), 2)
 	add_fingerprint(usr)
 	engaged = 0
 	return
@@ -255,7 +250,7 @@
 		return
 
 	active = TRUE
-	visible_message("<span class='notice'>Test firing!</span>")
+	visible_message(span_notice("Test firing!"))
 	com.teleport()
 	use_power(5000)
 	flick(src, "controller-c") //VOREStation Add

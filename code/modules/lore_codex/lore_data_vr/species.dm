@@ -24,15 +24,15 @@
 	name = "Human"
 	keywords += list("Humanity")
 	data = "Humanity, everything and nothing can be said about them. As diverse is their thinking, as fractured is their society. \
-	 Intrepid and mercantile, brutal if needed to, Humanity has formed a great diaspora among the stars primarily driven by their innate curiosity and love for adventure and exploration.\
-	 While a good half of them live under the wing of the Sol-Procyon Commonwealth, centered around their home planet Earth,\
-	 the extremely diverse political theory they have accumulated over the centuries led to many splits, arguments and secessions.\
-	 <br><br>\
-	 While most humans are accepting of other species and simply want to earn an honest paycheck, the best and worst are found among them. \
-	  You never know what a human is going to be like when you first meet them.\
-	 <br><br>\
-	 Humans are most well-known for the stalemate and eventual peace with the Unathi during the Hegemony War, \
-	  firmly cementing them as one of the major species in the Orion Spur."
+	Intrepid and mercantile, brutal if needed to, Humanity has formed a great diaspora among the stars primarily driven by their innate curiosity and love for adventure and exploration.\
+	While a good half of them live under the wing of the Sol-Procyon Commonwealth, centered around their home planet Earth,\
+	the extremely diverse political theory they have accumulated over the centuries led to many splits, arguments and secessions.\
+	<br><br>\
+	While most humans are accepting of other species and simply want to earn an honest paycheck, the best and worst are found among them. \
+	You never know what a human is going to be like when you first meet them.\
+	<br><br>\
+	Humans are most well-known for the stalemate and eventual peace with the Unathi during the Hegemony War, \
+	firmly cementing them as one of the major species in the Orion Spur."
 
 /datum/lore/codex/page/skrell/add_content()
 	name = "Skrell"
@@ -66,7 +66,7 @@
 /datum/lore/codex/page/rapala/add_content()
 	name ="Rapala"
 	keywords = list("Rapala")
-	data = "The Rapala, formally “Rapala-Unathi” are a vassal species of the Unathi \
+	data = "The Rapala, formally 'Rapala-Unathi' are a vassal species of the Unathi \
 	in form of winged Humanoids. While they share a similar outwards appearance with humans, \
 	they have a much more complex system of sexual genetics, as well superior 3D awareness. \
 	The Rapala act as emissaries, diplomats and spies for their overlords, although it is an open \
@@ -133,7 +133,7 @@
 	name = "Vulpkanin"
 	keywords += list("Vulpkanin")
 	data = "The Vulpkanin are the remnants of an ancient precursor which resided in the Coreward Periphery \
-	3000 to 4000 years ago, residing on a planet called “Altam”. Vulpkanin diverged from the precursors due \
+	3000 to 4000 years ago, residing on a planet called 'Altam'. Vulpkanin diverged from the precursors due \
 	to heavy isolation after the fall, presumably due to being a freshly found colony. A lack of material support \
 	regressed their technology to pre-industrial standards, from which they had to recover from in long and hard years. At the point \
 	of discovery by human explorers, they have formed an early interplanetary society and accession into the Diaspora went over relatively smoothly. \
@@ -146,7 +146,7 @@
 	name = "Zorren"
 	keywords += list("Zorren")
 	data =  "The Zorren are the remnants of an ancient precursor which resided in the Coreward Periphery 3000 to 4000 \
-	years ago, residing on a planet called “Menhir”, which we call Virgo 4. Zorren organise themselves through various \
+	years ago, residing on a planet called 'Menhir', which we call Virgo 4. Zorren organise themselves through various \
 	feudal-styled kingdoms and monarchies, of which the most prominent is the Kingdom of An-Tahk-Et. They are obsessed \
 	over their ancient heritage and the power of the noble houses comes through the control and excavation of old technology \
 	of their precursors, leading to a massive divide between commoners, who live as serfs and the nobility, who live in \
@@ -291,7 +291,3 @@
 	Nearly always emerged from the ranks of Beta-class drones, Alpha-Class are considered sapient, and are thus protected by the same rights. \
 	Unwanted modification, alteration of their code can classify as murder, making them a welcome deterrent against thieves and saboteurs. \
 	Some even claim they are just as capable of emotions and dreams as humans, as prepestrous as that sounds."
-
-
-
-

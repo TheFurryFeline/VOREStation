@@ -11,7 +11,12 @@
 
 	var/number_pages = 0
 
-/datum/tgui_module/player_notes/proc/filter_ckeys(var/page, var/filter)
+/datum/tgui_module/player_notes/tgui_close(mob/user)
+	. = ..()
+	if(!QDELETED(src))
+		qdel(src)
+
+/datum/tgui_module/player_notes/proc/filter_ckeys(page, filter)
 	var/savefile/S=new("data/player_notes.sav")
 	var/list/note_keys
 	S >> note_keys
@@ -47,18 +52,18 @@
 
 	current_filter = filter
 
-/datum/tgui_module/player_notes/proc/open_legacy()
-	var/datum/admins/A = admin_datums[usr.ckey]
+/datum/tgui_module/player_notes/proc/open_legacy(mob/user)
+	var/datum/admins/A = GLOB.admin_datums[user.ckey]
 	A.PlayerNotesLegacy()
 
 /datum/tgui_module/player_notes/tgui_state(mob/user)
-	return GLOB.tgui_admin_state
+	return ADMIN_STATE(R_ADMIN|R_MOD|R_EVENT|R_DEBUG)
 
-/datum/tgui_module/player_notes/tgui_fallback(payload)
+/datum/tgui_module/player_notes/tgui_fallback(payload, mob/user)
 	if(..())
 		return TRUE
 
-	open_legacy()
+	open_legacy(user)
 
 /datum/tgui_module/player_notes/tgui_act(action, params, datum/tgui/ui)
 	if(..())
@@ -68,10 +73,10 @@
 		if("show_player_info")
 			var/datum/tgui_module/player_notes_info/A = new(src)
 			A.key = params["name"]
-			A.tgui_interact(usr)
+			A.tgui_interact(ui.user)
 
 		if("filter_player_notes")
-			var/input = tgui_input_text(usr, "Filter string (case-insensitive regex)", "Player notes filter")
+			var/input = tgui_input_text(ui.user, "Filter string (case-insensitive regex)", "Player notes filter")
 			current_filter = input
 
 		if("set_page")
@@ -82,7 +87,7 @@
 			current_filter = ""
 
 		if("open_legacy_ui")
-			open_legacy()
+			open_legacy(ui.user)
 
 /datum/tgui_module/player_notes/tgui_data(mob/user)
 	var/list/data = list()
@@ -106,39 +111,51 @@
 
 	var/key = null
 
-/datum/tgui_module/player_notes_info/tgui_state(mob/user)
-	return GLOB.tgui_admin_state
+/datum/tgui_module/player_notes_info/tgui_close(mob/user)
+	. = ..()
+	if(!QDELETED(src))
+		qdel(src)
 
-/datum/tgui_module/player_notes_info/tgui_fallback(payload)
+/datum/tgui_module/player_notes_info/tgui_state(mob/user)
+	return ADMIN_STATE(R_ADMIN|R_MOD|R_EVENT|R_DEBUG)
+
+/datum/tgui_module/player_notes_info/tgui_fallback(payload, mob/user)
 	if(..())
 		return TRUE
 
-	var/datum/admins/A = admin_datums[usr.ckey]
-	A.show_player_info_legacy(key)
+	var/datum/admins/A = GLOB.admin_datums[user.ckey]
+	A.show_player_info_legacy(user, key)
 
 /datum/tgui_module/player_notes_info/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
 
 	switch(action)
+		if("cahngekey")
+			key = sanitize(params["ckey"])
+			return TRUE
+
 		if("add_player_info")
 			var/key = params["ckey"]
-			var/add = tgui_input_text(usr, "Write your comment below.", "Add Player Info", multiline = TRUE, prevent_enter = TRUE)
-			if(!add) return
+			var/add = tgui_input_text(ui.user, "Write your comment below.", "Add Player Info", multiline = TRUE, prevent_enter = TRUE)
+			if(!add)
+				return FALSE
 
-			notes_add(key,add,usr)
+			notes_add(key,add,ui.user)
+			return TRUE
 
 		if("remove_player_info")
 			var/key = params["ckey"]
 			var/index = params["index"]
 
 			notes_del(key, index)
+			return TRUE
 
 /datum/tgui_module/player_notes_info/tgui_data(mob/user)
 	var/list/data = list()
 
 	if(!key)
-		return
+		return data
 
 	var/p_age = "unknown"
 	for(var/client/C in GLOB.clients)
@@ -178,24 +195,14 @@
 // ==== LEGACY UI ====
 
 /datum/admins/proc/PlayerNotesLegacy()
-	if (!istype(src,/datum/admins))
-		src = usr.client.holder
-	if (!istype(src,/datum/admins))
-		to_chat(usr, "Error: you are not an admin!")
-		return
 	PlayerNotesPageLegacy(1)
 
 /datum/admins/proc/PlayerNotesFilterLegacy()
-	if (!istype(src,/datum/admins))
-		src = usr.client.holder
-	if (!istype(src,/datum/admins))
-		to_chat(usr, "Error: you are not an admin!")
-		return
-	var/filter = input(usr, "Filter string (case-insensitive regex)", "Player notes filter")
+	var/filter = tgui_input_text(owner, "Filter string (case-insensitive regex)", "Player notes filter")
 	PlayerNotesPageLegacy(1, filter)
 
 /datum/admins/proc/PlayerNotesPageLegacy(page, filter)
-	var/dat = "<B>Player notes</B> - <a href='?src=\ref[src];[HrefToken()];notes_legacy=filter'>Apply Filter</a><HR>"
+	var/dat = span_bold("Player notes") + " - <a href='byond://?src=\ref[src];[HrefToken()];notes_legacy=filter'>Apply Filter</a><HR>"
 	var/savefile/S=new("data/player_notes.sav")
 	var/list/note_keys
 	S >> note_keys
@@ -228,42 +235,36 @@
 			upper_bound = min(upper_bound, note_keys.len)
 			for(var/index = lower_bound, index <= upper_bound, index++)
 				var/t = note_keys[index]
-				dat += "<tr><td><a href='?src=\ref[src];[HrefToken()];notes_legacy=show;ckey=[t]'>[t]</a></td></tr>"
+				dat += "<tr><td><a href='byond://?src=\ref[src];[HrefToken()];notes_legacy=show;ckey=[t]'>[t]</a></td></tr>"
 
 		dat += "</table><hr>"
 
 		// Display a footer to select different pages
 		for(var/index = 1, index <= number_pages, index++)
+			dat += "<a href='byond://?src=\ref[src];[HrefToken()];notes_legacy=list;index=[index];filter=[filter ? url_encode(filter) : 0]'>[index]</a> "
 			if(index == page)
-				dat += "<b>"
-			dat += "<a href='?src=\ref[src];[HrefToken()];notes_legacy=list;index=[index];filter=[filter ? url_encode(filter) : 0]'>[index]</a> "
-			if(index == page)
-				dat += "</b>"
+				dat = span_bold(dat)
 
-	usr << browse(dat, "window=player_notes;size=400x400")
+	var/datum/browser/popup = new(usr, "player_notes", "Admin Playernotes", 480, 480)
+	popup.set_content(dat)
+	popup.open()
 
-/datum/admins/proc/player_has_info_legacy(var/key as text)
+/datum/admins/proc/player_has_info_legacy(key as text)
 	var/savefile/info = new("data/player_saves/[copytext(key, 1, 2)]/[key]/info.sav")
 	var/list/infos
 	info >> infos
 	if(!infos || !infos.len) return 0
 	else return 1
 
-/datum/admins/proc/show_player_info_legacy(var/key as text)
-	if (!istype(src,/datum/admins))
-		src = usr.client.holder
-	if (!istype(src,/datum/admins))
-		to_chat(usr, "Error: you are not an admin!")
-		return
-	var/dat = "<html><head><title>Info on [key]</title></head>"
-	dat += "<body>"
+/datum/admins/proc/show_player_info_legacy(mob/user, key)
+	var/dat = ""
 
 	var/p_age = "unknown"
 	for(var/client/C in GLOB.clients)
 		if(C.ckey == key)
 			p_age = C.player_age
 			break
-	dat +="<span style='color:#000000; font-weight: bold'>Player age: [p_age]</span><br>"
+	dat += span_black(span_bold("Player age: [p_age]")) + "<br>"
 
 	var/savefile/info = new("data/player_saves/[copytext(key, 1, 2)]/[key]/info.sav")
 	var/list/infos
@@ -281,35 +282,37 @@
 			if(!I.rank)
 				I.rank = "N/A"
 				update_file = 1
-			dat += "<font color=#008800>[I.content]</font> <i>by [I.author] ([I.rank])</i> on <i><font color=blue>[I.timestamp]</i></font> "
-			if(I.author == usr.key || I.author == "Adminbot" || ishost(usr))
-				dat += "<A href='?src=\ref[src];[HrefToken()];remove_player_info_legacy=[key];remove_index=[i]'>Remove</A>"
+			dat += span_green("[I.content]") + " " + span_italics("by [I.author] ([I.rank])") + " on " + span_italics(span_blue("[I.timestamp]")) + " "
+			if(I.author == user.key || I.author == "Adminbot" || ishost(user))
+				dat += "<A href='byond://?src=\ref[src];[HrefToken()];remove_player_info_legacy=[key];remove_index=[i]'>Remove</A>"
 			dat += "<br><br>"
 		if(update_file) info << infos
 
 	dat += "<br>"
-	dat += "<A href='?src=\ref[src];[HrefToken()];add_player_info_legacy=[key]'>Add Comment</A><br>"
+	dat += "<A href='byond://?src=\ref[src];[HrefToken()];add_player_info_legacy=[key]'>Add Comment</A><br>"
 
-	dat += "</body></html>"
-	usr << browse(dat, "window=adminplayerinfo;size=480x480")
+	var/datum/browser/popup = new(usr, "adminplayerinfo", "Admin Playerinfo", 480, 480)
+	popup.add_head_content("<title>Info on [key]</title>")
+	popup.set_content(dat)
+	popup.open()
 
 /datum/admins/Topic(href, href_list)
 	..()
 
 	if(href_list["add_player_info_legacy"])
 		var/key = href_list["add_player_info_legacy"]
-		var/add = sanitize(input(usr, "Add Player Info (Legacy)"))
+		var/add = tgui_input_text(usr, "Add Player Info (Legacy)", max_length = MAX_MESSAGE_LEN, multiline=TRUE)
 		if(!add) return
 
 		notes_add(key,add,usr)
-		show_player_info_legacy(key)
+		show_player_info_legacy(usr, key)
 
 	if(href_list["remove_player_info_legacy"])
 		var/key = href_list["remove_player_info_legacy"]
 		var/index = text2num(href_list["remove_index"])
 
 		notes_del(key, index)
-		show_player_info_legacy(key)
+		show_player_info_legacy(usr, key)
 
 	if(href_list["notes_legacy"])
 		var/ckey = href_list["ckey"]
@@ -320,7 +323,7 @@
 
 		switch(href_list["notes_legacy"])
 			if("show")
-				show_player_info_legacy(ckey)
+				show_player_info_legacy(usr, ckey)
 			if("list")
 				var/filter
 				if(href_list["filter"] && href_list["filter"] != "0")
@@ -329,3 +332,5 @@
 			if("filter")
 				PlayerNotesFilterLegacy()
 		return
+
+#undef PLAYER_NOTES_ENTRIES_PER_PAGE

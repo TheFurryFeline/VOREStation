@@ -9,7 +9,7 @@
 	for(A=O, A && !isturf(A.loc), A=A.loc);  // semicolon is for the empty statement
 	return A
 
-/proc/get_safe_ventcrawl_target(var/obj/machinery/atmospherics/unary/vent_pump/start_vent)
+/proc/get_safe_ventcrawl_target(obj/machinery/atmospherics/unary/vent_pump/start_vent)
 	if(!start_vent.network || !start_vent.network.normal_members.len)
 		return
 	var/list/vent_list = list()
@@ -19,14 +19,14 @@
 		if(vent.welded)
 			continue
 		var/area/A = get_area(vent)
-		if(A.forbid_events)
+		if(A.flag_check(AREA_FORBID_EVENTS))
 			continue
 		vent_list += vent
 	if(!vent_list.len)
 		return
 	return pick(vent_list)
 
-/proc/split_into_3(var/total)
+/proc/split_into_3(total)
 	if(!total || !isnum(total))
 		return
 
@@ -42,27 +42,27 @@
 	return list(part1, part2, part3)
 
 //Sender is optional
-/proc/admin_chat_message(var/message = "Debug Message", var/color = "#FFFFFF", var/sender)
-	if (!config.chat_webhook_url || !message)
+/proc/admin_chat_message(message = "Debug Message", color = "#FFFFFF", sender)
+	if (!CONFIG_GET(string/chat_webhook_url) || !message)
 		return
 	spawn(0)
 		var/query_string = "type=adminalert"
-		query_string += "&key=[url_encode(config.chat_webhook_key)]"
+		query_string += "&key=[url_encode(CONFIG_GET(string/chat_webhook_key))]"
 		query_string += "&msg=[url_encode(message)]"
 		query_string += "&color=[url_encode(color)]"
 		if(sender)
 			query_string += "&from=[url_encode(sender)]"
-		world.Export("[config.chat_webhook_url]?[query_string]")
+		world.Export("[CONFIG_GET(string/chat_webhook_url)]?[query_string]")
 
-/proc/admin_action_message(var/admin = "INVALID", var/user = "INVALID", var/action = "INVALID", var/reason = "INVALID", var/time = "INVALID")
-	if (!config.chat_webhook_url || !action)
+/proc/admin_action_message(admin = "INVALID", user = "INVALID", action = "INVALID", reason = "INVALID", time = "INVALID")
+	if (!CONFIG_GET(string/chat_webhook_url) || !action)
 		return
 	spawn(0)
 		var/query_string = "type=adminaction"
-		query_string += "&key=[url_encode(config.chat_webhook_key)]"
+		query_string += "&key=[url_encode(CONFIG_GET(string/chat_webhook_key))]"
 		query_string += "&admin=[url_encode(admin)]"
 		query_string += "&user=[url_encode(user)]"
 		query_string += "&action=[url_encode(action)]"
 		query_string += "&reason=[url_encode(reason)]"
 		query_string += "&time=[url_encode(time)]"
-		world.Export("[config.chat_webhook_url]?[query_string]")
+		world.Export("[CONFIG_GET(string/chat_webhook_url)]?[query_string]")

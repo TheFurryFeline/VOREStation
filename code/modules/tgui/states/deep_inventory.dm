@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 
- /**
-  * tgui state: deep_inventory_state
-  *
-  * Checks that the src_object is in the user's deep (backpack, box, toolbox, etc) inventory.
+/**
+ * tgui state: deep_inventory_state
+ *
+ * Checks that the src_object is in the user's deep (backpack, box, toolbox, etc) inventory.
  **/
 
 GLOBAL_DATUM_INIT(tgui_deep_inventory_state, /datum/tgui_state/deep_inventory_state, new)
@@ -16,7 +16,7 @@ GLOBAL_DATUM_INIT(tgui_deep_inventory_state, /datum/tgui_state/deep_inventory_st
 		return STATUS_CLOSE
 	return user.shared_tgui_interaction(src_object)
 
-/atom/proc/contains(var/atom/location)
+/atom/proc/contains(atom/location)
 	if(!location)
 		return 0
 	if(location == src)

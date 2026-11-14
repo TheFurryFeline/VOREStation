@@ -66,6 +66,7 @@
 /datum/robot_sprite/engineering/handy
 	name = "Handy"
 	sprite_icon_state = "handy"
+	hat_offset = BORG_HAT_OFFSET_NONE
 
 /datum/robot_sprite/engineering/tall2
 	name = "Usagi-II"
@@ -104,11 +105,18 @@
 	name = "ZOOM-BA"
 	sprite_icon_state = "zoomba"
 	has_dead_sprite = TRUE
+	hat_offset = ZOOMBA_HAT_OFFSET
 
 /datum/robot_sprite/engineering/worm
 	name = "W02M"
-	sprite_icon_state = "worm"
-	has_custom_open_sprites = TRUE
+	sprite_icon_state = "worm-engineering"
+
+	sprite_icon = 'icons/mob/robot/wormborg.dmi'
+	has_dead_sprite_overlay = FALSE
+	has_custom_open_sprites = FALSE
+	has_vore_belly_sprites = TRUE
+	has_dead_sprite = TRUE
+	hat_offset = WORM_HAT_OFFSET
 
 /datum/robot_sprite/engineering/uptall
 	name = "Feminine Humanoid"
@@ -134,12 +142,14 @@
 	has_eye_sprites = FALSE
 	has_eye_light_sprites = TRUE
 	has_dead_sprite_overlay = FALSE
+	hat_offset = BORGI_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/engineering/vale
 	name = "Hound V2"
 	sprite_icon_state = "vale"
 	sprite_hud_icon_state = "pupdozer"
 	has_eye_light_sprites = TRUE
+	hat_offset = VALE_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/engineering/hound
 	name = "Hound"
@@ -156,6 +166,8 @@
 /datum/robot_sprite/dogborg/engineering/drake
 	name = "Drake"
 	sprite_icon_state = "drake"
+	has_vore_belly_resting_sprites = TRUE
+	hat_offset = DRAKE_HAT_OFFSET
 
 // Tall sprites
 
@@ -168,6 +180,7 @@
 	sprite_icon_state = "raptor"
 	has_custom_equipment_sprites = TRUE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = RAPTOR_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/engineering/meka
 	name = "MEKA"
@@ -176,6 +189,7 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/engineering/newmeka
 	name = "MEKA v2"
@@ -183,6 +197,7 @@
 	has_eye_light_sprites = TRUE
 	has_custom_open_sprites = TRUE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/engineering/mmeka
 	name = "NIKO"
@@ -190,6 +205,7 @@
 	has_eye_light_sprites = TRUE
 	has_custom_open_sprites = TRUE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/engineering/fmeka
 	name = "NIKA"
@@ -197,6 +213,7 @@
 	has_eye_light_sprites = TRUE
 	has_custom_open_sprites = TRUE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/engineering/k4t
 	name = "K4T"
@@ -205,6 +222,7 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = K4T_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/engineering/k4t_alt1
 	name = "K4T Alt"
@@ -213,3 +231,85 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = K4T_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/engineering/dullahan
+	name = "Dullahan"
+	sprite_icon_state = "dullahaneng"
+	sprite_icon = 'icons/mob/robot/dullahan/v1/dullahan_eng.dmi'
+	rest_sprite_options = list("Default", "Sit")
+	sprite_decals = list("breastplate","loincloth","eyecover")
+	has_eye_light_sprites = TRUE
+	has_rest_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	has_rest_lights_sprites = TRUE
+	has_rest_eyes_sprites = TRUE
+	icon_x = 32
+	pixel_x = 0
+	hat_offset = DULLAHAN_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/engineering/dullataurengi
+	name = "Dullataur"
+	sprite_icon_state = "dullataurengi"
+	sprite_icon = 'icons/mob/robot/dullahan/dullataurs/dullataur.dmi'
+	rest_sprite_options = list("Default")
+	has_eye_light_sprites = TRUE
+	has_rest_sprites = TRUE
+	has_vore_belly_sprites = FALSE
+	has_vore_belly_resting_sprites = FALSE
+	has_rest_lights_sprites = TRUE
+	has_rest_eyes_sprites = TRUE
+	sprite_decals = list("breastplate")
+	icon_x = 64
+	pixel_x = -16
+	hat_offset = DULLAHAN_TAUR_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/engineering/dullataurengitwo
+	name = "Dullataur v2"
+	sprite_icon_state = "dullataurengitwo"
+	sprite_icon = 'icons/mob/robot/dullahan/dullataurs/dullataur.dmi'
+	rest_sprite_options = list("Default")
+	has_eye_light_sprites = TRUE
+	has_rest_sprites = TRUE
+	has_vore_belly_sprites = FALSE
+	has_vore_belly_resting_sprites = FALSE
+	has_rest_lights_sprites = TRUE
+	has_rest_eyes_sprites = TRUE
+	sprite_decals = list("breastplate","loincloth","maidoutfit")
+	icon_x = 64
+	pixel_x = -16
+	hat_offset = DULLAHAN_TAUR_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/engineering/dullahanv3
+	name = "Dullahan v3"
+	sprite_icon = 'icons/mob/robot/dullahan/v3/engineer.dmi'
+	sprite_icon_state = "dullahanengineer"
+	has_eye_light_sprites = TRUE
+	has_rest_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	belly_capacity_list = list("sleeper" = 3)
+	rest_sprite_options = list("Default", "Sit")
+	sprite_decals = list("decals")
+	icon_x = 64
+	pixel_x = -16
+	hat_offset = DULLAHAN_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/engineering/cat
+	name = "Cat"
+	sprite_icon = 'icons/mob/robot/catborg_variant.dmi'
+	sprite_icon_state = "vixengi"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	has_dead_sprite_overlay = FALSE
+
+/datum/robot_sprite/dogborg/engineering/smolraptor
+	sprite_icon = 'icons/mob/robot/smallraptors/smolraptor_eng.dmi'
+	name = "Small Raptor"
+	sprite_icon_state = "smolraptor"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_dead_sprite_overlay = FALSE
+	rest_sprite_options = list("Default", "Sit", "Bellyup")
+	hat_offset = SMOL_RAPTOR_HAT_OFFSET

@@ -15,7 +15,7 @@
 	var/is_stump = FALSE // If true, suspends damage tracking and most other effects.
 	var/indestructable = FALSE // If true, the tree cannot die.
 
-/obj/structure/flora/tree/Initialize()
+/obj/structure/flora/tree/Initialize(mapload)
 	icon_state = choose_icon_state()
 
 	return ..()
@@ -30,13 +30,13 @@
 /obj/structure/flora/tree/proc/choose_icon_state()
 	return icon_state
 
-/obj/structure/flora/tree/can_harvest(var/obj/item/I)
+/obj/structure/flora/tree/can_harvest(obj/item/I)
 	. = FALSE
 	if(!is_stump && harvest_tool && istype(I, harvest_tool) && harvest_loot && harvest_loot.len && harvest_count < max_harvests)
 		. = TRUE
 	return .
 
-/obj/structure/flora/tree/attackby(var/obj/item/weapon/W, var/mob/living/user)
+/obj/structure/flora/tree/attackby(obj/item/W, mob/living/user)
 	if(can_harvest(W))
 		..(W, user)
 		return
@@ -45,13 +45,13 @@
 		return ..()
 
 	if(is_stump)
-		if(istype(W,/obj/item/weapon/shovel))
-			if(do_after(user, 5 SECONDS))
-				visible_message("<b>\The [user]</b> digs up \the [src] stump with \the [W].")
+		if(istype(W,/obj/item/shovel))
+			if(do_after(user, 5 SECONDS, target = src))
+				visible_message(span_infoplain(span_bold("\The [user]") + " digs up \the [src] stump with \the [W]."))
 				qdel(src)
 		return
 
-	visible_message("<span class='danger'>\The [user] hits \the [src] with \the [W]!</span>")
+	visible_message(span_danger("\The [user] hits \the [src] with \the [W]!"))
 
 	var/damage_to_do = W.force
 	if(!W.sharp && !W.edge)
@@ -64,7 +64,7 @@
 		if(damage_to_do > 5 && !indestructable)
 			adjust_health(-damage_to_do)
 		else
-			to_chat(user, "<span class='warning'>\The [W] is ineffective at harming \the [src].</span>")
+			to_chat(user, span_warning("\The [W] is ineffective at harming \the [src]."))
 
 	hit_animation()
 	user.setClickCooldown(user.get_attack_speed(W))
@@ -81,7 +81,7 @@
 	animate(transform=M, pixel_x=init_px, time=6, easing=ELASTIC_EASING)
 
 // Used when the tree gets hurt.
-/obj/structure/flora/tree/proc/adjust_health(var/amount, var/damage_wood = FALSE)
+/obj/structure/flora/tree/proc/adjust_health(amount, damage_wood = FALSE)
 	if(is_stump || indestructable)
 		return
 
@@ -103,7 +103,7 @@
 	if(product && product_amount) // Make wooden logs.
 		var/obj/item/stack/material/M = new product(get_turf(src), product_amount)
 		M.update_icon()
-	visible_message("<span class='danger'>\The [src] is felled!</span>")
+	visible_message(span_danger("\The [src] is felled!"))
 	stump()
 
 // Makes the tree into a mostly non-interactive stump.
@@ -117,16 +117,12 @@
 	cut_overlays() // For the Sif tree and other future glowy trees.
 	set_light(0)
 
-/obj/structure/flora/tree/ex_act(var/severity)
+/obj/structure/flora/tree/ex_act(severity)
 	adjust_health(-(max_health / severity), TRUE)
 
-/obj/structure/flora/tree/bullet_act(var/obj/item/projectile/Proj)
+/obj/structure/flora/tree/bullet_act(obj/item/projectile/Proj)
 	if(Proj.get_structure_damage())
 		adjust_health(-Proj.get_structure_damage(), TRUE)
-
-/obj/structure/flora/tree/tesla_act(power, explosive)
-	adjust_health(-power / 100, TRUE) // Kills most trees in one lightning strike.
-	..()
 
 /obj/structure/flora/tree/get_description_interaction()
 	var/list/results = list()
@@ -163,7 +159,7 @@
 	icon_state = "pinepresents"
 	desc = "A wondrous decorated Christmas tree. It has presents!"
 	indestructable = TRUE
-	var/gift_type = /obj/item/weapon/a_gift
+	var/gift_type = /obj/item/a_gift
 	var/list/ckeys_that_took = list()
 
 /obj/structure/flora/tree/pine/xmas/presents/choose_icon_state()
@@ -177,9 +173,9 @@
 		return
 
 	if(ckeys_that_took[user.ckey])
-		to_chat(user, span("warning", "There are no presents with your name on."))
+		to_chat(user, span_warning("There are no presents with your name on."))
 		return
-	to_chat(user, span("notice", "After a bit of rummaging, you locate a gift with your name on it!"))
+	to_chat(user, span_notice("After a bit of rummaging, you locate a gift with your name on it!"))
 	ckeys_that_took[user.ckey] = TRUE
 	var/obj/item/G = new gift_type(src)
 	user.put_in_hands(G)
@@ -264,17 +260,17 @@
 	icon = 'icons/obj/flora/deadtrees.dmi'
 	icon_state = "tree_sif"
 	base_state = "tree_sif"
-	blocks_emissive = FALSE
+	blocks_emissive = EMISSIVE_BLOCK_NONE
 	product = /obj/item/stack/material/log/sif
 	catalogue_data = list(/datum/category_item/catalogue/flora/sif_tree)
 	randomize_size = TRUE
 
-	harvest_tool = /obj/item/weapon/material/knife
+	harvest_tool = /obj/item/material/knife
 	max_harvests = 2
 	min_harvests = 0
 	harvest_loot = list(
-		/obj/item/weapon/reagent_containers/food/snacks/siffruit = 20,
-		/obj/item/weapon/reagent_containers/food/snacks/grown/sif/sifpod = 5,
+		/obj/item/reagent_containers/food/snacks/siffruit = 20,
+		/obj/item/reagent_containers/food/snacks/grown/sif/sifpod = 5,
 		/obj/item/seeds/sifbulb = 1
 	)
 
@@ -284,7 +280,7 @@
 	light_shift = rand(0, 5)
 	return "[base_state][light_shift]"
 
-/obj/structure/flora/tree/sif/Initialize()
+/obj/structure/flora/tree/sif/Initialize(mapload)
 	. = ..()
 	update_icon()
 
@@ -295,4 +291,3 @@
 		set_light(bulbs, 1, "#33ccff")	// 5 variants, missing bulbs. 5th has no bulbs, so no glow.
 		add_overlay(mutable_appearance(icon, "[base_state][bulbs]_glow"))
 		add_overlay(emissive_appearance(icon, "[base_state][bulbs]_glow"))
-	

@@ -10,11 +10,13 @@
 #define ATM_CO2		5
 #define ATM_P		6	//Phoron
 #define ATM_N2O		7
+#define ATM_METHANE 8
+#define ATM_LASTGAS	8 // Keep updated to match the latest gas in list above
 
 //--------------------------------------------
 // Omni port datum
 //
-// Used by omni devices to manage connections 
+// Used by omni devices to manage connections
 //  to other atmospheric objects.
 //--------------------------------------------
 /datum/omni_port
@@ -29,7 +31,7 @@
 	var/obj/machinery/atmospherics/node
 	var/datum/pipe_network/network
 
-/datum/omni_port/New(var/obj/machinery/atmospherics/omni/M, var/direction = NORTH)
+/datum/omni_port/New(obj/machinery/atmospherics/omni/M, direction = NORTH)
 	..()
 	dir = direction
 	if(istype(M))
@@ -59,7 +61,7 @@
 //returns a text string based on the direction flag input
 // if capitalize is true, it will return the string capitalized
 // otherwise it will return the direction string in lower case
-/proc/dir_name(var/dir, var/capitalize = 0)
+/proc/dir_name(dir, capitalize = 0)
 	var/string = null
 	switch(dir)
 		if(NORTH)
@@ -70,15 +72,15 @@
 			string = "East"
 		if(WEST)
 			string = "West"
-	
+
 	if(!capitalize && string)
 		string = lowertext(string)
-	
+
 	return string
 
 //returns a direction flag based on the string passed to it
 // case insensitive
-/proc/dir_flag(var/dir)
+/proc/dir_flag(dir)
 	dir = lowertext(dir)
 	switch(dir)
 		if("north")
@@ -92,18 +94,19 @@
 		else
 			return 0
 
-/proc/mode_to_gasid(var/mode)
+/proc/mode_to_gasid(mode)
 	switch(mode)
-		if(ATM_O2) 
-			return "oxygen"
-		if(ATM_N2) 
-			return "nitrogen"
-		if(ATM_CO2) 
-			return "carbon_dioxide"
-		if(ATM_P) 
-			return "phoron"
-		if(ATM_N2O) 
-			return "nitrous_oxide"
+		if(ATM_O2)
+			return GAS_O2
+		if(ATM_N2)
+			return GAS_N2
+		if(ATM_CO2)
+			return GAS_CO2
+		if(ATM_P)
+			return GAS_PHORON
+		if(ATM_N2O)
+			return GAS_N2O
+		if(ATM_METHANE)
+			return GAS_CH4
 		else
 			return null
-	

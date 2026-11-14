@@ -8,7 +8,6 @@
 	low_sorting_priority = TRUE
 
 	var/generate_species = SPECIES_HUMAN
-	var/generate_dead = FALSE
 
 	var/generate_gender = FALSE
 	var/generate_id_gender = FALSE
@@ -18,30 +17,32 @@
 	var/to_wear_helmet = /obj/item/clothing/head/welding
 	var/to_wear_glasses = /obj/item/clothing/glasses/threedglasses
 	var/to_wear_mask = /obj/item/clothing/mask/gas
-	var/to_wear_l_radio = /obj/item/device/radio/headset
+	var/to_wear_l_radio = /obj/item/radio/headset
 	var/to_wear_r_radio = null
 	var/to_wear_uniform = /obj/item/clothing/under/color/grey
 	var/to_wear_suit = /obj/item/clothing/suit/armor/material/makeshift/glass
-	var/to_wear_gloves = /obj/item/clothing/gloves/ring/material/platinum
+	var/to_wear_gloves = /obj/item/clothing/accessory/ring/material/platinum
 	var/to_wear_shoes = /obj/item/clothing/shoes/galoshes
-	var/to_wear_belt = /obj/item/weapon/storage/belt/utility/full
-	var/to_wear_l_pocket = /obj/item/weapon/soap
-	var/to_wear_r_pocket = /obj/item/device/pda
-	var/to_wear_back = /obj/item/weapon/storage/backpack
-	var/to_wear_id_type = /obj/item/weapon/card/id
-	var/to_wear_id_job = "Assistant"
+	var/to_wear_belt = /obj/item/storage/belt/utility/full
+	var/to_wear_l_pocket = /obj/item/soap
+	var/to_wear_r_pocket = /obj/item/pda
+	var/to_wear_back = /obj/item/storage/backpack
+	var/to_wear_id_type = /obj/item/card/id
+	var/to_wear_id_job = JOB_ALT_ASSISTANT
 
 	var/to_wear_l_hand = null
-	var/to_wear_r_hand = /obj/item/weapon/melee/baton
+	var/to_wear_r_hand = /obj/item/melee/baton
 
-/mob/living/carbon/human/ai_controlled/Initialize()
+/mob/living/carbon/human/ai_controlled/Initialize(mapload)
 	if(generate_gender)
 		gender = pick(list(MALE, FEMALE, PLURAL, NEUTER))
 
 	if(generate_id_gender)
 		identifying_gender = pick(list(MALE, FEMALE, PLURAL, NEUTER))
 
-	..(loc, generate_species)
+	. = ..(mapload, generate_species)
+
+	species.produceCopy(species.traits.Copy(),src,null,FALSE)
 
 	h_style = to_wear_hair
 
@@ -91,7 +92,7 @@
 		equip_to_slot_or_del(new to_wear_r_hand(src), slot_r_hand)
 
 	if(to_wear_id_type)
-		var/obj/item/weapon/card/id/W = new to_wear_id_type(src)
+		var/obj/item/card/id/W = new to_wear_id_type(src)
 		W.name = "[real_name]'s ID Card"
 		var/datum/job/jobdatum
 		for(var/jobtype in typesof(/datum/job))
@@ -108,9 +109,6 @@
 		W.registered_name = real_name
 		equip_to_slot_or_del(W, slot_wear_id)
 
-	if(generate_dead)
-		death()
-
 /*
  * Subtypes.
  */
@@ -121,27 +119,27 @@
 	generate_gender = TRUE
 	identifying_gender = NEUTER
 
-	faction = "xeno"
+	faction = FACTION_XENO
 
 	to_wear_helmet = /obj/item/clothing/head/helmet/dermal
 	to_wear_glasses = /obj/item/clothing/glasses/goggles
 	to_wear_mask = /obj/item/clothing/mask/gas/half
-	to_wear_l_radio = /obj/item/device/radio/headset/headset_rob
+	to_wear_l_radio = /obj/item/radio/headset
 	to_wear_r_radio = null
 	to_wear_uniform = /obj/item/clothing/under/color/grey
 	to_wear_suit = /obj/item/clothing/suit/armor/vest
 	to_wear_gloves = null
 	to_wear_shoes = /obj/item/clothing/shoes/boots/combat/changeling
-	to_wear_belt = /obj/item/weapon/storage/belt/utility/full
-	to_wear_l_pocket = /obj/item/weapon/grenade/explosive/mini
-	to_wear_r_pocket = /obj/item/weapon/grenade/explosive/mini
-	to_wear_back = /obj/item/device/radio/electropack
-	to_wear_id_type = /obj/item/weapon/card/id
+	to_wear_belt = /obj/item/storage/belt/utility/full
+	to_wear_l_pocket = /obj/item/grenade/explosive/mini
+	to_wear_r_pocket = /obj/item/grenade/explosive/mini
+	to_wear_back = /obj/item/radio/electropack
+	to_wear_id_type = /obj/item/card/id
 	to_wear_id_job = "Experiment"
 
 	to_wear_r_hand = null
 
-/mob/living/carbon/human/ai_controlled/replicant/Initialize()
+/mob/living/carbon/human/ai_controlled/replicant/Initialize(mapload)
 	. = ..()
 	name = species.get_random_name(gender)
 	add_modifier(/datum/modifier/homeothermic, 0, null)

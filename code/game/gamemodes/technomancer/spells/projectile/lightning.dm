@@ -4,10 +4,10 @@
 	for a directed lightning strike to occur.  The lightning is very strong, however it requires a few seconds to prepare a \
 	strike.  Lightning functions cannot miss due to distance."
 	cost = 150
-	obj_path = /obj/item/weapon/spell/projectile/lightning
+	obj_path = /obj/item/spell/projectile/lightning
 	category = OFFENSIVE_SPELLS
 
-/obj/item/weapon/spell/projectile/lightning
+/obj/item/spell/projectile/lightning
 	name = "lightning strike"
 	icon_state = "lightning_strike"
 	desc = "Now you can feel like Zeus."
@@ -32,7 +32,7 @@
 
 	var/power = 60				//How hard it will hit for with electrocute_act().
 
-/obj/item/projectile/beam/lightning/attack_mob(var/mob/living/target_mob, var/distance, var/miss_modifier=0)
+/obj/item/projectile/beam/lightning/attack_mob(mob/living/target_mob, distance, miss_modifier=0)
 	if(ishuman(target_mob))
 		var/mob/living/carbon/human/H = target_mob
 		var/obj/item/organ/external/affected = H.get_organ(check_zone(BP_TORSO))

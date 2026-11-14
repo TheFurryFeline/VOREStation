@@ -33,7 +33,7 @@
 	icon_rest = "fennec_rest"
 	icon = 'icons/mob/vore.dmi'
 
-	faction = "fennec"
+	faction = FACTION_FENNEC
 	maxHealth = 30
 	health = 30
 
@@ -42,7 +42,7 @@
 	response_harm = "hits"
 
 	meat_amount = 2
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/fox
+	meat_type = /obj/item/reagent_containers/food/snacks/meat/fox
 
 	harm_intent_damage = 5
 	melee_damage_lower = 1
@@ -52,6 +52,11 @@
 	say_list_type = /datum/say_list/fennec
 	ai_holder_type = /datum/ai_holder/simple_mob/passive
 
+	allow_mind_transfer = TRUE
+	pain_emote_1p = list("yelp", "whine", "bark", "growl")
+	pain_emote_3p = list("yelps", "whines", "barks", "growls")
+	species_sounds = "Vulpine"
+
 // Activate Noms!
 /mob/living/simple_mob/vore/fennec
 	vore_active = 1
@@ -60,6 +65,18 @@
 	vore_pounce_chance = 40
 	vore_default_mode = DM_HOLD
 	vore_icons = SA_ICON_LIVING
+
+/mob/living/simple_mob/vore/fennec/load_default_bellies()
+	. = ..()
+
+	var/obj/belly/B = vore_selected
+	B.name = "stomach"
+	B.desc = "Warm, slick, and wet. You're somewhere hot, tight, and very cramped, unless you happen to somehow be smaller than the fennec you're in! It's hard to see, as rippling pink walls clench and smother over your form. If you don't want to be here, a newspaper from a friend ought to get you out. ...right?"
+	B.vore_sound = "Tauric Swallow"
+	B.release_sound = "Pred Escape"
+	B.fancy_vore = TRUE
+	B.belly_fullscreen_color = "#c47cb4"
+	B.belly_fullscreen = "VBOanim_belly1"
 
 /datum/say_list/fennec
 	speak = list("SKREEEE!","Chrp?","Ararrrararr.")
@@ -115,7 +132,7 @@
 	var/image/bigshadow
 	var/autodoom = TRUE
 
-/mob/living/simple_mob/vore/fennec/huge/Initialize()
+/mob/living/simple_mob/vore/fennec/huge/Initialize(mapload)
 	. = ..()
 	bigshadow = image(icon, icon_state = "shadow")
 	bigshadow.plane = MOB_PLANE
@@ -127,8 +144,8 @@
 	. = ..()
 	add_overlay(bigshadow)
 
-/mob/living/simple_mob/vore/fennec/huge/init_vore()
-	..()
+/mob/living/simple_mob/vore/fennec/huge/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "Stomach"
 	B.desc = "The slimy wet insides of a rather large fennec! Not quite as clean as the fen on the outside."
@@ -151,12 +168,12 @@
 		var/mob/living/L = A
 		if(will_eat(L))
 			var/obj/belly/B = vore_organs[1]
-			custom_emote(message = "snatches and devours [L]!")
-			B.nom_mob(L)
+			automatic_custom_emote(message = "snatches and devours [L]!")
+			B.nom_atom(L)
 			ai_holder.find_target()
 			return
 		else if(L.size_multiplier <= 0.5 && L.step_mechanics_pref)
-			custom_emote(message = "stomps [L] into oblivion!")
+			automatic_custom_emote(message = "stomps [L] into oblivion!")
 			L.gib()
 			return
 		else

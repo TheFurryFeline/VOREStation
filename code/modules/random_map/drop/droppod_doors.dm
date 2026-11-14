@@ -10,31 +10,32 @@
 	var/deploying
 	var/deployed
 
-/obj/structure/droppod_door/Initialize(var/mapload, var/autoopen)
+/obj/structure/droppod_door/Initialize(mapload, autoopen)
 	. = ..()
 	if(autoopen)
 		addtimer(CALLBACK(src, PROC_REF(deploy)), 10 SECONDS)
 
-/obj/structure/droppod_door/attack_ai(var/mob/user)
+/obj/structure/droppod_door/attack_ai(mob/user)
 	if(!user.Adjacent(src))
 		return
 	attack_hand(user)
 
-/obj/structure/droppod_door/attack_generic(var/mob/user)
+/obj/structure/droppod_door/attack_generic(mob/user)
 	attack_hand(user)
 
-/obj/structure/droppod_door/attack_hand(var/mob/user)
+/obj/structure/droppod_door/attack_hand(mob/user)
 	if(deploying) return
-	to_chat(user, "<span class='danger'>You prime the explosive bolts. Better get clear!</span>")
-	sleep(30)
-	deploy()
+	deploying = TRUE
+	to_chat(user, span_danger("You prime the explosive bolts. Better get clear!"))
+	addtimer(CALLBACK(src, PROC_REF(deploy)), 3 SECONDS, TIMER_DELETE_ME)
 
 /obj/structure/droppod_door/proc/deploy()
 	if(deployed)
 		return
 
-	deployed = 1
-	visible_message("<span class='danger'>The explosive bolts on \the [src] detonate, throwing it open!</span>")
+	deploying = FALSE
+	deployed = TRUE
+	visible_message(span_danger("The explosive bolts on \the [src] detonate, throwing it open!"))
 	playsound(src, 'sound/effects/bang.ogg', 50, 1, 5)
 
 	// This is shit but it will do for the sake of testing.
@@ -72,7 +73,7 @@
 	set_opacity(0)
 	icon_state = "ramptop"
 	var/obj/structure/droppod_door/door_bottom = new(T)
-	door_bottom.deployed = 1
+	door_bottom.deployed = TRUE
 	door_bottom.density = FALSE
 	door_bottom.set_opacity(0)
 	door_bottom.dir = src.dir

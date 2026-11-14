@@ -4,17 +4,17 @@
 /datum/dna/gene/monkey/New()
 	block=MONKEYBLOCK
 
-/datum/dna/gene/monkey/can_activate(var/mob/M,var/flags)
-	return istype(M, /mob/living/carbon/human) || istype(M,/mob/living/carbon/monkey)
+/datum/dna/gene/monkey/can_activate(mob/M,flags)
+	return ishuman(M) || istype(M,/mob/living/carbon/monkey)
 
-/datum/dna/gene/monkey/activate(var/mob/living/M, var/connected, var/flags)
-	if(!istype(M,/mob/living/carbon/human))
+/datum/dna/gene/monkey/activate(mob/living/M, connected, flags)
+	if(!ishuman(M))
 		//testing("Cannot monkey-ify [M], type is [M.type].")
 		return
 	var/mob/living/carbon/human/H = M
 	H.transforming = 1
 	var/list/implants = list() //Try to preserve implants.
-	for(var/obj/item/weapon/implant/W in H)
+	for(var/obj/item/implant/W in H)
 		implants += W
 		W.loc = null
 
@@ -26,7 +26,7 @@
 		M.transforming = 1
 		M.canmove = 0
 		M.icon = null
-		M.invisibility = 101
+		M.invisibility = INVISIBILITY_ABSTRACT
 		var/atom/movable/overlay/animation = new( M.loc )
 		animation.icon_state = "blank"
 		animation.icon = 'icons/mob/mob.dmi'
@@ -45,8 +45,8 @@
 
 	if(M)
 		if (M.dna)
-			O.dna = M.dna.Clone()
-			M.dna = null
+			QDEL_SWAP(O.dna, M.dna.Clone())
+			QDEL_NULL(M.dna)
 
 		if (M.suiciding)
 			O.suiciding = M.suiciding
@@ -71,21 +71,21 @@
 	O.adjustOxyLoss(M.getOxyLoss())
 	O.set_stat(M.stat)
 	O.a_intent = I_HURT
-	for (var/obj/item/weapon/implant/I in implants)
+	for (var/obj/item/implant/I in implants)
 		I.loc = O
 		I.implanted = O
 //		O.update_icon = 1	//queue a full icon update at next life() call
 	qdel(M)
 	return
 
-/datum/dna/gene/monkey/deactivate(var/mob/living/M, var/connected, var/flags)
+/datum/dna/gene/monkey/deactivate(mob/living/M, connected, flags)
 	if(!istype(M,/mob/living/carbon/monkey))
 		//testing("Cannot humanize [M], type is [M.type].")
 		return
 	var/mob/living/carbon/monkey/Mo = M
 	Mo.transforming = 1
 	var/list/implants = list() //Still preserving implants
-	for(var/obj/item/weapon/implant/W in Mo)
+	for(var/obj/item/implant/W in Mo)
 		implants += W
 		W.loc = null
 	if(!connected)
@@ -94,7 +94,7 @@
 		M.transforming = 1
 		M.canmove = 0
 		M.icon = null
-		M.invisibility = 101
+		M.invisibility = INVISIBILITY_ABSTRACT
 		var/atom/movable/overlay/animation = new( M.loc )
 		animation.icon_state = "blank"
 		animation.icon = 'icons/mob/mob.dmi'
@@ -116,8 +116,8 @@
 
 	if (M)
 		if (M.dna)
-			O.dna = M.dna.Clone()
-			M.dna = null
+			QDEL_SWAP(O.dna, M.dna.Clone())
+			QDEL_NULL(M.dna)
 
 		if (M.suiciding)
 			O.suiciding = M.suiciding
@@ -155,7 +155,7 @@
 	O.adjustToxLoss(M.getToxLoss())
 	O.adjustOxyLoss(M.getOxyLoss())
 	O.set_stat(M.stat)
-	for (var/obj/item/weapon/implant/I in implants)
+	for (var/obj/item/implant/I in implants)
 		I.loc = O
 		I.implanted = O
 //		O.update_icon = 1	//queue a full icon update at next life() call

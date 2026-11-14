@@ -2,10 +2,10 @@
 	name = "gun cabinet"
 	icon = 'icons/obj/guncabinet.dmi'
 	icon_state = "base"
-	req_one_access = list(access_armory)
+	req_one_access = list(ACCESS_ARMORY)
 	closet_appearance = null
 
-/obj/structure/closet/secure_closet/guncabinet/Initialize()
+/obj/structure/closet/secure_closet/guncabinet/Initialize(mapload)
 	. = ..()
 	update_icon()
 
@@ -20,10 +20,10 @@
 	else
 		var/lazors = 0
 		var/shottas = 0
-		for (var/obj/item/weapon/gun/G in contents)
-			if (istype(G, /obj/item/weapon/gun/energy))
+		for (var/obj/item/gun/G in contents)
+			if (istype(G, /obj/item/gun/energy))
 				lazors++
-			if (istype(G, /obj/item/weapon/gun/projectile))
+			if (istype(G, /obj/item/gun/projectile))
 				shottas++
 		for (var/i = 0 to 2)
 			if(lazors || shottas) // only make icons if we have one of the two types.
@@ -49,15 +49,13 @@
 		else
 			add_overlay("open")
 
-//VOREStation Add Start
 /obj/structure/closet/secure_closet/guncabinet/excursion
 	name = "expedition weaponry cabinet"
-	req_one_access = list(access_armory)
+	req_one_access = list(ACCESS_ARMORY)
 
-/obj/structure/closet/secure_closet/guncabinet/excursion/New()
-	..()
+/obj/structure/closet/secure_closet/guncabinet/excursion/Initialize(mapload)
+	. = ..()
 	for(var/i = 1 to 2)
-		new /obj/item/weapon/gun/energy/locked/frontier(src)
+		new /obj/item/gun/energy/locked/frontier(src)
 	for(var/i = 1 to 2)
-		new /obj/item/weapon/gun/energy/locked/frontier/holdout(src)
-//VOREStation Add End
+		new /obj/item/gun/energy/locked/frontier/holdout(src)

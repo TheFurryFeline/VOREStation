@@ -28,9 +28,9 @@
 	icon_dead = "tulidaan_dead"
 	digestable = 0
 	catalogue_data = list(/datum/category_item/catalogue/fauna/catslug/tulidaan)
-	holder_type = /obj/item/weapon/holder/catslug/tulidaan
+	holder_type = /obj/item/holder/catslug/tulidaan
 
-/obj/item/weapon/holder/catslug/tulidaan
+/obj/item/holder/catslug/tulidaan
 	item_state = "tulidaan"
 
 /mob/living/simple_mob/animal/passive/mouse/jerboa/leggy
@@ -38,29 +38,25 @@
 	desc = "Don't make fun, they have a condition."
 	digestable = 0
 
-/mob/living/simple_mob/animal/passive/mouse/jerboa/leggy/New()
-	..()
-	name = initial(name)
-	desc = initial(desc)
+/mob/living/simple_mob/animal/passive/mouse/jerboa/leggy/Initialize(mapload)
+	. = ..(mapload, TRUE)
 
 /mob/living/simple_mob/animal/passive/mouse/brown/feivel
 	name = "Feivel"
 	desc = "Heading out west wasn't far enough, so he's going to space!"
 	digestable = 0
 
-/mob/living/simple_mob/animal/passive/mouse/brown/feivel/New()
-	..()
-	name = initial(name)
-	desc = initial(desc)
+/mob/living/simple_mob/animal/passive/mouse/brown/feivel/Initialize(mapload)
+	. = ..(mapload, TRUE)
 
 /mob/living/simple_mob/animal/passive/cat/jones
 	name = "Jones"
 	desc = "A polite, well groomed patchy colored feline. Doesn't like his cat carrier."
 	devourable = 0
 	digestable = 0
-	holder_type = /obj/item/weapon/holder/cat/jones
+	holder_type = /obj/item/holder/cat/jones
 
-/obj/item/weapon/holder/cat/jones
+/obj/item/holder/cat/jones
 	item_state = "cat2"
 
 
@@ -109,7 +105,7 @@
 	desc = "A good boi, eats the scraps when you're not looking."
 	devourable = 0
 	digestable = 0
-	faction = "bar"
+	faction = FACTION_BAR
 	mob_bump_flag = 32
 	ai_holder_type = /datum/ai_holder/simple_mob/melee/evasive/otie/cocoa
 	catalogue_data = list(/datum/category_item/catalogue/fauna/otie/cocoa)

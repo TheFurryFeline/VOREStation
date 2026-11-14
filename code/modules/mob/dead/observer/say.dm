@@ -1,16 +1,16 @@
-/mob/observer/dead/say(var/message, var/datum/language/speaking = null, var/whispering = 0)
+/mob/observer/dead/say(message, datum/language/speaking = null, whispering = 0)
 	message = sanitize(message)
 
 	if(!message)
 		return
 
-	log_ghostsay(message, src)
+	log_talk("(GHOST SAY) [message]", LOG_SAY, color="#9c00bc")
 
 	if (client)
 		if(message)
 			client.handle_spam_prevention(MUTE_DEADCHAT)
 			if(client.prefs.muted & MUTE_DEADCHAT)
-				to_chat(src, "<span class='filter_notice'>[span_red("You cannot talk in deadchat (muted).")]</span>")
+				to_chat(src, span_filter_notice("[span_red("You cannot talk in deadchat (muted).")]"))
 				return
 
 	. = say_dead(message)
@@ -20,13 +20,13 @@
 	if(!message)
 		return
 
-	log_ghostemote(message, src)
+	log_message("(GHOST EMOTE) [message]", LOG_EMOTE, color="#9c00bc")
 
 	if(client)
 		if(message)
 			client.handle_spam_prevention(MUTE_DEADCHAT)
 			if(client.prefs.muted & MUTE_DEADCHAT)
-				to_chat(src, "<span class='filter_notice'>[span_red("You cannot emote in deadchat (muted).")]</span>")
+				to_chat(src, span_filter_notice("[span_red("You cannot emote in deadchat (muted).")]"))
 				return
 
 	. = emote_dead(message)

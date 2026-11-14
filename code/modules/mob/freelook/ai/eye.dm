@@ -7,18 +7,20 @@
 	name = "Inactive AI Eye"
 	icon_state = "AI-eye"
 
-/mob/observer/eye/aiEye/New()
-	..()
-	visualnet = cameranet
-	
+/mob/observer/eye/aiEye/Initialize(mapload)
+	. = ..()
+	visualnet = GLOB.cameranet
+
 /mob/observer/eye/aiEye/Destroy()
 	if(owner)
 		var/mob/living/silicon/ai/ai = owner
 		ai.all_eyes -= src
 		owner = null
+	visualnet.clear_references(src, src.client)
+	visualnet = null
 	. = ..()
 
-/mob/observer/eye/aiEye/setLoc(var/T, var/cancel_tracking = 1)
+/mob/observer/eye/aiEye/setLoc(T, cancel_tracking = 1)
 	if(owner)
 		T = get_turf(T)
 		loc = T
@@ -31,7 +33,7 @@
 			ai.camera_visibility(src)
 
 		if(ai.client && !ai.multicam_on)
-			ai.client.eye = src
+			ai.reset_perspective(src)
 
 		if(ai.master_multicam)
 			ai.master_multicam.refresh_view()
@@ -49,17 +51,16 @@
 /mob/living/silicon/ai
 	var/obj/machinery/hologram/holopad/holo = null
 
-/mob/living/silicon/ai/proc/destroy_eyeobj(var/atom/new_eye)
+/mob/living/silicon/ai/proc/destroy_eyeobj(atom/new_eye)
 	if(!eyeobj) return
 	if(!new_eye)
 		new_eye = src
 	eyeobj.owner = null
 	qdel(eyeobj) // No AI, no Eye
 	eyeobj = null
-	if(client)
-		client.eye = new_eye
+	reset_perspective(new_eye)
 
-/mob/living/silicon/ai/proc/create_eyeobj(var/newloc)
+/mob/living/silicon/ai/proc/create_eyeobj(newloc)
 	if(eyeobj)
 		destroy_eyeobj()
 	if(!newloc)
@@ -68,23 +69,11 @@
 	all_eyes += eyeobj
 	eyeobj.owner = src
 	eyeobj.name = "[src.name] (AI Eye)" // Give it a name
-	if(client)
-		client.eye = eyeobj
+	reset_perspective(eyeobj)
 	SetName(src.name)
 
-// Intiliaze the eye by assigning it's "ai" variable to us. Then set it's loc to us.
-/mob/living/silicon/ai/Initialize()
-	. = ..()
-	create_eyeobj()
-	if(eyeobj)
-		eyeobj.loc = src.loc
-
-/mob/living/silicon/ai/Destroy()
-	destroy_eyeobj()
-	return ..()
-
 /atom/proc/move_camera_by_click()
-	if(istype(usr, /mob/living/silicon/ai))
+	if(isAI(usr))
 		var/mob/living/silicon/ai/AI = usr
 		if(AI.eyeobj && (AI.multicam_on || (AI.client.eye == AI.eyeobj)))
 			var/turf/T = get_turf(src)
@@ -97,15 +86,15 @@
 
 	if(!src.eyeobj)
 		return
-
 	if(client && client.eye)
-		client.eye = src
+		reset_perspective(src)
+
 	for(var/datum/chunk/c in eyeobj.visibleChunks)
 		c.remove(eyeobj)
 	src.eyeobj.setLoc(src)
 
 /mob/living/silicon/ai/proc/toggle_acceleration()
-	set category = "AI Settings"
+	set category = "AI.Settings"
 	set name = "Toggle Camera Acceleration"
 
 	if(!eyeobj)

@@ -2,30 +2,30 @@
 /client/verb/wiki(query as text)
 	set name = "wiki"
 	set desc = "Type what you want to know about.  This will open the wiki on your web browser."
-	set category = "OOC"
-	if(config.wikiurl)
+	set category = "OOC.Resources"
+	if(CONFIG_GET(string/wikiurl))
 		if(query)
-			if(config.wikisearchurl)
-				var/output = replacetext(config.wikisearchurl, "%s", url_encode(query))
+			if(CONFIG_GET(string/wikisearchurl))
+				var/output = replacetext(CONFIG_GET(string/wikisearchurl), "%s", url_encode(query))
 				src << link(output)
 			else
-				to_chat(src, "<span class='warning'> The wiki search URL is not set in the server configuration.</span>")
+				to_chat(src, span_warning(" The wiki search URL is not set in the server configuration."))
 		else
-			src << link(config.wikiurl)
+			src << link(CONFIG_GET(string/wikiurl))
 	else
-		to_chat(src, "<span class='warning'>The wiki URL is not set in the server configuration.</span>")
+		to_chat(src, span_warning("The wiki URL is not set in the server configuration."))
 		return
 
 /client/verb/forum()
 	set name = "forum"
 	set desc = "Visit the forum."
 	set hidden = 1
-	if( config.forumurl )
-		if(tgui_alert(usr, "This will open the forum in your browser. Are you sure?","Visit Website",list("Yes","No"))=="No")
+	if(CONFIG_GET(string/forumurl))
+		if(tgui_alert(usr, "This will open the forum in your browser. Are you sure?","Visit Website",list("Yes","No")) != "Yes")
 			return
-		src << link(config.forumurl)
+		src << link(CONFIG_GET(string/forumurl))
 	else
-		to_chat(src, "<span class='warning'>The forum URL is not set in the server configuration.</span>")
+		to_chat(src, span_warning("The forum URL is not set in the server configuration."))
 		return
 
 /client/verb/rules()
@@ -33,12 +33,12 @@
 	set desc = "Show Server Rules."
 	set hidden = 1
 
-	if(config.rulesurl)
-		if(tgui_alert(usr, "This will open the rules in your browser. Are you sure?","Visit Website",list("Yes","No"))=="No")
+	if(CONFIG_GET(string/rulesurl))
+		if(tgui_alert(usr, "This will open the rules in your browser. Are you sure?","Visit Website",list("Yes","No")) != "Yes")
 			return
-		src << link(config.rulesurl)
+		src << link(CONFIG_GET(string/rulesurl))
 	else
-		to_chat(src, "<span class='danger'>The rules URL is not set in the server configuration.</span>")
+		to_chat(src, span_danger("The rules URL is not set in the server configuration."))
 	return
 
 /client/verb/map()
@@ -46,12 +46,12 @@
 	set desc = "See the map."
 	set hidden = 1
 
-	if(config.mapurl)
-		if(tgui_alert(usr, "This will open the map in your browser. Are you sure?","Visit Website",list("Yes","No"))=="No")
+	if(CONFIG_GET(string/mapurl))
+		if(tgui_alert(usr, "This will open the map in your browser. Are you sure?","Visit Website",list("Yes","No")) != "Yes")
 			return
-		src << link(config.mapurl)
+		src << link(CONFIG_GET(string/mapurl))
 	else
-		to_chat(src, "<span class='danger'>The map URL is not set in the server configuration.</span>")
+		to_chat(src, span_danger("The map URL is not set in the server configuration."))
 	return
 
 /client/verb/github()
@@ -59,12 +59,12 @@
 	set desc = "Visit the GitHub"
 	set hidden = 1
 
-	if(config.githuburl)
-		if(tgui_alert(usr, "This will open the GitHub in your browser. Are you sure?","Visit Website",list("Yes","No"))=="No")
+	if(CONFIG_GET(string/githuburl))
+		if(tgui_alert(usr, "This will open the GitHub in your browser. Are you sure?","Visit Website",list("Yes","No")) != "Yes")
 			return
-		src << link(config.githuburl)
+		src << link(CONFIG_GET(string/githuburl))
 	else
-		to_chat(src, "<span class='danger'>The GitHub URL is not set in the server configuration.</span>")
+		to_chat(src, span_danger("The GitHub URL is not set in the server configuration."))
 	return
 
 /client/verb/discord()
@@ -72,12 +72,12 @@
 	set desc = "Visit the discord"
 	set hidden = 1
 
-	if(config.discordurl)
-		if(tgui_alert(usr, "This will open the Discord in your browser. Are you sure?","Visit Website",list("Yes","No"))=="No")
+	if(CONFIG_GET(string/discordurl))
+		if(tgui_alert(usr, "This will open the Discord in your browser. Are you sure?","Visit Website",list("Yes","No")) != "Yes")
 			return
-		src << link(config.discordurl)
+		src << link(CONFIG_GET(string/discordurl))
 	else
-		to_chat(src, "<span class='danger'>The Discord URL is not set in the server configuration.</span>")
+		to_chat(src, span_danger("The Discord URL is not set in the server configuration."))
 	return
 
 /client/verb/patreon()
@@ -85,27 +85,28 @@
 	set desc = "Visit the patreon"
 	set hidden = 1
 
-	if(config.patreonurl)
-		if(tgui_alert(usr, "This will open the Patreon in your browser. Are you sure?","Visit Website",list("Yes","No"))=="No")
+	if(CONFIG_GET(string/patreonurl))
+		if(tgui_alert(usr, "This will open the Patreon in your browser. Are you sure?","Visit Website",list("Yes","No")) != "Yes")
 			return
-		src << link(config.patreonurl)
+		src << link(CONFIG_GET(string/patreonurl))
 	else
-		to_chat(src, "<span class='danger'>The Patreon URL is not set in the server configuration.</span>")
+		to_chat(src, span_danger("The Patreon URL is not set in the server configuration."))
 	return
 
 /client/verb/hotkeys_help()
 	set name = "hotkeys-help"
-	set category = "OOC"
+	set category = "OOC.Resources"
 
-	var/admin = {"<font color='purple'>
+	var/admin = {"
 Admin:
 \tF5 = Aghost (admin-ghost)
 \tF6 = player-panel-new
 \tF7 = admin-pm
 \tF8 = Invisimin
-</font>"}
+"}
+	admin = span_purple(admin)
 
-	var/hotkey_mode = {"<font color='purple'>
+	var/hotkey_mode = {"
 Hotkey-Mode: (hotkey-mode must be on)
 \tTAB = toggle hotkey-mode
 \ta = left
@@ -130,9 +131,10 @@ Hotkey-Mode: (hotkey-mode must be on)
 \t4 = harm-intent
 \tCtrl+Click = pull
 \tShift+Click = examine
-</font>"}
+"}
+	hotkey_mode = span_purple(hotkey_mode)
 
-	var/other = {"<font color='purple'>
+	var/other = {"
 Any-Mode: (hotkey doesn't need to be on)
 \tCtrl+a = left
 \tCtrl+s = down
@@ -161,9 +163,10 @@ Any-Mode: (hotkey doesn't need to be on)
 \tPGUP = swap-hand
 \tPGDN = activate held object
 \tEND = throw
-</font>"}
+"}
+	other = span_purple(other)
 
-	var/robot_hotkey_mode = {"<font color='purple'>
+	var/robot_hotkey_mode = {"
 Hotkey-Mode: (hotkey-mode must be on)
 \tTAB = toggle hotkey-mode
 \ta = left
@@ -183,9 +186,10 @@ Hotkey-Mode: (hotkey-mode must be on)
 \t5 = emote
 \tCtrl+Click = pull
 \tShift+Click = examine
-</font>"}
+"}
+	robot_hotkey_mode = span_purple(robot_hotkey_mode)
 
-	var/robot_other = {"<font color='purple'>
+	var/robot_other = {"
 Any-Mode: (hotkey doesn't need to be on)
 \tCtrl+a = left
 \tCtrl+s = down
@@ -208,7 +212,8 @@ Any-Mode: (hotkey doesn't need to be on)
 \tINS = toggle intents
 \tPGUP = cycle active modules
 \tPGDN = activate held object
-</font>"}
+"}
+	robot_other = span_purple(robot_other)
 
 	if(isrobot(src.mob))
 		to_chat(src,robot_hotkey_mode)
@@ -216,14 +221,14 @@ Any-Mode: (hotkey doesn't need to be on)
 	else
 		to_chat(src,hotkey_mode)
 		to_chat(src,other)
-	if(holder)
+	if(check_rights_for(src, R_HOLDER))
 		to_chat(src,admin)
 
 // Set the DreamSeeker input macro to the type appropriate for its mob
 /client/proc/set_hotkeys_macro(macro_name = "macro", hotkey_macro_name = "hotkeymode", hotkeys_enabled = null)
 	// If hotkeys mode was not specified, fall back to choice of default in client preferences.
 	if(isnull(hotkeys_enabled))
-		hotkeys_enabled = is_preference_enabled(/datum/client_preference/hotkeys_default)
+		hotkeys_enabled = prefs?.read_preference(/datum/preference/toggle/hotkeys_default)
 
 	if(hotkeys_enabled)
 		winset(src, null, "mainwindow.macro=[hotkey_macro_name] hotkey_toggle.is-checked=true mapwindow.map.focus=true")

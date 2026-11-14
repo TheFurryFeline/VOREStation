@@ -12,13 +12,13 @@
 		if(istype(candidate, /turf/simulated/wall))
 			center = candidate
 			var/area/A = get_area(candidate)
-			if(!A.forbid_events)
+			if(!A.flag_check(AREA_FORBID_EVENTS))
 				return 1
 	return 0
 
 /datum/event/wallrot/announce()
 	if(center)
-		command_announcement.Announce("Harmful fungi detected on \the [station_name()] and [using_map.facility_type] structures nearby [center.loc.name] may be contaminated.", "Biohazard Alert")
+		GLOB.command_announcement.Announce("Harmful fungi detected on \the [station_name()] and [using_map.facility_type] structures nearby [center.loc.name] may be contaminated.", "Biohazard Alert", ANNOUNCER_MSG_WALLROT)
 
 /datum/event/wallrot/start()
 	spawn()

@@ -1,8 +1,7 @@
-import { BooleanLike } from 'common/react';
-
-import { useBackend } from '../backend';
-import { Box, Button, LabeledList, Section } from '../components';
-import { Window } from '../layouts';
+import { useBackend } from 'tgui/backend';
+import { Window } from 'tgui/layouts';
+import { Box, Button, LabeledList, Section, Stack } from 'tgui-core/components';
+import type { BooleanLike } from 'tgui-core/react';
 
 const getStatusText = (port) => {
   if (port.input) {
@@ -36,30 +35,34 @@ export const OmniFilter = (props) => {
         <Section
           title={config ? 'Configuration' : 'Status'}
           buttons={
-            <>
-              <Button
-                icon="power-off"
-                content={power ? 'On' : 'Off'}
-                selected={power}
-                disabled={config}
-                onClick={() => act('power')}
-              />
-              <Button
-                icon="wrench"
-                selected={config}
-                onClick={() => act('configure')}
-              />
-            </>
+            <Stack>
+              <Stack.Item>
+                <Button
+                  icon="power-off"
+                  selected={power}
+                  disabled={config}
+                  onClick={() => act('power')}
+                >
+                  {power ? 'On' : 'Off'}
+                </Button>
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  icon="wrench"
+                  selected={config}
+                  onClick={() => act('configure')}
+                />
+              </Stack.Item>
+            </Stack>
           }
         >
           <LabeledList>
             {ports ? (
               ports.map((port) => (
-                <LabeledList.Item key={port.dir} label={port.dir + ' Port'}>
+                <LabeledList.Item key={port.dir} label={`${port.dir} Port`}>
                   {config ? (
                     <>
                       <Button
-                        content="IN"
                         selected={port.input}
                         icon="compress-arrows-alt"
                         onClick={() =>
@@ -68,9 +71,10 @@ export const OmniFilter = (props) => {
                             dir: port.dir,
                           })
                         }
-                      />
+                      >
+                        IN
+                      </Button>
                       <Button
-                        content="OUT"
                         selected={port.output}
                         icon="expand-arrows-alt"
                         onClick={() =>
@@ -79,18 +83,21 @@ export const OmniFilter = (props) => {
                             dir: port.dir,
                           })
                         }
-                      />
+                      >
+                        OUT
+                      </Button>
                       <Button
                         icon="wrench"
                         disabled={port.input || port.output}
-                        content={port.f_type || 'None'}
                         onClick={() =>
                           act('switch_filter', {
                             mode: port.f_type,
                             dir: port.dir,
                           })
                         }
-                      />
+                      >
+                        {port.f_type || 'None'}
+                      </Button>
                     </>
                   ) : (
                     getStatusText(port)
@@ -109,13 +116,11 @@ export const OmniFilter = (props) => {
             </LabeledList.Item>
             <LabeledList.Item label="Flow Rate Limit">
               {config ? (
-                <Button
-                  icon="wrench"
-                  content={set_flow_rate / 10 + ' L/s'}
-                  onClick={() => act('set_flow_rate')}
-                />
+                <Button icon="wrench" onClick={() => act('set_flow_rate')}>
+                  {`${set_flow_rate} L/s`}
+                </Button>
               ) : (
-                set_flow_rate / 10 + ' L/s'
+                `${set_flow_rate} L/s`
               )}
             </LabeledList.Item>
           </LabeledList>

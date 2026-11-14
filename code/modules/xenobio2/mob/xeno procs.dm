@@ -68,17 +68,17 @@ Divergence proc, used in mutation to make unique datums.
 			if(!reagent_response)
 				continue // just skip this reagent, rather than clearing the whole thing
 
-			if(reagent_response["toxic"])
-				adjustToxLoss(reagent_response["toxic"] * reagent_total)
+			if(reagent_response[XENO_CHEM_TOXIC])
+				adjustToxLoss(reagent_response[XENO_CHEM_TOXIC] * reagent_total)
 
-			if(reagent_response["heal"])
-				heal_overall_damage(reagent_response["heal"] * reagent_total)
+			if(reagent_response[XENO_CHEM_HEAL])
+				heal_overall_damage(reagent_response[XENO_CHEM_HEAL] * reagent_total)
 
-			if(reagent_response["nutr"])
-				adjust_nutrition(reagent_response["nutr"] * reagent_total)
+			if(reagent_response[XENO_CHEM_NUTRI])
+				adjust_nutrition(reagent_response[XENO_CHEM_NUTRI] * reagent_total)
 
-			if(reagent_response["mut"])
-				mut_level += reagent_response["mut"] * reagent_total
+			if(reagent_response[XENO_CHEM_MUT])
+				mut_level += reagent_response[XENO_CHEM_MUT] * reagent_total
 
 		temp_chem_holder.reagents.clear_reagents()
 
@@ -97,10 +97,10 @@ Divergence proc, used in mutation to make unique datums.
 	if((COLORMUT & mutable))
 		traitdat.traits[TRAIT_XENO_COLOR] = "#"
 		for(var/i=0, i<6, i++)
-			traitdat.traits[TRAIT_XENO_COLOR] += pick(hexNums)
+			traitdat.traits[TRAIT_XENO_COLOR] += pick(GLOB.hexNums)
 		traitdat.traits[TRAIT_XENO_BIO_COLOR] = "#"
 		for(var/i=0, i<6, i++)
-			traitdat.traits[TRAIT_XENO_BIO_COLOR] += pick(hexNums)
+			traitdat.traits[TRAIT_XENO_BIO_COLOR] += pick(GLOB.hexNums)
 
 	RandomChemicals()
 	//if(SPECIESMUT & mutable)
@@ -112,7 +112,7 @@ Divergence proc, used in mutation to make unique datums.
 /mob/living/simple_mob/xeno/proc/RandomizeTraits()
 	return
 
-/mob/living/simple_mob/xeno/hear_say(var/list/message_pieces, var/verb = "says", var/italics = 0, var/mob/speaker = null)
+/mob/living/simple_mob/xeno/hear_say(list/message_pieces, verb = "says", italics = 0, mob/speaker = null)
 	if(traitdat.traits[TRAIT_XENO_CANLEARN])
 		if(!(message in speak))
 			speech_buffer.Add(multilingual_to_message(message_pieces))
@@ -124,17 +124,17 @@ Divergence proc, used in mutation to make unique datums.
 			var/chosen = pick(speech_buffer)
 			speak.Add(chosen)
 		/*	Uncoment for logging of speech list.
-			log_debug("Added [chosen] to speak list.")
-		log_debug("Speechlist cut.") */
+			log_world("### DEBUG Added [chosen] to speak list.")
+		log_world("### DEBUG Speechlist cut.") */
 		speech_buffer.Cut()
 //
 /mob/living/simple_mob/xeno/proc/BuildReagentLists()
 	return
 
-/mob/living/simple_mob/xeno/bullet_act(var/obj/item/projectile/P)
+/mob/living/simple_mob/xeno/bullet_act(obj/item/projectile/P)
 	//Shamelessly stolen from ablative armor.
 	if((traitdat.traits[TRAIT_XENO_CHROMATIC]) && istype(P, /obj/item/projectile/beam))
-		visible_message("<span class='danger'>)\The beam reflects off of the [src]!</span>")
+		visible_message(span_danger(")\The beam reflects off of the [src]!"))
 		// Find a turf near or on the original location to bounce to
 		var/new_x = P.starting.x + pick(0, -1, 1, -2, 2)
 		var/new_y = P.starting.y + pick(0, -1, 1, -2, 2)
@@ -153,7 +153,7 @@ Divergence proc, used in mutation to make unique datums.
 	traitdat.chems.Cut()	//Clear the amount first.
 
 	var/num_chems = round(rand(1,4))
-	var/list/chemchoices = xenoChemList
+	var/list/chemchoices = GLOB.xenoChemList
 
 	for(var/i = 1 to num_chems)
 		var/chemtype = pick(chemchoices)

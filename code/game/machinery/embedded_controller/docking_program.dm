@@ -117,7 +117,7 @@
 				if(docking_codes)
 					var/code = signal.data["code"]
 					if(code != docking_codes)
-						log_debug("Controller [id_tag] got request_dock but code:[code] != docking_codes:[docking_codes]")
+						// to_chat(world, "Controller [id_tag] got request_dock but code:[code] != docking_codes:[docking_codes]")
 						return
 
 				control_mode = MODE_SERVER
@@ -198,7 +198,7 @@
 		control_mode = MODE_NONE
 
 
-/datum/embedded_program/docking/proc/initiate_docking(var/target)
+/datum/embedded_program/docking/proc/initiate_docking(target)
 	if (dock_state != STATE_UNDOCKED || control_mode == MODE_SERVER)	//must be undocked and not serving another request to begin a new docking handshake
 		return
 
@@ -274,7 +274,7 @@
 /datum/embedded_program/docking/proc/can_launch()
 	return undocked()
 
-/datum/embedded_program/docking/proc/send_docking_command(var/recipient, var/command)
+/datum/embedded_program/docking/proc/send_docking_command(recipient, command)
 	var/datum/signal/signal = new
 	signal.data["tag"] = id_tag
 	signal.data["command"] = command
@@ -307,3 +307,5 @@
 #undef MODE_NONE
 #undef MODE_SERVER
 #undef MODE_CLIENT
+
+#undef MESSAGE_RESEND_TIME

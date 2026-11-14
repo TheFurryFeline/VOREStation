@@ -32,13 +32,7 @@
 //
 // The explosion cannot insta-kill anyone with 30% or more health.
 
-#define LIGHT_OK 0
-#define LIGHT_EMPTY 1
-#define LIGHT_BROKEN 2
-#define LIGHT_BURNED 3
-
-
-/obj/item/device/lightreplacer
+/obj/item/lightreplacer
 
 	name = "light replacer"
 	desc = "A device to automatically replace lights. Refill with working lightbulbs or sheets of glass."
@@ -46,7 +40,6 @@
 	icon = 'icons/obj/janitor.dmi'
 	icon_state = "lightreplacer0"
 	slot_flags = SLOT_BELT
-	origin_tech = list(TECH_MAGNET = 3, TECH_MATERIAL = 2)
 
 	var/max_uses = 32
 	var/uses = 32
@@ -59,32 +52,37 @@
 	var/bulb_shards = 0
 	// when we get this many shards, we get a free bulb.
 	var/shards_required = 4
+	pickup_sound = 'sound/items/pickup/device.ogg'
+	drop_sound = 'sound/items/drop/device.ogg'
 
-/obj/item/device/lightreplacer/New()
+	///For attack_self chain
+	var/special_handling = FALSE
+
+/obj/item/lightreplacer/Initialize(mapload)
+	. = ..()
 	failmsg = "The [name]'s refill light blinks red."
-	..()
 
-/obj/item/device/lightreplacer/examine(mob/user)
+/obj/item/lightreplacer/examine(mob/user)
 	. = ..()
 	if(get_dist(user, src) <= 2)
-		. += "It has [uses] lights remaining."
+		. += span_notice("It has [uses] lights remaining.")
 
-/obj/item/device/lightreplacer/attackby(obj/item/W, mob/user)
-	if(istype(W, /obj/item/stack/material) && W.get_material_name() == "glass")
+/obj/item/lightreplacer/attackby(obj/item/W, mob/user)
+	if(istype(W, /obj/item/stack/material) && W.get_material_name() == MAT_GLASS || istype(W, /obj/item/stack/material/cyborg/glass))
 		var/obj/item/stack/G = W
 		if(uses >= max_uses)
-			to_chat(user, "<span class='warning'>[src.name] is full.</span>")
+			to_chat(user, span_warning("[src.name] is full."))
 			return
 		else if(G.use(1))
 			add_uses(16) //Autolathe converts 1 sheet into 16 lights.
-			to_chat(user, "<span class='notice'>You insert a piece of glass into \the [src.name]. You have [uses] light\s remaining.</span>")
+			to_chat(user, span_notice("You insert a piece of glass into \the [src.name]. You have [uses] light\s remaining."))
 			return
 		else
-			to_chat(user, "<span class='warning'>You need one sheet of glass to replace lights.</span>")
+			to_chat(user, span_warning("You need one sheet of glass to replace lights."))
 
-	if(istype(W, /obj/item/weapon/light))
+	if(istype(W, /obj/item/light))
 		var/new_bulbs = 0
-		var/obj/item/weapon/light/L = W
+		var/obj/item/light/L = W
 		if(L.status == 0) // LIGHT OKAY
 			if(uses < max_uses)
 				if(!user.unEquip(W))
@@ -101,14 +99,14 @@
 		to_chat(user, "You insert \the [L.name] into \the [src.name]. You have [uses] light\s remaining.")
 		return
 
-	if(istype(W, /obj/item/weapon/storage))
-		var/obj/item/weapon/storage/S = W
+	if(istype(W, /obj/item/storage))
+		var/obj/item/storage/S = W
 		var/found_lightbulbs = FALSE
 		var/replaced_something = TRUE
 
 		for(var/obj/item/I in S.contents)
-			if(istype(I,/obj/item/weapon/light))
-				var/obj/item/weapon/light/L = I
+			if(istype(I,/obj/item/light))
+				var/obj/item/light/L = I
 				found_lightbulbs = TRUE
 				if(src.uses >= max_uses)
 					break
@@ -123,46 +121,51 @@
 					qdel(L)
 
 		if(!found_lightbulbs)
-			to_chat(user, "<span class='warning'>\The [S] contains no bulbs.</span>")
+			to_chat(user, span_warning("\The [S] contains no bulbs."))
 			return
 
 		if(!replaced_something && src.uses == max_uses)
-			to_chat(user, "<span class='warning'>\The [src] is full!</span>")
+			to_chat(user, span_warning("\The [src] is full!"))
 			return
 
-		to_chat(user, "<span class='notice'>You fill \the [src] with lights from \the [S].</span>")
+		to_chat(user, span_notice("You fill \the [src] with lights from \the [S]."))
 
-/obj/item/device/lightreplacer/attack_self(mob/user)
+/obj/item/lightreplacer/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+	if(special_handling)
+		return FALSE
 	/* // This would probably be a bit OP. If you want it though, uncomment the code.
 	if(isrobot(user))
 		var/mob/living/silicon/robot/R = user
 		if(R.emagged)
 			src.Emag()
-			to_chat(usr, You short circuit the [src].")
+			to_chat(user, You short circuit the [src].")
 			return
 	*/
-	to_chat(usr, "It has [uses] lights remaining.")
-	var/new_color = input(usr, "Choose a color to set the light to! (Default is [LIGHT_COLOR_INCANDESCENT_TUBE])", "", selected_color) as color|null
+	to_chat(user, "It has [uses] lights remaining.")
+	var/new_color = tgui_color_picker(user, "Choose a color to set the light to! (Default is [LIGHT_COLOR_INCANDESCENT_TUBE])", "", selected_color)
 	if(new_color)
 		selected_color = new_color
-		to_chat(usr, "The light color has been changed.")
+		to_chat(user, "The light color has been changed.")
 
-/obj/item/device/lightreplacer/update_icon()
+/obj/item/lightreplacer/update_icon()
 	icon_state = "lightreplacer[emagged]"
 
 
-/obj/item/device/lightreplacer/proc/Use(var/mob/user)
+/obj/item/lightreplacer/proc/Use(mob/user)
 
 	playsound(src, 'sound/machines/click.ogg', 50, 1)
 	add_uses(-1)
 	return 1
 
 // Negative numbers will subtract
-/obj/item/device/lightreplacer/proc/add_uses(var/amount = 1)
+/obj/item/lightreplacer/proc/add_uses(amount = 1)
 	uses = min(max(uses + amount, 0), max_uses)
 
 
-/obj/item/device/lightreplacer/proc/AddShards(amount = 1)
+/obj/item/lightreplacer/proc/AddShards(amount = 1)
 	bulb_shards += amount
 	var/new_bulbs = round(bulb_shards / shards_required)
 	if(new_bulbs > 0)
@@ -170,29 +173,29 @@
 	bulb_shards = bulb_shards % shards_required
 	return new_bulbs
 
-/obj/item/device/lightreplacer/proc/Charge(var/mob/user, var/amount = 1)
+/obj/item/lightreplacer/proc/Charge(mob/user, amount = 1)
 	charge += amount
 	if(charge > 6)
 		add_uses(1)
 		charge = 0
 
-/obj/item/device/lightreplacer/proc/ReplaceLight(var/obj/machinery/light/target, var/mob/living/U)
+/obj/item/lightreplacer/proc/ReplaceLight(obj/machinery/light/target, mob/living/U)
 
 	if(target.status != LIGHT_OK)
 		if(CanUse(U))
 			if(!Use(U)) return
-			to_chat(U, "<span class='notice'>You replace the [target.get_fitting_name()] with the [src].</span>")
+			to_chat(U, span_notice("You replace the [target.get_fitting_name()] with the [src]."))
 
 			if(target.status != LIGHT_EMPTY)
 				var/new_bulbs = AddShards(1)
 				if(new_bulbs != 0)
-					to_chat(U, "<span class='notice'>\The [src] has fabricated a new bulb from the broken bulbs it has stored. It now has [uses] uses.</span>")
+					to_chat(U, span_notice("\The [src] has fabricated a new bulb from the broken bulbs it has stored. It now has [uses] uses."))
 					playsound(src, 'sound/machines/ding.ogg', 50, 1)
 				target.status = LIGHT_EMPTY
 				target.installed_light = null //Remove the light!
 				target.update()
 
-			var/obj/item/weapon/light/L2 = new target.light_type()
+			var/obj/item/light/L2 = new target.light_type()
 			L2.brightness_color = selected_color
 			target.insert_bulb(L2) //Call the insertion proc.
 			target.update()
@@ -208,7 +211,7 @@
 		to_chat(U, "There is a working [target.get_fitting_name()] already inserted.")
 		return
 
-/obj/item/device/lightreplacer/emag_act(var/remaining_charges, var/mob/user)
+/obj/item/lightreplacer/emag_act(remaining_charges, mob/user)
 	emagged = !emagged
 	playsound(src, "sparks", 100, 1)
 	update_icon()
@@ -216,7 +219,7 @@
 
 //Can you use it?
 
-/obj/item/device/lightreplacer/proc/CanUse(var/mob/living/user)
+/obj/item/lightreplacer/proc/CanUse(mob/living/user)
 	src.add_fingerprint(user)
 	//Not sure what else to check for. Maybe if clumsy?
 	if(uses > 0)
@@ -224,7 +227,74 @@
 	else
 		return 0
 
-#undef LIGHT_OK
-#undef LIGHT_EMPTY
-#undef LIGHT_BROKEN
-#undef LIGHT_BURNED
+// Light Painter.
+
+/obj/item/lightpainter
+	name = "light painter"
+	desc = "A device to configure the emission color of lighting fixtures. Use this device in-hand to set/reset the color. Use the device on a light fixture to assign the color."
+	icon = 'icons/obj/janitor.dmi'
+	icon_state = "lightreplacer0"
+	color = "#bbbbff"
+	slot_flags = SLOT_BELT
+
+	matter = list(MAT_STEEL = MATERIAL_COST(2.5),MAT_GLASS = MATERIAL_COST(0.75))
+
+	var/static/dcolor = "#e0eff0"
+	var/static/dnightcolor = "#efcc86"
+	//set color values.
+	var/setcolor = "#e0eff0"
+	var/setnightcolor = "#efcc86"
+	var/resetmode = 1
+
+	var/dimming = 0.7 // multiply value to dim lights from setcolor to nightcolor
+
+/obj/item/lightpainter/examine(mob/user)
+	. = ..()
+	if(get_dist(user, src) <= 2)
+		if(resetmode)
+			. += "It is currently resetting light colors."
+		else
+			. += "It is currently coloring lights."
+
+/obj/item/lightpainter/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+
+	if(!resetmode)
+		resetmode = 1
+		to_chat(user, span_infoplain("Painter reset."))
+	else
+		var/color_input = tgui_color_picker(user,"","Choose Light Color",setcolor)
+		if(color_input)
+			setcolor = sanitize_hexcolor(color_input)
+			var/list/setcolorRGB = hex2rgb(setcolor)
+			var/setcolorR = num2hex(setcolorRGB[1] * dimming, 2)
+			var/setcolorG = num2hex(setcolorRGB[2] * dimming, 2)
+			var/setcolorB = num2hex(setcolorRGB[3] * dimming, 2)
+			setnightcolor = addtext("#", setcolorR, setcolorG, setcolorB)
+			resetmode = 0
+			to_chat(user, span_infoplain("Painter color set."))
+
+
+/obj/item/lightpainter/proc/ColorLight(obj/machinery/light/target, mob/living/U)
+
+	src.add_fingerprint(U)
+
+	if(resetmode)
+		to_chat(U, span_notice("You reset the color of the [target.get_fitting_name()]."))
+		target.brightness_color = dcolor
+		target.brightness_color_ns = dnightcolor
+	else
+		to_chat(U, span_notice("You set the color of the [target.get_fitting_name()]."))
+
+		target.brightness_color = setcolor
+		target.brightness_color_ns = setnightcolor
+
+	if(target.nightshift_enabled)
+		target.light_color = target.brightness_color_ns
+	else
+		target.light_color = target.brightness_color
+
+	target.set_light(0)
+	target.update()

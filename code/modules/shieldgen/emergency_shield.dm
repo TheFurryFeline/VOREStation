@@ -12,6 +12,7 @@
 	var/health = max_health //The shield can only take so much beating (prevents perma-prisons)
 	var/shield_generate_power = 7500	//how much power we use when regenerating
 	var/shield_idle_power = 1500		//how much power we use when just being sustained.
+	var/datum/weakref/our_owner
 
 /obj/machinery/shield/malfai
 	name = "emergency forcefield"
@@ -24,22 +25,26 @@
 
 /obj/machinery/shield/proc/check_failure()
 	if (src.health <= 0)
-		visible_message("<b>\The [src]</b> dissipates!")
+		visible_message(span_boldnotice("\The [src]") + " dissipates!")
 		qdel(src)
 		return
 
-/obj/machinery/shield/New()
+/obj/machinery/shield/Initialize(mapload)
 	src.set_dir(pick(1,2,3,4))
-	..()
+	. = ..()
 	update_nearby_tiles(need_rebuild=1)
 
 /obj/machinery/shield/Destroy()
 	opacity = 0
 	density = FALSE
 	update_nearby_tiles()
-	..()
+	var/obj/machinery/shieldgen/SG = our_owner.resolve()
+	if(SG)
+		SG.deployed_shields -= src
+	our_owner = null
+	. = ..()
 
-/obj/machinery/shield/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/shield/attackby(obj/item/W as obj, mob/user as mob)
 	if(!istype(W)) return
 
 	//Calculate damage
@@ -56,7 +61,7 @@
 
 	..()
 
-/obj/machinery/shield/bullet_act(var/obj/item/projectile/Proj)
+/obj/machinery/shield/bullet_act(obj/item/projectile/Proj)
 	health -= Proj.get_structure_damage()
 	..()
 	check_failure()
@@ -76,7 +81,10 @@
 				qdel(src)
 	return
 
-/obj/machinery/shield/emp_act(severity)
+/obj/machinery/shield/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
 	switch(severity)
 		if(1)
 			qdel(src)
@@ -91,16 +99,21 @@
 				qdel(src)
 
 
-/obj/machinery/shield/hitby(AM as mob|obj)
+/obj/machinery/shield/hitby(atom/movable/source, datum/thrownthing/throwingdatum)
 	//Let everyone know we've been hit!
-	visible_message("<span class='danger'>\The [src] was hit by [AM].</span>")
+	visible_message(span_danger("\The [src] was hit by [source]."))
 
 	//Super realistic, resource-intensive, real-time damage calculations.
 	var/tforce = 0
-	if(ismob(AM))
+	if(ismob(source))
 		tforce = 40
-	else
-		tforce = AM:throwforce
+	if(isobj(source))
+		var/obj/object = source
+		if(isitem(object))
+			var/obj/item/our_item = object
+			tforce = our_item.throwforce
+		else
+			tforce = object.w_class
 
 	src.health -= tforce
 
@@ -124,8 +137,10 @@
 	opacity = 0
 	anchored = FALSE
 	pressure_resistance = 2*ONE_ATMOSPHERE
-	req_access = list(access_engine)
+	req_access = list(ACCESS_ENGINE)
 	var/const/max_health = 100
+	var/obj/item/cell/cell
+	var/cell_type = /obj/item/cell/high
 	var/health = max_health
 	var/active = 0
 	var/malfunction = 0 //Malfunction causes parts of the shield to slowly dissapate
@@ -134,21 +149,39 @@
 	var/is_open = 0 //Whether or not the wires are exposed
 	var/locked = 0
 	var/check_delay = 60	//periodically recheck if we need to rebuild a shield
+	var/power_efficiency = 1 //Inverse. The lower, the more power efficient we are.
 	use_power = USE_POWER_OFF
 	idle_power_usage = 0
-	var/global/list/blockedturfs =  list(
-		/turf/space,
-		/turf/simulated/floor/outdoors,
-	)
+
+/obj/machinery/shieldgen/Initialize(mapload)
+	. = ..()
+	if(cell_type)
+		cell = new cell_type(src)
+	AddElement(/datum/element/climbable)
 
 /obj/machinery/shieldgen/Destroy()
 	collapse_shields()
-	..()
+	if(cell)
+		QDEL_NULL(cell)
+	if(LAZYLEN(deployed_shields))
+		QDEL_NULL_LIST(deployed_shields)
+
+	. = ..()
+
+
+/obj/machinery/shieldgen/examine(mob/user)
+	. = ..()
+	. += "The generator is [active ? "on" : "off"] and the hatch is [is_open ? "open" : "closed"]."
+	if(panel_open)
+		. += "The power cell is [cell ? "installed" : "missing"]."
+	else
+		. += "The charge meter reads [cell ? round(cell.percent(),1) : 0]%"
 
 /obj/machinery/shieldgen/proc/shields_up()
 	if(active) return 0 //If it's already turned on, how did this get called?
 
-	src.active = 1
+	active = TRUE
+	START_MACHINE_PROCESSING(src)
 	update_icon()
 
 	create_shields()
@@ -156,66 +189,55 @@
 	var/new_power_usage = 0
 	for(var/obj/machinery/shield/shield_tile in deployed_shields)
 		new_power_usage += shield_tile.shield_idle_power
-	update_idle_power_usage(new_power_usage)
-	update_use_power(USE_POWER_IDLE)
 
 /obj/machinery/shieldgen/proc/shields_down()
 	if(!active) return 0 //If it's already off, how did this get called?
 
-	src.active = 0
+	active = FALSE
+	STOP_MACHINE_PROCESSING(src)
 	update_icon()
 
 	collapse_shields()
 
-	update_use_power(USE_POWER_OFF)
-
 /obj/machinery/shieldgen/proc/create_shields()
 	for(var/turf/target_tile in range(2, src))
-		if (is_type_in_list(target_tile,blockedturfs) && !(locate(/obj/machinery/shield) in target_tile))
+		if (is_type_in_list(target_tile,GLOB.shieldgen_blockedturfs) && !(locate(/obj/machinery/shield) in target_tile))
 			if (malfunction && prob(33) || !malfunction)
 				var/obj/machinery/shield/S = new/obj/machinery/shield(target_tile)
 				deployed_shields += S
+				S.our_owner = WEAKREF(src) //So it knows to remove itself from our list when it gets qdel'd
 				use_power(S.shield_generate_power)
 
 /obj/machinery/shieldgen/proc/collapse_shields()
 	for(var/obj/machinery/shield/shield_tile in deployed_shields)
 		qdel(shield_tile)
 
-/obj/machinery/shieldgen/power_change()
-	..()
-	if(!active) return
-	if (stat & NOPOWER)
-		collapse_shields()
-	else
-		create_shields()
-	update_icon()
-
 /obj/machinery/shieldgen/process()
-	if (!active || (stat & NOPOWER))
-		return
+	if(!active) //This shouldn't happen
+		shields_down()
+		update_icon()
+
+	if(cell && cell.charge)
+		var/power_usage = 0
+		for(var/obj/machinery/shield/shield_tile in deployed_shields)
+			power_usage += shield_tile.shield_idle_power
+		cell.use(power_usage*CELLRATE)
+		if(check_delay <= 0)
+			create_shields()
+			check_delay = 60
+		else
+			check_delay--
+	else
+		shields_down()
+		update_icon()
 
 	if(malfunction)
 		if(deployed_shields.len && prob(5))
 			qdel(pick(deployed_shields))
-	else
-		if (check_delay <= 0)
-			create_shields()
-
-			var/new_power_usage = 0
-			for(var/obj/machinery/shield/shield_tile in deployed_shields)
-				new_power_usage += shield_tile.shield_idle_power
-
-			if (new_power_usage != idle_power_usage)
-				update_idle_power_usage(new_power_usage)
-				use_power(0)
-
-			check_delay = 60
-		else
-			check_delay--
 
 /obj/machinery/shieldgen/proc/checkhp()
 	if(health <= 30)
-		src.malfunction = 1
+		malfunction = TRUE
 	if(health <= 0)
 		spawn(0)
 			explosion(get_turf(src.loc), 0, 0, 1, 0, 0, 0)
@@ -238,7 +260,10 @@
 			src.checkhp()
 	return
 
-/obj/machinery/shieldgen/emp_act(severity)
+/obj/machinery/shieldgen/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
 	switch(severity)
 		if(1)
 			src.health /= 2 //cut health in half
@@ -259,45 +284,45 @@
 		return
 
 	if (src.active)
-		user.visible_message(span_blue("\icon[src][bicon(src)] [user] deactivated the shield generator."), \
-			span_blue("\icon[src][bicon(src)] You deactivate the shield generator."), \
+		user.visible_message(span_blue("[icon2html(src,viewers(src))] [user] deactivated the shield generator."), \
+			span_blue("[icon2html(src,user.client)] You deactivate the shield generator."), \
 			"You hear heavy droning fade out.")
 		src.shields_down()
 	else
 		if(anchored)
-			user.visible_message(span_blue("\icon[src][bicon(src)] [user] activated the shield generator."), \
-				span_blue("\icon[src][bicon(src)] You activate the shield generator."), \
+			user.visible_message(span_blue("[icon2html(src,viewers(src))] [user] activated the shield generator."), \
+				span_blue("[icon2html(src, user.client)] You activate the shield generator."), \
 				"You hear heavy droning.")
 			src.shields_up()
 		else
 			to_chat(user, "The device must first be secured to the floor.")
 	return
 
-/obj/machinery/shieldgen/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/shieldgen/emag_act(remaining_charges, mob/user)
 	if(!malfunction)
-		malfunction = 1
+		malfunction = TRUE
 		update_icon()
 		return 1
 
-/obj/machinery/shieldgen/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/shieldgen/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_SCREWDRIVER))
 		playsound(src, W.usesound, 100, 1)
 		if(is_open)
 			to_chat(user, span_blue("You close the panel."))
-			is_open = 0
+			is_open = FALSE
 		else
 			to_chat(user, span_blue("You open the panel and expose the wiring."))
-			is_open = 1
+			is_open = TRUE
 
 	else if(istype(W, /obj/item/stack/cable_coil) && malfunction && is_open)
 		var/obj/item/stack/cable_coil/coil = W
-		to_chat(user, "<span class='notice'>You begin to replace the wires.</span>")
+		to_chat(user, span_notice("You begin to replace the wires."))
 		//if(do_after(user, min(60, round( ((getMaxHealth()/health)*10)+(malfunction*10) ))) //Take longer to repair heavier damage
-		if(do_after(user, 30))
+		if(do_after(user, 3 SECONDS, target = src))
 			if (coil.use(1))
 				health = max_health
 				malfunction = 0
-				to_chat(user, "<span class='notice'>You repair the [src]!</span>")
+				to_chat(user, span_notice("You repair the [src]!"))
 				update_icon()
 
 	else if(W.has_tool_quality(TOOL_WRENCH))
@@ -318,13 +343,31 @@
 			anchored = TRUE
 
 
-	else if(istype(W, /obj/item/weapon/card/id) || istype(W, /obj/item/device/pda))
+	else if(istype(W, /obj/item/card/id) || istype(W, /obj/item/pda))
 		if(src.allowed(user))
-			src.locked = !src.locked
+			locked = !locked
 			to_chat(user, "The controls are now [src.locked ? "locked." : "unlocked."]")
 		else
 			to_chat(user, span_red("Access denied."))
 
+	else if(istype(W, /obj/item/cell))
+		if(is_open)
+			if(cell)
+				to_chat(user, "There is already a power cell inside.")
+				return
+			// insert cell
+			var/obj/item/cell/C = user.get_active_hand()
+			if(istype(C))
+				user.drop_item()
+				cell = C
+				C.forceMove(src)
+				C.add_fingerprint(user)
+
+				user.visible_message(span_notice("[user] inserts a power cell into [src]."), span_notice("You insert the power cell into [src]."))
+				power_change()
+		else
+			to_chat(user, "The hatch must be open to insert a power cell.")
+			return
 	else
 		..()
 

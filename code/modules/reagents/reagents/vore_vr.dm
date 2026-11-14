@@ -4,42 +4,56 @@
 ////////////////////////////
 
 /datum/reagent/macrocillin
-	name = "Macrocillin"
-	id = "macrocillin"
+	name = REAGENT_MACROCILLIN
+	id = REAGENT_ID_MACROCILLIN
 	description = "Glowing yellow liquid."
 	reagent_state = LIQUID
 	color = "#FFFF00" // rgb: 255, 255, 0
 	metabolism = 0.01
+	dermal_absorption = 1 //Grow patches.
+	scannable = SCANNABLE_BENEFICIAL
 	mrate_static = TRUE
+	supply_conversion_value = REFINERYEXPORT_VALUE_GODTIER
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/macrocillin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	M.resize(M.size_multiplier+0.01, uncapped = M.has_large_resize_bounds()) //Incrrease 1% per tick.
+/datum/reagent/macrocillin/affect_blood(mob/living/carbon/M, alien, removed)
+	var/new_size = clamp((M.size_multiplier + 0.01), RESIZE_MINIMUM_DORMS, RESIZE_MAXIMUM_DORMS)
+	M.resize(new_size, uncapped = M.has_large_resize_bounds()) //Incrrease 1% per tick.
 	return
 
 /datum/reagent/microcillin
-	name = "Microcillin"
-	id = "microcillin"
+	name = REAGENT_MICROCILLIN
+	id = REAGENT_ID_MICROCILLIN
+	scannable = SCANNABLE_BENEFICIAL
 	description = "Murky purple liquid."
 	reagent_state = LIQUID
 	color = "#800080"
 	metabolism = 0.01
+	dermal_absorption = 1 //Shrink patches
 	mrate_static = TRUE
+	supply_conversion_value = REFINERYEXPORT_VALUE_GODTIER
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/microcillin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	M.resize(M.size_multiplier-0.01, uncapped = M.has_large_resize_bounds()) //Decrease 1% per tick.
+/datum/reagent/microcillin/affect_blood(mob/living/carbon/M, alien, removed)
+	var/new_size = clamp((M.size_multiplier - 0.01), RESIZE_MINIMUM_DORMS, RESIZE_MAXIMUM_DORMS)
+	M.resize(new_size, uncapped = M.has_large_resize_bounds()) //Decrease 1% per tick.
 	return
 
 
 /datum/reagent/normalcillin
-	name = "Normalcillin"
-	id = "normalcillin"
+	name = REAGENT_NORMALCILLIN
+	id = REAGENT_ID_NORMALCILLIN
+	scannable = SCANNABLE_BENEFICIAL
 	description = "Translucent cyan liquid."
 	reagent_state = LIQUID
 	color = "#00FFFF"
 	metabolism = 0.01 //One unit will be just enough to bring someone from 200% to 100%
+	dermal_absorption = 1
 	mrate_static = TRUE
+	supply_conversion_value = REFINERYEXPORT_VALUE_GODTIER
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/normalcillin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/normalcillin/affect_blood(mob/living/carbon/M, alien, removed)
 	if(M.size_multiplier > RESIZE_NORMAL)
 		M.resize(M.size_multiplier-0.01) //Decrease by 1% size per tick.
 	else if(M.size_multiplier < RESIZE_NORMAL)
@@ -48,14 +62,17 @@
 
 
 /datum/reagent/sizeoxadone
-	name = "Sizeoxadone"
-	id = "sizeoxadone"
+	name = REAGENT_SIZEOXADONE
+	id = REAGENT_ID_SIZEOXADONE
+	scannable = SCANNABLE_BENEFICIAL
 	description = "A volatile liquid used as a precursor to size-altering chemicals. Causes dizziness if taken unprocessed."
 	reagent_state = LIQUID
 	color = "#1E90FF"
 	overdose = REAGENTS_OVERDOSE
+	supply_conversion_value = REFINERYEXPORT_VALUE_PEAK
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/sizeoxadone/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/sizeoxadone/affect_blood(mob/living/carbon/M, alien, removed)
 	M.make_dizzy(1)
 	if(!M.confused) M.confused = 1
 	M.confused = max(M.confused, 20)
@@ -65,14 +82,17 @@
 ////////////////////////// Anti-Noms Drugs //////////////////////////
 
 /datum/reagent/ickypak
-	name = "Ickypak"
-	id = "ickypak"
+	name = REAGENT_ICKYPAK
+	id = REAGENT_ID_ICKYPAK
+	scannable = SCANNABLE_BENEFICIAL
 	description = "A foul-smelling green liquid, for inducing muscle contractions to expel accidentally ingested things."
 	reagent_state = LIQUID
 	color = "#0E900E"
 	overdose = REAGENTS_OVERDOSE
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = REFINERYEXPORT_REASON_WEAPONS
 
-/datum/reagent/ickypak/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/ickypak/affect_blood(mob/living/carbon/M, alien, removed)
 	M.make_dizzy(1)
 	M.adjustHalLoss(2)
 
@@ -87,19 +107,21 @@
 				B.release_specific_contents(A)
 
 /datum/reagent/unsorbitol
-	name = "Unsorbitol"
-	id = "unsorbitol"
+	name = REAGENT_UNSORBITOL
+	id = REAGENT_ID_UNSORBITOL
+	scannable = SCANNABLE_BENEFICIAL
 	description = "A frothy pink liquid, for causing cellular-level hetrogenous structure separation."
 	reagent_state = LIQUID
 	color = "#EF77E5"
 	overdose = REAGENTS_OVERDOSE
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/unsorbitol/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/unsorbitol/affect_blood(mob/living/carbon/M, alien, removed)
 	M.make_dizzy(1)
 	M.adjustHalLoss(1)
-	if(!M.confused) M.confused = 1
-	M.confused = max(M.confused, 20)
-	M.hallucination += 15
+	M.SetConfused(max(M.confused, 20))
+	M.hallucination = max(M.hallucination, 20) //This used to be += 15 resulting in INFINITE HALLUCINATION
 
 	for(var/obj/belly/B as anything in M.vore_organs)
 
@@ -113,76 +135,174 @@
 			else if(prob(1))
 				playsound(M, 'sound/vore/schlorp.ogg', 50, 1)
 				P.absorbed = 0
-				M.visible_message(span_green("<b>Something spills into [M]'s [lowertext(B.name)]!</b>"))
+				M.visible_message(span_infoplain(span_green(span_bold("Something spills into [M]'s [lowertext(B.name)]!"))))
 
 ////////////////////////// TF Drugs //////////////////////////
 
 /datum/reagent/amorphorovir
-	name = "Amorphorovir"
-	id = "amorphorovir"
+	name = REAGENT_AMORPHOROVIR
+	id = REAGENT_ID_AMORPHOROVIR
+	scannable = SCANNABLE_BENEFICIAL
 	description = "A base medical concoction, capable of rapidly altering genetic and physical structure of the body. Requires extra processing to allow for a targeted transformation."
 	reagent_state = LIQUID
 	color = "#AAAAAA"
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
 /datum/reagent/androrovir
-	name = "Androrovir"
-	id = "androrovir"
+	name = REAGENT_ANDROROVIR
+	id = REAGENT_ID_ANDROROVIR
+	scannable = SCANNABLE_BENEFICIAL
 	description = "A medical concoction, capable of rapidly altering genetic and physical structure of the body. This one seems to realign the target's gender to be male."
 	reagent_state = LIQUID
 	color = "#00BBFF"
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/androrovir/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/androrovir/affect_blood(mob/living/carbon/M, alien, removed)
 	if(!(M.allow_spontaneous_tf))
 		return
 	if(ishuman(M))
 		var/mob/living/carbon/human/H = M
-		if(M.reagents.has_reagent("gynorovir") || M.reagents.has_reagent("androgynorovir"))
+		if(M.reagents.has_reagent(REAGENT_ID_GYNOROVIR) || M.reagents.has_reagent(REAGENT_ID_ANDROGYNOROVIR))
 			H.Confuse(1)
 		else
 			if(!(H.gender == MALE))
 				H.set_gender(MALE)
 				H.change_gender_identity(MALE)
-				H.visible_message("<span class='notice'>[H] suddenly twitches as some of their features seem to contort and reshape, adjusting... In the end, it seems they are now male.</span>",
-								"<span class='warning'>Your body suddenly contorts, feeling very different in various ways... By the time the rushing feeling is over it seems you just became male.</span>")
+				H.visible_message(span_notice("[H] suddenly twitches as some of their features seem to contort and reshape, adjusting... In the end, it seems they are now male."),
+								span_warning("Your body suddenly contorts, feeling very different in various ways... By the time the rushing feeling is over it seems you just became male."))
 
 /datum/reagent/gynorovir
-	name = "Gynorovir"
-	id = "gynorovir"
+	name = REAGENT_GYNOROVIR
+	id = REAGENT_ID_GYNOROVIR
+	scannable = SCANNABLE_BENEFICIAL
 	description = "A medical concoction, capable of rapidly altering genetic and physical structure of the body. This one seems to realign the target's gender to be female."
 	reagent_state = LIQUID
 	color = "#FF00AA"
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/gynorovir/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/gynorovir/affect_blood(mob/living/carbon/M, alien, removed)
 	if(!(M.allow_spontaneous_tf))
 		return
 	if(ishuman(M))
 		var/mob/living/carbon/human/H = M
-		if(M.reagents.has_reagent("androrovir") || M.reagents.has_reagent("androgynorovir"))
+		if(M.reagents.has_reagent(REAGENT_ID_ANDROROVIR) || M.reagents.has_reagent(REAGENT_ID_ANDROGYNOROVIR))
 			H.Confuse(1)
 		else
 			if(!(H.gender == FEMALE))
 				H.set_gender(FEMALE)
 				H.change_gender_identity(FEMALE)
-				H.visible_message("<span class='notice'>[H] suddenly twitches as some of their features seem to contort and reshape, adjusting... In the end, it seems they are now female.</span>",
-								"<span class='warning'>Your body suddenly contorts, feeling very different in various ways... By the time the rushing feeling is over it seems you just became female.</span>")
+				H.visible_message(span_notice("[H] suddenly twitches as some of their features seem to contort and reshape, adjusting... In the end, it seems they are now female."),
+								span_warning("Your body suddenly contorts, feeling very different in various ways... By the time the rushing feeling is over it seems you just became female."))
 
 /datum/reagent/androgynorovir
-	name = "Androgynorovir"
-	id = "androgynorovir"
+	name = REAGENT_ANDROGYNOROVIR
+	id = REAGENT_ID_ANDROGYNOROVIR
+	scannable = SCANNABLE_BENEFICIAL
 	description = "A medical concoction, capable of rapidly altering genetic and physical structure of the body. This one seems to realign the target's gender to be mixed."
 	reagent_state = LIQUID
 	color = "#6600FF"
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = REFINERYEXPORT_REASON_MEDSCI
 
-/datum/reagent/androgynorovir/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/androgynorovir/affect_blood(mob/living/carbon/M, alien, removed)
 	if(!(M.allow_spontaneous_tf))
 		return
 	if(ishuman(M))
 		var/mob/living/carbon/human/H = M
-		if(M.reagents.has_reagent("gynorovir") || M.reagents.has_reagent("androrovir"))
+		if(M.reagents.has_reagent(REAGENT_ID_GYNOROVIR) || M.reagents.has_reagent(REAGENT_ID_ANDROROVIR))
 			H.Confuse(1)
 		else
 			if(!(H.gender == PLURAL))
 				H.set_gender(PLURAL)
 				H.change_gender_identity(PLURAL)
-				H.visible_message("<span class='notice'>[H] suddenly twitches as some of their features seem to contort and reshape, adjusting... In the end, it seems they are now of mixed gender.</span>",
-								"<span class='warning'>Your body suddenly contorts, feeling very different in various ways... By the time the rushing feeling is over it seems you just became of mixed gender.</span>")
+				H.visible_message(span_notice("[H] suddenly twitches as some of their features seem to contort and reshape, adjusting... In the end, it seems they are now of mixed gender."),
+								span_warning("Your body suddenly contorts, feeling very different in various ways... By the time the rushing feeling is over it seems you just became of mixed gender."))
+
+
+////////////////////////// Misc Drugs //////////////////////////
+
+/datum/reagent/drugs/rainbow_toxin /// Replaces Space Drugs.
+	name = REAGENT_RAINBOWTOXIN
+	id = REAGENT_ID_RAINBOWTOXIN
+	description = "Known for providing a euphoric high, this psychoactive drug is often injected into unknowing prey by serpents and other fanged beasts. Highly valuable and frequently sought after by hypno-enthusiasts and party-goers."
+	taste_description = "mixed euphoria"
+	taste_mult = 0.8 //You ARE going to taste this!
+	scannable = 1	//Sure! If you manage to milk a snake for some of this, go ahead and scan it and mass produce it. Your local club will love you!
+
+/datum/reagent/drugs/rainbow_toxin/affect_blood(mob/living/carbon/M, alien, removed)
+	..()
+	var/drug_strength = 20
+	if(M.species.chem_strength_tox > 0)
+		drug_strength *= M.species.chem_strength_tox
+	if(alien == IS_SLIME)
+		drug_strength *= 0.15 //~ 1/6
+	M.druggy = max(M.druggy, drug_strength)
+
+/datum/reagent/drugs/rainbow_toxin/overdose(mob/living/M as mob)
+	if(prob_proc == TRUE && prob(20))
+		M.hallucination = max(M.hallucination, 5)
+		prob_proc = FALSE
+	M.adjustBrainLoss(0.25*REM) //Too much isn't good for your long term health...
+	M.adjustToxLoss(0.01*REM)	//Enough that it'll make your HUD dummy update, but not enough that you'll vomit mid scene. (Sorry emetophiliacs!)
+	..()
+
+/datum/reagent/paralysis_toxin
+	name = REAGENT_PARALYSISTOXIN
+	id = REAGENT_ID_PARALYSISTOXIN
+	scannable = SCANNABLE_ADVANCED
+	description = "A potent toxin commonly found in a plethora of species. When exposed to the toxin, causes extreme, paralysis for a prolonged period, with only essential functions of the body being unhindered. Commonly used by covert operatives and used as a crowd control tool."
+	taste_description = "bitterness"
+	reagent_state = LIQUID
+	dermal_absorption = 0 //Too strong.
+	color = "#37007f"
+	metabolism = REM * 0.25
+	overdose = REAGENTS_OVERDOSE
+	scannable = 1 //As I found out, this only means if you can detect it or not. Sad.
+	supply_conversion_value = REFINERYEXPORT_VALUE_HIGHREFINED
+	industrial_use = REFINERYEXPORT_REASON_WEAPONS
+
+/datum/reagent/paralysis_toxin/affect_blood(mob/living/carbon/M, alien, removed)
+	if(M.weakened < 50) //Let's not leave them PERMA stuck, after all.
+		M.AdjustWeakened(5) //Stand in for paralyze so you can still talk/emote/see
+
+/datum/reagent/pain_enzyme
+	name = REAGENT_PAINENZYME
+	id = REAGENT_ID_PAINENZYME
+	scannable = SCANNABLE_ADVANCED
+	description = "An enzyme found in a variety of species. When exposed to the toxin, will cause severe, agonizing pain. The effects can last for hours depending on the dose. Only known cure is an equally strong painkiller or dialysis."
+	taste_description = "sourness"
+	reagent_state = LIQUID
+	color = "#04b8fa" //Light blue in honor of Perry.
+	metabolism = 0.1 //Lasts up to 50 seconds if you give 5 units.
+	mrate_static = TRUE
+	overdose = 100 //There is no OD. You already are taking the worst of it.
+	scannable = 1
+	supply_conversion_value = REFINERYEXPORT_VALUE_PROCESSED
+	industrial_use = REFINERYEXPORT_REASON_WEAPONS
+
+/datum/reagent/pain_enzyme/affect_blood(mob/living/carbon/M, alien, removed)
+	M.add_chemical_effect(CE_PAINKILLER, -200)
+	if(prob(0.01)) //1 in 10000 chance per tick. Extremely rare.
+		to_chat(M,span_warning("Your body feels as though it's on fire!"))
+
+/datum/reagent/aphrodisiac
+	name = REAGENT_APHRODISIAC
+	id = REAGENT_ID_APHRODISIAC
+	scannable = SCANNABLE_ADVANCED
+	description = "You so horny."
+	taste_description = "sweetness"
+	reagent_state = LIQUID
+	color = "#FF9999"
+	scannable = 1
+	supply_conversion_value = REFINERYEXPORT_VALUE_RARE
+	industrial_use = REFINERYEXPORT_REASON_DRUG
+
+
+/datum/reagent/aphrodisiac/affect_blood(mob/living/carbon/M, alien, removed)
+	if(!M)	return
+
+	if(prob(3))
+		M.emote(pick("blush", "moan", "moan", "giggle"))

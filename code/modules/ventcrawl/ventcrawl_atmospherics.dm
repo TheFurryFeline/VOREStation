@@ -4,8 +4,10 @@
 	for(var/mob/living/M in src) //ventcrawling is serious business
 		M.remove_ventcrawl()
 		M.forceMove(get_turf(src))
+		SEND_SIGNAL(M,COMSIG_MOB_VENTCRAWL_END,src)
+		SEND_SIGNAL(src,COMSIG_VENT_CRAWLER_EXITED,M)
 	if(pipe_image)
-		for(var/mob/living/M in player_list)
+		for(var/mob/living/M in GLOB.player_list)
 			if(M.client)
 				M.client.images -= pipe_image
 				M.pipes_shown -= pipe_image
@@ -18,7 +20,7 @@
 	. = ..()
 
 /obj/machinery/atmospherics/Entered(atom/movable/Obj)
-	if(istype(Obj, /mob/living))
+	if(isliving(Obj))
 		var/mob/living/L = Obj
 		L.ventcrawl_layer = layer
 	. = ..()
@@ -28,9 +30,9 @@
 		return
 	ventcrawl_to(user,findConnecting(direction, user.ventcrawl_layer),direction)
 
-/obj/machinery/atmospherics/proc/ventcrawl_to(var/mob/living/user, var/obj/machinery/atmospherics/target_move, var/direction)
+/obj/machinery/atmospherics/proc/ventcrawl_to(mob/living/user, obj/machinery/atmospherics/target_move, direction)
 	if(target_move)
-		if(is_type_in_list(target_move, ventcrawl_machinery) && target_move.can_crawl_through())
+		if(is_type_in_list(target_move, GLOB.ventcrawl_machinery) && target_move.can_crawl_through())
 			user.remove_ventcrawl()
 			user.forceMove(target_move.loc) //handles entering and so on
 			user.visible_message("You hear something squeezing through the ducts.", "You climb out the ventilation system.")
@@ -39,23 +41,26 @@
 				user.remove_ventcrawl()
 				user.add_ventcrawl(target_move)
 			user.forceMove(target_move)
-			user.client.eye = target_move //if we don't do this, Byond only updates the eye every tick - required for smooth movement
+			user.reset_perspective(target_move) //if we don't do this, Byond only updates the eye every tick - required for smooth movement
 			if(world.time > user.next_play_vent)
 				user.next_play_vent = world.time+30
 				var/turf/T = get_turf(src)
+				SSmotiontracker.ping(T,40) // Teshari rattler
 				playsound(T, 'sound/machines/ventcrawl.ogg', 50, 1, -3)
 				var/message = pick(
 					prob(90);"* clunk *",
 					prob(90);"* thud *",
 					prob(90);"* clatter *",
-					prob(1);"* <span style='font-size:2em'>ඞ</span> *"
+					prob(1);"* " + span_giganteus("ඞ") + " *"
 				)
 				T.runechat_message(message)
-				
+
 	else
-		if((direction & initialize_directions) || is_type_in_list(src, ventcrawl_machinery) && src.can_crawl_through()) //if we move in a way the pipe can connect, but doesn't - or we're in a vent
+		if((direction & initialize_directions) || is_type_in_list(src, GLOB.ventcrawl_machinery) && src.can_crawl_through()) //if we move in a way the pipe can connect, but doesn't - or we're in a vent
 			user.remove_ventcrawl()
 			user.forceMove(src.loc)
+			SEND_SIGNAL(user,COMSIG_MOB_VENTCRAWL_END,src)
+			SEND_SIGNAL(src,COMSIG_VENT_CRAWLER_EXITED,user)
 			user.visible_message("You hear something squeezing through the pipes.", "You climb out the ventilation system.")
 	user.canmove = 0
 	spawn(1)
@@ -70,32 +75,47 @@
 
 	. = ..()
 
-/obj/machinery/atmospherics/proc/findConnecting(var/direction)
+/obj/machinery/atmospherics/proc/findConnecting(direction, check_layer)
 	for(var/obj/machinery/atmospherics/target in get_step(src,direction))
 		if(target.initialize_directions & get_dir(target,src))
-			if(isConnectable(target) && target.isConnectable(src))
+			if(isConnectable(target) && target.isConnectable(src) && (!check_layer || target.piping_layer == check_layer))
 				return target
+	// If we fail to find it with a specific check layer, try again with any layer
+	if(check_layer)
+		return findConnecting(direction, 0)
 
-/obj/machinery/atmospherics/proc/isConnectable(var/obj/machinery/atmospherics/target)
+/obj/machinery/atmospherics/proc/isConnectable(obj/machinery/atmospherics/target)
 	return (target == node1 || target == node2)
 
-/obj/machinery/atmospherics/pipe/manifold/isConnectable(var/obj/machinery/atmospherics/target)
+/obj/machinery/atmospherics/pipe/manifold/isConnectable(obj/machinery/atmospherics/target)
 	return (target == node3 || ..())
 
-/obj/machinery/atmospherics/trinary/isConnectable(var/obj/machinery/atmospherics/target)
+/obj/machinery/atmospherics/trinary/isConnectable(obj/machinery/atmospherics/target)
 	return (target == node3 || ..())
 
-/obj/machinery/atmospherics/pipe/manifold4w/isConnectable(var/obj/machinery/atmospherics/target)
+/obj/machinery/atmospherics/pipe/manifold4w/isConnectable(obj/machinery/atmospherics/target)
 	return (target == node3 || target == node4 || ..())
 
-/obj/machinery/atmospherics/tvalve/isConnectable(var/obj/machinery/atmospherics/target)
+/obj/machinery/atmospherics/tvalve/isConnectable(obj/machinery/atmospherics/target)
 	return (target == node3 || ..())
 
-/obj/machinery/atmospherics/pipe/cap/isConnectable(var/obj/machinery/atmospherics/target)
+/obj/machinery/atmospherics/pipe/cap/isConnectable(obj/machinery/atmospherics/target)
 	return (target == node || ..())
 
-/obj/machinery/atmospherics/portables_connector/isConnectable(var/obj/machinery/atmospherics/target)
+/obj/machinery/atmospherics/portables_connector/isConnectable(obj/machinery/atmospherics/target)
 	return (target == node || ..())
 
-/obj/machinery/atmospherics/unary/isConnectable(var/obj/machinery/atmospherics/target)
+/obj/machinery/atmospherics/unary/isConnectable(obj/machinery/atmospherics/target)
 	return (target == node || ..())
+
+/obj/machinery/atmospherics/pipe/simple/visible/universal/isConnectable(obj/machinery/atmospherics/target)
+	for(var/list/node_layer in universal_nodes)
+		if(target == node_layer[1] || target == node_layer[2])
+			return TRUE
+	return FALSE
+
+/obj/machinery/atmospherics/pipe/simple/hidden/universal/isConnectable(obj/machinery/atmospherics/target)
+	for(var/list/node_layer in universal_nodes)
+		if(target == node_layer[1] || target == node_layer[2])
+			return TRUE
+	return FALSE

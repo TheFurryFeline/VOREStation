@@ -2,7 +2,7 @@
 	name = "None"
 	always_last = TRUE
 
-/datum/category_item/underwear/top/none/is_default(var/gender)
+/datum/category_item/underwear/top/none/is_default(gender)
 	return gender != FEMALE
 
 /datum/category_item/underwear/top/bra
@@ -11,7 +11,7 @@
 	icon_state = "bra"
 	has_color = TRUE
 
-/datum/category_item/underwear/top/bra/is_default(var/gender)
+/datum/category_item/underwear/top/bra/is_default(gender)
 	return gender == FEMALE
 
 /datum/category_item/underwear/top/sports_bra
@@ -77,6 +77,10 @@
 /datum/category_item/underwear/top/binder
 	name = "Binder"
 	icon_state = "binder_s"
+
+/datum/category_item/underwear/top/binder_hyper
+	name = "HYPER Binder"
+	icon_state = "hyper_binder"
 
 /datum/category_item/underwear/top/straplessbinder
 	name = "Binder Strapless"

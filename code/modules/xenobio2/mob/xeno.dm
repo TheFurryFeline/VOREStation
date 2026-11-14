@@ -8,7 +8,7 @@ Also includes Life and New
 /mob/living/simple_mob/xeno
 	name = "Xeno"
 	real_name = "Xeno"
-	faction = "xeno"	//Needs to be set.
+	faction = FACTION_XENO	//Needs to be set.
 	desc = "Something's broken, yell at someone."
 	melee_damage_lower = 0
 	melee_damage_upper = 0
@@ -74,13 +74,13 @@ Also includes Life and New
 
 		return 1	//Everything worked okay.
 
-/mob/living/simple_mob/xeno/New()
+/mob/living/simple_mob/xeno/Initialize(mapload)
 
 	traitdat = new()
 
 	ProcessTraits()
 
-	..()
+	. = ..()
 	if(colored)
 		color = traitdat.get_trait(TRAIT_XENO_COLOR)
 	create_reagents(internal_vol)
@@ -95,13 +95,12 @@ Also includes Life and New
 	if(!health)
 		set_stat(DEAD)
 
-/mob/living/simple_mob/xeno/bullet_act(var/obj/item/projectile/Proj)
+/mob/living/simple_mob/xeno/bullet_act(obj/item/projectile/Proj)
 	if(istype(Proj, /obj/item/projectile/beam/stun/xeno))
 		var/obj/item/projectile/beam/stun/xeno/hit = Proj
 		stasis += hit.stasisforce
 	..()
 
 /mob/living/simple_mob/xeno/Destroy()
-	traitdat.Destroy()	//Let's clean up after ourselves.
-	traitdat = null
-	..()
+	QDEL_NULL(traitdat)
+	. = ..()

@@ -45,7 +45,7 @@
 /area/gateway/arynthilake/underground)
 "hB" = (
 /obj/structure/table/steel_reinforced,
-/obj/item/device/mapping_unit,
+/obj/item/mapping_unit,
 /turf/simulated/floor/tiled/eris/steel/orangecorner,
 /area/gateway/arynthilake/engine)
 "hK" = (
@@ -86,9 +86,7 @@
 	light_range = 5
 	},
 /turf/simulated/floor/beach/sand/desert,
-/area/gateway/arynthilake/underground/intocave{
-	enter_message = "There is some light filtering from the center of this patch of sand. You could probably climb up from there."
-	})
+/area/gateway/arynthilake/underground/intocave/entry)
 "lN" = (
 /obj/structure/table/rack/shelf/steel,
 /obj/machinery/light/small{
@@ -301,9 +299,7 @@
 /area/gateway/arynthilake/underground/maintenance)
 "LY" = (
 /turf/simulated/floor/beach/sand/desert,
-/area/gateway/arynthilake/underground/intocave{
-	enter_message = "There is some light filtering from the center of this patch of sand. You could probably climb up from there."
-	})
+/area/gateway/arynthilake/underground/intocave/entry)
 "Mj" = (
 /obj/structure/table/steel_reinforced,
 /turf/simulated/floor/tiled/eris/techmaint,
@@ -346,7 +342,7 @@
 /obj/structure/noticeboard{
 	pixel_x = -32
 	},
-/obj/item/weapon/paper/gateway/arynthilake,
+/obj/item/paper/gateway/arynthilake,
 /turf/simulated/floor/tiled/eris/steel/orangecorner,
 /area/gateway/arynthilake/engine)
 "WN" = (
@@ -366,7 +362,7 @@
 /area/gateway/arynthilake/underground/maintenance)
 "ZY" = (
 /obj/structure/table/rack/shelf/steel,
-/obj/item/weapon/cell/void,
+/obj/item/cell/void,
 /obj/random/tool,
 /obj/random/tool,
 /obj/random/tech_supply,

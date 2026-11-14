@@ -24,6 +24,8 @@
 	var/atom/movable/copying = null // The thing we're trying to look like.
 	var/realistic = FALSE // If true, things like bullets and weapons will hit it, to be a bit more convincing from a distance.
 
+	can_pain_emote = FALSE
+
 /mob/living/simple_mob/illusion/update_icon() // We don't want the appearance changing AT ALL unless by copy_appearance().
 	return
 
@@ -40,6 +42,7 @@
 // Because we can't perfectly duplicate some examine() output, we directly examine the AM it is copying.  It's messy but
 // this is to prevent easy checks from the opposing force.
 /mob/living/simple_mob/illusion/examine(mob/user)
+	SHOULD_CALL_PARENT(FALSE)
 	if(copying)
 		return copying.examine(user)
 	else
@@ -57,21 +60,20 @@
 /mob/living/simple_mob/illusion/attack_hand(mob/living/carbon/human/M)
 	if(!realistic)
 		playsound(src, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
-		visible_message(span("warning", "\The [M]'s hand goes through \the [src]!"))
+		visible_message(span_warning("\The [M]'s hand goes through \the [src]!"))
 		return
 	else
 		switch(M.a_intent)
 			if(I_HELP)
-				var/datum/gender/T = gender_datums[src.get_visible_gender()]
 				M.visible_message(
-					span("notice", "\The [M] hugs [src] to make [T.him] feel better!"), \
-					span("notice", "You hug [src] to make [T.him] feel better!")
+					span_notice("\The [M] hugs [src] to make [p_them()] feel better!"), \
+					span_notice("You hug [src] to make [p_them()] feel better!")
 					) // slightly redundant as at the moment most mobs still use the normal gender var, but it works and future-proofs it
 				playsound(src, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
 
 			if(I_DISARM)
 				playsound(src, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
-				visible_message(span("danger", "\The [M] attempted to disarm [src]!"))
+				visible_message(span_danger("\The [M] attempted to disarm [src]!"))
 				M.do_attack_animation(src)
 
 			if(I_GRAB)
@@ -79,15 +81,15 @@
 
 			if(I_HURT)
 				adjustBruteLoss(harm_intent_damage)
-				M.visible_message(span("danger", "\The [M] [response_harm] \the [src]"))
+				M.visible_message(span_danger("\The [M] [response_harm] \the [src]"))
 				M.do_attack_animation(src)
 
-/mob/living/simple_mob/illusion/hit_with_weapon(obj/item/I, mob/living/user, effective_force, hit_zone)
+/mob/living/simple_mob/illusion/hit_with_weapon(obj/item/I, mob/living/user, effective_force, hit_zone, hide_attack_message)
 	if(realistic)
 		return ..()
 
 	playsound(src, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
-	visible_message(span("warning", "\The [user]'s [I] goes through \the [src]!"))
+	visible_message(span_warning("\The [user]'s [I] goes through \the [src]!"))
 	return FALSE
 
 /mob/living/simple_mob/illusion/ex_act()

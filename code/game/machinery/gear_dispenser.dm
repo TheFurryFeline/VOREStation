@@ -8,7 +8,7 @@
 #define GD_UNLIMITED	8		// will not deplete amount when gear is taken
 #define GD_UNIQUE		16		// each instance of this will allow people to take 1 thing
 
-var/list/dispenser_presets = list()
+GLOBAL_LIST_EMPTY(dispenser_presets)
 
 // Standard generic item list
 /datum/gear_disp
@@ -17,14 +17,14 @@ var/list/dispenser_presets = list()
 	var/amount = 0
 	var/list/req_one_access
 
-/datum/gear_disp/proc/allowed(var/mob/living/carbon/human/user)
+/datum/gear_disp/proc/allowed(mob/living/carbon/human/user)
 	if(LAZYLEN(req_one_access))
 		var/accesses = user.GetAccess()
 		return has_access(null, req_one_access, accesses)
 
 	return 1
 
-/datum/gear_disp/proc/spawn_gear(var/turf/T, var/mob/living/carbon/human/user)
+/datum/gear_disp/proc/spawn_gear(turf/T, mob/living/carbon/human/user)
 	var/list/spawned = list()
 	for(var/O in to_spawn)
 		spawned += new O(T)
@@ -37,7 +37,7 @@ var/list/dispenser_presets = list()
 	var/ckey_allowed
 	var/character_allowed
 
-/datum/gear_disp/custom/allowed(var/mob/living/carbon/human/user)
+/datum/gear_disp/custom/allowed(mob/living/carbon/human/user)
 	if(ckey_allowed && user.ckey != ckey_allowed)
 		return 0
 
@@ -60,17 +60,17 @@ var/list/dispenser_presets = list()
 	var/life_support = TRUE // try to spawn a tank or suit cooler
 	var/refit = TRUE // should we adapt this to the user's species
 
-/datum/gear_disp/voidsuit/spawn_gear(var/turf/T, var/mob/living/carbon/human/user)
+/datum/gear_disp/voidsuit/spawn_gear(turf/T, mob/living/carbon/human/user)
 	ASSERT(voidsuit_type)
 	. = ..()
 	if(voidsuit_type && !ispath(voidsuit_type, /obj/item/clothing/suit/space/void))
-		error("[src] can't spawn type [voidsuit_type] as a voidsuit")
+		log_world("## ERROR [src] can't spawn type [voidsuit_type] as a voidsuit")
 		return
 	if(voidhelmet_type && !ispath(voidhelmet_type, /obj/item/clothing/head/helmet/space/void))
-		error("[src] can't spawn type [voidsuit_type] as a voidhelmet")
+		log_world("## ERROR [src] can't spawn type [voidsuit_type] as a voidhelmet")
 		return
 	if(magboots_type && !ispath(magboots_type, /obj/item/clothing/shoes/magboots))
-		error("[src] can't spawn type [magboots_type] as magboots")
+		log_world("## ERROR [src] can't spawn type [magboots_type] as magboots")
 		return
 
 	var/obj/item/clothing/suit/space/void/voidsuit
@@ -85,8 +85,8 @@ var/list/dispenser_presets = list()
 	// If we're supposed to make a helmet
 	if(voidhelmet_type)
 		// The coder may not have realized this type spawns its own helmet
-		if(voidsuit.helmet)
-			error("[src] created a voidsuit [voidsuit] and wants to add a helmet but it already has one")
+		if(voidsuit.hood)
+			log_world("## ERROR [src] created a voidsuit [voidsuit] and wants to add a helmet but it already has one")
 		else
 			voidhelmet = new voidhelmet_type()
 			voidsuit.attach_helmet(voidhelmet)
@@ -94,7 +94,7 @@ var/list/dispenser_presets = list()
 	if(magboots_type)
 		// The coder may not have realized thist ype spawns its own boots
 		if(voidsuit.boots)
-			error("[src] created a voidsuit [voidsuit] and wants to add a helmet but it already has one")
+			log_world("## ERROR [src] created a voidsuit [voidsuit] and wants to add a helmet but it already has one")
 		else
 			magboots = new magboots_type(voidsuit)
 			voidsuit.boots = magboots
@@ -105,17 +105,17 @@ var/list/dispenser_presets = list()
 	if(life_support)
 		if(user.isSynthetic())
 			if(voidsuit.cooler)
-				error("[src] created a voidsuit [voidsuit] and wants to add a suit cooler but it already has one")
+				log_world("## ERROR [src] created a voidsuit [voidsuit] and wants to add a suit cooler but it already has one")
 			else
-				var/obj/item/life_support = new /obj/item/device/suit_cooling_unit(voidsuit)
+				var/obj/item/life_support = new /obj/item/suit_cooling_unit(voidsuit)
 				voidsuit.cooler = life_support
 		else if(user.species?.breath_type)
 			if(voidsuit.tank)
-				error("[src] created a voidsuit [voidsuit] and wants to add a tank but it already has one")
+				log_world("## ERROR [src] created a voidsuit [voidsuit] and wants to add a tank but it already has one")
 			else
 				//Create a tank (if such a thing exists for this species)
-				var/tanktext = "/obj/item/weapon/tank/" + "[user.species?.breath_type]"
-				var/obj/item/weapon/tank/tankpath = text2path(tanktext)
+				var/tanktext = "/obj/item/tank/" + "[user.species?.breath_type]"
+				var/obj/item/tank/tankpath = text2path(tanktext)
 
 				if(tankpath)
 					var/obj/item/life_support = new tankpath(voidsuit)
@@ -132,7 +132,7 @@ var/list/dispenser_presets = list()
 	var/ckey_allowed
 	var/character_allowed
 
-/datum/gear_disp/voidsuit/custom/allowed(var/mob/living/carbon/human/user)
+/datum/gear_disp/voidsuit/custom/allowed(mob/living/carbon/human/user)
 	if(ckey_allowed && user.ckey != ckey_allowed)
 		return 0
 
@@ -151,20 +151,19 @@ var/list/dispenser_presets = list()
 	density = TRUE
 	var/list/dispenses = list(/datum/gear_disp/trash) // put your gear datums here!
 	var/datum/gear_disp/one_setting
-	var/global/list/gear_distributed_to = list()
 	var/dispenser_flags = GD_NOGREED|GD_UNLIMITED
 	var/unique_dispense_list = list()
 	var/needs_power = 0
 	//req_one_access = list(whatever) // Note that each gear datum can have access, too.
 
 /obj/machinery/gear_dispenser/custom/emag_act(remaining_charges, mob/user, emag_source)
-	to_chat(user, "<span class='warning'>Your moral standards prevent you from emagging this machine!</span>")
+	to_chat(user, span_warning("Your moral standards prevent you from emagging this machine!"))
 	return -1 // Letting people emag this one would be bad times
 
-/obj/machinery/gear_dispenser/Initialize()
+/obj/machinery/gear_dispenser/Initialize(mapload)
 	. = ..()
-	if(!gear_distributed_to["[type]"] && (dispenser_flags & GD_NOGREED))
-		gear_distributed_to["[type]"] = list()
+	if(!GLOB.gear_distributed_to["[type]"] && (dispenser_flags & GD_NOGREED))
+		GLOB.gear_distributed_to["[type]"] = list()
 	var/list/real_gear_list = list()
 	for(var/gear in dispenses)
 		var/datum/gear_disp/S = new gear
@@ -174,7 +173,7 @@ var/list/dispenser_presets = list()
 	dispenses = real_gear_list
 
 
-/obj/machinery/gear_dispenser/attack_hand(var/mob/living/carbon/human/user)
+/obj/machinery/gear_dispenser/attack_hand(mob/living/carbon/human/user)
 	if(!can_use(user))
 		return
 	dispenser_flags |= GD_BUSY
@@ -182,11 +181,11 @@ var/list/dispenser_presets = list()
 		var/list/gear_list = get_gear_list(user)
 
 		if(!LAZYLEN(gear_list))
-			to_chat(user, "<span class='warning'>\The [src] doesn't have anything to dispense for you!</span>")
+			to_chat(user, span_warning("\The [src] doesn't have anything to dispense for you!"))
 			dispenser_flags &= ~GD_BUSY
 			return
 
-		var/choice = tgui_input_list(usr, "Select equipment to dispense.", "Equipment Dispenser", gear_list)
+		var/choice = tgui_input_list(user, "Select equipment to dispense.", "Equipment Dispenser", gear_list)
 
 		if(!choice)
 			dispenser_flags &= ~GD_BUSY
@@ -197,27 +196,27 @@ var/list/dispenser_presets = list()
 		dispense(one_setting,user)
 
 
-/obj/machinery/gear_dispenser/proc/can_use(var/mob/living/carbon/human/user)
-	var/list/used_by = gear_distributed_to["[type]"]
+/obj/machinery/gear_dispenser/proc/can_use(mob/living/carbon/human/user)
+	var/list/used_by = GLOB.gear_distributed_to["[type]"]
 	if(needs_power && inoperable())
-		to_chat(user,"<span class='warning'>The machine does not respond to your prodding.</span>")
+		to_chat(user,span_warning("The machine does not respond to your prodding."))
 		return 0
 	if(!istype(user))
-		to_chat(user,"<span class='warning'>You can't use this!</span>")
+		to_chat(user,span_warning("You can't use this!"))
 		return 0
 	if((dispenser_flags & GD_BUSY))
-		to_chat(user,"<span class='warning'>Someone else is using this!</span>")
+		to_chat(user,span_warning("Someone else is using this!"))
 		return 0
 	if((dispenser_flags & GD_ONEITEM) && !(dispenser_flags & GD_UNLIMITED) && !one_setting.amount)
-		to_chat(user,"<span class='warning'>There's nothing in here!</span>")
+		to_chat(user,span_warning("There's nothing in here!"))
 		return 0
 	if (!emagged)
 		if ((dispenser_flags & GD_NOGREED) && (user.ckey in used_by))
-			to_chat(user,"<span class='warning'>You've already picked up your gear!</span>")
+			to_chat(user,span_warning("You've already picked up your gear!"))
 			playsound(src, 'sound/machines/buzz-sigh.ogg', 50, 0)
 			return 0
 		if ((dispenser_flags & GD_UNIQUE) && (user.ckey in unique_dispense_list))
-			to_chat(user,"<span class='warning'>You've already picked up your gear!</span>")
+			to_chat(user,span_warning("You've already picked up your gear!"))
 			playsound(src, 'sound/machines/buzz-sigh.ogg', 50, 0)
 			return 0
 	else
@@ -228,12 +227,12 @@ var/list/dispenser_presets = list()
 	if(allowed(user))
 		return 1
 	else
-		to_chat(user,"<span class='warning'>Your access is rejected!</span>")
+		to_chat(user,span_warning("Your access is rejected!"))
 		playsound(src, 'sound/machines/buzz-sigh.ogg', 100, 0)
 		return 0
 
 
-/obj/machinery/gear_dispenser/proc/get_gear_list(var/mob/living/carbon/human/user)
+/obj/machinery/gear_dispenser/proc/get_gear_list(mob/living/carbon/human/user)
 	if(emagged)
 		return dispenses
 
@@ -244,15 +243,15 @@ var/list/dispenser_presets = list()
 			choices[choice] = G
 	return choices
 
-/obj/machinery/gear_dispenser/proc/dispense(var/datum/gear_disp/S,var/mob/living/carbon/human/user,var/greet=TRUE)
+/obj/machinery/gear_dispenser/proc/dispense(datum/gear_disp/S,mob/living/carbon/human/user,greet=TRUE)
 	if(!S.amount && !(dispenser_flags & GD_UNLIMITED))
-		to_chat(user,"<span class='warning'>There are no more [S.name]s left!</span>")
+		to_chat(user,span_warning("There are no more [S.name]s left!"))
 		dispenser_flags &= ~GD_BUSY
 		return 1
 	else if(!(dispenser_flags & GD_UNLIMITED))
 		S.amount--
 	if((dispenser_flags & GD_NOGREED) && !emagged)
-		gear_distributed_to["[type]"] |= user.ckey
+		GLOB.gear_distributed_to["[type]"] |= user.ckey
 	if((dispenser_flags & GD_UNIQUE) && !emagged)
 		unique_dispense_list |= user.ckey
 
@@ -267,7 +266,7 @@ var/list/dispenser_presets = list()
 	if(emagged)
 		emagged = FALSE
 	if(greet && user && !user.stat) // in case we got destroyed while we slept
-		to_chat(user,"<span class='notice'>[S.name] dispensing processed. Have a good day.</span>")
+		to_chat(user,span_notice("[S.name] dispensing processed. Have a good day."))
 
 /obj/machinery/gear_dispenser/proc/animate_dispensing()
 	flick("[icon_state]-scan",src)
@@ -282,7 +281,7 @@ var/list/dispenser_presets = list()
 	. = ..()
 	if(!emagged)
 		emagged = TRUE
-		visible_message("<span class='warning'>\The [user] slides a weird looking ID into \the [src]!</span>","<span class='warning'>You temporarily short the safety mechanisms.</span>")
+		visible_message(span_warning("\The [user] slides a weird looking ID into \the [src]!"),span_warning("You temporarily short the safety mechanisms."))
 		return 1
 
 
@@ -313,7 +312,7 @@ var/list/dispenser_presets = list()
 		add_overlay(special_frame)
 
 /obj/machinery/gear_dispenser/suit_fancy/Destroy()
-	qdel_null(door)
+	QDEL_NULL(door)
 	held_gear_disp = null
 	return ..()
 
@@ -337,27 +336,27 @@ var/list/dispenser_presets = list()
 		if(operable())
 			add_overlay("light2")
 
-/obj/machinery/gear_dispenser/suit_fancy/attack_hand(var/mob/living/carbon/human/user)
+/obj/machinery/gear_dispenser/suit_fancy/attack_hand(mob/living/carbon/human/user)
 	if(held_gear_disp)
 		var/turf/T = get_turf(user)
 		var/list/spawned = held_gear_disp.spawn_gear(T, user)
 		for(var/obj/item/I in spawned)
 			user.put_in_hands(I)
-		to_chat(user, "<span class='notice'>You remove the equipment from [src].</span>")
+		to_chat(user, span_notice("You remove the equipment from [src]."))
 		held_gear_disp = null
 		animate_close()
 		return
 	return ..()
 
-/obj/machinery/gear_dispenser/suit_fancy/dispense(var/datum/gear_disp/S,var/mob/living/carbon/human/user,var/greet=TRUE)
+/obj/machinery/gear_dispenser/suit_fancy/dispense(datum/gear_disp/S,mob/living/carbon/human/user,greet=TRUE)
 	if(!S.amount && !(dispenser_flags & GD_UNLIMITED))
-		to_chat(user,"<span class='warning'>There are no more [S.name]s left!</span>")
+		to_chat(user,span_warning("There are no more [S.name]s left!"))
 		dispenser_flags &= ~GD_BUSY
 		return 1
 	else if(!(dispenser_flags & GD_UNLIMITED))
 		S.amount--
 	if((dispenser_flags & GD_NOGREED) && !emagged)
-		gear_distributed_to["[type]"] |= user.ckey
+		GLOB.gear_distributed_to["[type]"] |= user.ckey
 	if((dispenser_flags & GD_UNIQUE) && !emagged)
 		unique_dispense_list |= user.ckey
 
@@ -369,7 +368,7 @@ var/list/dispenser_presets = list()
 	if(emagged)
 		emagged = FALSE
 	if(greet && user && !user.stat) // in case we got destroyed while we slept
-		to_chat(user,"<span class='notice'>[S.name] dispensing processed. Have a good day.</span>")
+		to_chat(user,span_notice("[S.name] dispensing processed. Have a good day."))
 
 /obj/machinery/gear_dispenser/suit_fancy/animate_dispensing()
 	add_overlay("working")
@@ -391,7 +390,7 @@ var/list/dispenser_presets = list()
 /obj/machinery/gear_dispenser/custom
 	name = "personal gear dispenser"
 
-/obj/machinery/gear_dispenser/custom/Initialize()
+/obj/machinery/gear_dispenser/custom/Initialize(mapload)
 	dispenses = subtypesof(/datum/gear_disp/custom)
 	. = ..()
 
@@ -443,19 +442,19 @@ var/list/dispenser_presets = list()
 // Hardsuit versions
 /datum/gear_disp/ert/security_rig
 	name = "Security (Hardsuit)"
-	to_spawn = list(/obj/item/weapon/rig/ert/security)
+	to_spawn = list(/obj/item/rig/ert/security)
 
 /datum/gear_disp/ert/medical_rig
 	name = "Medical (Hardsuit)"
-	to_spawn = list(/obj/item/weapon/rig/ert/medical)
+	to_spawn = list(/obj/item/rig/ert/medical)
 
 /datum/gear_disp/ert/engineer_rig
 	name = "Engineering (Hardsuit)"
-	to_spawn = list(/obj/item/weapon/rig/ert/engineer)
+	to_spawn = list(/obj/item/rig/ert/engineer)
 /*
 /datum/gear_disp/ert/commander_rig
 	name = "Commander (Hardsuit)"
-	to_spawn = list(/obj/item/weapon/rig/ert)
+	to_spawn = list(/obj/item/rig/ert)
 	amount = 1
 */
 
@@ -475,7 +474,7 @@ var/list/dispenser_presets = list()
 		/datum/gear_disp/ert/medical_rig,
 		/datum/gear_disp/ert/engineer_rig,
 	)
-	req_one_access = list(access_cent_specops)
+	req_one_access = list(ACCESS_CENT_SPECOPS)
 
 
 ////////////////////////////// STATION SUIT DISPENSERS ///////////////////////////
@@ -488,7 +487,7 @@ var/list/dispenser_presets = list()
 	voidsuit_type = /obj/item/clothing/suit/space/void/security
 	voidhelmet_type = /obj/item/clothing/head/helmet/space/void/security
 	refit = TRUE
-	req_one_access = list(access_brig)
+	req_one_access = list(ACCESS_BRIG)
 
 /datum/gear_disp/voidsuit/station/engineering
 	name = "Engineering (Voidsuit)"
@@ -496,35 +495,35 @@ var/list/dispenser_presets = list()
 	voidhelmet_type = /obj/item/clothing/head/helmet/space/void/engineering
 	refit = TRUE
 	magboots_type = /obj/item/clothing/shoes/magboots
-	req_one_access = list(access_engine)
+	req_one_access = list(ACCESS_ENGINE)
 
 /datum/gear_disp/voidsuit/station/medical
 	name = "Medical (Voidsuit)"
 	voidsuit_type = /obj/item/clothing/suit/space/void/medical
 	voidhelmet_type = /obj/item/clothing/head/helmet/space/void/medical
 	refit = TRUE
-	req_one_access = list(access_medical)
+	req_one_access = list(ACCESS_MEDICAL)
 
 /datum/gear_disp/voidsuit/station/atmos
 	name = "Atmos Technician (Voidsuit)"
 	voidsuit_type = /obj/item/clothing/suit/space/void/atmos
 	voidhelmet_type = /obj/item/clothing/head/helmet/space/void/atmos
 	refit = TRUE
-	req_one_access = list(access_atmospherics)
+	req_one_access = list(ACCESS_ATMOSPHERICS)
 
 /datum/gear_disp/voidsuit/station/paramedic
-	name = "Paramedic (Voidsuit)"
+	name = JOB_PARAMEDIC + " (Voidsuit)"
 	voidsuit_type = /obj/item/clothing/suit/space/void/medical/emt
 	voidhelmet_type = /obj/item/clothing/head/helmet/space/void/medical/emt
 	refit = TRUE
-	req_one_access = list(access_medical) // we don't have separate paramedic access
+	req_one_access = list(ACCESS_MEDICAL) // we don't have separate paramedic access
 
 /datum/gear_disp/voidsuit/station/mining
 	name = "Mining (Voidsuit)"
 	voidsuit_type = /obj/item/clothing/suit/space/void/mining
 	voidhelmet_type = /obj/item/clothing/head/helmet/space/void/mining
 	refit = TRUE
-	req_one_access = list(access_mining)
+	req_one_access = list(ACCESS_MINING)
 
 /obj/machinery/gear_dispenser/suit/station
 	name = "Station Suit Dispenser"
@@ -669,7 +668,7 @@ var/list/dispenser_presets = list()
 	. = ..()
 	IF_VV_OPTION("admin_add")
 		admin_add()
-		href_list["datumrefresh"] = "\ref[src]"
+		href_list[VV_HK_DATUM_REFRESH] = "\ref[src]"
 
 /obj/machinery/gear_dispenser/proc/admin_add()
 	if(!check_rights(R_DEBUG|R_FUN))
@@ -748,7 +747,7 @@ var/list/dispenser_presets = list()
 	to_spawn = list()
 	amount = 4
 
-/datum/gear_disp/voidsuit/random/spawn_gear(var/turf/T, var/mob/living/carbon/user)
+/datum/gear_disp/voidsuit/random/spawn_gear(turf/T, mob/living/carbon/user)
 	// I copied these from the /obj/random/multiple/voidsuit, but added the "suit" and "helmet"
 	var/list/choice = pick(
 		prob(5);list(
@@ -788,8 +787,8 @@ var/list/dispenser_presets = list()
 			"helmet" = /obj/item/clothing/head/helmet/space/void/medical
 		),
 		prob(5);list(
-			"suit" = /obj/item/clothing/suit/space/void/medical/alt,
-			"helmet" = /obj/item/clothing/head/helmet/space/void/medical/alt
+			"suit" = /obj/item/clothing/suit/space/void/medical/veymed,
+			"helmet" = /obj/item/clothing/head/helmet/space/void/medical/veymed
 		),
 		prob(5);list(
 			"suit" = /obj/item/clothing/suit/space/void/medical/bio,
@@ -849,7 +848,7 @@ var/list/dispenser_presets = list()
 	name = "Weapon"
 	amount = 2
 
-/datum/gear_disp/randomweapons/spawn_gear(var/turf/T, var/mob/living/carbon/user)
+/datum/gear_disp/randomweapons/spawn_gear(turf/T, mob/living/carbon/user)
 	var/choice = pick(
 					prob(3);/obj/random/multiple/gun/projectile/handgun,
 					prob(2);/obj/random/multiple/gun/projectile/smg,
@@ -874,7 +873,7 @@ var/list/dispenser_presets = list()
 		)
 	var/chance_to_delete = 0
 
-/obj/machinery/gear_dispenser/adventure_box/Initialize()
+/obj/machinery/gear_dispenser/adventure_box/Initialize(mapload)
 	. = ..()
 	if(prob(chance_to_delete))
 		return INITIALIZE_HINT_QDEL
@@ -892,9 +891,9 @@ var/list/dispenser_presets = list()
 /datum/gear_disp/adventure_box/food
 	name = "Food Plate"
 	to_spawn = list(
-					/obj/item/weapon/reagent_containers/food/snacks/candy/proteinbar,
-					/obj/item/weapon/reagent_containers/food/snacks/no_raisin,
-					/obj/item/weapon/reagent_containers/food/drinks/tea
+					/obj/item/reagent_containers/food/snacks/candy/proteinbar,
+					/obj/item/reagent_containers/food/snacks/no_raisin,
+					/obj/item/reagent_containers/food/drinks/tea
 					)
 	amount = 10
 
@@ -904,7 +903,7 @@ var/list/dispenser_presets = list()
 					/obj/random/tool,
 					/obj/random/tool,
 					/obj/random/tool,
-					/obj/item/weapon/storage/belt/utility
+					/obj/item/storage/belt/utility
 					)
 	amount = 5
 
@@ -919,14 +918,14 @@ var/list/dispenser_presets = list()
 
 /datum/gear_disp/adventure_box/light
 	name = "Flashlight"
-	to_spawn = list(/obj/item/device/flashlight/maglight)
+	to_spawn = list(/obj/item/flashlight/maglight)
 	amount = 2
 
 /datum/gear_disp/adventure_box/weapon
 	name = "Ranged Weapon"
 	amount = 1
 //from /obj/random/projectile/random
-/datum/gear_disp/adventure_box/weapon/spawn_gear(var/turf/T, var/mob/living/carbon/user)
+/datum/gear_disp/adventure_box/weapon/spawn_gear(turf/T, mob/living/carbon/user)
 	var/choice = pick(
 					prob(3);/obj/random/multiple/gun/projectile/handgun,
 					prob(2);/obj/random/multiple/gun/projectile/smg,

@@ -1,51 +1,33 @@
 /*
  * Holds procs designed to change one type of value, into another.
  * Contains:
+ * 			file2list
+ *			type2top
  *			hex2num & num2hex
  *			file2list
  *			angle2dir
  */
 
-// Returns an integer given a hexadecimal number string as input.
-/proc/hex2num(hex)
-	if (!istext(hex))
+//returns a string the last bit of a type, without the preceeding '/'
+/proc/type2top(the_type)
+	//handle the builtins manually
+	if(!ispath(the_type))
 		return
-
-	var/num   = 0
-	var/power = 1
-	var/i     = length(hex)
-
-	while (i)
-		var/char = text2ascii(hex, i)
-		switch(char)
-			if(48)                                  // 0 -- do nothing
-			if(49 to 57) num += (char - 48) * power // 1-9
-			if(97,  65)  num += power * 10          // A
-			if(98,  66)  num += power * 11          // B
-			if(99,  67)  num += power * 12          // C
-			if(100, 68)  num += power * 13          // D
-			if(101, 69)  num += power * 14          // E
-			if(102, 70)  num += power * 15          // F
-			else
-				return
-		power *= 16
-		i--
-	return num
-
-// Returns the hex value of a number given a value assumed to be a base-ten value
-/proc/num2hex(num, padlength)
-	var/global/list/hexdigits = list("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F")
-
-	. = ""
-	while(num > 0)
-		var/hexdigit = hexdigits[(num & 0xF) + 1]
-		. = "[hexdigit][.]"
-		num >>= 4 //go to the next half-byte
-
-	//pad with zeroes
-	var/left = padlength - length(.)
-	while (left-- > 0)
-		. = "0[.]"
+	switch(the_type)
+		if(/datum)
+			return "datum"
+		if(/atom)
+			return "atom"
+		if(/obj)
+			return "obj"
+		if(/mob)
+			return "mob"
+		if(/area)
+			return "area"
+		if(/turf)
+			return "turf"
+		else //regex everything else (works for /proc too)
+			return lowertext(replacetext("[the_type]", "[type2parent(the_type)]/", ""))
 
 /proc/text2numlist(text, delimiter="\n")
 	var/list/num_list = list()
@@ -53,9 +35,12 @@
 		num_list += text2num(x)
 	return num_list
 
-// Splits the text of a file at seperator and returns them in a list.
-/proc/file2list(filename, seperator="\n")
-	return splittext(return_file_text(filename),seperator)
+//Splits the text of a file at seperator and returns them in a list.
+//returns an empty list if the file doesn't exist
+/world/proc/file2list(filename, seperator="\n", trim = TRUE)
+	if (trim)
+		return splittext(trim(file2text(filename)),seperator)
+	return splittext(file2text(filename),seperator)
 
 // Turns a direction into text
 /proc/num2dir(direction)
@@ -65,7 +50,7 @@
 		if (4.0) return EAST
 		if (8.0) return WEST
 		else
-			to_world_log("UNKNOWN DIRECTION: [direction]")
+			log_world("UNKNOWN DIRECTION: [direction]")
 
 // Turns a direction into text
 /proc/dir2text(direction)
@@ -112,29 +97,65 @@
 		dirs += "DOWN"
 	return dirs.Join(" ")
 
-// Converts an angle (degrees) into an ss13 direction
-/proc/angle2dir(var/degree)
-	degree = (degree + 22.5) % 365 // 22.5 = 45 / 2
-	if (degree < 45)  return NORTH
-	if (degree < 90)  return NORTHEAST
-	if (degree < 135) return EAST
-	if (degree < 180) return SOUTHEAST
-	if (degree < 225) return SOUTH
-	if (degree < 270) return SOUTHWEST
-	if (degree < 315) return WEST
-	return NORTH|WEST
+//Converts an angle (degrees) into a ss13 direction
+GLOBAL_LIST_INIT(modulo_angle_to_dir, list(NORTH,NORTHEAST,EAST,SOUTHEAST,SOUTH,SOUTHWEST,WEST,NORTHWEST))
+#define angle2dir(X) (GLOB.modulo_angle_to_dir[round((((X%360)+382.5)%360)/45)+1])
 
-// Returns the north-zero clockwise angle in degrees, given a direction
-/proc/dir2angle(var/D)
-	switch (D)
-		if (NORTH)     return 0
-		if (SOUTH)     return 180
-		if (EAST)      return 90
-		if (WEST)      return 270
-		if (NORTHEAST) return 45
-		if (SOUTHEAST) return 135
-		if (NORTHWEST) return 315
-		if (SOUTHWEST) return 225
+/proc/angle2dir_cardinal(degree)
+	degree = SIMPLIFY_DEGREES(degree)
+	switch(round(degree, 0.1))
+		if(315.5 to 360, 0 to 45.5)
+			return NORTH
+		if(45.6 to 135.5)
+			return EAST
+		if(135.6 to 225.5)
+			return SOUTH
+		if(225.6 to 315.5)
+			return WEST
+
+//returns the north-zero clockwise angle in degrees, given a direction
+/proc/dir2angle(D)
+	switch(D)
+		if(NORTH)
+			return 0
+		if(SOUTH)
+			return 180
+		if(EAST)
+			return 90
+		if(WEST)
+			return 270
+		if(NORTHEAST)
+			return 45
+		if(SOUTHEAST)
+			return 135
+		if(NORTHWEST)
+			return 315
+		if(SOUTHWEST)
+			return 225
+		else
+			return null
+
+/// Returns a list(x, y), being the change in position required to step in the passed in direction
+/proc/dir2offset(dir)
+	switch(dir)
+		if(NORTH)
+			return list(0, 1)
+		if(SOUTH)
+			return list(0, -1)
+		if(EAST)
+			return list(1, 0)
+		if(WEST)
+			return list(-1, 0)
+		if(NORTHEAST)
+			return list(1, 1)
+		if(SOUTHEAST)
+			return list(1, -1)
+		if(NORTHWEST)
+			return list(-1, 1)
+		if(SOUTHWEST)
+			return list(-1, -1)
+		else
+			return list(0, 0)
 
 // Converts a blend_mode constant to one acceptable to icon.Blend()
 /proc/blendMode2iconMode(blend_mode)
@@ -145,22 +166,44 @@
 		else                return ICON_OVERLAY
 
 // Converts a rights bitfield into a string
-/proc/rights2text(rights,seperator="")
-	if (rights & R_BUILDMODE)   . += "[seperator]+BUILDMODE"
-	if (rights & R_ADMIN)       . += "[seperator]+ADMIN"
-	if (rights & R_BAN)         . += "[seperator]+BAN"
-	if (rights & R_FUN)         . += "[seperator]+FUN"
-	if (rights & R_SERVER)      . += "[seperator]+SERVER"
-	if (rights & R_DEBUG)       . += "[seperator]+DEBUG"
-	if (rights & R_POSSESS)     . += "[seperator]+POSSESS"
-	if (rights & R_PERMISSIONS) . += "[seperator]+PERMISSIONS"
-	if (rights & R_STEALTH)     . += "[seperator]+STEALTH"
-	if (rights & R_REJUVINATE)  . += "[seperator]+REJUVINATE"
-	if (rights & R_VAREDIT)     . += "[seperator]+VAREDIT"
-	if (rights & R_SOUNDS)      . += "[seperator]+SOUND"
-	if (rights & R_SPAWN)       . += "[seperator]+SPAWN"
-	if (rights & R_MOD)         . += "[seperator]+MODERATOR"
-	if (rights & R_EVENT)       . += "[seperator]+EVENT"
+/proc/rights2text(rights, seperator="", prefix = "+")
+	seperator += prefix
+	if(rights & R_BUILDMODE)
+		. += "[seperator]BUILDMODE"
+	if(rights & R_ADMIN)
+		. += "[seperator]ADMIN"
+	if(rights & R_BAN)
+		. += "[seperator]BAN"
+	if(rights & R_FUN)
+		. += "[seperator]FUN"
+	if(rights & R_SERVER)
+		. += "[seperator]SERVER"
+	if(rights & R_DEBUG)
+		. += "[seperator]DEBUG"
+	if(rights & R_POSSESS)
+		. += "[seperator]POSSESS"
+	if(rights & R_PERMISSIONS)
+		. += "[seperator]PERMISSIONS"
+	if(rights & R_STEALTH)
+		. += "[seperator]STEALTH"
+	if(rights & R_REJUVINATE)
+		. += "[seperator]REJUVINATE"
+	if(rights & R_VAREDIT)
+		. += "[seperator]VAREDIT"
+	if(rights & R_SOUNDS)
+		. += "[seperator]SOUND"
+	if(rights & R_SPAWN)
+		. += "[seperator]SPAWN"
+	if (rights & R_MOD)
+		. += "[seperator]MODERATOR"
+	if (rights & R_EVENT)
+		. += "[seperator]EVENT"
+	if (rights & R_MENTOR)
+		. += "[seperator]MENTOR"
+	if(rights & R_DBRANKS)
+		. += "[seperator]DBRANKS"
+	if(!.)
+		. = "NONE"
 	return .
 
 // Converts a hexadecimal color (e.g. #FF0050) to a list of numbers for red, green, and blue (e.g. list(255,0,80) ).
@@ -182,6 +225,88 @@
 /proc/hex2rgb_b(hex)
 	var/hex_to_work_on = copytext(hex,5,7)
 	return hex2num(hex_to_work_on)
+
+/**
+ * Convert HSL to RGB
+ */
+/proc/hsl2rgb(hue, saturation, lightness)
+	var/red
+	var/green
+	var/blue
+
+	if(saturation == 0)
+		red   = lightness * 255
+		green = red
+		blue  = red
+	else
+		var/a;var/b;
+		if(lightness < 0.5)
+			b = lightness * (1 + saturation)
+		else
+			b = (lightness + saturation) - (saturation * lightness)
+		a = 2 * lightness - b
+
+		red   = round(255 * hue2rgb(a, b, hue + (1/3)), 1)
+		green = round(255 * hue2rgb(a, b, hue),         1)
+		blue  = round(255 * hue2rgb(a, b, hue - (1/3)), 1)
+
+	return list(red, green, blue)
+
+/**
+ * Convert RBG to HSL
+ */
+/proc/rgb2hsl(red, green, blue)
+	red   /= 255
+	green /= 255
+	blue  /= 255
+
+	var/max   = max(red, green, blue)
+	var/min   = min(red, green, blue)
+	var/range = max - min
+
+	var/hue        = 0
+	var/saturation = 0
+	var/lightness  = 0
+
+	lightness = (max + min) / 2
+	if(range != 0)
+		if(lightness < 0.5)
+			saturation = range / (max + min)
+		else
+			saturation = range / (2 - max - min)
+
+		var/dred   = ((max - red)   / (6 * max)) + 0.5
+		var/dgreen = ((max - green) / (6 * max)) + 0.5
+		var/dblue  = ((max - blue)  / (6 * max)) + 0.5
+
+		if(max == red)
+			hue = dblue - dgreen
+		else if(max == green)
+			hue = dred - dblue + (1 / 3)
+		else
+			hue = dgreen - dred + (2 / 3)
+		if(hue < 0)
+			hue++
+		else if(hue > 1)
+			hue--
+
+	return list(hue, saturation, lightness)
+
+/**
+ * Convert hue to RGB
+ */
+/proc/hue2rgb(a, b, hue)
+	if(hue < 0)
+		hue++
+	else if(hue > 1)
+		hue--
+	if(6*hue < 1)
+		return (a + (b - a) * 6 * hue)
+	if(2*hue < 1)
+		return b
+	if(3*hue < 2)
+		return (a + (b - a) * ((2 / 3) - hue) * 6)
+	return a
 
 // heat2color functions. Adapted from: http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
 /proc/heat2color(temp)
@@ -210,6 +335,53 @@
 			. = 0
 		else
 			. = max(0, min(255, 138.5177312231 * log(temp - 10) - 305.0447927307))
+
+/**
+ * Assumes format #RRGGBB #rrggbb
+ */
+/proc/color_hex2num(A)
+	if(!A || length(A) != length_char(A))
+		return 0
+	var/R = hex2num(copytext(A, 2, 4))
+	var/G = hex2num(copytext(A, 4, 6))
+	var/B = hex2num(copytext(A, 6, 8))
+	return R+G+B
+
+/**
+ *! Word of warning:
+ *  Using a matrix like this as a color value will simplify it back to a string after being set.
+ */
+/proc/color_hex2color_matrix(string)
+	var/length = length(string)
+	if((length != 7 && length != 9) || length != length_char(string))
+		return COLOR_MATRIX_IDENTITY
+	var/r = hex2num(copytext(string, 2, 4)) / 255
+	var/g = hex2num(copytext(string, 4, 6)) / 255
+	var/b = hex2num(copytext(string, 6, 8)) / 255
+	var/a = 1
+	if(length == 9)
+		a = hex2num(copytext(string, 8, 10)) / 255
+	if(!isnum(r) || !isnum(g) || !isnum(b) || !isnum(a))
+		return COLOR_MATRIX_IDENTITY
+	return list(
+		r,0,0,0,0,
+		g,0,0,0,0,
+		b,0,0,0,0,
+		a,0,0,0,0,
+	)
+
+/**
+ * Will drop all values not on the diagonal.
+ */
+/proc/color_matrix2color_hex(list/the_matrix)
+	if(!istype(the_matrix) || the_matrix.len != 20)
+		return "#ffffffff"
+	return rgb(
+		the_matrix[1]  * 255, // R
+		the_matrix[6]  * 255, // G
+		the_matrix[11] * 255, // B
+		the_matrix[16] * 255, // A
+	)
 
 // Very ugly, BYOND doesn't support unix time and rounding errors make it really hard to convert it to BYOND time.
 // returns "YYYY-MM-DD" by default
@@ -259,7 +431,7 @@
 //The string is well, obviously the string being checked
 //The datum is used as a source for var names, to check validity
 //Otherwise every single word could technically be a variable!
-/proc/string2listofvars(var/t_string, var/datum/var_source)
+/proc/string2listofvars(t_string, datum/var_source)
 	if(!t_string || !var_source)
 		return list()
 
@@ -323,21 +495,21 @@
 			. = text("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S16)
 		if (l-i & 0x20)
 			. = text("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S16, S16)
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S16, S16)
 		if (l-i & 0x40)
 			. = text("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S64)
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S64)
 		while (l > i) // Chomp through the rest of the list, 128 elements at a time.
 			. = text("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S64, S64)
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S64, S64)
 
 		#undef S64
 		#undef S16
@@ -366,12 +538,12 @@
 			. = text("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S16, S16)
 		if (l-i & 0x40)
 			. = text("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S64)
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S64)
 		while (l > i) // Chomp through the rest of the list, 128 elements at a time.
 			. = text("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
-			          [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S64, S64)
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]\
+						[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]", ., S64, S64)
 
 		#undef S64
 		#undef S16
@@ -417,9 +589,74 @@
 		if(fexists(filename))
 			. = file2text(filename)
 			if(!. && error_on_invalid_return)
-				error("File empty ([filename])")
+				log_world("## ERROR File empty ([filename])")
 		else if(error_on_invalid_return)
-			error("File not found ([filename])")
+			log_world("## ERROR File not found ([filename])")
 	catch(var/exception/E)
 		if(error_on_invalid_return)
-			error("Exception when loading file as string: [E]")
+			log_world("## ERROR Exception when loading file as string: [E]")
+			log_runtime(E)
+
+
+/// Return html to load a url.
+/// for use inside of browse() calls to html assets that might be loaded on a cdn.
+/proc/url2htmlloader(url)
+	return {"<html><head><meta http-equiv="refresh" content="0;URL='[url]'"/></head><body onLoad="parent.location='[url]'"></body></html>"}
+
+/// Returns a list with all keys turned into paths
+/proc/text2path_list(list/L)
+	. = list()
+	for(var/key in L)
+		var/path = key
+		if(!ispath(path))
+			path = text2path(key)
+		if(!isnull(L[path]))
+			.[path] = L[path]
+			continue
+		if(!isnull(L[key]))
+			.[path] = L[key]
+			continue
+		if(!isnull(path))
+			. += path
+
+/proc/path2text_list(list/L)
+	. = list()
+	for(var/key in L)
+		var/text = "[key]"
+		if(!isnull(L[text]))
+			.[text] = L[text]
+			continue
+		if(!isnull(L[key]))
+			.[text] = L[key]
+			continue
+		if(!isnull(text))
+			.[text] = ""
+
+/proc/check_list_copy(i)
+	if(islist(i))
+		var/list/l = i
+		return l.Copy()
+	return i
+
+/proc/slot2body_zone(slot)
+	switch(slot)
+		if(SLOT_BACK, SLOT_OCLOTHING, SLOT_ICLOTHING, SLOT_BELT, SLOT_ID)
+			return BP_TORSO
+
+		if(SLOT_GLOVES)
+			return pick(BP_L_HAND, BP_R_HAND)
+
+		if(SLOT_HEAD, SLOT_TWOEARS, SLOT_TIE, SLOT_EARS)
+			return BP_HEAD
+
+		if(SLOT_MASK)
+			return BP_HEAD
+
+		if(SLOT_EYES)
+			return BP_HEAD
+
+		if(SLOT_FEET)
+			return pick(BP_R_FOOT, BP_L_FOOT)
+
+//		if(SLOT_LEGCUFFED)
+//			return pick(BP_L_LEG, BODY_ZONE_R_LEG)

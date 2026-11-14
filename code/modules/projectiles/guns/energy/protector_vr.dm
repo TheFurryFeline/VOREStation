@@ -1,5 +1,5 @@
 // -------------- Protector -------------
-/obj/item/weapon/gun/energy/gun/protector
+/obj/item/gun/energy/gun/protector
 	name = "secure small energy gun"
 	desc = "The LAEP95 'Protector' is another firearm from Lawson Arms and "+TSC_HEPH+", unlike the Perun this is designed for issue to non-security staff. It contains a detachable cell, and an alert-level-locked lethal mode, only usable on code blue and higher. It also features an integrated flashlight!"
 
@@ -13,12 +13,11 @@
 	icon_override = 'icons/vore/custom_guns_vr.dmi'
 	item_state = "gun"
 
-	fire_sound = 'sound/weapons/Taser.ogg'
+	fire_sound = 'sound/weapons/taser.ogg'
 	projectile_type = /obj/item/projectile/beam/stun
 
 	modifystate = "stun"
 
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 3, TECH_MAGNET = 2)
 
 	charge_sections = 3 //For the icon
 	ammo_x_offset = 2
@@ -27,7 +26,7 @@
 	light_state = "prot_light"
 	flight_x_offset = 0
 	flight_y_offset = 0
-	action_button_name = "Toggle gun-light"
+	actions_types = list(/datum/action/item_action/toggle_gunlight)
 	var/gun_light_icon = TRUE
 	var/gun_light_on = FALSE
 	var/brightness_on = 5
@@ -41,35 +40,35 @@
 
 	var/emagged = FALSE
 
-/obj/item/weapon/gun/energy/gun/protector/special_check(mob/user)
+/obj/item/gun/energy/gun/protector/special_check(mob/user)
 	if(!emagged && mode_name == "lethal" && get_security_level() == "green")
-		to_chat(user,"<span class='warning'>The trigger refuses to depress while on the lethal setting under security level green!</span>")
+		to_chat(user,span_warning("The trigger refuses to depress while on the lethal setting under security level green!"))
 		return FALSE
 
 	return ..()
 
-/obj/item/weapon/gun/energy/gun/protector/ui_action_click(mob/user, actiontype)
+/obj/item/gun/energy/gun/protector/ui_action_click(mob/user, actiontype)
 	gun_light_on = !gun_light_on
 	playsound(src, 'sound/weapons/empty.ogg', 40, TRUE)
 	update_brightness(user)
 	update_icon()
 
-/obj/item/weapon/gun/energy/gun/protector/proc/update_brightness(mob/user = null)
+/obj/item/gun/energy/gun/protector/proc/update_brightness(mob/user = null)
 	if(gun_light_on)
 		set_light(brightness_on)
 	else
 		set_light(0)
 
-/obj/item/weapon/gun/energy/gun/protector/emag_act(var/remaining_charges,var/mob/user)
+/obj/item/gun/energy/gun/protector/emag_act(remaining_charges,mob/user)
 	..()
 	if(!emagged)
 		emagged = TRUE
-		to_chat(user,"<span class='warning'>You disable the alert level locking mechanism on \the [src]!</span>")
+		to_chat(user,span_warning("You disable the alert level locking mechanism on \the [src]!"))
 
 	return TRUE
 
 //Update icons from /tg/, so fancy! Use this more!
-/obj/item/weapon/gun/energy/gun/protector/update_icon()
+/obj/item/gun/energy/gun/protector/update_icon()
 	cut_overlays()
 	var/ratio = 0
 
@@ -114,13 +113,13 @@
 		item_state = itemState
 	*/
 
-/obj/item/weapon/gun/energy/gun/protector/unlocked
+/obj/item/gun/energy/gun/protector/unlocked
 	emagged = TRUE
 	name = "small energy gun"
 	desc = "The LAEP95 'Protector' is another firearm from Lawson Arms and "+TSC_HEPH+", unlike the Perun this is designed for issue to non-security staff. It contains a detachable cell. It also features an integrated flashlight!"
 
 
-/obj/item/weapon/gun/energy/gun/protector/pilotgun/locked
+/obj/item/gun/energy/gun/protector/pilotgun/locked
 	name = "secure shuttle-protection pistol"
 	desc = "The LAEP97 'Defender' is a variant of another firearm from Lawson Arms and "+TSC_HEPH+", designed to be issued to pilots for defence of their craft from trespassers whilst in-flight. It contains a detachable cell, two modes of fire and a safety interlock to minimize workplace accidents. It also features an integrated flashlight!"
 
@@ -132,29 +131,29 @@
 		list(mode_name="electrode", projectile_type=/obj/item/projectile/energy/electrode/strong, modifystate="zap", charge_cost = 800),
 		)
 
-	req_access = list(access_armory) //for toggling safety
+	req_access = list(ACCESS_ARMORY) //for toggling safety
 	var/locked = 1
 	var/lockable = 1
 
-/obj/item/weapon/gun/energy/gun/protector/pilotgun/locked/attackby(obj/item/I, mob/user)
-	var/obj/item/weapon/card/id/id = I.GetID()
+/obj/item/gun/energy/gun/protector/pilotgun/locked/attackby(obj/item/I, mob/user)
+	var/obj/item/card/id/id = I.GetID()
 	if(istype(id) && lockable)
 		if(check_access(id))
 			locked = !locked
-			to_chat(user, "<span class='warning'>You [locked ? "enable" : "disable"] the safety interlock on \the [src].</span>")
+			to_chat(user, span_warning("You [locked ? "enable" : "disable"] the safety interlock on \the [src]."))
 		else
-			to_chat(user, "<span class='warning'>Access denied.</span>")
-		user.visible_message("<span class='notice'>[user] swipes \the [I] against \the [src].</span>")
+			to_chat(user, span_warning("Access denied."))
+		user.visible_message(span_notice("[user] swipes \the [I] against \the [src]."))
 	else
 		return ..()
 
-/obj/item/weapon/gun/energy/gun/protector/pilotgun/locked/emag_act(var/remaining_charges,var/mob/user)
+/obj/item/gun/energy/gun/protector/pilotgun/locked/emag_act(remaining_charges,mob/user)
 	return ..()
 
-/obj/item/weapon/gun/energy/gun/protector/pilotgun/locked/special_check(mob/user)
+/obj/item/gun/energy/gun/protector/pilotgun/locked/special_check(mob/user)
 	if(locked)
 		var/turf/T = get_turf(src)
 		if(T.z in using_map.station_levels)
-			to_chat(user, "<span class='warning'>The safety device prevents the gun from firing this close to the facility.</span>")
+			to_chat(user, span_warning("The safety device prevents the gun from firing this close to the facility."))
 			return 0
 	return ..()

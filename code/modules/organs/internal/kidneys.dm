@@ -20,6 +20,11 @@
 		else if(is_broken())
 			owner.adjustToxLoss(0.3 * PROCESS_ACCURACY)
 
+	// General organ damage from withdraw, kidneys do a lot of the work
+	if(prob(70) && owner.chem_effects[CE_WITHDRAWL])
+		take_damage(owner.chem_effects[CE_WITHDRAWL] * 0.05 * PROCESS_ACCURACY, prob(1)) // Chance to warn them
+		owner.adjustToxLoss(owner.chem_effects[CE_WITHDRAWL] * 0.3 * PROCESS_ACCURACY)
+
 /obj/item/organ/internal/kidneys/handle_organ_proc_special()
 	. = ..()
 
@@ -38,16 +43,17 @@
 	if (. >= 2)
 		if(prob(1))
 			owner.custom_pain("You feel extremely tired, like you can't move!",1)
-			owner.m_intent = "walk"
+			owner.m_intent = I_WALK
 			owner.hud_used.move_intent.icon_state = "walking"
 
 /obj/item/organ/internal/kidneys/grey
 	icon_state = "kidneys_grey"
 
-/obj/item/organ/internal/kidneys/grey/colormatch/New()
+/obj/item/organ/internal/kidneys/grey/colormatch/Initialize(mapload, internal)
 	..()
-	var/mob/living/carbon/human/H = null
-	spawn(15)
-		if(ishuman(owner))
-			H = owner
-			color = H.species.blood_color
+	return INITIALIZE_HINT_LATELOAD
+
+/obj/item/organ/internal/kidneys/grey/colormatch/LateInitialize()
+	if(ishuman(loc))
+		var/mob/living/carbon/human/H = loc
+		color = H.species.blood_color

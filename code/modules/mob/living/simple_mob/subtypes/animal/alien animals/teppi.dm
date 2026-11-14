@@ -60,12 +60,12 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	pixel_x = -16
 	default_pixel_x = -16
 
-	faction = "teppi"
+	faction = FACTION_TEPPI
 	maxHealth = 600
 	health = 600
 	movement_cooldown = -1
 	meat_amount = 12
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
+	meat_type = /obj/item/reagent_containers/food/snacks/meat
 
 	response_help = "pets"
 	response_disarm = "rudely paps"
@@ -130,8 +130,8 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 
 	has_langs = list(LANGUAGE_TEPPI)
 	say_list_type = /datum/say_list/teppi
-	player_msg = "Teppi are large omnivorous quadrupeds. You have four toes on each paw, a long, strong tail, and are quite tough and powerful. You’re a lot more intimidating than you are actually harmful though. Your kind are ordinarily rather passive, only really rising to violence when someone does violence to you or others like you. You’re not stupid though, you can commiunicate with others of your kind, and form bonds with those who are kind to you, be they Teppi or otherwise. <br>- - - - -<br><span class='notice'>While you may have access to galactic common, this is purely meant for making it so you can understand people in an OOC manner, for facilitating roleplay. You almost certainly should not be speaking to people or roleplaying as though you understand everything everyone says perfectly, but it's not unreasonable to be able to intuit intent and such through people's tones when they speak. Teppi are kind of smart, but they are animals, and should be roleplayed as such.</span> <span class='warning'>ADDITIONALLY, you have the ability to produce offspring if you're well fed enough every once in a while, and the ability to disable this from happening to you. These verbs exist for to preserve the mechanical functionality of the mob you are playing. You should be aware of your surroundings when you use this verb, and NEVER use it to prefbreak or be disruptive. If in doubt, don't use it.</span> <span class='notice'>Also, to note, AI Teppi will never initiate breeding with player Teppi.</span>"
-	loot_list = list(/obj/item/weapon/bone/horn = 100)
+	player_msg = "Teppi are large omnivorous quadrupeds. You have four toes on each paw, a long, strong tail, and are quite tough and powerful. You're a lot more intimidating than you are actually harmful though. Your kind are ordinarily rather passive, only really rising to violence when someone does violence to you or others like you. You're not stupid though, you can commiunicate with others of your kind, and form bonds with those who are kind to you, be they Teppi or otherwise. <br>- - - - -<br>" + span_notice("While you may have access to galactic common, this is purely meant for making it so you can understand people in an OOC manner, for facilitating roleplay. You almost certainly should not be speaking to people or roleplaying as though you understand everything everyone says perfectly, but it's not unreasonable to be able to intuit intent and such through people's tones when they speak. Teppi are kind of smart, but they are animals, and should be roleplayed as such.") + " " + span_warning("ADDITIONALLY, you have the ability to produce offspring if you're well fed enough every once in a while, and the ability to disable this from happening to you. These verbs exist for to preserve the mechanical functionality of the mob you are playing. You should be aware of your surroundings when you use this verb, and NEVER use it to prefbreak or be disruptive. If in doubt, don't use it.") + " " + span_notice("Also, to note, AI Teppi will never initiate breeding with player Teppi.")
+	loot_list = list(/obj/item/bone/horn = 100)
 	internal_organs = list(\
 		/obj/item/organ/internal/brain,\
 		/obj/item/organ/internal/heart,\
@@ -143,7 +143,7 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 
 	butchery_loot = list(\
 		/obj/item/stack/animalhide = 3,\
-		/obj/item/weapon/bone/horn = 1\
+		/obj/item/bone/horn = 1\
 		)
 
 /////////////////////////////////////// Vore stuff///////////////////////////////////////////
@@ -164,14 +164,14 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	vore_pounce_chance = 35
 	vore_pounce_falloff = 0
 	vore_standing_too = TRUE
+	can_be_drop_prey = FALSE
 
-/mob/living/simple_mob/vore/alienanimals/teppi/init_vore()
-	..()
+/mob/living/simple_mob/vore/alienanimals/teppi/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stomach"
-	B.desc = "The heat of the roiling flesh around you bakes into you immediately as you’re cast into the gloom of a Teppi’s primary gastric chamber. The undulations are practically smothering, clinging to you and grinding you all over as the Teppi continues about its day. The walls are heavy against you, so it’s really difficult to move at all, while the heart of this creature pulses rhythmically somewhere nearby, and you can feel the throb of its pulse in the doughy squish pressing up against you. Your figure sinks a ways into the flesh as it presses in, wrapping limbs up between countless slick folds and kneading waves. It’s not long before you’re positively soaked in a thin layer of slime as you’re rocked and squeezed and jostled in the stomach of your captor."
+	B.desc = "The heat of the roiling flesh around you bakes into you immediately as you're cast into the gloom of a Teppi's primary gastric chamber. The undulations are practically smothering, clinging to you and grinding you all over as the Teppi continues about its day. The walls are heavy against you, so it's really difficult to move at all, while the heart of this creature pulses rhythmically somewhere nearby, and you can feel the throb of its pulse in the doughy squish pressing up against you. Your figure sinks a ways into the flesh as it presses in, wrapping limbs up between countless slick folds and kneading waves. It's not long before you're positively soaked in a thin layer of slime as you're rocked and squeezed and jostled in the stomach of your captor."
 	B.mode_flags = 40
-	B.belly_fullscreen = "yet_another_tumby"
 	B.digest_brute = 0.05
 	B.digest_burn = 0.05
 	B.digestchance = 5
@@ -179,114 +179,115 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	B.escapechance = 15
 
 	B.emote_lists[DM_DRAIN] = list(
-		"The walls press in heavily over you, holding you tightly and grinding, churning against your body powerfully!! You can feel %pred’s heartbeat through the flesh, pounding in your ears, and the groaning gurgles of the gastric chamber rolling around you, eagerly pressing in against you.",
+		"The walls press in heavily over you, holding you tightly and grinding, churning against your body powerfully!! You can feel %pred's heartbeat through the flesh, pounding in your ears, and the groaning gurgles of the gastric chamber rolling around you, eagerly pressing in against you.",
 		"The squeezing touch of the practically molten walls form to your figure, pressing in close and gliding across the shapes of your body, pressing, bending, and churning you casually! The intensity of it all is almost hard to comprehend. It is not painful, so much as just, almost completely overpowering, exhausting...",
-		"The gurgling bubbling sounds of %pred’s body drown out much of everything else as you’re submerged in the rolling waves of wrinkled belly flesh. You can hear the flesh stretch and shift as %pred moves. The whooshing of %pred’s breath catches your attention now and then, and how things seem to get tighter for you when the whoosh draws in, squeezing you that much more.",
+		"The gurgling bubbling sounds of %pred's body drown out much of everything else as you're submerged in the rolling waves of wrinkled belly flesh. You can hear the flesh stretch and shift as %pred moves. The whooshing of %pred's breath catches your attention now and then, and how things seem to get tighter for you when the whoosh draws in, squeezing you that much more.",
 		"The creak of muscle and bone containing you sounds through the sloppy flesh pressed in against you as %pred moves. Your body is forced into a tighter curl as %belly churns over you, forming to take up any free space. This hot, humid organic gloom seems to be totally focused on you, working hard to make use of you however it can...",
-		"It’s so hard to move with all the heavy flesh pressing in on you, wearing you down and making it that much harder to move as the moments pass. The squashy walls form to your figure and lets your weight sink in quite a ways before the tension builds. An idle flex of the muscles beyond shoves you back into place, and the cycle begins again.",
-		"%pred’s %belly rolls over you heavily a few times, burying you briefly in an intense hold and shoving you to the back end of the chamber. There’s no free space, just powerful squeezes and slimy squelches! The wrinkly walls ripple over you powerfully as your body is slowly churned from one end to the other!",
-		"What little air there is in here is so thick that you could cut it with a knife, HOT and humid and just totally oppressive. The throbbing bodily motions quake through you as you’re jostled and tossed around amid rolling waves of wrinkled flesh, oozing with a thin slime. %pred’s heart pulses in your ear and all around you as you’re contained completely within the %belly, confined to the pitch black, intimate space, hidden away amid %pred.",
-		"The chaotic pressing and churning all around you makes it hard to get your bearings. The sloppy presses of hot heavy flesh shove you here and squeeze you there, never leaving you alone as they enjoy you. It’s hard to get ANY space to yourself, and to do so, you usually have to really fight for it, and sacrifice some other part of your body to the squeezing gropes of %pred’s insistent %belly.",
-		"Thick rolling waves of flesh batter against and form to you as you’re smothered briefly against the doughy walls of %pred’s %belly. The hold goes on for a little too long, but just as you start to worry, it eases up a little bit and gives you an ounce of space. … For about three seconds, before the chamber collapses in on you again, grinding and squeezing and churning you around idly. The grumbling symphony of that gut working on you is impossible to tune out as the burbling sound of slick flesh and goopy insides fill your ears.",
-		"The walls that separate you from the outside world are thick, and not just because of the few inches of doughy, stretchy %belly lining that’s containing you immediately. Beyond that there are other organs unseen, glooping and churning and glorgling outside of your chamber, then there are layers of muscle and bone, and finally a thick hide and ample fluff. This all means that, for your part, you’re likely a small shifting shape under that fluffy exterior, packed away deep at the core of all of those layers, so far from the outside world as that chamber grinds and smothers over you, smearing you in slime and keeping you nice and tucked deep into the rumbling darkness.")
+		"It's so hard to move with all the heavy flesh pressing in on you, wearing you down and making it that much harder to move as the moments pass. The squashy walls form to your figure and lets your weight sink in quite a ways before the tension builds. An idle flex of the muscles beyond shoves you back into place, and the cycle begins again.",
+		"%pred's %belly rolls over you heavily a few times, burying you briefly in an intense hold and shoving you to the back end of the chamber. There's no free space, just powerful squeezes and slimy squelches! The wrinkly walls ripple over you powerfully as your body is slowly churned from one end to the other!",
+		"What little air there is in here is so thick that you could cut it with a knife, HOT and humid and just totally oppressive. The throbbing bodily motions quake through you as you're jostled and tossed around amid rolling waves of wrinkled flesh, oozing with a thin slime. %pred's heart pulses in your ear and all around you as you're contained completely within the %belly, confined to the pitch black, intimate space, hidden away amid %pred.",
+		"The chaotic pressing and churning all around you makes it hard to get your bearings. The sloppy presses of hot heavy flesh shove you here and squeeze you there, never leaving you alone as they enjoy you. It's hard to get ANY space to yourself, and to do so, you usually have to really fight for it, and sacrifice some other part of your body to the squeezing gropes of %pred's insistent %belly.",
+		"Thick rolling waves of flesh batter against and form to you as you're smothered briefly against the doughy walls of %pred's %belly. The hold goes on for a little too long, but just as you start to worry, it eases up a little bit and gives you an ounce of space. … For about three seconds, before the chamber collapses in on you again, grinding and squeezing and churning you around idly. The grumbling symphony of that gut working on you is impossible to tune out as the burbling sound of slick flesh and goopy insides fill your ears.",
+		"The walls that separate you from the outside world are thick, and not just because of the few inches of doughy, stretchy %belly lining that's containing you immediately. Beyond that there are other organs unseen, glooping and churning and glorgling outside of your chamber, then there are layers of muscle and bone, and finally a thick hide and ample fluff. This all means that, for your part, you're likely a small shifting shape under that fluffy exterior, packed away deep at the core of all of those layers, so far from the outside world as that chamber grinds and smothers over you, smearing you in slime and keeping you nice and tucked deep into the rumbling darkness.")
 
 	B.emote_lists[DM_DIGEST] = list(
-		"The walls close in on you in thick, heavy waves, smearing you in a thick slime. Working hard to churn over your figure intensely. The heat of the chamber soaks into you along with the fluids you’re being lathered in. A telling tingle sets in the longer you are exposed to those fluids, while no part of you is spared from the probing churns and deep kneads of %pred’s insistent %belly. . .",
-		"The doughy press of %pred’s %belly almost seems to feel over you, actively seeking you within that gloomy humid chamber. The sloppy burbling of that thick flesh gliding and smearing over you is impossible to ignore, the sound of your own body slapping and slurping amid those active pulsing folds and the bubbling slime a sign that you are indeed held deep within the organic confines of another’s hungry gut… and it’s focused on you.",
-		"The sounds outside of the %belly are difficult to make out. You can hear little creaks and bumps against %pred’s hide though, the sound of the skin stretching to form to your predator’s shape, and to contain you deep within. Of course, the slurping, squishing, and GURGLING of that gut working around you is always more immediately apparent, along with the heavy throbbing of %pred’s heart.",
-		"You find that as you’re rocked and ground amid the gurgling %belly, the ever present thumping drone of %pred’s heartbeat pounds in your ears, the powerful thudding of it pulses through the flesh holding you, throbbing across every wrinkle and fold, every surface presses in at you just that little bit more with each and every throb of that heartbeat. The burbling grumbles of that gut working around you too, fill your ears with a deep gastric symphony as those walls work hard to break you down.",
+		"The walls close in on you in thick, heavy waves, smearing you in a thick slime. Working hard to churn over your figure intensely. The heat of the chamber soaks into you along with the fluids you're being lathered in. A telling tingle sets in the longer you are exposed to those fluids, while no part of you is spared from the probing churns and deep kneads of %pred's insistent %belly. . .",
+		"The doughy press of %pred's %belly almost seems to feel over you, actively seeking you within that gloomy humid chamber. The sloppy burbling of that thick flesh gliding and smearing over you is impossible to ignore, the sound of your own body slapping and slurping amid those active pulsing folds and the bubbling slime a sign that you are indeed held deep within the organic confines of another's hungry gut… and it's focused on you.",
+		"The sounds outside of the %belly are difficult to make out. You can hear little creaks and bumps against %pred's hide though, the sound of the skin stretching to form to your predator's shape, and to contain you deep within. Of course, the slurping, squishing, and GURGLING of that gut working around you is always more immediately apparent, along with the heavy throbbing of %pred's heart.",
+		"You find that as you're rocked and ground amid the gurgling %belly, the ever present thumping drone of %pred's heartbeat pounds in your ears, the powerful thudding of it pulses through the flesh holding you, throbbing across every wrinkle and fold, every surface presses in at you just that little bit more with each and every throb of that heartbeat. The burbling grumbles of that gut working around you too, fill your ears with a deep gastric symphony as those walls work hard to break you down.",
 		"The gurgling walls press in heavily, overpowering your limbs briefly as the chamber collapses in to grind over you from head to toe!! No part of you is left out as the doughy flesh glides and grinds and jostles you around, smothering you in thick slime here and squeezing you down into a tight little ball there. The satisfied puffing coming from nearby through the flesh all you need to know that %pred is happy to have you.",
-		"The slime bubbles and glorps around you as you’re smothered in those thick walls! The slick surfaces mold to your figure as the throbbing of %pred’s pulse squeezes you that little bit more with each beat of their heart. The tingling caused by that slime spreads all across your body as you’re totally soaked in it, and there’s nowhere within this chamber to get away from it!",
-		"The roaring gurgles of the active gut squeezing and squelching in around you sound out for a few moments as you are smushed and squeezed intensely! This is it! %pred’s %belly is trying to claim you utterly!!!! But after a few moments the chamber eases off, leaving you sopping wet with thick, stringy slime.",
-		"It’s so hot, sweltering even! The burbling sounds of this organic cacophony swell and ebb all around you as thick slimes gush around you with the motion of %pred’s %belly. It’s hard to move in this tingly embrace even though the squashy walls are absolutely slippery! You can pull your limbs out from between the heavy meaty folds with some effort, and when you do there’s a messy sucking noise in the wake of the motion. Of course, such a disturbance naturally warrants that the chamber would redouble its efforts to subdue you and smother you in those thick tingling slimes.",
+		"The slime bubbles and glorps around you as you're smothered in those thick walls! The slick surfaces mold to your figure as the throbbing of %pred's pulse squeezes you that little bit more with each beat of their heart. The tingling caused by that slime spreads all across your body as you're totally soaked in it, and there's nowhere within this chamber to get away from it!",
+		"The roaring gurgles of the active gut squeezing and squelching in around you sound out for a few moments as you are smushed and squeezed intensely! This is it! %pred's %belly is trying to claim you utterly!!!! But after a few moments the chamber eases off, leaving you sopping wet with thick, stringy slime.",
+		"It's so hot, sweltering even! The burbling sounds of this organic cacophony swell and ebb all around you as thick slimes gush around you with the motion of %pred's %belly. It's hard to move in this tingly embrace even though the squashy walls are absolutely slippery! You can pull your limbs out from between the heavy meaty folds with some effort, and when you do there's a messy sucking noise in the wake of the motion. Of course, such a disturbance naturally warrants that the chamber would redouble its efforts to subdue you and smother you in those thick tingling slimes.",
 		"The walls around you flex inward briefly, burbling and squelching heavily as everything rushed together, wringing you powerfully for a few moments while, somewhere far above you can hear the bassy rumble of a casual belch, much of the small amount of acrid air available rushing out with the sound. After several long moments held in the tight embrace of that pulsing flesh, things ease up a bit again and resume their insistent, tingly churnings.",
-		"It’s pitch black and completely slimy in here, %pred sways their %belly a bit here and there to toss you from one end to the other, tumbling you end over end as you’re churned in that active %belly. It’s all so slick and squishy, so it is really hard to get any footing or grip on things to stabilize your position, which means that you’re left at the mercy of those gloomy gastric affections and the tingling touch of those sticky syrupy slimes that the walls lather into your body.")
+		"It's pitch black and completely slimy in here, %pred sways their %belly a bit here and there to toss you from one end to the other, tumbling you end over end as you're churned in that active %belly. It's all so slick and squishy, so it is really hard to get any footing or grip on things to stabilize your position, which means that you're left at the mercy of those gloomy gastric affections and the tingling touch of those sticky syrupy slimes that the walls lather into your body.")
 
 	B.emote_lists[DM_HOLD] = list(
-		"The burbling %belly rocks and glides over you gently as you’re held deep within %pred, the deep thumping of their heart pulses all around you as you’re caressed and pressed by heavy, doughy walls.",
-		"%pred’s %belly glorgles around you idly as you’re held gently by the slick, wrinkled flesh.",
-		"The ever present beating of %pred’s heart throbs through the chamber around you. As you sink into the flesh a little ways, you can feel the pressure of the pulse pump in against you that much more snug for an instant, just in time with the thump of the nearby heart.",
+		"The burbling %belly rocks and glides over you gently as you're held deep within %pred, the deep thumping of their heart pulses all around you as you're caressed and pressed by heavy, doughy walls.",
+		"%pred's %belly glorgles around you idly as you're held gently by the slick, wrinkled flesh.",
+		"The ever present beating of %pred's heart throbs through the chamber around you. As you sink into the flesh a little ways, you can feel the pressure of the pulse pump in against you that much more snug for an instant, just in time with the thump of the nearby heart.",
 		"As %pred breathes you can feel the %belly you are within compact in against you a bit more, the pressure of the inflating lungs smooshing the other organs out of the way a bit, and giving you a bit more of a squeeze, before with a whoosh the breath rushes out again, and the cycle repeats.",
 		"As %pred goes about their day you can feel the motions of their body jostle you a bit here and there. Bumping and bouncing you against the doughy pressure of those interior confines, the gloopy gurgles sounding off from somewhere deeper inside...",
-		"The walls press in heavily on you for a few moments. Squeezing across you in a heavy, possessive churn. A smothering squeeze that leaves you breathless for a few long moments, coating you in a thin layer of slick slime. The walls seem to retreat reluctantly, leaving you in the sweltering humid air of %pred’s cramped %belly.",
-		"It’s hard to stay in place with how slick and squashy the walls of %pred’s %belly are. Thick and smushy and soft, you can sink into them several inches before the tension catches you and rolls you around at the crater your body weight makes. A pool of thin slimes gathers around you some, clinging close as you’re held snugly deep within %pred.",
-		"The press of slick flesh to your body and in against itself is ever present within this slimy space. The squelches and grumbles of that tummy shifting around you never really go away. The wrinkled walls would glide against themselves here and there creating an idle cacophony of squish, while the caress of that flesh in against your body makes a more prevalent slurping that’s hard to escape.",
-		"Held within the pitch black gloom of this gently churning organic chamber it’s hard to get much room to yourself. The walls are always prone to rolling in and squeezing over you for long moments.",
-		"Despite the constant motion of fleshy waves gliding in against you and the burbling sounds of the inner workings of all those tubes and organs, the steady beating of %pred’s heart, and the gentle whooshing of their breath were surprisingly relaxing.")
+		"The walls press in heavily on you for a few moments. Squeezing across you in a heavy, possessive churn. A smothering squeeze that leaves you breathless for a few long moments, coating you in a thin layer of slick slime. The walls seem to retreat reluctantly, leaving you in the sweltering humid air of %pred's cramped %belly.",
+		"It's hard to stay in place with how slick and squashy the walls of %pred's %belly are. Thick and smushy and soft, you can sink into them several inches before the tension catches you and rolls you around at the crater your body weight makes. A pool of thin slimes gathers around you some, clinging close as you're held snugly deep within %pred.",
+		"The press of slick flesh to your body and in against itself is ever present within this slimy space. The squelches and grumbles of that tummy shifting around you never really go away. The wrinkled walls would glide against themselves here and there creating an idle cacophony of squish, while the caress of that flesh in against your body makes a more prevalent slurping that's hard to escape.",
+		"Held within the pitch black gloom of this gently churning organic chamber it's hard to get much room to yourself. The walls are always prone to rolling in and squeezing over you for long moments.",
+		"Despite the constant motion of fleshy waves gliding in against you and the burbling sounds of the inner workings of all those tubes and organs, the steady beating of %pred's heart, and the gentle whooshing of their breath were surprisingly relaxing.")
 
 	B.emote_lists[DM_ABSORB] = list(
-		"The intensity of the flesh pumping in against you makes it somewhat hard to tell how soft and tarry the surfaces pressing into you have gotten. As your extremities disappear between the folds of flesh inside there it’s so difficult to pull them back out, like squirming against  hot, gooey quicksand! %pred’s %belly seems quite insistent on sinking you deeper, and claiming you entirely.",
+		"The intensity of the flesh pumping in against you makes it somewhat hard to tell how soft and tarry the surfaces pressing into you have gotten. As your extremities disappear between the folds of flesh inside there it's so difficult to pull them back out, like squirming against  hot, gooey quicksand! %pred's %belly seems quite insistent on sinking you deeper, and claiming you entirely.",
 		"The pressure is intense, the slimy walls rolling over you again and again, really clinging to your figure, sticky and slurpy, you can feel the tug of the flesh drawing you in, and the flickers of another presence along the edges of your mind.",
 		"The wrinkled flesh flows between your fingers and wraps in against your body as it presses in and clings to you. The walls are extremely soft, so much so that you can sink deep into them, where, a curious tingling begins to tickle at you the deeper you go.",
-		"The pulse of %pred’s heart throbs all around you, through the flesh and up against you. A powerful pumping that rolls through every little bit of the %belly. The softening walls steadily flow over you, steadily sinking you into their surface a ways where that throbbing seems to get that much more intense, pulsing all around you as the flesh forms skin tight to you… and your heart seems to adjust too, thumping in your ears in time with %pred’s.",
-		"The pressure of %pred’s body forming against you makes it hard to move at all. The walls fold in against you, wrapping you up and steadily submerging you, a texture something akin to molten marshmallow hugs you all around, filling in the creases and spaces between, but even as you’re held there so tightly, you’d find that you’re neither crushed nor suffocated… Held so deep and tight as that %belly works to make you one with it.",
-		"As the flesh of %pred’s %belly forms against you and flows across your body, you can feel and hear the wet slide of its weight spreading and rubbing against you. As it forms against your ears though and really clings on to you, the sloppy wet sounds of the interior of some weird alien fade, to be replaced by a powerful thumping heartbeat. As you sink into %pred’s body, it becomes harder and harder to identify where you end and %pred begins, and that pumping heartbeat lulls your mind into something of a dull haze.",
-		"As the gooey touch of %pred’s body rolls over you, you can’t help but notice just how soft it all is, despite the intensity of the pressure squeezing in against you, clinging to your figure in an insistent smothering embrace, it’s never painful. The flesh you’re being held against forms to you, molding against you, creating a space that’s perfectly sized for you. A cavity shaped exactly like you. A place where you belong.",
-		"As the pumping flesh courses against you, gliding and throbbing against your touch, letting you sink in far beyond where it seems reasonable for tension to have caught you, you notice that whatever appendage has sunk that deep begins to feel a bit tingly, a bit starry, like it’s become a twinkling starlight. It’s weird, but not exactly uncomfortable. There’s a sense of otherness that brushes comfortably somewhere against the back of your mind, that gets stronger the deeper you sink...",
-		"The rippling touch of %pred’s wrinkled flesh folding in against you is hard to escape. No matter where you turn, it’s all closing in on you, pressing to you. Practically molten, the pressure of it all molds to you and leaves no part of your figure untouched, and yet, even as it forms skin tight in against you, it doesn’t stop there. You seem to still sink further into the squish, the surface of it all flows over your figure and submerges you deeper, and deeper… and deeper, until there’s nothing but the heat and the throb of %pred’s heart all around you.",
-		"The pressure is intense. The throbbing of %pred’s heart in your ears is impossible to ignore as the weight of your predator shifts when they move. You might notice that, as you sink deeper into the pressure of %pred, you’re more conscious of those shifts and wobbles, as if they were your own, and the appreciative flickerings of consciousness that seems to have claimed you. You can feel each shift and jiggle of the fluffy critter’s movements as you’re absorbed...")
+		"The pulse of %pred's heart throbs all around you, through the flesh and up against you. A powerful pumping that rolls through every little bit of the %belly. The softening walls steadily flow over you, steadily sinking you into their surface a ways where that throbbing seems to get that much more intense, pulsing all around you as the flesh forms skin tight to you… and your heart seems to adjust too, thumping in your ears in time with %pred's.",
+		"The pressure of %pred's body forming against you makes it hard to move at all. The walls fold in against you, wrapping you up and steadily submerging you, a texture something akin to molten marshmallow hugs you all around, filling in the creases and spaces between, but even as you're held there so tightly, you'd find that you're neither crushed nor suffocated… Held so deep and tight as that %belly works to make you one with it.",
+		"As the flesh of %pred's %belly forms against you and flows across your body, you can feel and hear the wet slide of its weight spreading and rubbing against you. As it forms against your ears though and really clings on to you, the sloppy wet sounds of the interior of some weird alien fade, to be replaced by a powerful thumping heartbeat. As you sink into %pred's body, it becomes harder and harder to identify where you end and %pred begins, and that pumping heartbeat lulls your mind into something of a dull haze.",
+		"As the gooey touch of %pred's body rolls over you, you can't help but notice just how soft it all is, despite the intensity of the pressure squeezing in against you, clinging to your figure in an insistent smothering embrace, it's never painful. The flesh you're being held against forms to you, molding against you, creating a space that's perfectly sized for you. A cavity shaped exactly like you. A place where you belong.",
+		"As the pumping flesh courses against you, gliding and throbbing against your touch, letting you sink in far beyond where it seems reasonable for tension to have caught you, you notice that whatever appendage has sunk that deep begins to feel a bit tingly, a bit starry, like it's become a twinkling starlight. It's weird, but not exactly uncomfortable. There's a sense of otherness that brushes comfortably somewhere against the back of your mind, that gets stronger the deeper you sink...",
+		"The rippling touch of %pred's wrinkled flesh folding in against you is hard to escape. No matter where you turn, it's all closing in on you, pressing to you. Practically molten, the pressure of it all molds to you and leaves no part of your figure untouched, and yet, even as it forms skin tight in against you, it doesn't stop there. You seem to still sink further into the squish, the surface of it all flows over your figure and submerges you deeper, and deeper… and deeper, until there's nothing but the heat and the throb of %pred's heart all around you.",
+		"The pressure is intense. The throbbing of %pred's heart in your ears is impossible to ignore as the weight of your predator shifts when they move. You might notice that, as you sink deeper into the pressure of %pred, you're more conscious of those shifts and wobbles, as if they were your own, and the appreciative flickerings of consciousness that seems to have claimed you. You can feel each shift and jiggle of the fluffy critter's movements as you're absorbed...")
 
 	B.emote_lists[DM_HEAL] = list(
-		"The walls glide over you tenderly, gently. Lightly kneading and massaging against your figure, smooth and pillowy soft. You can sink in a ways, but it’s not hard to extract yourself from these caressing touches. The burbling of %pred’s %belly fills your ears as you’re rocked and cradled within.",
-		"As you soak within %pred’s %belly you can feel some of your strength returning, aches and pains easing some as time goes on. The walls knead over you gently, but are never rough. They’re soft and smushy, like a jiggly padding, protecting you from the outside world.",
-		"The throb of %pred’s heart rocks through the surfaces of the %belly. Even as you’re sunk into a bit of a crater in the flesh there, you can feel it pulse through the squish. The sound of %pred’s heart is a constant companion, along with the wet squelches and slurps of flesh shifting against itself and you.",
-		"The slow sway of %pred’s body as it moves rocks you back and forth across the %belly. With how soft and gentle it is in there, it’s not unlike relaxing in a large, dark fleshy hammock. Of course, there’s not really any airflow or even all that much space, what with the walls pressed in close and gently churning and kneading against you, so it’s not anything like a hammock, really… but you might be able to imagine it was if you put your mind to it. Either way, the gentle sway is soothing and comfortable despite how un-hammock-like this hammock is...",
-		"The smooth press of flesh throbs against you as %pred’s %belly kneads and smooshes over you soothingly. The pressure shifts here and there as the muscles beyond grind over you carefully. Despite the heat and the thick, stifling air, you feel slowly more refreshed as you’re held in here. It’s comfy enough to nap in.",
-		"As you’re held within the %belly you feel your eyelids get a bit heavy… the rhythmic thumping of %pred’s heart nearby, along with the gentle rocking shifts make snoozing an easy option, especially considering how SQUOOSHY and comfortable the stretchy flesh holding you is. It kneads and caresses you soothingly, and you might find that now and then your blinks seem to last several minutes as you’re kept close amid that comfortable %belly.",
+		"The walls glide over you tenderly, gently. Lightly kneading and massaging against your figure, smooth and pillowy soft. You can sink in a ways, but it's not hard to extract yourself from these caressing touches. The burbling of %pred's %belly fills your ears as you're rocked and cradled within.",
+		"As you soak within %pred's %belly you can feel some of your strength returning, aches and pains easing some as time goes on. The walls knead over you gently, but are never rough. They're soft and smushy, like a jiggly padding, protecting you from the outside world.",
+		"The throb of %pred's heart rocks through the surfaces of the %belly. Even as you're sunk into a bit of a crater in the flesh there, you can feel it pulse through the squish. The sound of %pred's heart is a constant companion, along with the wet squelches and slurps of flesh shifting against itself and you.",
+		"The slow sway of %pred's body as it moves rocks you back and forth across the %belly. With how soft and gentle it is in there, it's not unlike relaxing in a large, dark fleshy hammock. Of course, there's not really any airflow or even all that much space, what with the walls pressed in close and gently churning and kneading against you, so it's not anything like a hammock, really… but you might be able to imagine it was if you put your mind to it. Either way, the gentle sway is soothing and comfortable despite how un-hammock-like this hammock is...",
+		"The smooth press of flesh throbs against you as %pred's %belly kneads and smooshes over you soothingly. The pressure shifts here and there as the muscles beyond grind over you carefully. Despite the heat and the thick, stifling air, you feel slowly more refreshed as you're held in here. It's comfy enough to nap in.",
+		"As you're held within the %belly you feel your eyelids get a bit heavy… the rhythmic thumping of %pred's heart nearby, along with the gentle rocking shifts make snoozing an easy option, especially considering how SQUOOSHY and comfortable the stretchy flesh holding you is. It kneads and caresses you soothingly, and you might find that now and then your blinks seem to last several minutes as you're kept close amid that comfortable %belly.",
 		"The walls of the %belly press in close around you for a few moments, squeezing you heavily and kneading across you. You can feel your back and joints pop here and there in just the right way, there is a moment of a kind of ache, and then a deep, delightful relief, as the walls ease up and resume their gentle smooshes.",
-		"With each step %pred takes, those soft, smooth wall jiggle lightly around you, quaking and swaying you this way and that. The slimy surfaces of %pred’s interior glide over your body casually, shifting and burbling here and there, holding you nice and secure.",
+		"With each step %pred takes, those soft, smooth wall jiggle lightly around you, quaking and swaying you this way and that. The slimy surfaces of %pred's interior glide over your body casually, shifting and burbling here and there, holding you nice and secure.",
 		"The pressure around you increases a little bit each time you hear the whooooosh of %pred taking a breath in. Expanding lungs compact things inside a little bit, making your stay just that little bit more snug. The pressure is never not gentle though. Those smooth, slick walls were also always pressing and kneading against you too, so it might not be the easiest thing to notice.",
-		"The thumping, squeezing, kneading rhythm of %pred’s body was easy to get into. A gentle rocking here, a little bob there, a pulsing throb across the whole %belly as you’re churned and felt over. It’s easy to get lost in the grumbly gurgly rhythm of that body, hidden away in the pitch black. As it all works around you, you can feel your energy build, your muscles relax, and any aches and pains you might have would fade with time. It’s comfortable, and fills you with an alien sense of belonging.")
+		"The thumping, squeezing, kneading rhythm of %pred's body was easy to get into. A gentle rocking here, a little bob there, a pulsing throb across the whole %belly as you're churned and felt over. It's easy to get lost in the grumbly gurgly rhythm of that body, hidden away in the pitch black. As it all works around you, you can feel your energy build, your muscles relax, and any aches and pains you might have would fade with time. It's comfortable, and fills you with an alien sense of belonging.")
 
 	B.struggle_messages_inside = list(
-		"As you squirm and fuss, your limbs sink into the squish a fair way! Sliding over the slick, sloppy surfaces of %pred’s %belly. The walls clamp in and churn over you heavily in response.",
-		"As you squirm, %pred’s %belly wobbles and smothers over you. Wrinkled walls fold against your features. The humid air hangs around you oppressively as the walls roll over you, making it hard to move.",
-		"You can feel the pressure of the flesh kneading you clamp down and fold over you insistently as you squirm and push at %pred’s flesh. It’s so slippery and hard to get any proper grip or footing!",
-		"When you shift your weight and press into the flesh of %pred’s %belly, you can feel things around you clamp down, and in a rush, what little air there is inside of there rushes out passed you. %pred emits a low, rumbling urp somewhere far above.",
+		"As you squirm and fuss, your limbs sink into the squish a fair way! Sliding over the slick, sloppy surfaces of %pred's %belly. The walls clamp in and churn over you heavily in response.",
+		"As you squirm, %pred's %belly wobbles and smothers over you. Wrinkled walls fold against your features. The humid air hangs around you oppressively as the walls roll over you, making it hard to move.",
+		"You can feel the pressure of the flesh kneading you clamp down and fold over you insistently as you squirm and push at %pred's flesh. It's so slippery and hard to get any proper grip or footing!",
+		"When you shift your weight and press into the flesh of %pred's %belly, you can feel things around you clamp down, and in a rush, what little air there is inside of there rushes out passed you. %pred emits a low, rumbling urp somewhere far above.",
 		"Your struggles slide over the doughy flesh. The tension of it catches you and forms to your presses, before it all flexes inward again and tries to fold you into a smaller shape again.",
 		"When you push and squirm against the walls of the %belly, you can hear and feel %pred give a little happy grumble, and you can feel them shift their weight, tossing you from one end of the %belly to the other, sloppy squelching sounding out as you land.",
-		"Your hands slip and slide against the pulsing wrinkled squish of %pred’s %belly, sinking into the doughy texture of the smooth walls and makes it hard to go anywhere except to the lowest, deepest section of the %belly.",
+		"Your hands slip and slide against the pulsing wrinkled squish of %pred's %belly, sinking into the doughy texture of the smooth walls and makes it hard to go anywhere except to the lowest, deepest section of the %belly.",
 		"The sound of your squirms is loud in your ears. The squelchy gurgly sound of sloppy wet flesh shifting in the pitch black, as your struggles force the tight space wider as you try to wriggle free.",
 		"When you move the %belly gurgles insistently around you. The bubbling fluids within there cling to you as you push and squirm against those wrinkly walls.",
-		"Your struggles are stifled by the clinging press of heavy flesh greedily pressing in on you heavily. It’s tiring to fight against those groaning guts...")
+		"Your struggles are stifled by the clinging press of heavy flesh greedily pressing in on you heavily. It's tiring to fight against those groaning guts...")
 
 	B.struggle_messages_outside = list(
-		"Vague shapes shift under %pred’s hide...",
+		"Vague shapes shift under %pred's hide...",
 		"Something solid squirms within %pred...",
-		"%pred emits a low ‘uurp’ as something shifts within.",
+		"%pred emits a low 'uurp' as something shifts within.",
 		"Something bumps and thumps against the inside of %pred.",
 		"Something glorps inside of %pred.",
-		"%pred’s gut grumbles around something solid...",
-		"%pred’s belly rumbles and sways as something moves inside.",
+		"%pred's gut grumbles around something solid...",
+		"%pred's belly rumbles and sways as something moves inside.",
 		"Something sloshes inside of %pred.",
-		"%pred’s belly burbles noisily.",
-		"%pred’s belly shifts noticeably.")
+		"%pred's belly burbles noisily.",
+		"%pred's belly shifts noticeably.")
 	B.examine_messages = list(
 		"There is a noticable swell on their belly.",
 		"Their belly seems to hang a bit low.",
 		"There seems to be a solid shape distending their belly.")
 	B.digest_messages_prey = list(
 		"With a low grumble your body melts and falls apart within %pred. The nutrition you provide would go on to power your predator as they go on with their life. You were nutritious food, but, nothing but alien food in the end.",
-		"No matter your squirms and fusses you can feel those walls collapse in on you, smothering over you as the tingling fluids rise and bubble against you. Churning hard as your body is actively softened up and melted away! Your senses fading out as you’re reduced to nothing but a hot, gooey slush, a form much better suited to continuing on as food for a hungry body.",
-		"As your body weakens and your wiggles ebb down, the pressure of those churning walls builds, further overpowering and working to melt you that much more. The thick syrupy slime soaks into you and softens you up, not unlike ice cream on a hot summer day, and you’re soaked up just as easily.",
-		"%pred’s %belly gushes and schlorps around you as you are broken down and absorbed. The rippling walls churn and roll the slowly thinning contents of their sloshing depths, as more and more of you is claimed completely by %pred.",
-		"The gurgling sounds of your body melting slowly overtakes all the other sounds. The walls closing in and squeezing over you so heavily! Nothing you could do could help you now as you’re churned and mushed, left to steadily soften and break up into a nutritious slush. ",
+		"No matter your squirms and fusses you can feel those walls collapse in on you, smothering over you as the tingling fluids rise and bubble against you. Churning hard as your body is actively softened up and melted away! Your senses fading out as you're reduced to nothing but a hot, gooey slush, a form much better suited to continuing on as food for a hungry body.",
+		"As your body weakens and your wiggles ebb down, the pressure of those churning walls builds, further overpowering and working to melt you that much more. The thick syrupy slime soaks into you and softens you up, not unlike ice cream on a hot summer day, and you're soaked up just as easily.",
+		"%pred's %belly gushes and schlorps around you as you are broken down and absorbed. The rippling walls churn and roll the slowly thinning contents of their sloshing depths, as more and more of you is claimed completely by %pred.",
+		"The gurgling sounds of your body melting slowly overtakes all the other sounds. The walls closing in and squeezing over you so heavily! Nothing you could do could help you now as you're churned and mushed, left to steadily soften and break up into a nutritious slush. ",
 		"Your body softens and glorps around within the guts of %pred. The rolling rumbles and sloshes overcome you as your senses fade, and your form fades away, bubbling away to become nothing more than a part of %pred.",
-		"Things clamp down over you as %pred flexxes, smothering over you for a few long moments. Your senses fade away before they ease up though. Your body rapidly melted down and made to slosh through the deeper tubes, helpless but to fade away as you’re absorbed as the food you are.",
-		"The tide of syrupy fluids rises higher and higher, flooding over you, leaving nothing to breathe. Your senses fade away as the sloppy roiling mess softens you up and passes you along for further processing, fit only to serve to plump up %pred’s figure.",
-		"Over the course of several hours in the burbling organic cauldron, your body softens up little by little, soaking up the slime, the tingling spreading over you more and more as your strength fades. The walls fold over you and wrap you up, until the last thing you can sense is the throb of %pred’s heart pulsing through the very core of your being, washing you away as you become food for %pred.",
-		"Your final moments are spent trying to make just a little space for yourself, the doughy squish of the flesh forming to you, pressing in tighter and tighter, invading your personal space as if to show you that, you don’t have any personal space. You’re already a part of %pred, you just don’t know it yet. And so those walls come in close to press up against you and churn you away into a messy slop, to put you in your place. That being, padding the belly and hips of %pred, right where you belong.")
+		"Things clamp down over you as %pred flexxes, smothering over you for a few long moments. Your senses fade away before they ease up though. Your body rapidly melted down and made to slosh through the deeper tubes, helpless but to fade away as you're absorbed as the food you are.",
+		"The tide of syrupy fluids rises higher and higher, flooding over you, leaving nothing to breathe. Your senses fade away as the sloppy roiling mess softens you up and passes you along for further processing, fit only to serve to plump up %pred's figure.",
+		"Over the course of several hours in the burbling organic cauldron, your body softens up little by little, soaking up the slime, the tingling spreading over you more and more as your strength fades. The walls fold over you and wrap you up, until the last thing you can sense is the throb of %pred's heart pulsing through the very core of your being, washing you away as you become food for %pred.",
+		"Your final moments are spent trying to make just a little space for yourself, the doughy squish of the flesh forming to you, pressing in tighter and tighter, invading your personal space as if to show you that, you don't have any personal space. You're already a part of %pred, you just don't know it yet. And so those walls come in close to press up against you and churn you away into a messy slop, to put you in your place. That being, padding the belly and hips of %pred, right where you belong.")
 
 // The friend zone.
 	var/obj/belly/p = new /obj/belly(src)
 	p.immutable = TRUE
+	p.affects_vore_sprites = TRUE
 	p.mode_flags = 40
 	p.human_prey_swallow_time = 0.01 SECONDS
 	p.digestchance = 0
 	p.digest_brute = 0
 	p.digest_burn = 0
 	p.absorbchance = 0
-	p.escapable = TRUE
+	p.escapable = B_ESCAPABLE_DEFAULT
 	p.escapechance = 40
 	p.digest_mode = DM_HEAL
 	p.name = "propeutpericulum" 	//I'm no latin professor I just know that some organs and things are based on latin words
@@ -295,12 +296,11 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 									//Of course it doesn't translate perfectly, and it's nonsense when squashed together, but
 									//I don't care that much, I just figured that the weird alien animals that store friends in
 									//their tummy should have a funny name for the organ they do that with. >:I
-	p.desc = "You seem to have found your way into something of a specialized chamber within the Teppi. The walls are slick and smooth and REALLY soft to the touch. While you can hear the Teppi’s heartbeat nearby, and feel it throb throughout its flesh, the motions around you are gentle and careful. You’re pressed into a small shape within the pleasant heat, with the flesh forming to your figure. You can wriggle around a bit and get comfortable here, but as soon as you get still for a bit the smooth, almost silky flesh seems to form to you once again, like a heavy blanket wrapping you up. As you lounge here the pleasant kneading sensations ease aches and pains, and leave you feeling fresher than before. For a curious fleshy sac inside of some alien monster, this place isn’t all that bad!"
+	p.desc = "You seem to have found your way into something of a specialized chamber within the Teppi. The walls are slick and smooth and REALLY soft to the touch. While you can hear the Teppi's heartbeat nearby, and feel it throb throughout its flesh, the motions around you are gentle and careful. You're pressed into a small shape within the pleasant heat, with the flesh forming to your figure. You can wriggle around a bit and get comfortable here, but as soon as you get still for a bit the smooth, almost silky flesh seems to form to you once again, like a heavy blanket wrapping you up. As you lounge here the pleasant kneading sensations ease aches and pains, and leave you feeling fresher than before. For a curious fleshy sac inside of some alien monster, this place isn't all that bad!"
 	p.contaminates = 1
 	p.contamination_flavor = "Wet"
 	p.contamination_color = "grey"
 	p.item_digest_mode = IM_HOLD
-	p.belly_fullscreen = "yet_another_tumby"
 	p.fancy_vore = 1
 	p.vore_verb = "nyomp"
 	friend_zone = p
@@ -325,7 +325,7 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 
 ///////////////////////////////////////Other stuff///////////////////////////////////////////
 
-/mob/living/simple_mob/vore/alienanimals/teppi/Initialize()
+/mob/living/simple_mob/vore/alienanimals/teppi/Initialize(mapload)
 	. = ..()
 
 	if(name == initial(name))
@@ -333,11 +333,11 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 		real_name = name
 	if(!teppi_adult)
 		nutrition = 0
-		verbs += /mob/living/proc/ventcrawl
-		verbs += /mob/living/proc/hide
+		add_verb(src, /mob/living/proc/ventcrawl)
+		add_verb(src, /mob/living/proc/hide)
 	else
-		verbs += /mob/living/simple_mob/vore/alienanimals/teppi/proc/produce_offspring
-		verbs += /mob/living/simple_mob/vore/alienanimals/teppi/proc/toggle_producing_offspring
+		add_verb(src, /mob/living/simple_mob/vore/alienanimals/teppi/proc/produce_offspring)
+		add_verb(src, /mob/living/simple_mob/vore/alienanimals/teppi/proc/toggle_producing_offspring)
 
 
 //	teppi_id = rand(1,100000)
@@ -486,35 +486,35 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	add_overlay(skin_image)
 	/////HIGHEST LAYER/////
 
-/mob/living/simple_mob/vore/alienanimals/teppi/attackby(var/obj/item/O as obj, var/mob/user as mob)
+/mob/living/simple_mob/vore/alienanimals/teppi/attackby(obj/item/O as obj, mob/user as mob)
 	if(stat == DEAD)
 		return ..()
 	/////GRABS AND HOLDERS/////
-	if(istype(O, /obj/item/weapon/grab))
+	if(istype(O, /obj/item/grab))
 		return ..()
-	if(istype(O, /obj/item/weapon/holder))
+	if(istype(O, /obj/item/holder))
 		return ..()
 	if(user.a_intent != I_HELP) //be gentle
 		if(resting)
 			lay_down()
 		handle_affinity(user, -5)
-		user.visible_message(user, "<span class='notice'>\The [user] hits \the [src] with \the [O]. \The [src] grumbles at \the [user].</span>","<span class='notice'>You hits \the [src] with \the [O]. \The [src] grumbles at you.</span>")
+		user.visible_message(user, span_notice("\The [user] hits \the [src] with \the [O]. \The [src] grumbles at \the [user]."),span_notice("You hits \the [src] with \the [O]. \The [src] grumbles at you."))
 		playsound(src, 'sound/weapons/tap.ogg', 50, 1, -1)
 		return ..()
 	if(teppi_wool)
 		if(teppi_shear(user, O))
 			return
 	/////FOOD/////
-	if(istype(O, /obj/item/weapon/reagent_containers/food))
+	if(istype(O, /obj/item/reagent_containers/food))
 		if(resting)
-			to_chat(user, "<span class='notice'>\The [src] is napping, and doesn't respond to \the [O].</span>")
+			to_chat(user, span_notice("\The [src] is napping, and doesn't respond to \the [O]."))
 			return
 		if(nutrition >= 5000)
-			user.visible_message("<span class='notice'>\The [user] tries to feed \the [O] to \the [src]. It snoofs but does not eat.</span>","<span class='notice'>You try to feed \the [O] to \the [src], but it only snoofts at it.</span>")
+			user.visible_message(span_notice("\The [user] tries to feed \the [O] to \the [src]. It snoofs but does not eat."),span_notice("You try to feed \the [O] to \the [src], but it only snoofts at it."))
 			return
-		var/nutriment_amount = O.reagents?.get_reagent_amount("nutriment") //does it have nutriment, if so how much?
-		var/protein_amount = O.reagents?.get_reagent_amount("protein") //does it have protein, if so how much?
-		var/glucose_amount = O.reagents?.get_reagent_amount("glucose") //does it have glucose, if so how much?
+		var/nutriment_amount = O.reagents?.get_reagent_amount(REAGENT_ID_NUTRIMENT) //does it have nutriment, if so how much?
+		var/protein_amount = O.reagents?.get_reagent_amount(REAGENT_ID_PROTEIN) //does it have protein, if so how much?
+		var/glucose_amount = O.reagents?.get_reagent_amount(REAGENT_ID_GLUCOSE) //does it have glucose, if so how much?
 		var/yum = nutriment_amount + protein_amount + glucose_amount
 		if(yum)
 			if(!teppi_adult)
@@ -529,54 +529,54 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 				if(R.allergen_type & allergen_unpreference)
 					disliked = TRUE
 			if(liked && disliked) //in case a food has both the thing they like and also the thing they don't like in it
-				user.visible_message("<span class='notice'>\The [user] feeds \the [O] to \the [src]. It nibbles \the [O] and looks confused.</span>","<span class='notice'>You feed \the [O] to \the [src]. It nibbles \the [O] and looks confused.</span>")
+				user.visible_message(span_notice("\The [user] feeds \the [O] to \the [src]. It nibbles \the [O] and looks confused."),span_notice("You feed \the [O] to \the [src]. It nibbles \the [O] and looks confused."))
 			else if(liked && !disliked)
-				user.visible_message("<span class='notice'>\The [user] feeds \the [O] to \the [src]. It nibbles \the [O] excitedly.</span>","<span class='notice'>You feed \the [O] to \the [src]. It nibbles \the [O] excitedly.</span>")
+				user.visible_message(span_notice("\The [user] feeds \the [O] to \the [src]. It nibbles \the [O] excitedly."),span_notice("You feed \the [O] to \the [src]. It nibbles \the [O] excitedly."))
 				yum *= 2
 				handle_affinity(user, 5)
 			else if(!liked && disliked)
-				user.visible_message("<span class='notice'>\The [user] feeds \the [O] to \the [src]. It nibbles \the [O] slowly.</span>","<span class='notice'>You feed \the [O] to \the [src]. It nibbles \the [O] slowly.</span>")
+				user.visible_message(span_notice("\The [user] feeds \the [O] to \the [src]. It nibbles \the [O] slowly."),span_notice("You feed \the [O] to \the [src]. It nibbles \the [O] slowly."))
 				yum *= 0.5
 				handle_affinity(user, -5)
 			else
-				user.visible_message("<span class='notice'>\The [user] feeds \the [O] to \the [src]. It nibbles \the [O].</span>","<span class='notice'>You feed \the [O] to \the [src]. It nibbles \the [O].</span>")
+				user.visible_message(span_notice("\The [user] feeds \the [O] to \the [src]. It nibbles \the [O]."),span_notice("You feed \the [O] to \the [src]. It nibbles \the [O]."))
 				handle_affinity(user, 1)
 		else
-			user.visible_message("<span class='notice'>\The [user] feeds \the [O] to \the [src]. It nibbles \the [O] casually.</span>","<span class='notice'>You feed \the [O] to \the [src]. It nibbles \the [O] casually.</span>")
+			user.visible_message(span_notice("\The [user] feeds \the [O] to \the [src]. It nibbles \the [O] casually."),span_notice("You feed \the [O] to \the [src]. It nibbles \the [O] casually."))
 		adjust_nutrition(yum) //add the nutriment!
 		user.drop_from_inventory(O)
 		qdel(O)
 		playsound(src, 'sound/items/eatfood.ogg', 75, 1)
 		if(!client && lets_eat(user) && prob(1))
-			visible_message("<span class='danger'>\The [src] scromfs \the [user] along with the food!</span>!")
-			to_chat(user, "<span class='notice'>\The [src] leans in close, spreading its jaws in front of you. A hot, humid gust of breath blows over you as the weight of \the [src]'s presses you over, knocking you off of your feet as the warm gooey tough of jaws scromf over your figure, rapidly guzzling you away with the [O], leaving you to tumble down into the depths of its body...</span>")
-			playsound(src, pick(bodyfall_sound), 75, 1)
+			visible_message(span_danger("\The [src] scromfs \the [user] along with the food!"))
+			to_chat(user, span_notice("\The [src] leans in close, spreading its jaws in front of you. A hot, humid gust of breath blows over you as the weight of \the [src]'s presses you over, knocking you off of your feet as the warm gooey tough of jaws scromf over your figure, rapidly guzzling you away with the [O], leaving you to tumble down into the depths of its body..."))
+			playsound(src, pick(GLOB.bodyfall_sound), 75, 1)
 			teppi_pounce(user)
 		if(yum && nutrition >= 500)
-			to_chat(user, "<span class='notice'>\The [src] seems satisfied.</span>")
+			to_chat(user, span_notice("\The [src] seems satisfied."))
 		return
 	/////WEAPONS/////
-	if(istype(O, /obj/item/weapon/material/knife))
+	if(istype(O, /obj/item/material/knife))
 		if(client)
 			return ..()
 		if(resting)
-			user.visible_message("<span class='attack'>\The [user] approaches \the [src]'s neck with \the [O].</span>","<span class='attack'>You approach \the [src]'s neck with \the [O].</span>")
-			if(do_after(user, 5 SECONDS, exclusive = TASK_USER_EXCLUSIVE, target = src))
+			user.visible_message(span_attack("\The [user] approaches \the [src]'s neck with \the [O]."),span_attack("You approach \the [src]'s neck with \the [O]."))
+			if(do_after(user, 5 SECONDS, target = src))
 				if(resting)
 					death()
 					return
 				else
-					to_chat(user, "<span class='notice'>\The [src] woke up! You think better of slaughtering it while it is awake.</span>")
+					to_chat(user, span_notice("\The [src] woke up! You think better of slaughtering it while it is awake."))
 					return
 		else
 			return ..()
 	if(istype(O, /obj/item/clothing/accessory/collar/craftable))
 		var/obj/item/clothing/accessory/collar/craftable/C = O
 		if(item_type == "collar")
-			to_chat(user, "<span class='notice'>[src] is already wearing a collar.</span>")
+			to_chat(user, span_notice("[src] is already wearing a collar."))
 			return
 		if(!C.given_name)
-			to_chat(user, "<span class='notice'>You didn't put a name on the collar. You can use it in your hand to do that!</span>")
+			to_chat(user, span_notice("You didn't put a name on the collar. You can use it in your hand to do that!"))
 			return
 		item_type = "collar"
 		item_color = C.color
@@ -596,18 +596,18 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 		return ..()
 	if(M.a_intent == I_GRAB && item_type)
 		if(affinity[M.real_name] >= 30)
-			M.visible_message("<span class='notice'>\The [M.name] removes \the [src]'s [item_type].</span>","<span class='notice'>You remove \the [src]'s [item_type].</span>")
+			M.visible_message(span_notice("\The [M.name] removes \the [src]'s [item_type]."),span_notice("You remove \the [src]'s [item_type]."))
 			item_type = null
 			update_icon()
 			return
 	if(M.a_intent != I_HELP) //be gentle
 		handle_affinity(M, -5)
-		to_chat(M, "<span class='notice'>\The [src] fusses at your rough treatment!!</span>")
+		to_chat(M, span_notice("\The [src] fusses at your rough treatment!!"))
 		if(resting)
 			lay_down()
 		return..()
 	if(resting)
-		M.visible_message("<span class='notice'>\The [M.name] shakes \the [src] awake from their nap.</span>","<span class='notice'>You shake \the [src] awake!</span>")
+		M.visible_message(span_notice("\The [M.name] shakes \the [src] awake from their nap."),span_notice("You shake \the [src] awake!"))
 		playsound(src, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
 		lay_down()
 		return
@@ -618,25 +618,26 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 			handle_affinity(M, 1)
 			if(teppi_adult)
 				if(prob(25))
-					M.visible_message("<span class='notice'>\The [src] rumbles happily at \the [M]</span>","<span class='notice'>\The [src] rumbles happily at you!</span>")
+					M.visible_message(span_notice("\The [src] rumbles happily at \the [M]"),span_notice("\The [src] rumbles happily at you!"))
 					playsound(src, 'sound/voice/teppi/rumble.ogg', 75, 1)
-				vore_selected.digest_mode = DM_DRAIN //People outside can help calm the tumby if you squirm too much
+				if(vore_selected)
+					vore_selected.digest_mode = DM_DRAIN //People outside can help calm the tumby if you squirm too much
 			else if(prob(25))
-				M.visible_message("<span class='notice'>\The [src] rumbles happily at \the [M]</span>","<span class='notice'>\The [src] rumbles happily at you!</span>")
+				M.visible_message(span_notice("\The [src] rumbles happily at \the [M]"),span_notice("\The [src] rumbles happily at you!"))
 				playsound(src, 'sound/voice/teppi/cute_rumble.ogg', 75, 1)
 			if(prob(25))
 				wantpet = rand(0,25) * affection_factor //We stopped wanting pets
-			to_chat(M, "<span class='notice'>\The [src] leans into your touch.</span>")
+			to_chat(M, span_notice("\The [src] leans into your touch."))
 			petcount = 0
 		else if(petcount < 20)
 			wantpet = 0
 			petcount += 1
 			if(prob(20))
-				to_chat(M, "<span class='notice'>\The [src] grumbles at your touch.</span>")
+				to_chat(M, span_notice("\The [src] grumbles at your touch."))
 		else if(lets_eat(M) && prob(50))
-			to_chat(M, "<span class='notice'>\The [src] grumbles a bit... and then bowls you over, pressing their weight into yours to knock you off of your feet! In a rush of chaotic presses and schlorps, the gooey touch of Teppi flesh grinds over you as you're guzzled away! Casually swallowed down in retaliation for all of the pettings. Pumped down deep into the grumbling depths of \the [src].</span>")
-			visible_message("<span class='danger'>\The [src] scromfs \the [M], before chuffing and settling down again.</span>")
-			playsound(src, pick(bodyfall_sound), 75, 1)
+			to_chat(M, span_notice("\The [src] grumbles a bit... and then bowls you over, pressing their weight into yours to knock you off of your feet! In a rush of chaotic presses and schlorps, the gooey touch of Teppi flesh grinds over you as you're guzzled away! Casually swallowed down in retaliation for all of the pettings. Pumped down deep into the grumbling depths of \the [src]."))
+			visible_message(span_danger("\The [src] scromfs \the [M], before chuffing and settling down again."))
+			playsound(src, pick(GLOB.bodyfall_sound), 75, 1)
 			teppi_pounce(M)
 			wantpet = 100
 	else
@@ -645,13 +646,13 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 /mob/living/simple_mob/vore/alienanimals/teppi/examine()
 	. = ..()
 	if(item_type)
-		. += "<span class='notice'>They are wearing a [item_type] with [name] written on it.</span>"
+		. += span_notice("They are wearing a [item_type] with [name] written on it.")
 	if(nutrition >= 1000)
-		. += "<span class='notice'>They look well fed.</span>"
+		. += span_notice("They look well fed.")
 	if(nutrition <= 500)
-		. += "<span class='notice'>They look hungry.</span>"
+		. += span_notice("They look hungry.")
 	if(health < maxHealth && health / maxHealth * 100 <= 75)
-		. += "<span class='notice'>They look beat up.</span>"
+		. += span_notice("They look beat up.")
 
 
 /mob/living/simple_mob/vore/alienanimals/teppi/update_icon()
@@ -663,7 +664,7 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 
 /mob/living/simple_mob/vore/alienanimals/teppi/Life()
 	. =..()
-	if(!.)
+	if(!. || QDELETED(src))
 		return
 	wantpet += rand(0,2) * affection_factor
 	amount_grown += rand(1,5)
@@ -681,8 +682,9 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 		else if (not_hungy)
 			var/nutrition_cost = 500 + (nutrition / 2)
 			adjust_nutrition(-nutrition_cost)
-			new /mob/living/simple_mob/vore/alienanimals/teppi(loc, src)
+			new /mob/living/simple_mob/vore/alienanimals/teppi(loc, store_teppi_data(src))
 			qdel(src)
+			return
 		else
 			visible_message("\The [src] whines pathetically...", runemessage = "whines")
 			if(prob(50))
@@ -727,12 +729,12 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 		return
 	if(resting)
 		return
-	playsound(src, pick(teppi_sound), 75, 1)
+	playsound(src, pick(GLOB.teppi_sound), 75, 1)
 
-/mob/living/simple_mob/vore/alienanimals/teppi/proc/teppi_shear(var/mob/user as mob, tool)
+/mob/living/simple_mob/vore/alienanimals/teppi/proc/teppi_shear(mob/user as mob, tool)
 	var/sheartime = 3 SECONDS
-	if(istype(tool, /obj/item/weapon/material/knife))
-		var/obj/item/weapon/material/knife/K = tool
+	if(istype(tool, /obj/item/material/knife))
+		var/obj/item/material/knife/K = tool
 		if(K.default_material == MAT_PLASTIC || K.default_material == MAT_FLINT)
 			sheartime *= 2
 		if(K.dulled)
@@ -741,12 +743,12 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 			sheartime *= 2
 		if(K.edge)
 			sheartime *= 0.5
-	else if(istype(tool, /obj/item/weapon/tool/wirecutters))
+	else if(istype(tool, /obj/item/tool/wirecutters))
 		sheartime *= 2
 	else
 		return FALSE
-	if(do_after(user, sheartime, exclusive = TASK_USER_EXCLUSIVE, target = src))
-		user.visible_message("<span class='notice'>\The [user] shears \the [src] with \the [tool].</span>","<span class='notice'>You shear \the [src] with \the [tool].</span>")
+	if(do_after(user, sheartime, target = src))
+		user.visible_message(span_notice("\The [user] shears \the [src] with \the [tool]."),span_notice("You shear \the [src] with \the [tool]."))
 		amount_grown = rand(0,250)
 		var/obj/item/stack/material/fur/F = new(get_turf(user), rand(10,15))
 		F.color = marking_color
@@ -757,18 +759,18 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 		return TRUE
 
 //Handles both growing up from a baby and also passing parent details to new babies.
-/mob/living/simple_mob/vore/alienanimals/teppi/New(newloc, teppi1, teppi2)
+/mob/living/simple_mob/vore/alienanimals/teppi/Initialize(mapload, teppi1, teppi2)
 	GLOB.teppi_count ++
 	if(teppi1 && !teppi2)
 		inherit_from_baby(teppi1)
 	else if (teppi1 && teppi2)
 		inherit_from_parents(teppi1, teppi2)
-	..()
+	. = ..()
 
 /mob/living/simple_mob/vore/alienanimals/teppi/Destroy()
 	GLOB.teppi_count --
 	friend_zone = null
-	active_ghost_pods -= src
+	GLOB.active_ghost_pods -= src
 	ai_holder.leader = null
 	return ..()
 
@@ -788,6 +790,8 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 		vore_selected.digest_burn = 0.05
 
 /mob/living/simple_mob/vore/alienanimals/teppi/animal_nom(mob/living/T in living_mobs(1))
+	if(vore_active && !voremob_loaded)
+		init_vore(TRUE)
 	if(client)
 		return ..()
 	var/current_affinity = affinity[T.real_name]
@@ -808,23 +812,39 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	ai_holder.set_busy(FALSE)
 
 
-/mob/living/simple_mob/vore/alienanimals/teppi/perform_the_nom(user, mob/living/prey, user, belly, delay)
-	if(client)
-		return ..()
-	var/current_affinity = affinity[prey.real_name]
-	ai_holder.set_busy(TRUE)
-	prey.stop_pulling()
-	if(current_affinity >= 50)
-		belly = friend_zone
-		..()
+/mob/living/simple_mob/vore/alienanimals/teppi/perform_the_nom(mob/living/user, mob/living/prey, mob/living/pred, obj/belly/belly, delay_time)
+	if(!client)
+		var/teppi_checks = teppi_checks(user, prey, pred, belly)
+		if(teppi_checks)
+			belly = teppi_checks
+		ai_holder.set_busy(TRUE)
+		prey.stop_pulling()
+	..()
+	if(!client)
 		ai_holder.set_busy(FALSE)
-		return
+
+/mob/living/simple_mob/vore/alienanimals/teppi/begin_instant_nom(mob/living/user, mob/living/prey, mob/living/pred, obj/belly/belly)
+	if(!client)
+		var/teppi_checks = teppi_checks(user, prey, pred, belly)
+		if(teppi_checks)
+			belly = teppi_checks
+		ai_holder.set_busy(TRUE)
+		prey.stop_pulling()
+	..()
+	if(!client)
+		ai_holder.set_busy(FALSE)
+
+///Retrns the belly we'll be using if we are friends.
+/mob/living/simple_mob/vore/alienanimals/teppi/proc/teppi_checks(mob/living/user, mob/living/prey, mob/living/pred)
+	if(!pred)
+		pred = user
+	var/current_affinity = affinity[prey.real_name]
+	if(current_affinity >= 50)
+		return friend_zone
 	if(current_affinity <= -50)
 		vore_selected.digest_mode = DM_DIGEST
 	else
 		vore_selected.digest_mode = DM_DRAIN
-	..()
-	ai_holder.set_busy(FALSE)
 
 //Instead of copying this everywhere let's just make a proc
 /mob/living/simple_mob/vore/alienanimals/teppi/proc/lets_eat(person)
@@ -906,29 +926,49 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	say_list_type = /datum/say_list/teppibaby
 
 
-/mob/living/simple_mob/vore/alienanimals/teppi/baby/init_vore() //shouldn't need all the vore bidness if they aren't using it as babbies. They get their tummies when they grow up.
+/mob/living/simple_mob/vore/alienanimals/teppi/baby/init_vore(force) //shouldn't need all the vore bidness if they aren't using it as babbies. They get their tummies when they grow up.
 	return
 
+/mob/living/simple_mob/vore/alienanimals/teppi/proc/store_teppi_data(mob/living/simple_mob/vore/alienanimals/teppi/teppi)
+	var/list/teppi_data = list(
+		"dir" = teppi.dir,
+		"name" = teppi.name,
+		"real_name" = teppi.real_name,
+		"faction" = teppi.faction,
+		"affinity" = teppi.affinity,
+		"affection_factor" = teppi.affection_factor,
+		"nutrition" = teppi.nutrition,
+		"allergen_preference" = teppi.allergen_preference,
+		"allergen_unpreference" = teppi.allergen_unpreference,
+		"color" = teppi.color,
+		"marking_color" = teppi.marking_color,
+		"horn_color" = teppi.horn_color,
+		"eye_color" = teppi.eye_color,
+		"skin_color" = teppi.skin_color,
+	)
+
+	return teppi_data
+
 //This sets all the things on adult teppi when they grow from a baby
-/mob/living/simple_mob/vore/alienanimals/teppi/proc/inherit_from_baby(mob/living/simple_mob/vore/alienanimals/teppi/baby/baby)
+/mob/living/simple_mob/vore/alienanimals/teppi/proc/inherit_from_baby(list/teppi_data)
 	inherit_colors = TRUE
 	inherit_allergen = TRUE
-	dir = baby.dir
-	name = baby.name
-	real_name = baby.real_name
-	faction = baby.faction
-	affinity = baby.affinity
-	affection_factor = baby.affection_factor
-	nutrition = baby.nutrition
-	allergen_preference = baby.allergen_preference
-	allergen_unpreference = baby.allergen_unpreference
-	color = baby.color
-	marking_color = baby.marking_color
-	horn_color = baby.horn_color
-	eye_color = baby.eye_color
-	skin_color = baby.skin_color
+	dir = teppi_data["dir"]
+	name = teppi_data["name"]
+	real_name = teppi_data["real_name"]
+	faction = teppi_data["faction"]
+	affinity = teppi_data["affinity"]
+	affection_factor = teppi_data["affection_factor"]
+	nutrition = teppi_data["nutrition"]
+	allergen_preference = teppi_data["allergen_preference"]
+	allergen_unpreference = teppi_data["allergen_unpreference"]
+	color = teppi_data["color"]
+	marking_color = teppi_data["marking_color"]
+	horn_color = teppi_data["horn_color"]
+	eye_color = teppi_data["eye_color"]
+	skin_color = teppi_data["skin_color"]
 	ghostjoin = 1
-	active_ghost_pods |= src
+	GLOB.active_ghost_pods += src
 	update_icon()
 
 //This sets all the things on baby teppi when they are bred from adult teppi
@@ -962,29 +1002,29 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 //
 /mob/living/simple_mob/vore/alienanimals/teppi/proc/produce_offspring()
 	set name = "Produce Offspring"
-	set category = "Abilities"
+	set category = "Abilities.Teppi"
 	set desc = "You can have babies if the conditions are right."
 	if(prevent_breeding)
-		to_chat(src, "<span class='notice'>You have elected to not participate in breeding mechanics, and so cannot complete that action.</span>")
+		to_chat(src, span_notice("You have elected to not participate in breeding mechanics, and so cannot complete that action."))
 		return
 	if(!teppi_warned)
-		to_chat(src, "<span class='danger'>Be aware of your surroundings when using this verb. If you use this to be disruptive or prefbreak people, you are likely to eat a ban. If whoever's tending the teppi is trying to make more babies, or you're alone, or playing with other people who you know are into it, then sure. You should not however, for example, drag another teppi to the bar (or any public place) and drop a baby in the middle of the floor. If you're not sure if it's okay to do where you are, with whoever's around, it probably isn't. This is intended to preserve the mechanical utility of the mob you are playing as, not as a scene tool.</span>")
+		to_chat(src, span_danger("Be aware of your surroundings when using this verb. If you use this to be disruptive or prefbreak people, you are likely to eat a ban. If whoever's tending the teppi is trying to make more babies, or you're alone, or playing with other people who you know are into it, then sure. You should not however, for example, drag another teppi to the bar (or any public place) and drop a baby in the middle of the floor. If you're not sure if it's okay to do where you are, with whoever's around, it probably isn't. This is intended to preserve the mechanical utility of the mob you are playing as, not as a scene tool."))
 		teppi_warned = TRUE
 		return
 	if(stat != CONSCIOUS)
-		to_chat(src, "<span class='notice'>I can't do that right now...</span>")
+		to_chat(src, span_notice("I can't do that right now..."))
 		return
 	if(!teppi_adult)
-		to_chat(src, "<span class='notice'>I'm not old enough to make babies.</span>")
+		to_chat(src, span_notice("I'm not old enough to make babies."))
 		return
 	if(baby_countdown > 0)
-		to_chat(src, "<span class='notice'>It is not time yet...</span>")
+		to_chat(src, span_notice("It is not time yet..."))
 		return
 	if(!breedable || nutrition < 500)
-		to_chat(src, "<span class='notice'>The conditions are not right to produce offspring.</span>")
+		to_chat(src, span_notice("The conditions are not right to produce offspring."))
 		return
 	if(GLOB.teppi_count >= GLOB.max_teppi) //if we can't make more then we shouldn't look for partners
-		to_chat(src, "<span class='notice'>I cannot produce more offspring at the moment, there are too many of us!</span>")
+		to_chat(src, span_notice("I cannot produce more offspring at the moment, there are too many of us!"))
 		return
 	. = FALSE
 	for(var/mob/living/simple_mob/vore/alienanimals/teppi/alltep in oview(1,src))
@@ -1000,17 +1040,17 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 			alltep.handle_affinity(src, 30)
 			return
 	if(. == FALSE)
-		to_chat(src, "<span class='notice'>There are no suitable partners nearby.</span>")
+		to_chat(src, span_notice("There are no suitable partners nearby."))
 
 /mob/living/simple_mob/vore/alienanimals/teppi/proc/toggle_producing_offspring()
 	set name = "Toggle Producing Offspring"
-	set category = "Abilities"
+	set category = "Abilities.Teppi"
 	set desc = "You can toggle whether or not you can produce offspring."
 	if(!prevent_breeding)
-		to_chat(src, "<span class='notice'>You disable breeding.</span>")
+		to_chat(src, span_notice("You disable breeding."))
 		prevent_breeding = TRUE
 	else
-		to_chat(src, "<span class='notice'>You enable breeding.</span>")
+		to_chat(src, span_notice("You enable breeding."))
 		prevent_breeding = FALSE
 
 ///////////////////AI Things////////////////////////
@@ -1067,7 +1107,7 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 			tepholder.lay_down()
 			return
 		var/moving_to = 0 // Apparently this is required or it always picks 4, according to the previous developer for simplemob AI.
-		moving_to = pick(cardinal)
+		moving_to = pick(GLOB.cardinal)
 		holder.set_dir(moving_to)
 		T = get_step(holder,moving_to)
 	// Finally do move if we actually found somewhere we'd like to go
@@ -1100,7 +1140,7 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 		if(!leader)
 			if(speaker_affinity >= 100)
 				set_follow(speaker, follow_for = 10 MINUTES)
-				holder.visible_message("<span class='notice'>\The [holder] starts following \the [speaker]</span>","<span class='notice'>\The [holder] starts following you.</span>")
+				holder.visible_message(span_notice("\The [holder] starts following \the [speaker]"),span_notice("\The [holder] starts following you."))
 				return
 		else
 			var/mob/living/L = leader
@@ -1108,29 +1148,29 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 				lose_follow()
 				if(speaker_affinity >= 100)
 					set_follow(speaker, follow_for = 10 MINUTES)
-					holder.visible_message("<span class='notice'>\The [holder] starts following \the [speaker]</span>","<span class='notice'>\The [holder] starts following you.</span>")
+					holder.visible_message(span_notice("\The [holder] starts following \the [speaker]"),span_notice("\The [holder] starts following you."))
 					return
 			else if(speaker_affinity > T.affinity[L.real_name])
-				holder.visible_message("<span class='notice'>\The [holder] starts following \the [speaker]</span>","<span class='notice'>\The [holder] starts following you.</span>")
+				holder.visible_message(span_notice("\The [holder] starts following \the [speaker]"),span_notice("\The [holder] starts following you."))
 				set_follow(speaker, follow_for = 10 MINUTES)
 				return
 			if(speaker_affinity == T.affinity[L.real_name])
 				lose_follow()
-				holder.visible_message("<span class='notice'>\The [holder] gives off an anxious whine.</span>")
+				holder.visible_message(span_notice("\The [holder] gives off an anxious whine."))
 	if(findtext(message, "stop teppi") || findtext(message, "stay here") || findtext(message, "stop [holder.name]"))
 		if(leader == speaker)
 			lose_follow()
-			holder.visible_message("<span class='notice'>\The [holder] stops following \the [speaker]</span>","<span class='notice'>\The [holder] stops following you.</span>")
+			holder.visible_message(span_notice("\The [holder] stops following \the [speaker]"),span_notice("\The [holder] stops following you."))
 			return
 
 //This a teppi with funny colors will spawn!
-/mob/living/simple_mob/vore/alienanimals/teppi/mutant/New()
+/mob/living/simple_mob/vore/alienanimals/teppi/mutant/Initialize(mapload)
 	teppi_mutate = TRUE
 	. = ..()
 
 //Custom teppi colors! For funzies.
 
-/mob/living/simple_mob/vore/alienanimals/teppi/cass/New()
+/mob/living/simple_mob/vore/alienanimals/teppi/cass/Initialize(mapload)
 	inherit_colors = TRUE
 	color = "#c69c85"
 	marking_color = "#eeb698"
@@ -1141,7 +1181,7 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	horn_type =  "0"
 	. = ..()
 
-/mob/living/simple_mob/vore/alienanimals/teppi/baby/cass/New()
+/mob/living/simple_mob/vore/alienanimals/teppi/baby/cass/Initialize(mapload)
 	inherit_colors = TRUE
 	color = "#c69c85"
 	marking_color = "#eeb698"
@@ -1152,7 +1192,7 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	horn_type =  "0"
 	. = ..()
 
-/mob/living/simple_mob/vore/alienanimals/teppi/aronai/New()
+/mob/living/simple_mob/vore/alienanimals/teppi/aronai/Initialize(mapload)
 	inherit_colors = TRUE
 	color = "#404040"
 	marking_color = "#222222"
@@ -1163,7 +1203,7 @@ GLOBAL_VAR_INIT(teppi_count, 0)	// How mant teppi DO we have?
 	horn_type = "1"
 	. = ..()
 
-/mob/living/simple_mob/vore/alienanimals/teppi/lira/New()
+/mob/living/simple_mob/vore/alienanimals/teppi/lira/Initialize(mapload)
 	inherit_colors = TRUE
 	color = "#fdfae9"
 	marking_color = "#ffffc0"

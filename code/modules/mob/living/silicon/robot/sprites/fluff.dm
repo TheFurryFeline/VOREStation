@@ -16,9 +16,12 @@
 	has_vore_belly_sprites = TRUE
 	has_rest_sprites = TRUE
 	rest_sprite_options = list("Default", "Sit", "Bellyup")
+	sprite_icon_state = "argonne-russ-sec" //This is overwritten. This borg should never be seen as it's just a parent for the actual subtypes.
 	has_dead_sprite = TRUE
 	has_dead_sprite_overlay = TRUE
 	pixel_x = -16
+	icon_x = 64
+	icon_y = 32
 
 	whitelist_ckey = "argonne"
 	whitelist_charname = "RUSS"
@@ -36,7 +39,7 @@
 	sprite_hud_icon_state = "medihound"
 
 /datum/robot_sprite/fluff/argonne/surgical
-	module_type = "Surgeon"
+	module_type = "Crisis"
 
 	sprite_icon_state = "argonne-russ-surg"
 	sprite_hud_icon_state = "medihound"
@@ -80,15 +83,12 @@
 	has_dead_sprite = TRUE
 	has_dead_sprite_overlay = TRUE
 	pixel_x = -16
+	icon_x = 64
+	icon_y = 32
+	dogborg_sprites = TRUE
 
-	whitelist_ckey = "jademanique"
+	whitelist_ckey = "natesaruli"
 	whitelist_charname = "B.A.U-Kingside"
-
-/datum/robot_sprite/fluff/jademanique/handle_extra_icon_updates(var/mob/living/silicon/robot/ourborg)
-	if(istype(ourborg.module_active, /obj/item/weapon/gun/energy/laser/mounted))
-		ourborg.add_overlay("[sprite_icon_state]-laser")
-	if(istype(ourborg.module_active, /obj/item/weapon/gun/energy/taser/mounted/cyborg))
-		ourborg.add_overlay("[sprite_icon_state]-taser")
 
 // L
 
@@ -107,6 +107,56 @@
 	has_dead_sprite = TRUE
 	has_dead_sprite_overlay = TRUE
 	pixel_x = -16
+	icon_x = 64
+	icon_y = 32
 
 	whitelist_ckey = "lunarfleet"
 	whitelist_charname = "Clea-Nor"
+
+/// S
+
+//Somememeguy's custom catborg.
+/datum/robot_sprite/fluff/matica
+	name = CUSTOM_BORGSPRITE("Matica Catborg")
+	whitelist_ckey = "somememeguy"
+	sprite_icon_state = "chonker"
+	sprite_hud_icon_state = "chonker"
+	sprite_icon = 'icons/mob/robot/catborgs/custom/catborg_matica_custom.dmi'
+	belly_capacity_list = list("sleeper" = 1, "throat" =2)
+	rest_sprite_options = list("Default", "Bellyup", "Sit")
+	has_eye_sprites = TRUE
+	has_eye_light_sprites = TRUE
+	has_sleeper_light_indicator = FALSE
+	has_vore_belly_resting_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_rest_sprites = TRUE
+	has_dead_sprite = TRUE
+	has_dead_sprite_overlay = TRUE
+	has_custom_equipment_sprites = TRUE
+	pixel_x = -16
+	icon_x = 64
+	icon_y = 32
+	module_type = list("Standard", "Engineering", "Surgeon", "Crisis", "Miner", "Janitor", "Service", "Clerical", "Security", "Research")
+	sprite_flags = ROBOT_HAS_SHIELD_SPRITE | ROBOT_HAS_DISABLER_SPRITE | ROBOT_HAS_TASER_SPRITE | ROBOT_HAS_LASER_SPRITE
+
+/// T
+
+//thesharkenning's custom borg sprite
+/datum/robot_sprite/dogborg/custom_myomer
+	name = CUSTOM_BORGSPRITE("HERO")
+	sprite_icon_state = "base"
+	has_eye_sprites = TRUE
+	has_eye_light_sprites = TRUE
+	has_sleeper_light_indicator = FALSE
+	has_dead_sprite = FALSE
+	has_dead_sprite_overlay = FALSE
+	has_glow_sprites = TRUE
+	sprite_icon = 'icons/mob/robot/myomer_dogborg/custom/ProjectMyomerCustom.dmi'
+	rest_sprite_options = list("Default", "Sit")
+	belly_capacity_list = list("sleeper" = 3, "throat" = 2)
+	module_type = list("Standard", "Engineering", "Surgeon", "Crisis", "Miner", "Janitor", "Service", "Clerical", "Security", "Research")
+	sprite_flags = ROBOT_HAS_DISABLER_SPRITE | ROBOT_HAS_LASER_SPRITE | ROBOT_HAS_SHIELD_SPRITE
+	is_whitelisted = TRUE
+	whitelist_ckey = "thesharkenning"
+
+#undef CUSTOM_BORGSPRITE

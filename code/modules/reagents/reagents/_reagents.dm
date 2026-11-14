@@ -1,10 +1,7 @@
-
-
-
 /datum/reagent
-	var/name = "Reagent"
-	var/id = "reagent"
-	var/description = "A non-descript chemical."
+	var/name = REAGENT_DEVELOPER_WARNING
+	var/id = REAGENT_ID_DEVELOPER_WARNING
+	var/description = REAGENT_DESC_DEVELOPER_WARNING
 	var/taste_description = "bitterness"
 	var/taste_mult = 1 //how this taste compares to others. Higher values means it is more noticable
 	var/datum/reagents/holder = null
@@ -21,18 +18,21 @@
 	var/overdose = 0		//Amount at which overdose starts
 	var/overdose_mod = 1	//Modifier to overdose damage
 	var/can_overdose_touch = FALSE	// Can the chemical OD when processing on touch?
-	var/scannable = 0 // Shows up on health analyzers.
+	var/scannable = SCANNABLE_SECRETIVE // Shows up on health analyzers.
 
-	var/affects_dead = 0	// Does this chem process inside a corpse?
+	var/affects_dead = 0	// Does this chem process inside a corpse without outside intervention required?
 	var/affects_robots = 0	// Does this chem process inside a Synth?
 
 	var/allergen_type		// What potential allergens does this contain?
+	var/medallergen_type	// What potential medical allergens does this contain?
 	var/allergen_factor = 2	// If the potential allergens are mixed and low-volume, they're a bit less dangerous. Needed for drinks because they're a single reagent compared to food which contains multiple seperate reagents.
 
 	var/cup_icon_state = null
 	var/cup_name = null
 	var/cup_desc = null
-	var/cup_center_of_mass = null
+	var/cup_center_of_mass_x = 0
+	var/cup_center_of_mass_y = 0
+	var/cup_prefix = null
 
 	var/color = "#000000"
 	var/color_weight = 1
@@ -42,27 +42,47 @@
 	var/glass_desc = "It's a glass of... what, exactly?"
 	var/list/glass_special = null // null equivalent to list()
 
-/datum/reagent/proc/remove_self(var/amount) // Shortcut
+	var/from_belly = FALSE
+	var/dialysis_returnable = TRUE
+	var/wiki_flag = 0 // Bitflags for secret/food/drink reagent sorting
+	var/supply_conversion_value = null
+	var/industrial_use = null // unique description for export off station
+	/// A list of traits to apply while the reagent is being metabolized.
+	var/list/metabolized_traits
+
+
+	var/coolant_modifier = -0.5 // this is multiplied by the volume of the reagent. Most things are not good coolant. EX: Water is 1, coolant is 2. -1 would be a bad reagent for cooling.
+
+	var/glass_icon_file = null
+	var/glass_icon_state = null
+	var/glass_center_of_mass_x = 0
+	var/glass_center_of_mass_y = 0
+
+	///How much (if any) of this reagent penetrates through skin and into the bloodstream. Ranges from 0 (none at all) to 1 (100% transfer from skin to blood).
+	///This is for chemicals that don't have any special touch effects.
+	var/dermal_absorption = 0
+
+/datum/reagent/proc/remove_self(amount) // Shortcut
 	if(holder)
 		holder.remove_reagent(id, amount)
 
 // This doesn't apply to skin contact - this is for, e.g. extinguishers and sprays. The difference is that reagent is not directly on the mob's skin - it might just be on their clothing.
-/datum/reagent/proc/touch_mob(var/mob/M, var/amount)
-	SEND_SIGNAL(M, COMSIG_REAGENTS_TOUCH, src, amount)
+/datum/reagent/proc/touch_mob(mob/M, amount)
+	SEND_SIGNAL(M, COMSIG_REAGENT_EXPOSE_MOB, src, amount)
 	return
 
-/datum/reagent/proc/touch_obj(var/obj/O, var/amount) // Acid melting, cleaner cleaning, etc
-	SEND_SIGNAL(O, COMSIG_REAGENTS_TOUCH, src, amount)
+/datum/reagent/proc/touch_obj(obj/O, amount) // Acid melting, cleaner cleaning, etc
+	SEND_SIGNAL(O, COMSIG_REAGENT_EXPOSE_OBJ, src, amount)
 	return
 
-/datum/reagent/proc/touch_turf(var/turf/T, var/amount) // Cleaner cleaning, lube lubbing, etc, all go here
-	SEND_SIGNAL(T, COMSIG_REAGENTS_TOUCH, src, amount)
+/datum/reagent/proc/touch_turf(turf/T, amount) // Cleaner cleaning, lube lubbing, etc, all go here
+	SEND_SIGNAL(T, COMSIG_REAGENT_EXPOSE_TURF, src, amount)
 	return
 
-/datum/reagent/proc/on_mob_life(var/mob/living/carbon/M, var/alien, var/datum/reagents/metabolism/location) // Currently, on_mob_life is called on carbons. Any interaction with non-carbon mobs (lube) will need to be done in touch_mob.
+/datum/reagent/proc/on_mob_life(mob/living/carbon/M, alien, datum/reagents/metabolism/location) // Currently, on_mob_life is called on carbons. Any interaction with non-carbon mobs (lube) will need to be done in touch_mob.
 	if(!istype(M))
 		return
-	if(!affects_dead && M.stat == DEAD)
+	if(!affects_dead && M.stat == DEAD && !M.has_modifier_of_type(/datum/modifier/bloodpump_corpse))
 		return
 	if(!affects_robots && M.isSynthetic())
 		return
@@ -160,34 +180,42 @@
 	removed = min(removed, volume)
 	max_dose = max(volume, max_dose)
 	dose = min(dose + removed, max_dose)
-	if(removed >= (metabolism * 0.1) || removed >= 0.1) // If there's too little chemical, don't affect the mob, just remove it
-		switch(active_metab.metabolism_class)
-			if(CHEM_BLOOD)
-				affect_blood(M, alien, removed)
-			if(CHEM_INGEST)
-				affect_ingest(M, alien, removed * ingest_abs_mult)
-			if(CHEM_TOUCH)
-				affect_touch(M, alien, removed)
+	if(M.species && (M.species.medallergens & medallergen_type)) // Medical allergies don't gain ANY benefits...
+		M.add_chemical_effect(CE_ALLERGEN, allergen_factor * removed)
+		remove_self(removed)
+		return
+	switch(active_metab.metabolism_class)
+		if(CHEM_BLOOD)
+			affect_blood(M, alien, removed)
+		if(CHEM_INGEST)
+			if(istype(src, /datum/reagent/toxin) && HAS_TRAIT(M, INGESTED_TOXIN_IMMUNE))
+				remove_self(removed)
+				return
+			affect_ingest(M, alien, removed * ingest_abs_mult)
+		if(CHEM_TOUCH)
+			affect_touch(M, alien, removed)
+	on_mob_metabolize(M, location)
 	if(overdose && (volume > overdose * M?.species.chemOD_threshold) && (active_metab.metabolism_class != CHEM_TOUCH || can_overdose_touch))
 		overdose(M, alien, removed)
-	if(M.species.allergens & allergen_type)	//uhoh, we can't handle this!
+	if((M.species && (M.species.allergens & allergen_type)))	//uhoh, we can't handle this!
 		M.add_chemical_effect(CE_ALLERGEN, allergen_factor * removed)
 	remove_self(removed)
 	return
 
-/datum/reagent/proc/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/proc/affect_blood(mob/living/carbon/M, alien, removed)
 	return
 
-/datum/reagent/proc/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/proc/affect_ingest(mob/living/carbon/M, alien, removed)
 	M.bloodstr.add_reagent(id, removed)
 	if(src.id == M.species.blood_reagents)
 		M.add_chemical_effect(CE_BLOODRESTORE, 8 * removed)
 	return
 
-/datum/reagent/proc/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/proc/affect_touch(mob/living/carbon/M, alien, removed)
+	M.bloodstr.add_reagent(id, removed * dermal_absorption)
 	return
 
-/datum/reagent/proc/overdose(var/mob/living/carbon/M, var/alien, var/removed) // Overdose effect.
+/datum/reagent/proc/overdose(mob/living/carbon/M, alien, removed) // Overdose effect.
 	if(alien == IS_DIONA)
 		return
 	if(ishuman(M))
@@ -198,12 +226,12 @@
 	// Overall, max damage is slightly less effective than hydrophoron, and 1/5 as effective as cyanide.
 	M.adjustToxLoss(min(removed * overdose_mod * round(3 + 3 * volume / overdose), 3.6))
 
-/datum/reagent/proc/initialize_data(var/newdata) // Called when the reagent is created.
+/datum/reagent/proc/initialize_data(newdata) // Called when the reagent is created.
 	if(!isnull(newdata))
 		data = newdata
 	return
 
-/datum/reagent/proc/mix_data(var/newdata, var/newamount) // You have a reagent with data, and new reagent with its own data get added, how do you deal with that?
+/datum/reagent/proc/mix_data(newdata, newamount) // You have a reagent with data, and new reagent with its own data get added, how do you deal with that?
 	return
 
 /datum/reagent/proc/get_data() // Just in case you have a reagent that handles data differently.
@@ -215,19 +243,21 @@
 
 /datum/reagent/Destroy() // This should only be called by the holder, so it's already handled clearing its references
 	holder = null
+	if(islist(data))
+		data.Cut()
 	. = ..()
-
-/* DEPRECATED - TODO: REMOVE EVERYWHERE */
-
-/datum/reagent/proc/reaction_turf(var/turf/target)
-	touch_turf(target)
-
-/datum/reagent/proc/reaction_obj(var/obj/target)
-	touch_obj(target)
-
-/datum/reagent/proc/reaction_mob(var/mob/target)
-	touch_mob(target)
 
 /// Called by [/datum/reagents/proc/conditional_update]
 /datum/reagent/proc/on_update(atom/A)
 	return
+
+/datum/reagent/proc/on_mob_metabolize(mob/living/affected_mob, datum/reagents/metabolism/location)
+	SHOULD_CALL_PARENT(TRUE)
+	if(metabolized_traits)
+		affected_mob.add_traits(metabolized_traits, "metabolize_location:[location]reagent:[type]")
+
+/// Called when this reagent stops being metabolized (due to running out)
+/// Has the args 'affected_mob' and 'location' which allows us to remove any traits that is only being added by that reagent holder location. I.e stomach, bloodstream, dermal, etc.
+/datum/reagent/proc/on_mob_end_metabolize(mob/living/affected_mob, datum/reagents/location)
+	SHOULD_CALL_PARENT(TRUE)
+	REMOVE_TRAITS_IN(affected_mob, "metabolize_location:[location]reagent:[type]")

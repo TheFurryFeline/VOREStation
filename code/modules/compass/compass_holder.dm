@@ -28,7 +28,7 @@
 	. = ..()
 	if(show_heading)
 		compass_heading_marker = new /image/compass_marker
-		compass_heading_marker.maptext = "<center><font color = '#00ffffff' size = 2><b>△</b></font></center>"
+		compass_heading_marker.maptext = "<center>" + span_normal(span_cyan(span_bold("△"))) + "</center>"
 		compass_heading_marker.filters = filter(type="drop_shadow", color = "#00ffffaa", size = 2, offset = 1,x = 0, y = 0)
 		compass_heading_marker.layer = LAYER_HUD_UNDER
 		compass_heading_marker.plane = PLANE_PLAYER_HUD
@@ -45,10 +45,10 @@
 			else
 				str = angle_step_to_dir[CLAMP(round(angle/45)+1, 1, length(angle_step_to_dir))]
 			str_col = "#ffffffaa"
-		else 
+		else
 			str = "〡"
 			str_col = "#aaaaaa88"
-		I.maptext = "<center><font color = '[str_col]' size = '1px'><b>[str]</b></font></center>"
+		I.maptext = "<center><font color = '[str_col]' size = '1px'>" + span_bold("[str]") + "</font></center>"
 		var/matrix/M = matrix()
 		M.Translate(0, COMPASS_LABEL_OFFSET)
 		M.Turn(COMPASS_PERIOD * i)
@@ -61,7 +61,7 @@
 	rebuild_overlay_lists(TRUE)
 
 /obj/compass_holder/Destroy()
-	QDEL_NULL_LIST(compass_waypoints)
+	QDEL_LIST_ASSOC_VAL(compass_waypoints)
 	. = ..()
 
 /obj/compass_holder/proc/get_heading()
@@ -77,11 +77,11 @@
 		set_overlays |= compass_heading_marker
 	overlays = set_overlays // ???
 
-/obj/compass_holder/proc/clear_waypoint(var/id)
+/obj/compass_holder/proc/clear_waypoint(id)
 	LAZYREMOVE(compass_waypoints, id)
 	rebuild_overlay_lists(TRUE)
 
-/obj/compass_holder/proc/set_waypoint(var/id, var/label, var/heading_x, var/heading_y, var/heading_z, var/label_color)
+/obj/compass_holder/proc/set_waypoint(id, label, heading_x, heading_y, heading_z, label_color)
 	var/datum/compass_waypoint/wp = LAZYACCESS(compass_waypoints, id)
 	if(!wp)
 		wp = new /datum/compass_waypoint()
@@ -89,7 +89,7 @@
 	LAZYSET(compass_waypoints, id, wp)
 	rebuild_overlay_lists(TRUE)
 
-/obj/compass_holder/proc/recalculate_heading(var/rebuild_icon = TRUE)
+/obj/compass_holder/proc/recalculate_heading(rebuild_icon = TRUE)
 	if(show_heading)
 		var/matrix/M = matrix()
 		M.Translate(0, round(COMPASS_LABEL_OFFSET - 35))
@@ -98,21 +98,21 @@
 		if(rebuild_icon)
 			update_icon()
 
-/obj/compass_holder/proc/show_waypoint(var/id)
+/obj/compass_holder/proc/show_waypoint(id)
 	var/datum/compass_waypoint/wp = compass_waypoints[id]
 	wp.hidden = FALSE
 
-/obj/compass_holder/proc/hide_waypoint(var/id)
+/obj/compass_holder/proc/hide_waypoint(id)
 	var/datum/compass_waypoint/wp = compass_waypoints[id]
 	wp.hidden = TRUE
 
-/obj/compass_holder/proc/hide_waypoints(var/rebuild_overlays = FALSE)
+/obj/compass_holder/proc/hide_waypoints(rebuild_overlays = FALSE)
 	for(var/id in compass_waypoints)
 		hide_waypoint(id)
 	if(rebuild_overlays)
 		rebuild_overlay_lists(TRUE)
 
-/obj/compass_holder/proc/rebuild_overlay_lists(var/update_icon = FALSE)
+/obj/compass_holder/proc/rebuild_overlay_lists(update_icon = FALSE)
 	compass_waypoint_markers = null
 	var/turf/T = get_turf(src)
 	if(istype(T))

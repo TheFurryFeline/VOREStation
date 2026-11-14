@@ -68,7 +68,7 @@
 
 	// Do the actual leap.
 	status_flags |= LEAPING // Lets us pass over everything.
-	visible_message(span("danger","\The [src] leaps at \the [A]!"))
+	visible_message(span_danger("\The [src] leaps at \the [A]!"))
 	throw_at(get_step(get_turf(A), get_turf(src)), special_attack_max_range+1, 1, src)
 	playsound(src, leap_sound, 75, 1)
 
@@ -97,20 +97,20 @@
 
 	if(victim)
 		victim.Weaken(2)
-		victim.visible_message(span("danger","\The [src] knocks down \the [victim]!"))
-		to_chat(victim, span("critical", "\The [src] jumps on you!"))
+		victim.visible_message(span_danger("\The [src] knocks down \the [victim]!"))
+		to_chat(victim, span_critical("\The [src] jumps on you!"))
 		. = TRUE
 
 	set_AI_busy(FALSE)
 
-//		var/obj/item/weapon/grab/G = new(src, victim)
+//		var/obj/item/grab/G = new(src, victim)
 //		put_in_active_hand(G)
 
 //		G.synch()
 //		G.affecting = victim
 //		victim.LAssailant = src
 
-//		visible_message("<span class='warning'>\The [src] seizes \the [victim] aggressively!</span>")
+//		visible_message(span_warning("\The [src] seizes \the [victim] aggressively!"))
 //		do_attack_animation(victim)
 
 
@@ -139,7 +139,7 @@
 		to_world("Failed to pull.")
 		return FALSE
 
-	holder.visible_message(span("danger","\The [holder] starts to drag \the [L] away!"))
+	holder.visible_message(span_danger("\The [holder] starts to drag \the [L] away!"))
 
 	var/list/allies = list()
 	var/list/enemies = list()
@@ -172,9 +172,11 @@
 	else
 		to_world("Going to move away randomly")
 		var/turf/move_to = get_turf(L)
-		move_to = get_step(move_to, pick(cardinal))
+		move_to = get_step(move_to, pick(GLOB.cardinal))
 		for(var/i = 1 to vision_range) // Move them this many steps away from where they were before.
 			move_to = get_step_away(move_to, L, 7)
 		if(move_to)
 			give_destination(move_to, min_distance = 2, combat = TRUE) // This will switch our stance.
 */
+/mob/living/simple_mob/animal/giant_spider/hunter/event
+	ai_holder_type = /datum/ai_holder/simple_mob/event

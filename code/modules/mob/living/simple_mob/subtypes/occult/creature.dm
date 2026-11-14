@@ -8,7 +8,7 @@
 
 	mob_class = MOB_CLASS_ABERRATION
 
-	faction = "creature"
+	faction = FACTION_CREATURE
 
 	maxHealth = 40
 	health = 40
@@ -24,11 +24,17 @@
 	attacktext = list("chomped")
 	attack_sound = 'sound/weapons/bite.ogg'
 
-	organ_names = /decl/mob_organ_names/abberation
+	organ_names = /datum/decl/mob_organ_names/abberation
 
 	speak_emote = list("gibbers")
 
 	ai_holder_type = /datum/ai_holder/simple_mob/melee
+	can_be_drop_prey = FALSE
+	can_pain_emote = FALSE
+
+
+	can_be_drop_prey = FALSE
+	can_pain_emote = FALSE
 
 // Strong Variant
 /mob/living/simple_mob/creature/strong
@@ -43,7 +49,7 @@
 /mob/living/simple_mob/creature/cult
 	mob_class = MOB_CLASS_DEMONIC
 
-	faction = "cult"
+	faction = FACTION_CULT
 
 	min_oxy = 0
 	max_oxy = 0
@@ -69,5 +75,5 @@
 	melee_damage_lower = 13
 	melee_damage_upper = 25
 
-/decl/mob_organ_names/abberation
+/datum/decl/mob_organ_names/abberation
 	hit_zones = list("fleshy mass", "maw", "eye(?)", "orifice(?)")

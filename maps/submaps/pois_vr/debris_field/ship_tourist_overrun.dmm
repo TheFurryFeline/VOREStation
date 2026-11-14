@@ -1,7 +1,7 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
 "ai" = (
 /obj/effect/decal/cleanable/blood,
-/obj/item/device/radio/intercom/private{
+/obj/item/radio/intercom/private{
 	pixel_y = -21
 	},
 /obj/machinery/light/small,
@@ -40,7 +40,7 @@
 /area/submap/debrisfield/luxury_boat/engine)
 "aS" = (
 /obj/structure/bed/chair/wood/wings,
-/obj/item/weapon/reagent_containers/food/snacks/slice/meatpizza/filled,
+/obj/item/reagent_containers/food/snacks/slice/meatpizza/filled,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
 "bh" = (
@@ -75,8 +75,7 @@
 /obj/machinery/airlock_sensor{
 	dir = 4;
 	pixel_x = -27;
-	pixel_y = 32;
-	req_one_access = null
+	pixel_y = 32
 	},
 /obj/structure/cable/green{
 	icon_state = "1-8"
@@ -141,7 +140,7 @@
 /area/submap/debrisfield/luxury_boat/bridge)
 "df" = (
 /obj/structure/table/hardwoodtable,
-/obj/item/weapon/reagent_containers/food/snacks/sliceable/pizza/mushroompizza,
+/obj/item/reagent_containers/food/snacks/sliceable/pizza/mushroompizza,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
 "dk" = (
@@ -149,7 +148,7 @@
 	name = "Mangled Tourist"
 	},
 /mob/living/simple_mob/animal/giant_spider/space,
-/obj/item/weapon/material/knife,
+/obj/item/material/knife,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
 "ds" = (
@@ -257,8 +256,7 @@
 /obj/machinery/airlock_sensor{
 	dir = 8;
 	pixel_x = 30;
-	pixel_y = 32;
-	req_one_access = null
+	pixel_y = 32
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden{
 	dir = 4
@@ -267,7 +265,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/yellow,
-/area/submap/debrisfield/luxury_boat/crew)
+/area/submap/debrisfield/luxury_boat/engine)
 "gP" = (
 /obj/machinery/power/port_gen/pacman/super,
 /obj/machinery/atmospherics/pipe/manifold/hidden/scrubbers{
@@ -329,7 +327,7 @@
 /area/submap/debrisfield/luxury_boat/crew)
 "iE" = (
 /obj/structure/table/marble,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/whitewine,
+/obj/item/reagent_containers/food/drinks/bottle/whitewine,
 /obj/effect/decal/cleanable/blood,
 /turf/simulated/floor/lino,
 /area/submap/debrisfield/luxury_boat/crew)
@@ -362,7 +360,7 @@
 /turf/simulated/floor/tiled/yellow,
 /area/submap/debrisfield/luxury_boat/crew)
 "jT" = (
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /obj/machinery/door/window,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
@@ -414,7 +412,7 @@
 /area/submap/debrisfield/luxury_boat/crew)
 "lo" = (
 /obj/structure/table/hardwoodtable,
-/obj/item/weapon/reagent_containers/food/snacks/sliceable/pizza/pineapple,
+/obj/item/reagent_containers/food/snacks/sliceable/pizza/pineapple,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
 "lv" = (
@@ -466,7 +464,6 @@
 /obj/structure/cable/green{
 	icon_state = "2-8"
 	},
-/obj/effect/decal/cleanable/blood,
 /turf/simulated/floor/tiled/milspec,
 /area/submap/debrisfield/luxury_boat/bridge)
 "mT" = (
@@ -481,10 +478,10 @@
 /area/submap/debrisfield/luxury_boat/bridge)
 "nr" = (
 /obj/structure/table/rack/shelf,
-/obj/item/weapon/gun/energy/locked/frontier/holdout{
+/obj/item/gun/energy/locked/frontier/holdout{
 	pixel_y = -9
 	},
-/obj/item/weapon/gun/energy/locked/frontier/holdout,
+/obj/item/gun/energy/locked/frontier/holdout,
 /obj/effect/decal/cleanable/blood,
 /turf/simulated/floor/tiled/milspec,
 /area/submap/debrisfield/luxury_boat/bridge)
@@ -499,15 +496,15 @@
 /turf/simulated/floor/wood,
 /area/submap/debrisfield/luxury_boat/crew)
 "nu" = (
-/obj/item/weapon/material/shard{
+/obj/item/material/shard{
 	pixel_x = 7;
 	pixel_y = -9
 	},
-/obj/item/weapon/material/shard{
+/obj/item/material/shard{
 	pixel_x = 8;
 	pixel_y = 13
 	},
-/obj/item/weapon/material/shard{
+/obj/item/material/shard{
 	pixel_x = -9;
 	pixel_y = -12
 	},
@@ -581,14 +578,14 @@
 /area/submap/debrisfield/luxury_boat/crew)
 "pQ" = (
 /obj/effect/decal/cleanable/blood,
-/obj/item/device/taperecorder/tourist,
+/obj/item/taperecorder/tourist,
 /obj/effect/landmark/corpse/bridgeofficer{
 	corpseid = 0;
 	corpseidaccess = null;
 	corpseidjob = null;
 	name = "Mutiliated Captain"
 	},
-/obj/item/weapon/gun/energy/gun/rifle,
+/obj/item/gun/energy/gun/rifle,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 6
 	},
@@ -673,7 +670,7 @@
 /turf/simulated/floor/carpet/purple,
 /area/submap/debrisfield/luxury_boat/crew)
 "sh" = (
-/obj/item/weapon/reagent_containers/food/drinks/metaglass/metapint,
+/obj/item/reagent_containers/food/drinks/metaglass/metapint,
 /turf/simulated/floor/lino,
 /area/submap/debrisfield/luxury_boat/crew)
 "sz" = (
@@ -790,7 +787,7 @@
 "wp" = (
 /obj/structure/table/hardwoodtable,
 /obj/machinery/atmospherics/unary/vent_scrubber,
-/obj/item/weapon/reagent_containers/food/snacks/slice/meatpizza/filled,
+/obj/item/reagent_containers/food/snacks/slice/meatpizza/filled,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
 "wq" = (
@@ -872,13 +869,7 @@
 /area/submap/debrisfield/luxury_boat/bridge)
 "yl" = (
 /obj/effect/decal/cleanable/blood,
-/obj/effect/decal/cleanable/blood{
-	pixel_y = 11
-	},
-/obj/effect/decal/cleanable/blood{
-	pixel_x = 10
-	},
-/obj/item/weapon/material/shard{
+/obj/item/material/shard{
 	pixel_x = -9
 	},
 /obj/item/stack/rods,
@@ -933,7 +924,7 @@
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/luxury_boat/engine)
 "zr" = (
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /turf/simulated/floor/lino,
 /area/submap/debrisfield/luxury_boat/crew)
 "zw" = (
@@ -1007,8 +998,6 @@
 	dir = 4;
 	door_color = "#323d80";
 	name = "Bridge";
-	req_access = null;
-	req_one_access = null;
 	stripe_color = "#f7d35c"
 	},
 /obj/machinery/door/firedoor/glass,
@@ -1049,12 +1038,6 @@
 	},
 /turf/simulated/floor/tiled/milspec,
 /area/submap/debrisfield/luxury_boat/bridge)
-"CZ" = (
-/obj/structure/grille,
-/obj/structure/grille,
-/obj/structure/window/reinforced/full,
-/turf/simulated/floor/airless,
-/area/submap/debrisfield/luxury_boat/crew)
 "Dg" = (
 /obj/effect/decal/cleanable/blood/drip,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
@@ -1111,12 +1094,12 @@
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/luxury_boat/engine)
 "Eq" = (
-/obj/item/weapon/material/knife,
+/obj/item/material/knife,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
 "Fa" = (
 /obj/structure/table/gamblingtable,
-/obj/item/weapon/deck/cards/casino,
+/obj/item/deck/cards/casino,
 /turf/simulated/floor/carpet/green,
 /area/submap/debrisfield/luxury_boat/crew)
 "Fm" = (
@@ -1295,13 +1278,13 @@
 /turf/simulated/shuttle/wall,
 /area/submap/debrisfield/luxury_boat/crew)
 "Lw" = (
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /turf/simulated/floor/tiled/yellow,
 /area/submap/debrisfield/luxury_boat/crew)
 "LC" = (
 /obj/structure/closet/cabinet,
-/obj/item/weapon/storage/secure/briefcase/money,
-/obj/item/weapon/storage/secure/briefcase/money,
+/obj/item/storage/secure/briefcase/money,
+/obj/item/storage/secure/briefcase/money,
 /obj/item/clothing/head/beret/centcom/captain,
 /turf/simulated/floor/tiled/milspec,
 /area/submap/debrisfield/luxury_boat/bridge)
@@ -1330,7 +1313,7 @@
 /turf/simulated/floor/airless,
 /area/submap/debrisfield/luxury_boat/engine)
 "MX" = (
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
 "MY" = (
@@ -1356,8 +1339,8 @@
 /area/submap/debrisfield/luxury_boat/engine)
 "NP" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/folder/blue_captain,
-/obj/item/weapon/coin/phoron,
+/obj/item/folder/blue_captain,
+/obj/item/coin/phoron,
 /turf/simulated/floor/tiled/milspec,
 /area/submap/debrisfield/luxury_boat/bridge)
 "NQ" = (
@@ -1414,7 +1397,7 @@
 /area/submap/debrisfield/luxury_boat/crew)
 "PV" = (
 /obj/structure/table/marble,
-/obj/item/weapon/reagent_containers/food/drinks/britcup,
+/obj/item/reagent_containers/food/drinks/britcup,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 4
 	},
@@ -1459,11 +1442,11 @@
 /turf/simulated/shuttle/wall,
 /area/submap/debrisfield/luxury_boat/engine)
 "Rm" = (
-/obj/item/weapon/material/shard{
+/obj/item/material/shard{
 	pixel_x = 10;
 	pixel_y = -9
 	},
-/obj/item/weapon/material/shard,
+/obj/item/material/shard,
 /obj/item/stack/rods,
 /turf/simulated/floor/tiled/milspec,
 /area/submap/debrisfield/luxury_boat/cryo)
@@ -1545,7 +1528,7 @@
 /area/submap/debrisfield/luxury_boat/cryo)
 "Vo" = (
 /obj/structure/table/hardwoodtable,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/vermouth,
+/obj/item/reagent_containers/food/drinks/bottle/vermouth,
 /turf/simulated/floor/wood/airless,
 /area/submap/debrisfield/luxury_boat/crew)
 "Vq" = (
@@ -1593,13 +1576,13 @@
 /area/submap/debrisfield/luxury_boat/engine)
 "Wt" = (
 /obj/structure/grille,
-/obj/item/weapon/material/shard{
+/obj/item/material/shard{
 	pixel_y = 4
 	},
-/obj/item/weapon/material/shard{
+/obj/item/material/shard{
 	pixel_x = 12
 	},
-/obj/item/weapon/material/shard{
+/obj/item/material/shard{
 	pixel_x = -21
 	},
 /turf/simulated/floor/airless,
@@ -1610,9 +1593,7 @@
 /turf/simulated/floor/wood/broken,
 /area/submap/debrisfield/luxury_boat/crew)
 "Xr" = (
-/obj/machinery/power/smes/buildable{
-	charge = 500000
-	},
+/obj/machinery/power/smes/buildable/max_charge,
 /obj/structure/cable/green{
 	icon_state = "0-4"
 	},
@@ -1659,7 +1640,7 @@
 "YR" = (
 /obj/structure/window/reinforced/tinted/frosted,
 /obj/effect/decal/cleanable/blood/gibs,
-/obj/item/weapon/storage/secure/briefcase/money,
+/obj/item/storage/secure/briefcase/money,
 /turf/simulated/floor/wood,
 /area/submap/debrisfield/luxury_boat/crew)
 "YT" = (
@@ -1807,7 +1788,7 @@ wp
 JP
 JO
 ww
-CZ
+tI
 FB
 FB
 FB
@@ -1828,7 +1809,7 @@ dk
 MX
 pL
 JP
-CZ
+tI
 FB
 FB
 FB

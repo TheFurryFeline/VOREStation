@@ -1,45 +1,37 @@
 /*	Note from Carnie:
 		The way datum/mind stuff works has been changed a lot.
 		Minds now represent IC characters rather than following a client around constantly.
-
 	Guidelines for using minds properly:
-
-	-	Never mind.transfer_to(ghost). The var/current and var/original of a mind must always be of type mob/living!
+	-	Never mind.transfer_to(ghost). The var/current and var/original_character of a mind must always be of type mob/living!
 		ghost.mind is however used as a reference to the ghost's corpse
-
 	-	When creating a new mob for an existing IC character (e.g. cloning a dead guy or borging a brain of a human)
 		the existing mind of the old mob should be transfered to the new mob like so:
-
 			mind.transfer_to(new_mob)
-
 	-	You must not assign key= or ckey= after transfer_to() since the transfer_to transfers the client for you.
 		By setting key or ckey explicitly after transfering the mind with transfer_to you will cause bugs like DCing
 		the player.
-
 	-	IMPORTANT NOTE 2, if you want a player to become a ghost, use mob.ghostize() It does all the hard work for you.
-
 	-	When creating a new mob which will be a new IC character (e.g. putting a shade in a construct or randomly selecting
 		a ghost to become a xeno during an event). Simply assign the key or ckey like you've always done.
-
 			new_mob.key = key
-
 		The Login proc will handle making a new mob for that mobtype (including setting up stuff like mind.name). Simple!
 		However if you want that mind to have any special properties like being a traitor etc you will have to do that
 		yourself.
-
 */
 
 /datum/mind
 	var/key
 	var/name				//replaces mob/var/original_name
 	var/mob/living/current
-	var/mob/living/original	//TODO: remove.not used in any meaningful way ~Carn. First I'll need to tweak the way silicon-mobs handle minds.
+	var/datum/weakref/original_character //replaces /mob/living/original
 	var/active = 0
 
 	var/memory
 
 	var/assigned_role
 	var/special_role
+
+	var/datum/antag_holder/antag_holder
 
 	var/role_alt_title
 
@@ -51,11 +43,10 @@
 	var/has_been_rev = 0//Tracks if this mind has been a rev or not
 
 	var/datum/faction/faction 			//associated faction
-	var/datum/changeling/changeling		//changeling holder
 
 	var/rev_cooldown = 0
 	var/tcrystals = 0
-	var/list/purchase_log = new
+	var/list/purchase_log = list()
 	var/used_TC = 0
 
 	var/list/learned_recipes //List of learned recipe TYPES.
@@ -72,23 +63,27 @@
 	//used for optional self-objectives that antagonists can give themselves, which are displayed at the end of the round.
 	var/ambitions
 
-	//used to store what traits the player had picked out in their preferences before joining, in text form.
-	var/list/traits = list()
-
 	var/datum/religion/my_religion
 
-/datum/mind/New(var/key)
+/datum/mind/New(key)
 	src.key = key
 	purchase_log = list()
+	antag_holder = new
 	..()
 
-/datum/mind/proc/transfer_to(mob/living/new_character)
+/datum/mind/Destroy(force)
+	. = ..()
+	original_character = null
+
+/datum/mind/proc/transfer_to(mob/living/new_character, force = FALSE)
 	if(!istype(new_character))
-		to_world_log("## DEBUG: transfer_to(): Some idiot has tried to transfer_to() a non mob/living mob. Please inform Carn")
-	if(current)					//remove ourself from our old body's mind variable
-		if(changeling)
+		log_world("## DEBUG: transfer_to(): Some idiot has tried to transfer_to() a non mob/living mob. Please inform Carn")
+	var/datum/component/antag/changeling/changeling_comp
+	if(current)
+		changeling_comp = is_changeling(current)			//remove ourself from our old body's mind variable
+		if(changeling_comp)
 			current.remove_changeling_powers()
-			current.verbs -= /datum/changeling/proc/EvolutionMenu
+			remove_verb(current, /mob/proc/EvolutionMenu)
 		current.mind = null
 
 	if(new_character.mind)		//remove any mind currently in our new body's mind variable
@@ -97,17 +92,28 @@
 	current = new_character		//link ourself to our new body
 	new_character.mind = src	//and link our new body to ourself
 
-	if(changeling)
+	// Handle mode/antag specific respawns
+	if(changeling_comp)
 		new_character.make_changeling()
 
-	if(active)
+	if(learned_spells)
+		for(var/datum/spell/spell_to_add in learned_spells)
+			new_character.add_spell(spell_to_add)
+
+	if(active || force)
 		new_character.key = key		//now transfer the key to link the client to our new body
+
+	if(new_character.client)
+		new_character.client.init_verbs() // re-initialize character specific verbs
+
+	SSantag_job.update_antag_icons(src)
+
 
 /datum/mind/proc/store_memory(new_text)
 	memory += "[new_text]<BR>"
 
 /datum/mind/proc/show_memory(mob/recipient)
-	var/output = "<B>[current.real_name]'s Memory</B><HR>"
+	var/output = span_bold("[current.real_name]'s Memory") + "<HR>"
 	output += memory
 
 	if(objectives.len>0)
@@ -115,82 +121,89 @@
 
 		var/obj_count = 1
 		for(var/datum/objective/objective in objectives)
-			output += "<B>Objective #[obj_count]</B>: [objective.explanation_text]"
+			output += span_bold("Objective #[obj_count]") + ": [objective.explanation_text]"
 			obj_count++
 
 	if(ambitions)
 		output += "<HR><B>Ambitions:</B> [ambitions]<br>"
-	recipient << browse(output,"window=memory")
 
-/datum/mind/proc/edit_memory()
-	if(!ticker || !ticker.mode)
-		tgui_alert_async(usr, "Not before round-start!", "Alert")
+	var/datum/browser/popup = new(recipient, "memory", "Memory")
+	popup.set_content(output)
+	popup.open()
+
+/datum/mind/proc/edit_memory(mob/user)
+	if(!SSticker || !SSticker.mode)
+		tgui_alert_async(user, "Not before round-start!", "Alert")
 		return
 
-	var/out = "<B>[name]</B>[(current&&(current.real_name!=name))?" (as [current.real_name])":""]<br>"
+	var/out = span_bold("[name]") + "[(current&&(current.real_name!=name))?" (as [current.real_name])":""]<br>"
 	out += "Mind currently owned by key: [key] [active?"(synced)":"(not synced)"]<br>"
-	out += "Assigned role: [assigned_role]. <a href='?src=\ref[src];[HrefToken()];role_edit=1'>Edit</a><br>"
+	out += "Assigned role: [assigned_role]. <a href='byond://?src=\ref[src];[HrefToken()];role_edit=1'>Edit</a><br>"
 	out += "<hr>"
 	out += "Factions and special roles:<br><table>"
-	for(var/antag_type in all_antag_types)
-		var/datum/antagonist/antag = all_antag_types[antag_type]
+	for(var/antag_type in SSantag_job.all_antag_types)
+		var/datum/antagonist/antag = SSantag_job.all_antag_types[antag_type]
 		out += "[antag.get_panel_entry(src)]"
 	out += "</table><hr>"
-	out += "<b>Objectives</b></br>"
+	out += span_bold("Objectives") + "</br>"
 
 	if(objectives && objectives.len)
 		var/num = 1
 		for(var/datum/objective/O in objectives)
-			out += "<b>Objective #[num]:</b> [O.explanation_text] "
+			out += span_bold("Objective #[num]:") + " [O.explanation_text] "
 			if(O.completed)
 				out += "([span_green("complete")])"
 			else
 				out += "([span_red("incomplete")])"
-			out += " <a href='?src=\ref[src];[HrefToken()];obj_completed=\ref[O]'>\[toggle\]</a>"
-			out += " <a href='?src=\ref[src];[HrefToken()];obj_delete=\ref[O]'>\[remove\]</a><br>"
+			out += " <a href='byond://?src=\ref[src];[HrefToken()];obj_completed=\ref[O]'>\[toggle\]</a>"
+			out += " <a href='byond://?src=\ref[src];[HrefToken()];obj_delete=\ref[O]'>\[remove\]</a><br>"
 			num++
-		out += "<br><a href='?src=\ref[src];[HrefToken()];obj_announce=1'>\[announce objectives\]</a>"
+		out += "<br><a href='byond://?src=\ref[src];[HrefToken()];obj_announce=1'>\[announce objectives\]</a>"
 
 	else
 		out += "None."
-	out += "<br><a href='?src=\ref[src];[HrefToken()];obj_add=1'>\[add\]</a><br><br>"
-	out += "<b>Ambitions:</b> [ambitions ? ambitions : "None"] <a href='?src=\ref[src];[HrefToken()];amb_edit=\ref[src]'>\[edit\]</a></br>"
-	usr << browse(out, "window=edit_memory[src]")
+	out += "<br><a href='byond://?src=\ref[src];[HrefToken()];obj_add=1'>\[add\]</a><br><br>"
+	out += span_bold("Ambitions:") + " [ambitions ? ambitions : "None"] <a href='byond://?src=\ref[src];[HrefToken()];amb_edit=\ref[src]'>\[edit\]</a></br>"
+
+	var/datum/browser/popup = new(user, "edit_memory[src]", "Edit Memory")
+	popup.set_content(out)
+	popup.open()
 
 /datum/mind/Topic(href, href_list)
-	if(!check_rights(R_ADMIN|R_FUN|R_EVENT))	return
+	if(!check_rights(R_ADMIN|R_FUN|R_EVENT))
+		return
 
 	if(href_list["add_antagonist"])
-		var/datum/antagonist/antag = all_antag_types[href_list["add_antagonist"]]
+		var/datum/antagonist/antag = SSantag_job.all_antag_types[href_list["add_antagonist"]]
 		if(antag)
 			if(antag.add_antagonist(src, 1, 1, 0, 1, 1)) // Ignore equipment and role type for this.
 				log_admin("[key_name_admin(usr)] made [key_name(src)] into a [antag.role_text].")
 			else
-				to_chat(usr, "<span class='warning'>[src] could not be made into a [antag.role_text]!</span>")
+				to_chat(usr, span_warning("[src] could not be made into a [antag.role_text]!"))
 
 	else if(href_list["remove_antagonist"])
-		var/datum/antagonist/antag = all_antag_types[href_list["remove_antagonist"]]
+		var/datum/antagonist/antag = SSantag_job.all_antag_types[href_list["remove_antagonist"]]
 		if(antag) antag.remove_antagonist(src)
 
 	else if(href_list["equip_antagonist"])
-		var/datum/antagonist/antag = all_antag_types[href_list["equip_antagonist"]]
+		var/datum/antagonist/antag = SSantag_job.all_antag_types[href_list["equip_antagonist"]]
 		if(antag) antag.equip(src.current)
 
 	else if(href_list["unequip_antagonist"])
-		var/datum/antagonist/antag = all_antag_types[href_list["unequip_antagonist"]]
+		var/datum/antagonist/antag = SSantag_job.all_antag_types[href_list["unequip_antagonist"]]
 		if(antag) antag.unequip(src.current)
 
 	else if(href_list["move_antag_to_spawn"])
-		var/datum/antagonist/antag = all_antag_types[href_list["move_antag_to_spawn"]]
+		var/datum/antagonist/antag = SSantag_job.all_antag_types[href_list["move_antag_to_spawn"]]
 		if(antag) antag.place_mob(src.current)
 
 	else if (href_list["role_edit"])
-		var/new_role = input("Select new role", "Assigned role", assigned_role) as null|anything in joblist
+		var/new_role = tgui_input_list(usr, "Select new role", "Assigned role", assigned_role, SSjob.occupations_by_name)
 		if (!new_role) return
 		assigned_role = new_role
 
 	else if (href_list["memory_edit"])
-		var/new_memo = sanitize(tgui_input_text(usr, "Write new memory", "Memory", memory, multiline = TRUE, prevent_enter = TRUE))
+		var/new_memo = tgui_input_text(usr, "Write new memory", "Memory", memory, MAX_MESSAGE_LEN, TRUE, prevent_enter = TRUE)
 		if (isnull(new_memo)) return
 		memory = new_memo
 
@@ -198,12 +211,12 @@
 		var/datum/mind/mind = locate(href_list["amb_edit"])
 		if(!mind)
 			return
-		var/new_ambition = tgui_input_text(usr, "Enter a new ambition", "Memory", mind.ambitions, multiline = TRUE, prevent_enter = TRUE)
+		var/new_ambition = tgui_input_text(usr, "Enter a new ambition", "Memory", mind.ambitions, MAX_MESSAGE_LEN, TRUE, prevent_enter = TRUE)
 		if(isnull(new_ambition))
 			return
 		if(mind)
-			mind.ambitions = sanitize(new_ambition)
-			to_chat(mind.current, "<span class='warning'>Your ambitions have been changed by higher powers, they are now: [mind.ambitions]</span>")
+			mind.ambitions = new_ambition
+			to_chat(mind.current, span_warning("Your ambitions have been changed by higher powers, they are now: [mind.ambitions]"))
 		log_and_message_admins("made [key_name(mind.current)]'s ambitions be '[mind.ambitions]'.")
 
 	else if (href_list["obj_edit"] || href_list["obj_add"])
@@ -222,7 +235,7 @@
 			if(!def_value)//If it's a custom objective, it will be an empty string.
 				def_value = "custom"
 
-		var/list/choices = list("assassinate", "debrain", "protect", "prevent", "harm", "brig", "hijack", "escape", "survive", "steal", "download", "mercenary", "capture", "absorb", "custom")
+		var/list/choices = list("assassinate", "debrain", "protect", "prevent", "harm", "brig", "hijack", "escape", "survive", "steal", "mercenary", "capture", "absorb", "custom")
 		var/new_obj_type = tgui_input_list(usr, "Select objective type:", "Objective type", choices, def_value)
 		if (!new_obj_type) return
 
@@ -236,8 +249,8 @@
 				var/objective_type = "[objective_type_capital][objective_type_text]"//Add them together into a text string.
 
 				var/list/possible_targets = list("Free objective")
-				for(var/datum/mind/possible_target in ticker.minds)
-					if ((possible_target != src) && istype(possible_target.current, /mob/living/carbon/human))
+				for(var/datum/mind/possible_target in SSticker.minds)
+					if ((possible_target != src) && ishuman(possible_target.current))
 						possible_targets += possible_target.current
 
 				var/mob/def_target = null
@@ -291,7 +304,7 @@
 				if (!steal.select_target())
 					return
 
-			if("download","capture","absorb", "vore")
+			if("capture","absorb", "vore")
 				var/def_num
 				if(objective&&objective.type==text2path("/datum/objective/[new_obj_type]"))
 					def_num = objective.target_amount
@@ -301,9 +314,6 @@
 					return
 
 				switch(new_obj_type)
-					if("download")
-						new_objective = new /datum/objective/download
-						new_objective.explanation_text = "Download [target_number] research levels."
 					if("capture")
 						new_objective = new /datum/objective/capture
 						new_objective.explanation_text = "Accumulate [target_number] capture points."
@@ -317,7 +327,7 @@
 				new_objective.target_amount = target_number
 
 			if ("custom")
-				var/expl = sanitize(tgui_input_text(usr, "Custom objective:", "Objective", objective ? objective.explanation_text : ""))
+				var/expl = tgui_input_text(usr, "Custom objective:", "Objective", objective ? objective.explanation_text : "", MAX_MESSAGE_LEN)
 				if (!expl) return
 				new_objective = new /datum/objective
 				new_objective.owner = src
@@ -348,18 +358,18 @@
 
 		switch(href_list["implant"])
 			if("remove")
-				for(var/obj/item/weapon/implant/loyalty/I in H.contents)
+				for(var/obj/item/implant/loyalty/I in H.contents)
 					for(var/obj/item/organ/external/organs in H.organs)
 						if(I in organs.implants)
 							qdel(I)
 							break
-				to_chat(H, "<span class='notice'><font size =3><B>Your loyalty implant has been deactivated.</B></font></span>")
+				to_chat(H, span_notice(span_large(span_bold("Your loyalty implant has been deactivated."))))
 				log_admin("[key_name_admin(usr)] has de-loyalty implanted [current].")
 			if("add")
-				to_chat(H, "<span class='danger'><font size =3>You somehow have become the recepient of a loyalty transplant, and it just activated!</font></span>")
+				to_chat(H, span_danger(span_large("You somehow have become the recepient of a loyalty transplant, and it just activated!")))
 				H.implant_loyalty(override = TRUE)
 				log_admin("[key_name_admin(usr)] has loyalty implanted [current].")
-			else
+
 	else if (href_list["silicon"])
 		BITSET(current.hud_updateflag, SPECIALROLE_HUD)
 		switch(href_list["silicon"])
@@ -382,7 +392,7 @@
 					log_admin("[key_name_admin(usr)] has unemag'ed [R].")
 
 			if("unemagcyborgs")
-				if (istype(current, /mob/living/silicon/ai))
+				if (isAI(current))
 					var/mob/living/silicon/ai/ai = current
 					for (var/mob/living/silicon/robot/R in ai.connected_robots)
 						R.emagged = 0
@@ -409,8 +419,8 @@
 				take_uplink()
 				memory = null//Remove any memory they may have had.
 			if("crystals")
-				if (usr.client.holder.rights & R_FUN)
-				//	var/obj/item/device/uplink/hidden/suplink = find_syndicate_uplink() No longer needed, uses stored in mind
+				if (check_rights_for(usr.client, R_FUN))
+				//	var/obj/item/uplink/hidden/suplink = find_syndicate_uplink() No longer needed, uses stored in mind
 					var/crystals
 					crystals = tcrystals
 					crystals = tgui_input_number(usr, "Amount of telecrystals for [key]", crystals)
@@ -421,9 +431,9 @@
 		var/obj_count = 1
 		to_chat(current, span_blue("Your current objectives:"))
 		for(var/datum/objective/objective in objectives)
-			to_chat(current, "<B>Objective #[obj_count]</B>: [objective.explanation_text]")
+			to_chat(current, span_bold("Objective #[obj_count]") + ": [objective.explanation_text]")
 			obj_count++
-	edit_memory()
+	edit_memory(usr)
 
 /datum/mind/proc/find_syndicate_uplink()
 	var/list/L = current.get_contents()
@@ -433,7 +443,7 @@
 	return null
 
 /datum/mind/proc/take_uplink()
-	var/obj/item/device/uplink/hidden/H = find_syndicate_uplink()
+	var/obj/item/uplink/hidden/H = find_syndicate_uplink()
 	if(H)
 		qdel(H)
 
@@ -448,10 +458,10 @@
 	var/is_currently_brigged = 0
 	if(istype(T.loc,/area/security/brig))
 		is_currently_brigged = 1
-		for(var/obj/item/weapon/card/id/card in current)
+		for(var/obj/item/card/id/card in current)
 			is_currently_brigged = 0
 			break // if they still have ID they're not brigged
-		for(var/obj/item/device/pda/P in current)
+		for(var/obj/item/pda/P in current)
 			if(P.id)
 				is_currently_brigged = 0
 				break // if they still have ID they're not brigged
@@ -471,7 +481,7 @@
 	role_alt_title =  null
 	assigned_job =    null
 	//faction =       null //Uncommenting this causes a compile error due to 'undefined type', fucked if I know.
-	changeling =      null
+	//changeling =    null //TODO: Figure out where this is all used and move it from mind to mob.
 	initial_account = null
 	objectives =      list()
 	special_verbs =   list()
@@ -490,11 +500,17 @@
 		return 0
 
 /datum/mind/proc/get_ghost(even_if_they_cant_reenter)
-	for(var/mob/observer/dead/G in player_list)
+	for(var/mob/observer/dead/G in GLOB.player_list)
 		if(G.mind == src)
 			if(G.can_reenter_corpse || even_if_they_cant_reenter)
 				return G
 			break
+
+///Proc that FORCIBLY grabs a client no matter where they are and returns their currently inhabited mob.
+/datum/mind/proc/forcibly_grab_client()
+	for(var/mob/mob_to_grab in GLOB.player_list)
+		if(mob_to_grab.ckey == loaded_from_ckey)
+			return mob_to_grab
 
 /datum/mind/proc/grab_ghost(force)
 	var/mob/observer/dead/G = get_ghost(even_if_they_cant_reenter = force)
@@ -508,72 +524,72 @@
 		mind.key = key
 	else
 		mind = new /datum/mind(key)
-		mind.original = src
-		if(ticker)
-			ticker.minds += mind
+		mind.original_character = WEAKREF(src)
+		if(SSticker)
+			SSticker.minds += mind
 		else
-			to_world_log("## DEBUG: mind_initialize(): No ticker ready yet! Please inform Carn")
+			log_world("## DEBUG: mind_initialize(): No ticker ready yet! Please inform Carn")
 	if(!mind.name)	mind.name = real_name
 	mind.current = src
-	if(player_is_antag(mind))
-		src.client.verbs += /client/proc/aooc
+	if(SSantag_job.player_is_antag(mind))
+		add_verb(src.client, /client/proc/aooc)
 
 //HUMAN
 /mob/living/carbon/human/mind_initialize()
 	. = ..()
 	if(!mind.assigned_role)
-		mind.assigned_role = USELESS_JOB	//defualt //VOREStation Edit - Visitor not Assistant
+		mind.assigned_role = JOB_ALT_VISITOR	//defualt //VOREStation Edit - Visitor not Assistant
 
 //slime
 /mob/living/simple_mob/slime/mind_initialize()
 	. = ..()
-	mind.assigned_role = "slime"
+	mind.assigned_role = JOB_SLIME
 
 /mob/living/carbon/alien/larva/mind_initialize()
 	. = ..()
-	mind.special_role = "Larva"
+	mind.special_role = JOB_LARVA
 
 //AI
 /mob/living/silicon/ai/mind_initialize()
 	. = ..()
-	mind.assigned_role = "AI"
+	mind.assigned_role = JOB_AI
 
 //BORG
 /mob/living/silicon/robot/mind_initialize()
 	. = ..()
-	mind.assigned_role = "Cyborg"
+	mind.assigned_role = JOB_CYBORG
 
 //PAI
 /mob/living/silicon/pai/mind_initialize()
 	. = ..()
-	mind.assigned_role = "pAI"
+	mind.assigned_role = JOB_PAI
 	mind.special_role = ""
 
 //Animals
 /mob/living/simple_mob/mind_initialize()
 	. = ..()
-	mind.assigned_role = "Simple Mob"
+	mind.assigned_role = JOB_SIMPLE_MOB
 
 /mob/living/simple_mob/animal/passive/dog/corgi/mind_initialize()
 	. = ..()
-	mind.assigned_role = "Corgi"
+	mind.assigned_role = JOB_CORGI
 
 /mob/living/simple_mob/construct/shade/mind_initialize()
 	. = ..()
-	mind.assigned_role = "Shade"
-	mind.special_role = "Cultist"
+	mind.assigned_role = JOB_SHADE
+	mind.special_role = JOB_CULTIST
 
 /mob/living/simple_mob/construct/artificer/mind_initialize()
 	. = ..()
-	mind.assigned_role = "Artificer"
-	mind.special_role = "Cultist"
+	mind.assigned_role = JOB_ARTIFICER
+	mind.special_role = JOB_CULTIST
 
 /mob/living/simple_mob/construct/wraith/mind_initialize()
 	. = ..()
-	mind.assigned_role = "Wraith"
-	mind.special_role = "Cultist"
+	mind.assigned_role = JOB_WRAITH
+	mind.special_role = JOB_CULTIST
 
 /mob/living/simple_mob/construct/juggernaut/mind_initialize()
 	. = ..()
-	mind.assigned_role = "Juggernaut"
-	mind.special_role = "Cultist"
+	mind.assigned_role = JOB_JUGGERNAUT
+	mind.special_role = JOB_CULTIST

@@ -3,7 +3,6 @@
 	name = "power thingy"
 	desc = "Does power stuff."
 	complexity = 5
-	origin_tech = list(TECH_POWER = 2, TECH_ENGINEERING = 2, TECH_DATA = 2)
 	category_text = "Power - Passive"
 
 /obj/item/integrated_circuit/passive/power/proc/handle_passive_energy()
@@ -16,7 +15,6 @@
 	extended_desc = "The cell generates 1W of energy per second in optimal lighting conditions.  Less light will result in less power being generated."
 	icon_state = "solar_cell"
 	complexity = 8
-	origin_tech = list(TECH_POWER = 3, TECH_ENGINEERING = 3, TECH_DATA = 2)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	var/max_power = 1
 
@@ -35,7 +33,6 @@
 	icon_state = "led"
 	complexity = 1
 	activators = list("pulse out" = IC_PINTYPE_PULSE_OUT)
-	origin_tech = list(TECH_POWER = 3, TECH_ENGINEERING = 3, TECH_DATA = 2)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	var/is_charge=0
 
@@ -59,18 +56,17 @@
 	appetite and will need to eat more often due to this.  This device will fail if used inside synthetic entities."
 	icon_state = "implant_power"
 	complexity = 10
-	origin_tech = list(TECH_POWER = 4, TECH_ENGINEERING = 4, TECH_DATA = 4, TECH_BIO = 5)
 	spawn_flags = IC_SPAWN_RESEARCH
 
-/obj/item/integrated_circuit/passive/power/metabolic_siphon/proc/test_validity(var/mob/living/carbon/human/host)
+/obj/item/integrated_circuit/passive/power/metabolic_siphon/proc/test_validity(mob/living/carbon/human/host)
 	if(!host || host.isSynthetic() || host.stat == DEAD || host.nutrition <= 10)
 		return FALSE // Robots and dead people don't have a metabolism.
 	return TRUE
 
 /obj/item/integrated_circuit/passive/power/metabolic_siphon/handle_passive_energy()
 	var/mob/living/carbon/human/host = null
-	if(assembly && istype(assembly, /obj/item/device/electronic_assembly/implant))
-		var/obj/item/device/electronic_assembly/implant/implant_assembly = assembly
+	if(assembly && istype(assembly, /obj/item/electronic_assembly/implant))
+		var/obj/item/electronic_assembly/implant/implant_assembly = assembly
 		if(implant_assembly.implant.imp_in)
 			host = implant_assembly.implant.imp_in
 	if(host && test_validity(host))
@@ -82,10 +78,9 @@
 	desc = "A small circuit designed to be connected to an internal power wire inside a synthetic entity."
 	extended_desc = "The siphon generates 10W of energy, so long as the siphon exists inside a synthetic entity.  The entity need to recharge \
 	more often due to this.  This device will fail if used inside organic entities."
-	origin_tech = list(TECH_POWER = 3, TECH_ENGINEERING = 4, TECH_DATA = 3)
 	spawn_flags = IC_SPAWN_RESEARCH
 
-/obj/item/integrated_circuit/passive/power/metabolic_siphon/synthetic/test_validity(var/mob/living/carbon/human/host)
+/obj/item/integrated_circuit/passive/power/metabolic_siphon/synthetic/test_validity(mob/living/carbon/human/host)
 	if(!host || !host.isSynthetic() || host.stat == DEAD || host.nutrition <= 10)
 		return FALSE // This time we don't want a metabolism.
 	return TRUE
@@ -99,7 +94,6 @@
 	from the 'equipment' power channel."
 	icon_state = "power_relay"
 	complexity = 7
-	origin_tech = list(TECH_POWER = 3, TECH_ENGINEERING = 3, TECH_DATA = 2)
 	spawn_flags = IC_SPAWN_RESEARCH
 	var/power_amount = 250
 //fuel cell
@@ -109,19 +103,18 @@
 	desc = "Produces electricity from chemicals."
 	icon_state = "chemical_cell"
 	extended_desc = "This is effectively an internal beaker. It will consume and produce power from phoron, slime jelly, welding fuel, carbon,\
-	 ethanol, nutriments and blood, in order of decreasing efficiency. It will consume fuel only if the battery can take more energy."
+		ethanol, nutriments and blood, in order of decreasing efficiency. It will consume fuel only if the battery can take more energy."
 	flags = OPENCONTAINER
 	complexity = 4
 	inputs = list()
 	outputs = list("volume used" = IC_PINTYPE_NUMBER,"self reference" = IC_PINTYPE_REF)
 	activators = list()
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
-	origin_tech = list(TECH_ENGINEERING = 2, TECH_DATA = 2, TECH_BIO = 2)
 	var/volume = 60
-	var/list/fuel = list("phoron" = 50000, "slimejelly" = 25000, "fuel" = 15000, "carbon" = 10000, "ethanol"= 10000, "nutriment" =8000, "blood" = 5000)
+	var/list/fuel = list(REAGENT_ID_PHORON = 50000, REAGENT_ID_SLIMEJELLY = 25000, REAGENT_ID_FUEL = 15000, REAGENT_ID_CARBON = 10000, REAGENT_ID_ETHANOL= 10000, REAGENT_ID_NUTRIMENT = 8000, REAGENT_ID_BLOOD = 5000)
 
-/obj/item/integrated_circuit/passive/power/chemical_cell/New()
-	..()
+/obj/item/integrated_circuit/passive/power/chemical_cell/Initialize(mapload)
+	. = ..()
 	create_reagents(volume)
 
 /obj/item/integrated_circuit/passive/power/chemical_cell/interact(mob/user)
@@ -150,7 +143,6 @@
 	from the 'equipment' power channel."
 	icon_state = "power_relay"
 	complexity = 15
-	origin_tech = list(TECH_POWER = 6, TECH_ENGINEERING = 5, TECH_DATA = 4)
 	spawn_flags = IC_SPAWN_RESEARCH
 	power_amount = 2000
 
@@ -185,11 +177,10 @@
 		)
 	activators = list()
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
-	origin_tech = list(TECH_ENGINEERING = 2, TECH_POWER = 2)
 	var/obj/machinery/power/circuit_io/IO = null // Dummy power machine to move energy in/out without a bunch of code duplication.
 	var/throughput = 10000 // Give/take up to 10kW.
 
-/obj/item/integrated_circuit/passive/power/powernet/Initialize()
+/obj/item/integrated_circuit/passive/power/powernet/Initialize(mapload)
 	IO = new(src)
 	return ..()
 
@@ -220,6 +211,7 @@
 		set_pin_data(IC_OUTPUT, 1, IO.avail())
 		set_pin_data(IC_OUTPUT, 2, IO.surplus())
 		set_pin_data(IC_OUTPUT, 3, IO.viewload())
+		push_data()
 
 // Internal power machine for interacting with the powernet.
 // It needs a bit of special code since base /machinery/power assumes loc will be a tile.

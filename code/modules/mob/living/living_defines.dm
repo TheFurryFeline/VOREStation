@@ -22,7 +22,6 @@
 	var/max_nutrition = MAX_NUTRITION
 
 	var/hallucination = 0 //Directly affects how long a mob will hallucinate for
-	var/list/atom/hallucinations = list() //A list of hallucinated people that try to attack the mob. See /obj/effect/fake_attacker in hallucinations.dm
 
 	var/last_special = 0 //Used by the resist verb, likely used to prevent players from bypassing next_move by logging in/out.
 	var/base_attack_cooldown = DEFAULT_ATTACK_COOLDOWN
@@ -39,13 +38,16 @@
 	var/mob_always_swap = 0
 
 	var/mob/living/cameraFollow = null
-	var/list/datum/action/actions = list()
 
 	var/tod = null // Time of death
 	var/update_slimes = 1
 	var/silent = null 		// Can't talk. Value goes down every life proc.
-	var/on_fire = 0 //The "Are we on fire?" var
+
+	/// Helper vars for quick access to firestacks, these should be updated every time firestacks are adjusted
+	var/on_fire = 0
 	var/fire_stacks
+	/// Rate at which fire stacks should decay from this mob
+	var/fire_stack_decay_rate = -0.05
 
 	var/failed_last_breath = 0 //This is used to determine if the mob failed a breath. If they did fail a brath, they will attempt to breathe each tick, otherwise just once per 4 ticks.
 	var/lastpuke = 0
@@ -70,15 +72,51 @@
 
 	var/makes_dirt = TRUE	//FALSE if the mob shouldn't be making dirt on the ground when it walks
 
-	var/looking_elsewhere = FALSE //If the mob's view has been relocated to somewhere else, like via a camera or with binocs
-
 	var/image/selected_image = null // Used for buildmode AI control stuff.
 
 	var/allow_self_surgery = FALSE	// Used to determine if the mob can perform surgery on itself.
 
 
-	var/tail_alt = 0
+	var/tail_layering = 0
 	var/flying = 0				// Allows flight
 	var/inventory_panel_type = /datum/inventory_panel
 	var/datum/inventory_panel/inventory_panel
 	var/last_resist_time = 0 // world.time of the most recent resist that wasn't on cooldown.
+	var/tiredness = 0					//For vore draining
+	var/fear = 0 						//For fear effects and phobias
+	var/last_fear_sound = 0				//For making sure the heartbeats don't play over each other
+
+	var/static/list/fear_message_self = list(
+									"Your heart is racing, it feels like it's going burst from your chest.",
+									"Your stomach clenches and churns with anxiety.",
+									"It's getting hard to breathe, you're panting heavily.",
+									"You feel your eyes straining.",
+									"A sharp shiver runs down your spine.",
+									"You feel like you are drowning.",
+									"You feel your palms clamming up.",
+									"Your legs feel weak, you can barely control them.",
+									"You have difficulty even swallowing."
+									)
+	var/static/list/fear_message_other = list(
+									"'s eyes are darting around the room rapidly.",
+									" looks like they are shivering, literally shaking.",
+									" is breathing rapidly.",
+									" looks profoundly uncomfortable.",
+									"s literally trembling in front of you.",
+									"'s hands are shaking.",
+									" is rocking slightly from side to side."
+									)
+
+	var/touch_reaction_flags
+
+	var/virtual_reality_mob = FALSE // gross boolean for keeping VR mobs in VR
+
+	var/mob/living/tf_form // Shapeshifter shenanigans
+	var/tf_form_ckey
+
+	var/ooc_notes_favs = null
+	var/ooc_notes_maybes = null
+	var/ooc_notes_style = FALSE
+
+	///a list of all status effects the mob has
+	var/list/status_effects

@@ -19,7 +19,6 @@
 		)
 	activators = list("transmit" = IC_PINTYPE_PULSE_IN, "on transmit" = IC_PINTYPE_PULSE_OUT)
 	spawn_flags = IC_SPAWN_RESEARCH
-	origin_tech = list(TECH_ENGINEERING = 4, TECH_DATA = 4, TECH_POWER = 4, TECH_MAGNET = 3)
 	power_draw_per_use = 500 // Inefficency has to come from somewhere.
 	var/amount_to_move = 5000
 
@@ -32,7 +31,6 @@
 	some power is lost due to ineffiency."
 	w_class = ITEMSIZE_LARGE
 	complexity = 32
-	origin_tech = list(TECH_ENGINEERING = 4, TECH_DATA = 4, TECH_POWER = 6, TECH_MAGNET = 5)
 	power_draw_per_use = 2000
 	amount_to_move = 20000
 
@@ -43,11 +41,11 @@
 		if(!assembly)
 			return FALSE // Pointless to do everything else if there's no battery to draw from.
 
-		var/obj/item/weapon/cell/cell = null
-		if(istype(AM, /obj/item/weapon/cell)) // Is this already a cell?
+		var/obj/item/cell/cell = null
+		if(istype(AM, /obj/item/cell)) // Is this already a cell?
 			cell = AM
 		else // If not, maybe there's a cell inside it?
-			for(var/obj/item/weapon/cell/C in AM.contents)
+			for(var/obj/item/cell/C in AM.contents)
 				if(C) // Find one cell to charge.
 					cell = C
 					break
@@ -87,5 +85,5 @@
 			var/datum/effect/effect/system/spark_spread/sparks = new /datum/effect/effect/system/spark_spread()
 			sparks.set_up(3, 0, get_turf(src))
 			sparks.start()
-			visible_message("<span class='warning'>\The [assembly] makes some sparks!</span>")
+			visible_message(span_warning("\The [assembly] makes some sparks!"))
 			qdel(sparks)

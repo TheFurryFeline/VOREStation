@@ -7,8 +7,9 @@ SUBSYSTEM_DEF(orbit)
 	var/list/currentrun = list()
 	var/list/processing = list()
 
-/datum/controller/subsystem/orbit/stat_entry()
-	..("P:[processing.len]")
+/datum/controller/subsystem/orbit/stat_entry(msg)
+	msg = "P:[length(processing)]"
+	return ..()
 
 
 /datum/controller/subsystem/orbit/fire(resumed = 0)
@@ -18,8 +19,8 @@ SUBSYSTEM_DEF(orbit)
 	//cache for sanic speed (lists are references anyways)
 	var/list/currentrun = src.currentrun
 
-	while (currentrun.len)
-		var/datum/orbit/O = currentrun[currentrun.len]
+	while (length(currentrun))
+		var/datum/orbit/O = currentrun[length(currentrun)]
 		currentrun.len--
 		if (!O)
 			processing -= O
@@ -40,5 +41,3 @@ SUBSYSTEM_DEF(orbit)
 			O.Check(targetloc)
 		if (MC_TICK_CHECK)
 			return
-
-

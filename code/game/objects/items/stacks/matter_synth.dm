@@ -4,7 +4,7 @@
 	var/recharge_rate = 2000
 	var/energy
 
-/datum/matter_synth/New(var/store = 0)
+/datum/matter_synth/New(store = 0)
 	if(store)
 		max_energy = store
 	energy = max_energy
@@ -13,16 +13,18 @@
 /datum/matter_synth/proc/get_charge()
 	return energy
 
-/datum/matter_synth/proc/use_charge(var/amount)
+/datum/matter_synth/proc/use_charge(amount)
 	if (energy >= amount)
 		energy -= amount
 		return 1
 	return 0
 
-/datum/matter_synth/proc/add_charge(var/amount)
+/datum/matter_synth/proc/add_charge(amount)
 	energy = min(energy + amount, max_energy)
 
-/datum/matter_synth/proc/emp_act(var/severity)
+/datum/matter_synth/proc/emp_act(severity, recursive)
+	if (. & EMP_PROTECT_SELF)
+		return
 	use_charge(max_energy * 0.1 / severity)
 
 /datum/matter_synth/medicine
@@ -32,23 +34,23 @@
 	name = "Nanite Synthesizer"
 
 /datum/matter_synth/metal
-	name = "Metal Synthesizer"
+	name = METAL_SYNTH
 
 /datum/matter_synth/plasteel
-	name = "Plasteel Synthesizer"
+	name = PLASTEEL_SYNTH
 	max_energy = 10000
 
 /datum/matter_synth/glass
-	name = "Glass Synthesizer"
+	name = GLASS_SYNTH
 
 /datum/matter_synth/wood
-	name = "Wood Synthesizer"
+	name = WOOD_SYNTH
 
 /datum/matter_synth/plastic
-	name = "Plastic Synthesizer"
+	name = PLASTIC_SYNTH
 
 /datum/matter_synth/wire
-	name = "Wire Synthesizer"
+	name = WIRE_SYNTH
 	max_energy = 50
 	recharge_rate = 2
 
@@ -58,4 +60,7 @@
 	recharge_rate = 1
 
 /datum/matter_synth/cloth
-	name = "Cloth Synthesizer"
+	name = CLOTH_SYNTH
+
+/datum/matter_synth/beacon
+	name = "Beacon Synthesizer"

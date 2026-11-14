@@ -6,25 +6,25 @@
 	armor = list(melee = 90, bullet = 80, laser = 10, energy = 10, bomb = 80, bio = 0, rad = 0)
 	w_class = ITEMSIZE_HUGE // massively bulky item
 	gas_transfer_coefficient = 0.90
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
+	body_parts_covered = CHEST|LEGS|FEET|ARMS|HANDS
 	slowdown = 5 // If you're a tank you're gonna move like a tank.
 	flags_inv = HIDEGLOVES|HIDESHOES|HIDEJUMPSUIT
 	siemens_coefficient = 0
-
 
 /obj/item/clothing/suit/armor/vest/wolftaur
 	name = "wolf-taur armor vest"
 	desc = "An armored vest that protects against some damage. It appears to be created for a wolf-taur."
 	species_restricted = null //Species restricted since all it cares about is a taur half
-	icon = 'icons/mob/taursuits_wolf_vr.dmi'
+	icon = 'icons/mob/taursuits_wolf.dmi'
 	icon_state = "wolf_item"
 	item_state = "heavy_wolf_armor"
-/obj/item/clothing/suit/armor/vest/wolftaur/mob_can_equip(var/mob/living/carbon/human/H, slot, disable_warning = 0)
+
+/obj/item/clothing/suit/armor/vest/wolftaur/mob_can_equip(mob/living/carbon/human/H, slot, disable_warning = FALSE, ignore_obstruction, go_over_slot = FALSE)
 	if(..())
 		if(istype(H) && istype(H.tail_style, /datum/sprite_accessory/tail/taur/wolf))
 			return ..()
 		else
-			to_chat(H,"<span class='warning'>You need to have a wolf-taur half to wear this.</span>")
+			to_chat(H,span_warning("You need to have a wolf-taur half to wear this."))
 			return 0
 
 // HoS armor improved by Vorestation to be slightly better than normal security stuff.
@@ -55,17 +55,13 @@
 	name = "marine body armor"
 	desc = "When I joined the Corps, we didn't have any fancy-schmanzy armor. We had sticks! Two sticks, and a rock for the whole platoon-and we had to <i>share</i> the rock!"
 	icon_state = "unsc_armor"
-	icon = 'icons/inventory/suit/item_vr.dmi'
-	icon_override = 'icons/inventory/suit/mob_vr.dmi'
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO // ToDo: Break up the armor into smaller bits.
+	body_parts_covered = CHEST // ToDo: Break up the armor into smaller bits.
 
 /obj/item/clothing/suit/armor/combat/imperial
 	name = "imperial soldier armor"
 	desc = "Made out of an especially light metal, it lets you conquer in style."
 	icon_state = "ge_armor"
-	icon = 'icons/inventory/suit/item_vr.dmi'
-	icon_override = 'icons/inventory/suit/mob_vr.dmi'
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 
 /obj/item/clothing/suit/armor/combat/imperial/centurion
 	name = "imperial centurion armor"
@@ -73,12 +69,10 @@
 	icon_state = "ge_armorcent"
 
 /obj/item/clothing/suit/storage/vest/wardencoat/alt2
-	icon = 'icons/inventory/suit/item_vr.dmi'
-	icon_override = 'icons/inventory/suit/mob_vr.dmi'
+	icon_state = "warden_jacket_old"
 
 /obj/item/clothing/suit/storage/vest/hoscoat/jensen/alt
-	icon = 'icons/inventory/suit/item_vr.dmi'
-	icon_override = 'icons/inventory/suit/mob_vr.dmi'
+	icon_state = "hostrench_old"
 
 // Armor Versions Here
 /obj/item/clothing/suit/armor/combat/crusader
@@ -87,7 +81,7 @@
 	icon_state = "crusader"
 	icon = 'icons/obj/clothing/knights_vr.dmi'
 	icon_override = 'icons/obj/clothing/knights_vr.dmi'
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 	armor = list(melee = 80, bullet = 50, laser = 10, energy = 0, bomb = 0, bio = 0, rad = 0)
 	siemens_coefficient = 2
 
@@ -95,7 +89,19 @@
 	name = "bedevere's armor"
 	desc = "ye olde knight, risen again."
 	icon_state = "bedevere"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
+
+/obj/item/clothing/suit/armor/combat/crusader/quizzler
+	name = "knight's armor"
+	desc = "ye olde knight, risen again."
+	icon_state = "quizzler"
+	armor = list(melee = 60, bullet = 10, laser = 10, energy = 0, bomb = 0, bio = 0, rad = 0)
+
+/obj/item/clothing/suit/armor/combat/crusader/pink
+	name = "knight's armor"
+	desc = "ye olde knight, risen again."
+	icon_state = "pink"
+	armor = list(melee = 60, bullet = 10, laser = 10, energy = 0, bomb = 0, bio = 0, rad = 0)
 
 // Costume Versions Here
 /obj/item/clothing/suit/armor/combat/crusader_costume
@@ -104,7 +110,7 @@
 	icon_state = "crusader"
 	icon = 'icons/obj/clothing/knights_vr.dmi'
 	icon_override = 'icons/obj/clothing/knights_vr.dmi'
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
+	body_parts_covered = CHEST
 	armor = list(melee = 0, bullet = 0, laser = 0, energy = 0, bomb = 0, bio = 0, rad = 0)
 	siemens_coefficient = 1
 
@@ -112,9 +118,7 @@
 	name = "bedevere's costume armor"
 	desc = "ye olde knight, risen again."
 	icon_state = "bedevere"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO
-
-
+	body_parts_covered = CHEST
 
 //Deluxe explorer suit
 /obj/item/clothing/suit/armor/pcarrier/explorer/deluxe
@@ -125,21 +129,13 @@
 /obj/item/clothing/suit/armor/crusader
 	name = "crusader armor"
 	desc = "God will protect those who defend his faith."
-
 	armor = list("melee" = 50, "bullet" = 50, "laser" = 50, "energy" = 25, "bomb" = 30, "bio" = 0, "rad" = 0)
-
-	icon = 'icons/inventory/suit/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/suit/mob_vr.dmi'
 	icon_state = "crusader_suit"
 
 /obj/item/clothing/head/helmet/crusader
 	name = "crusader helmet"
 	desc = "God will protect those who defend his faith."
-
 	armor = list("melee" = 50, "bullet" = 50, "laser" = 50, "energy" = 25, "bomb" = 30, "bio" = 0, "rad" = 0)
-
-	icon = 'icons/inventory/head/item_vr.dmi'
-	default_worn_icon = 'icons/inventory/head/mob_vr.dmi'
 	icon_state = "crusader_head"
 
 /obj/item/clothing/suit/armor/combat/crusader_explo
@@ -149,22 +145,13 @@
 	icon = 'icons/obj/clothing/knights_vr.dmi'
 	icon_override = 'icons/obj/clothing/knights_vr.dmi'
 	flags = THICKMATERIAL
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|ARMS
+	body_parts_covered = CHEST|LEGS|ARMS
 	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECTION_TEMPERATURE
-	cold_protection = UPPER_TORSO|LOWER_TORSO|LEGS|ARMS
+	cold_protection = CHEST|LEGS|ARMS
 	slowdown=0
 	siemens_coefficient = 0.9
 	armor = list(melee = 30, bullet = 20, laser = 20, energy = 20, bomb = 35, bio = 75, rad = 35) // Inferior to sec vests in bullet/laser but better for environmental protection.
-	allowed = list(
-		/obj/item/device/flashlight,
-		/obj/item/weapon/gun,
-		/obj/item/ammo_magazine,
-		/obj/item/weapon/melee,
-		/obj/item/weapon/material/knife,
-		/obj/item/weapon/tank,
-		/obj/item/device/radio,
-		/obj/item/weapon/pickaxe
-		)
+	allowed = list(POCKET_GENERIC, POCKET_EMERGENCY, POCKET_EXPLO, POCKET_ALL_TANKS, POCKET_MINING)
 
 /obj/item/clothing/suit/armor/combat/crusader_explo/FM
 	name = "field medic low tech suit"
@@ -173,6 +160,10 @@
 // martian miner coat
 /obj/item/clothing/suit/storage/vest/martian_miner
 	name = "martian miner's coat"
-	desc = "A sturdy, rugged coat once favoured by miners on Mars. These coats became strongly associated with early Martian Independence movements as a result, and remain moderately popular amongst members of the Third Ares Confederation."
+	desc = "A sturdy, rugged coat once favoured by miners on Mars. These coats became strongly associated with early Martian Independence movements as a result, and so remain moderately popular amongst members of the Third Ares Confederation to this day."
 	icon_state = "martian_miner"
+
+/obj/item/clothing/suit/storage/vest/martian_miner/reinforced
+	name = "reinforced martian miner's coat"
+	desc = "A sturdy, rugged coat once favoured by miners on Mars. These coats became strongly associated with early Martian Independence movements as a result, and so remain moderately popular amongst members of the Third Ares Confederation to this day. This one appears to have been discreetly lined with a hardened polymesh substrate, rendering it more resilient to physical damage."
 	armor = list(melee = 25, bullet = 15, laser = 15, energy = 0, bomb = 25, bio = 0, rad = 0)

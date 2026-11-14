@@ -1,28 +1,29 @@
-/obj/item/weapon/reagent_containers
+/obj/item/reagent_containers
 	name = "Container"
 	desc = "..."
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = null
 	w_class = ITEMSIZE_SMALL
 	var/amount_per_transfer_from_this = 5
-	var/possible_transfer_amounts = list(5,10,15,25,30)
+	var/max_transfer_amount = 30
+	var/min_transfer_amount = 5
 	var/volume = 30
 	var/list/starts_with
 
-/obj/item/weapon/reagent_containers/verb/set_APTFT() //set amount_per_transfer_from_this
+/obj/item/reagent_containers/verb/set_APTFT() //set amount_per_transfer_from_this
 	set name = "Set transfer amount"
 	set category = "Object"
 	set src in range(0)
-	var/N = tgui_input_list(usr, "Amount per transfer from this:","[src]", possible_transfer_amounts)
+	var/N = tgui_input_number(usr, "Amount per transfer from this: ([min_transfer_amount]-[max_transfer_amount])","[src]",amount_per_transfer_from_this,max_transfer_amount,min_transfer_amount)
 	if(N)
 		amount_per_transfer_from_this = N
 
-/obj/item/weapon/reagent_containers/Initialize()
+/obj/item/reagent_containers/Initialize(mapload)
 	. = ..()
-	if(!possible_transfer_amounts)
-		src.verbs -= /obj/item/weapon/reagent_containers/verb/set_APTFT
+	if(!max_transfer_amount)
+		src.verbs -= /obj/item/reagent_containers/verb/set_APTFT
 	create_reagents(volume)
-	
+
 	if(starts_with)
 		var/total_so_far = 0
 		for(var/string in starts_with)
@@ -30,94 +31,100 @@
 			total_so_far += amt
 			reagents.add_reagent(string, amt)
 		if(total_so_far > volume)
-			warning("[src]([src.type]) starts with more reagents than it has total volume")
+			WARNING("[src]([src.type]) starts with more reagents than it has total volume")
 		starts_with = null // it should gc, since it's just strings and numbers
 
-/obj/item/weapon/reagent_containers/attack_self(mob/user as mob)
+/obj/item/reagent_containers/afterattack(obj/target, mob/user, flag)
 	return
 
-/obj/item/weapon/reagent_containers/afterattack(obj/target, mob/user, flag)
-	return
-
-/obj/item/weapon/reagent_containers/proc/reagentlist() // For attack logs
+/obj/item/reagent_containers/proc/reagentlist() // For attack logs
 	if(reagents)
 		return reagents.get_reagents()
 	return "No reagent holder"
 
-/obj/item/weapon/reagent_containers/proc/standard_dispenser_refill(var/mob/user, var/obj/structure/reagent_dispensers/target) // This goes into afterattack
+/obj/item/reagent_containers/proc/standard_dispenser_refill(mob/user, obj/structure/reagent_dispensers/target) // This goes into afterattack
 	if(!istype(target))
 		return 0
 
+	if(target.open_top)
+		return 0
+
 	if(!target.reagents || !target.reagents.total_volume)
-		to_chat(user, "<span class='notice'>[target] is empty.</span>")
+		balloon_alert(user, "[target] is empty.")
 		return 1
 
 	if(reagents && !reagents.get_free_space())
-		to_chat(user, "<span class='notice'>[src] is full.</span>")
+		balloon_alert(user, "[src] is full.")
 		return 1
 
 	var/trans = target.reagents.trans_to_obj(src, target:amount_per_transfer_from_this)
-	to_chat(user, "<span class='notice'>You fill [src] with [trans] units of the contents of [target].</span>")
+	balloon_alert(user, "[trans] units transfered to \the [src]")
 	return 1
 
-/obj/item/weapon/reagent_containers/proc/standard_splash_mob(var/mob/user, var/mob/target) // This goes into afterattack
+/obj/item/reagent_containers/proc/standard_splash_mob(mob/user, mob/target) // This goes into afterattack
 	if(!istype(target))
 		return
 
 	if(!reagents || !reagents.total_volume)
-		to_chat(user, "<span class='notice'>[src] is empty.</span>")
+		balloon_alert(user, "[src] is empty!")
 		return 1
 
 	if(target.reagents && !target.reagents.get_free_space())
-		to_chat(user, "<span class='notice'>[target] is full.</span>")
+		balloon_alert(user, "\the [target] is full!")
 		return 1
 
 	var/contained = reagentlist()
 	add_attack_logs(user,target,"Splashed with [src.name] containing [contained]")
-	user.visible_message("<span class='danger'>[target] has been splashed with something by [user]!</span>", "<span class = 'notice'>You splash the solution onto [target].</span>")
+	balloon_alert_visible("[target] is splashed with something by [user]!", "splashed the solution onto [target]")
 	reagents.splash(target, reagents.total_volume)
 	return 1
 
-/obj/item/weapon/reagent_containers/proc/self_feed_message(var/mob/user)
-	to_chat(user, "<span class='notice'>You eat \the [src]</span>")
+/obj/item/reagent_containers/proc/self_feed_message(mob/user)
+	balloon_alert(user, "you eat \the [src]")
 
-/obj/item/weapon/reagent_containers/proc/other_feed_message_start(var/mob/user, var/mob/target)
-	user.visible_message("<span class='warning'>[user] is trying to feed [target] \the [src]!</span>")
+/obj/item/reagent_containers/proc/other_feed_message_start(mob/user, mob/target)
+	balloon_alert_visible(user, "[user] is trying to feed [target] \the [src]!")
 
-/obj/item/weapon/reagent_containers/proc/other_feed_message_finish(var/mob/user, var/mob/target)
-	user.visible_message("<span class='warning'>[user] has fed [target] \the [src]!</span>")
+/obj/item/reagent_containers/proc/other_feed_message_finish(mob/user, mob/target)
+	balloon_alert_visible(user, "[user] has fed [target] \the [src]!")
 
-/obj/item/weapon/reagent_containers/proc/feed_sound(var/mob/user)
+/obj/item/reagent_containers/proc/feed_sound(mob/user)
 	return
 
-/obj/item/weapon/reagent_containers/proc/standard_feed_mob(var/mob/user, var/mob/target) // This goes into attack
+/obj/item/reagent_containers/proc/standard_feed_mob(mob/user, mob/target) // This goes into attack
 	if(!istype(target) || !target.can_feed())
 		return FALSE
 
 	if(!reagents || !reagents.total_volume)
-		to_chat(user, "<span class='notice'>\The [src] is empty.</span>")
+		balloon_alert(user, "\the [src] is empty.")
 		return TRUE
+
+	if(!target.consume_liquid_belly)
+		if(liquid_belly_check())
+			to_chat(user, span_infoplain("[user == target ? "you can't" : "\The [target] can't"] consume that, it contains something produced from a belly!"))
+			return FALSE
 
 	if(ishuman(target))
 		var/mob/living/carbon/human/H = target
 		if(!H.check_has_mouth())
-			to_chat(user, "Where do you intend to put \the [src]? [user == target ? "You don't" : "\The [H] doesn't"] have a mouth!")
+			balloon_alert(user, "[user == target ? "you don't" : "\the [H] doesn't"] have a mouth!")
 			return FALSE
 		var/obj/item/blocked = H.check_mouth_coverage()
 		if(blocked)
-			to_chat(user, "<span class='warning'>\The [blocked] is in the way!</span>")
+			balloon_alert(user, "\the [blocked] is in the way!")
 			return FALSE
 
 	user.setClickCooldown(user.get_attack_speed(src)) //puts a limit on how fast people can eat/drink things
-	if(user == target)	
+	SEND_SIGNAL(src, COMSIG_GLASS_DRANK, target, user)
+	if(user == target)
 		self_feed_message(user)
 		reagents.trans_to_mob(user, issmall(user) ? CEILING(amount_per_transfer_from_this/2, 1) : amount_per_transfer_from_this, CHEM_INGEST)
 		feed_sound(user)
 		return TRUE
-		
+
 	else
 		other_feed_message_start(user, target)
-		if(!do_mob(user, target))
+		if(!do_after(user, 3 SECONDS, target))
 			return FALSE
 		other_feed_message_finish(user, target)
 
@@ -127,18 +134,49 @@
 		feed_sound(user)
 		return TRUE
 
-/obj/item/weapon/reagent_containers/proc/standard_pour_into(var/mob/user, var/atom/target) // This goes into afterattack and yes, it's atom-level
+/obj/item/reagent_containers/proc/standard_pour_into(mob/user, atom/target) // This goes into afterattack and yes, it's atom-level
 	if(!target.is_open_container() || !target.reagents)
 		return 0
 
 	if(!reagents || !reagents.total_volume)
-		to_chat(user, "<span class='notice'>[src] is empty.</span>")
+		balloon_alert(usr, "[src] is empty!")
 		return 1
 
 	if(!target.reagents.get_free_space())
-		to_chat(user, "<span class='notice'>[target] is full.</span>")
+		balloon_alert(usr, "[target] is full!")
 		return 1
 
 	var/trans = reagents.trans_to(target, amount_per_transfer_from_this)
-	to_chat(user, "<span class='notice'>You transfer [trans] units of the solution to [target].</span>")
+	balloon_alert(user, "transfered [trans] units to [target]")
 	return 1
+
+/obj/item/reagent_containers/proc/liquid_belly_check()
+	if(!reagents)
+		return FALSE
+	for(var/datum/reagent/R in reagents.reagent_list)
+		if(R.from_belly)
+			return TRUE
+	return FALSE
+
+/obj/item/reagent_containers/extrapolator_act(mob/living/user, obj/item/extrapolator/extrapolator, dry_run = FALSE)
+	. = ..()
+	EXTRAPOLATOR_ACT_SET(., EXTRAPOLATOR_ACT_PRIORITY_ISOLATE)
+	var/datum/reagent/blood/blood = reagents.get_reagent(REAGENT_ID_BLOOD)
+	EXTRAPOLATOR_ACT_ADD_DISEASES(., blood?.get_diseases())
+
+/obj/item/reagent_containers/proc/attempt_changeling_test(obj/item/W,mob/user)
+	if(is_open_container() && W.is_hot())
+		var/datum/reagent/blood/B = reagents.get_reagent("blood")
+		if(B)
+			balloon_alert(user, "\The [W] burns the blood in \the [src].")
+			B.changling_blood_test(reagents)
+
+/obj/item/reagent_containers/click_alt(mob/user)
+	. = ..()
+	if(!Adjacent(user))
+		return
+	if(!max_transfer_amount)
+		return
+	var/N = tgui_input_number(user, "Amount per transfer from this: ([min_transfer_amount]-[max_transfer_amount])","[src]",amount_per_transfer_from_this,max_transfer_amount,min_transfer_amount)
+	if(N)
+		amount_per_transfer_from_this = N

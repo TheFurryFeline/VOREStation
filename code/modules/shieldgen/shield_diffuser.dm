@@ -4,7 +4,7 @@
 	description_info = "This device disrupts shields on directly adjacent tiles (in a + shaped pattern). They are commonly installed around exterior airlocks to prevent shields from blocking EVA access."
 	icon = 'icons/obj/machines/shielding.dmi'
 	icon_state = "fdiffuser_on"
-	circuit = /obj/item/weapon/circuitboard/shield_diffuser
+	circuit = /obj/item/circuitboard/shield_diffuser
 	use_power = USE_POWER_ACTIVE
 	idle_power_usage = 25		// Previously 100.
 	active_power_usage = 500	// Previously 2000
@@ -14,20 +14,17 @@
 	var/alarm = 0
 	var/enabled = 1
 
-/obj/machinery/shield_diffuser/Initialize()
+/obj/machinery/shield_diffuser/Initialize(mapload)
 	. = ..()
-	// TODO - Remove this bit once machines are converted to Initialize
-	if(ispath(circuit))
-		circuit = new circuit(src)
 	default_apply_parts()
 
 	var/turf/T = get_turf(src)
 	hide(!T.is_plating())
 
 //If underfloor, hide the cable^H^H diffuser
-/obj/machinery/shield_diffuser/hide(var/i)
+/obj/machinery/shield_diffuser/hide(i)
 	if(istype(loc, /turf))
-		invisibility = i ? 101 : 0
+		invisibility = i ? INVISIBILITY_ABSTRACT : INVISIBILITY_NONE
 	update_icon()
 
 /obj/machinery/shield_diffuser/hides_under_flooring()
@@ -42,7 +39,7 @@
 
 	if(!enabled)
 		return
-	for(var/direction in cardinal)
+	for(var/direction in GLOB.cardinal)
 		var/turf/simulated/shielded_tile = get_step(get_turf(src), direction)
 		for(var/obj/effect/shield/S in shielded_tile)
 			S.diffuse(5)
@@ -72,7 +69,7 @@
 	update_icon()
 	to_chat(user, "You turn \the [src] [enabled ? "on" : "off"].")
 
-/obj/machinery/shield_diffuser/attackby(var/obj/item/W, var/mob/user)
+/obj/machinery/shield_diffuser/attackby(obj/item/W, mob/user)
 	if(default_deconstruction_screwdriver(user, W))
 		return
 	if(default_deconstruction_crowbar(user, W))
@@ -81,13 +78,13 @@
 		return
 	return ..()
 
-/obj/machinery/shield_diffuser/proc/meteor_alarm(var/duration)
+/obj/machinery/shield_diffuser/proc/meteor_alarm(duration)
 	if(!duration)
 		return
 	alarm = round(max(alarm, duration))
 	update_icon()
 
-/obj/machinery/shield_diffuser/examine(var/mob/user)
+/obj/machinery/shield_diffuser/examine(mob/user)
 	. = ..()
 	. += "It is [enabled ? "enabled" : "disabled"]."
 	if(alarm)

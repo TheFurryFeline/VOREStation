@@ -7,7 +7,7 @@ Deployable items
 	name = "deployable"
 	desc = "deployable"
 	icon = 'icons/obj/objects.dmi'
-	req_access = list(access_security)//I'm changing this until these are properly tested./N
+	req_access = list(ACCESS_SECURITY)//I'm changing this until these are properly tested./N
 
 /obj/machinery/deployable/barrier
 	name = "deployable barrier"
@@ -19,16 +19,15 @@ Deployable items
 	var/health = 100.0
 	var/maxhealth = 100.0
 	var/locked = 0.0
-//	req_access = list(access_maint_tunnels)
+//	req_access = list(ACCESS_MAINT_TUNNELS)
 
-/obj/machinery/deployable/barrier/New()
-	..()
-
+/obj/machinery/deployable/barrier/Initialize(mapload)
+	. = ..()
 	icon_state = "barrier[locked]"
 
-/obj/machinery/deployable/barrier/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/deployable/barrier/attackby(obj/item/W as obj, mob/user as mob)
 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	if(istype(W, /obj/item/weapon/card/id/))
+	if(istype(W, /obj/item/card/id/))
 		if(allowed(user))
 			if	(emagged < 2.0)
 				locked = !locked
@@ -44,27 +43,27 @@ Deployable items
 				var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
 				s.set_up(2, 1, src)
 				s.start()
-				visible_message("<span class='warning'>BZZzZZzZZzZT</span>")
+				visible_message(span_warning("BZZzZZzZZzZT"))
 				return
 		return
 	else if(W.has_tool_quality(TOOL_WRENCH))
 		if(health < maxhealth)
 			health = maxhealth
 			emagged = 0
-			req_access = list(access_security)
-			visible_message("<span class='warning'>[user] repairs \the [src]!</span>")
+			req_access = list(ACCESS_SECURITY)
+			visible_message(span_warning("[user] repairs \the [src]!"))
 			return
 		else if(emagged > 0)
 			emagged = 0
-			req_access = list(access_security)
-			visible_message("<span class='warning'>[user] repairs \the [src]!</span>")
+			req_access = list(ACCESS_SECURITY)
+			visible_message(span_warning("[user] repairs \the [src]!"))
 			return
 		return
 	else
 		switch(W.damtype)
-			if("fire")
+			if(BURN)
 				health -= W.force * 0.75
-			if("brute")
+			if(BRUTE)
 				health -= W.force * 0.5
 		playsound(src, 'sound/weapons/smash.ogg', 50, 1)
 		CheckHealth()
@@ -75,15 +74,15 @@ Deployable items
 		explode()
 	return
 
-/obj/machinery/deployable/barrier/attack_generic(var/mob/user, var/damage, var/attack_verb)
-	visible_message("<span class='danger'>[user] [attack_verb] the [src]!</span>")
+/obj/machinery/deployable/barrier/attack_generic(mob/user, damage, attack_verb)
+	visible_message(span_danger("[user] [attack_verb] the [src]!"))
 	playsound(src, 'sound/weapons/smash.ogg', 50, 1)
 	user.do_attack_animation(src)
 	health -= damage
 	CheckHealth()
 	return
 
-/obj/machinery/deployable/barrier/take_damage(var/damage)
+/obj/machinery/deployable/barrier/take_damage(damage)
 	health -= damage
 	CheckHealth()
 	return
@@ -98,8 +97,9 @@ Deployable items
 			CheckHealth()
 			return
 
-/obj/machinery/deployable/barrier/emp_act(severity)
-	if(stat & (BROKEN|NOPOWER))
+/obj/machinery/deployable/barrier/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF || (stat & (BROKEN|NOPOWER)))
 		return
 	if(prob(50/severity))
 		locked = !locked
@@ -107,13 +107,13 @@ Deployable items
 		icon_state = "barrier[locked]"
 
 /obj/machinery/deployable/barrier/CanPass(atom/movable/mover, turf/target)//So bullets will fly over and stuff.
-	if(istype(mover) && mover.checkpass(PASSTABLE))
+	if(istype(mover) && mover.checkpass(PASSTABLE) && !isliving(mover)) // Check if living so teshari can't evade security barriers by pressing W
 		return TRUE
 	return FALSE
 
 /obj/machinery/deployable/barrier/proc/explode()
 
-	visible_message("<span class='danger'>[src] blows apart!</span>")
+	visible_message(span_danger("[src] blows apart!"))
 	var/turf/Tsec = get_turf(src)
 
 /*	var/obj/item/stack/rods/ =*/
@@ -127,7 +127,7 @@ Deployable items
 	if(src)
 		qdel(src)
 
-/obj/machinery/deployable/barrier/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/deployable/barrier/emag_act(remaining_charges, mob/user)
 	if(emagged == 0)
 		emagged = 1
 		LAZYCLEARLIST(req_access)
@@ -136,7 +136,7 @@ Deployable items
 		var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
 		s.set_up(2, 1, src)
 		s.start()
-		visible_message("<span class='warning'>BZZzZZzZZzZT</span>")
+		visible_message(span_warning("BZZzZZzZZzZT"))
 		return 1
 	else if(emagged == 1)
 		emagged = 2
@@ -144,5 +144,5 @@ Deployable items
 		var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
 		s.set_up(2, 1, src)
 		s.start()
-		visible_message("<span class='warning'>BZZzZZzZZzZT</span>")
+		visible_message(span_warning("BZZzZZzZZzZT"))
 		return 1

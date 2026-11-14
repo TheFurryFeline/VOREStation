@@ -21,7 +21,7 @@
 /obj/item/projectile/arc/Bump()
 	return
 
-/obj/item/projectile/arc/Initialize()
+/obj/item/projectile/arc/Initialize(mapload)
 	shadow = new(get_turf(src))
 	return ..()
 
@@ -166,8 +166,14 @@
 	icon_scale_y = 2
 	var/rad_power = 50
 
-/obj/item/projectile/arc/radioactive/on_impact(turf/T)
-	SSradiation.radiate(T, rad_power)
+/obj/item/projectile/arc/radioactive/on_impact(turf/T) //This means you can shoot a rad collector to generate power...Might need to be adjusted.
+	radiation_pulse(
+		T,
+		max_range = 3,
+		threshold = RAD_LIGHT_INSULATION,
+		chance = URANIUM_IRRADIATION_CHANCE,
+		strength = rad_power
+	)
 
 // Blob mortar
 /obj/item/projectile/arc/spore
@@ -184,13 +190,13 @@
 		attack_mob(L)
 
 	spawn()
-		T.visible_message("<span class='warning'>\The [src] covers \the [T] in a corrosive paste!</span>")
+		T.visible_message(span_warning("\The [src] covers \the [T] in a corrosive paste!"))
 		for(var/turf/simulated/floor/F in view(2, T))
 			spawn()
 				var/obj/effect/effect/water/splash = new(T)
 				splash.create_reagents(15)
-				splash.reagents.add_reagent("stomacid", 5)
-				splash.reagents.add_reagent("blood", 10,list("blood_colour" = "#ec4940"))
+				splash.reagents.add_reagent(REAGENT_ID_STOMACID, 5)
+				splash.reagents.add_reagent(REAGENT_ID_BLOOD, 10,list("blood_colour" = "#ec4940"))
 				splash.set_color()
 
 				splash.set_up(F, 2, 3)
@@ -198,5 +204,5 @@
 			var/obj/effect/decal/cleanable/chemcoating/acid = locate() in T
 			if(!istype(acid))
 				acid = new(T)
-				acid.reagents.add_reagent("stomacid", 5)
+				acid.reagents.add_reagent(REAGENT_ID_STOMACID, 5)
 				acid.update_icon()

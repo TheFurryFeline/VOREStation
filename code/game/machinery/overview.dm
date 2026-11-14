@@ -1,14 +1,13 @@
-//#define AMAP
+//# define AMAP
 /obj/machinery/computer/security/verb/station_map()
 	set name = ".map"
 	set category = "Object"
 	set src in view(1)
-	usr.set_machine(src)
 	if(!mapping)	return
 	log_game("[usr]([usr.key]) used station map L[z] in [src.loc.loc]")
 	drawmap(usr)
 
-/obj/machinery/computer/security/proc/drawmap(var/mob/user as mob)
+/obj/machinery/computer/security/proc/drawmap(mob/user as mob)
 
 	var/icx = round(world.maxx/16) + 1
 	var/icy = round(world.maxy/16) + 1
@@ -138,7 +137,7 @@
 			var/icon/I = imap[1+(ix + icx*iy)*2]
 			var/icon/I2 = imap[2+(ix + icx*iy)*2]
 
-			//to_world("icon: \icon[I][bicon(I)]")
+			//to_world("icon: [icon2html(I)]")
 
 			I.DrawBox(colour, rx, ry, rx+1, ry+1)
 
@@ -149,11 +148,11 @@
 	user.mapobjs = list()
 
 	for(var/i=0; i<icount;i++)
-		var/obj/screen/H = new /obj/screen()
+		var/atom/movable/screen/H = new /atom/movable/screen()
 
 		H.screen_loc = "[5 + i%icx],[6+ round(i/icx)]"
 
-		//to_world("\icon[I][bicon(I)] at [H.screen_loc]")
+		//to_world("[icon2html(I)] at [H.screen_loc]")
 
 		H.name = (i==0)?"maprefresh":"map"
 
@@ -266,7 +265,7 @@
 			//to_world("trying [ix],[iy] : [ix+icx*iy]")
 			var/icon/I = imap[1+(ix + icx*iy)]
 
-			//to_world("icon: \icon[I][bicon(I)]")
+			//to_world("icon: [icon2html(I)]")
 
 			I.DrawBox(colour, rx, ry, rx, ry)
 
@@ -275,11 +274,11 @@
 	user.mapobjs = list()
 
 	for(var/i=0; i<icount;i++)
-		var/obj/screen/H = new /obj/screen()
+		var/atom/movable/screen/H = new /atom/movable/screen()
 
 		H.screen_loc = "[5 + i%icx],[6+ round(i/icx)]"
 
-		//to_world("\icon[I][bicon(I)] at [H.screen_loc]")
+		//to_world("[icon2html(I)] at [H.screen_loc]")
 
 		H.name = (i==0)?"maprefresh":"map"
 
@@ -328,8 +327,7 @@
 
 /mob/proc/clearmap()
 	src.client.screen -= src.mapobjs
-	for(var/obj/screen/O in mapobjs)
+	for(var/atom/movable/screen/O in mapobjs)
 		qdel(O)
 
 	mapobjs = null
-	src.unset_machine()

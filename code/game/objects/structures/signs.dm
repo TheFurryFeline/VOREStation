@@ -6,6 +6,7 @@
 	plane = OBJ_PLANE //VOREStation Edit
 	layer = ABOVE_JUNK_LAYER //VOREStation Edit
 	w_class = ITEMSIZE_NORMAL
+	flags = WALL_ITEM
 
 /obj/structure/sign/ex_act(severity)
 	qdel(src)
@@ -17,7 +18,7 @@
 	else ..()
 
 /obj/structure/sign/proc/unfasten(mob/user)
-	user.visible_message(SPAN_NOTICE("\The [user] unfastens \the [src]."), SPAN_NOTICE("You unfasten \the [src]."))
+	user.visible_message(span_notice("\The [user] unfastens \the [src]."), span_notice("You unfasten \the [src]."))
 	var/obj/item/sign/S = new(src.loc)
 	S.name = name
 	S.desc = desc
@@ -37,7 +38,7 @@
 
 /obj/item/sign/attackby(obj/item/tool as obj, mob/user as mob)	//construction
 	if(tool.has_tool_quality(TOOL_SCREWDRIVER) && isturf(user.loc))
-		var/direction = tgui_input_list(usr, "In which direction?", "Select direction.", list("North", "East", "South", "West", "Cancel"))
+		var/direction = tgui_input_list(user, "In which direction?", "Select direction.", list("North", "East", "South", "West", "Cancel"))
 		if(direction == "Cancel") return
 		var/target_type = original_type || /obj/structure/sign
 		var/obj/structure/sign/S = new target_type(user.loc)
@@ -127,7 +128,7 @@
 	name = "\improper WARNING"
 	icon_state = "securearea"
 
-/obj/structure/sign/warning/Initialize()
+/obj/structure/sign/warning/Initialize(mapload)
 	. = ..()
 	desc = "A warning sign which reads '[name]'."
 
@@ -184,7 +185,7 @@
 	name = "\improper LETHAL TURRETS"
 	icon_state = "turrets"
 
-/obj/structure/sign/warning/lethal_turrets/Initialize()
+/obj/structure/sign/warning/lethal_turrets/Initialize(mapload)
 	. = ..()
 	desc += " Enter at own risk!."
 
@@ -336,7 +337,7 @@
 //disabled this proc, it serves no purpose except to overwrite the description that already exists. may have been intended for making your own signs?
 //seems to defeat the point of having a generic directional sign that mappers could edit and use in POIs? left it here in case something breaks.
 /*
-/obj/structure/sign/directions/Initialize()
+/obj/structure/sign/directions/Initialize(mapload)
 	. = ..()
 	desc = "A direction sign, pointing out the way to \the [src]."
 */
@@ -969,13 +970,13 @@
 	layer = 5
 
 /obj/structure/sign/hostilefauna
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "\improper Caution: Hostile fauna"
 	desc = "This sign warns of hostile life forms in the area."
 	icon_state = "h_fauna"
 
 /obj/structure/sign/graffiti/pisoff
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "\improper PIS OFF"
 	desc = "This sign bears some rather rude looking graffiti instructing you to PIS OFF."
 	icon_state = "pisoff"
@@ -983,103 +984,109 @@
 //Eris signs
 
 /obj/structure/sign/ironhammer
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "Ironhammer Security"
 	desc = "Sign depicts the symbolic of Ironhammer Security, the largest security provider within Trade Union of Hansa."
 	icon_state = "ironhammer"
 
 /obj/structure/sign/atmos_co2
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "CO2 warning sign"
 	desc = "WARNING! CO2 flow tube. Ensure the flow is disengaged before working."
 	icon_state = "atmos_co2"
 
 /obj/structure/sign/atmos_n2o
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "N2O warning sign"
 	desc = "WARNING! N2O flow tube. Ensure the flow is disengaged before working."
 	icon_state = "atmos_n2o"
 
 /obj/structure/sign/atmos_plasma
-	icon = 'icons/obj/decals_vr.dmi'
-	name = "Plasma warning sign"
-	desc = "WARNING! Plasma flow tube. Ensure the flow is disengaged before working."
+	icon = 'icons/obj/decals.dmi'
+	name = "Phoron warning sign"
+	desc = "WARNING! Phoron flow tube. Ensure the flow is disengaged before working."
 	icon_state = "atmos_plasma"
 
 /obj/structure/sign/atmos_n2
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "N2 warning sign"
 	desc = "WARNING! N2 flow tube. Ensure the flow is disengaged before working."
 	icon_state = "atmos_n2"
 
 /obj/structure/sign/atmos_o2
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "O2 warning sign"
 	desc = "WARNING! O2 flow tube. Ensure the flow is disengaged before working."
 	icon_state = "atmos_o2"
 
+/obj/structure/sign/atmos_ch4
+	icon = 'icons/obj/decals.dmi'
+	name = "CH4 warning sign"
+	desc = "WARNING! CH4 flow tube. Ensure the flow is disengaged before working."
+	icon_state = "atmos_ch4"
+
 /obj/structure/sign/atmos_air
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "Air warning sign"
 	desc = "WARNING! Air flow tube. Ensure the flow is disengaged before working."
 	icon_state = "atmos_air"
 
 /obj/structure/sign/atmos_waste
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "Atmos waste warning sign"
 	desc = "WARNING! Waste flow tube. Ensure the flow is disengaged before working."
 	icon_state = "atmos_waste"
 
 /obj/structure/sign/deck1
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	desc = "A silver sign which reads 'DECK I'."
 	name = "DECK I"
 	icon_state = "deck1"
 
 /obj/structure/sign/deck2
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	desc = "A silver sign which reads 'DECK II'."
 	name = "DECK II"
 	icon_state = "deck2"
 
 /obj/structure/sign/deck3
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	desc = "A silver sign which reads 'DECK III'."
 	name = "DECK III"
 	icon_state = "deck3"
 
 /obj/structure/sign/deck4
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	desc = "A silver sign which reads 'DECK IV'."
 	name = "DECK IV"
 	icon_state = "deck4"
 
 /obj/structure/sign/sec1
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	desc = "A silver sign which reads 'SECTION I'."
 	name = "SECTION I"
 	icon_state = "sec1"
 
 /obj/structure/sign/sec2
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	desc = "A silver sign which reads 'SECTION II'."
 	name = "SECTION II"
 	icon_state = "sec2"
 
 /obj/structure/sign/sec3
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	desc = "A silver sign which reads 'SECTION III'."
 	name = "SECTION III"
 	icon_state = "sec3"
 
 /obj/structure/sign/sec4
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	desc = "A silver sign which reads 'SECTION IV'."
 	name = "SECTION IV"
 	icon_state = "sec4"
 
 /obj/structure/sign/nanotrasen
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "\improper NanoTrasen"
 	desc = "An old metal sign which reads 'NanoTrasen'."
 	icon_state = "NT"
@@ -1087,7 +1094,7 @@
 
 // Eris standards compliant hazards
 /obj/structure/sign/signnew
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 
 /obj/structure/sign/signnew/biohazard
 	name = "BIOLOGICAL HAZARD"
@@ -1167,7 +1174,7 @@
 //Eris departments
 
 /obj/structure/sign/department
-	icon = 'icons/obj/decals_vr.dmi'
+	icon = 'icons/obj/decals.dmi'
 	name = "department sign"
 	desc = "Sign of some important ship compartment."
 
@@ -1493,8 +1500,9 @@
 /obj/structure/sign/calendar/examine(mob/user)
 	. = ..()
 	. += "The calendar shows that the date is [stationdate2text()]."
-	if (Holiday.len)
-		. += "Today is <strong><span class='green'>[english_list(Holiday)]</span></strong>."
+	if(!isnull(GLOB.holidays))
+		var/datum/holiday/holiday = GLOB.holidays[1]
+		. += "Today is " + span_bold(span_green(holiday.name)) + "."
 
 /obj/structure/sign/explosive
 	name = "\improper HIGH EXPLOSIVES sign"
@@ -1534,17 +1542,17 @@
 	icon_state = "flag"
 	flagtype = /obj/item/flag
 
-/obj/item/flag/afterattack(var/atom/A, var/mob/user, var/adjacent, var/clickparams)
+/obj/item/flag/afterattack(atom/A, mob/user, adjacent, clickparams)
 	if (!adjacent)
 		return
 
 	if((!iswall(A) && !istype(A, /obj/structure/window)) || !isturf(user.loc))
-		to_chat(user, SPAN_WARNING("You can't place this here!"))
+		to_chat(user, span_warning("You can't place this here!"))
 		return
 
 	var/placement_dir = get_dir(user, A)
-	if (!(placement_dir in cardinal))
-		to_chat(user, SPAN_WARNING("You must stand directly in front of the location you wish to place that on."))
+	if (!(placement_dir in GLOB.cardinal))
+		to_chat(user, span_warning("You must stand directly in front of the location you wish to place that on."))
 		return
 
 	var/obj/structure/sign/flag/P = new(user.loc)
@@ -1613,25 +1621,25 @@
 
 /obj/structure/sign/flag/unfasten(mob/user)
 	if(!ripped)
-		user.visible_message(SPAN_NOTICE("\The [user] unfastens \the [src] and folds it back up."), SPAN_NOTICE("You unfasten \the [src] and fold it back up."))
+		user.visible_message(span_notice("\The [user] unfastens \the [src] and folds it back up."), span_notice("You unfasten \the [src] and fold it back up."))
 		var/obj/item/flag/F = new flagtype(get_turf(user))
 		user.put_in_hands(F)
 	else
-		user.visible_message(SPAN_NOTICE("\The [user] unfastens the tattered remnants of \the [src]."), SPAN_NOTICE("You unfasten the tattered remains of \the [src]."))
+		user.visible_message(span_notice("\The [user] unfastens the tattered remnants of \the [src]."), span_notice("You unfasten the tattered remains of \the [src]."))
 	if(linked_flag)
 		qdel(linked_flag) //otherwise you're going to get weird duping nonsense
 	qdel(src)
 
 /obj/structure/sign/flag/attack_hand(mob/user)
-	if(alert("Do you want to rip \the [src] from its place?","You think...","Yes","No") == "Yes")
+	if(tgui_alert(user, "Do you want to rip \the [src] from its place?","You think...",list("Yes","No")) == "Yes")
 		if(!Adjacent(user)) //Cannot bring up dialogue and walk away
 			return FALSE
-		visible_message(SPAN_WARNING("\The [user] rips \the [src] in a single, decisive motion!" ))
+		visible_message(span_warning("\The [user] rips \the [src] in a single, decisive motion!" ))
 		playsound(src.loc, 'sound/items/poster_ripped.ogg', 100, 1)
 		add_fingerprint(user)
 		rip()
 
-/obj/structure/sign/flag/proc/rip(var/rip_linked = TRUE)
+/obj/structure/sign/flag/proc/rip(rip_linked = TRUE)
 	var/icon/I = new('icons/obj/flags.dmi', icon_state)
 	var/icon/mask = new('icons/obj/flags.dmi', "ripped")
 	I.AddAlphaMask(mask)
@@ -1644,11 +1652,11 @@
 
 /obj/structure/sign/flag/attackby(obj/item/W, mob/user)
 	..()
-	if(istype(W, /obj/item/weapon/flame/lighter) || istype(W, /obj/item/weapon/weldingtool))
-		visible_message(SPAN_WARNING("\The [user] starts to burn \the [src] down!"))
-		if(!do_after(user, 2 SECONDS))
+	if(istype(W, /obj/item/flame/lighter) || istype(W, /obj/item/weldingtool))
+		visible_message(span_warning("\The [user] starts to burn \the [src] down!"))
+		if(!do_after(user, 2 SECONDS, target = src))
 			return FALSE
-		visible_message(SPAN_WARNING("\The [user] burns \the [src] down!"))
+		visible_message(span_warning("\The [user] burns \the [src] down!"))
 		playsound(src.loc, 'sound/items/cigs_lighters/cig_light.ogg', 100, 1)
 		new /obj/effect/decal/cleanable/ash(src.loc)
 		if(linked_flag)
@@ -1833,7 +1841,7 @@
 	desc = "The red flag of the Five Arrows."
 	description_fluff = "The Five Arrows is an independent government entity that seceded from the Solar Confederate Government in 2570, in response to perceived \
 	failures in aiding the Sagittarius Heights during the Skathari Incursion. The success of the government in achieving effective local defense and prosperity has \
-	since attracted the membership of Kauq'xum, a remote Skrellian colony. \The Five Arrows formed the model for SolGov's own semi-autonomous \"Regional Blocs\"."
+	since attracted the membership of Kauq'xum, a remote Skrellian colony. The Five Arrows formed the model for SolGov's own semi-autonomous \"Regional Blocs\"."
 	icon_state = "fivearrows"
 	flagtype = /obj/item/flag/fivearrows
 
@@ -1848,7 +1856,7 @@
 	desc = "The red flag of the Five Arrows."
 	description_fluff = "The Five Arrows is an independent government entity that seceded from the Solar Confederate Government in 2570, in response to perceived \
 	failures in aiding the Sagittarius Heights during the Skathari Incursion. The success of the government in achieving effective local defense and prosperity has \
-	since attracted the membership of Kauq'xum, a remote Skrellian colony. \The Five Arrows formed the model for SolGov's own semi-autonomous \"Regional Blocs\"."
+	since attracted the membership of Kauq'xum, a remote Skrellian colony. The Five Arrows formed the model for SolGov's own semi-autonomous \"Regional Blocs\"."
 	flag_path = "fivearrows"
 
 /obj/item/flag/fivearrows/l

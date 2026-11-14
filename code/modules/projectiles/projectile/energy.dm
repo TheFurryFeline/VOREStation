@@ -21,12 +21,12 @@
 	hitsound_wall = null
 	damage = 5
 	range = 15 //if the shell hasn't hit anything after travelling this far it just explodes.
-	var/flash_range = 0
+	var/flash_range = 1
 	var/brightness = 7
 	var/light_colour = "#ffffff"
 	hud_state = "grenade_dummy"
 
-/obj/item/projectile/energy/flash/on_impact(var/atom/A)
+/obj/item/projectile/energy/flash/on_impact(atom/A)
 	var/turf/T = flash_range? src.loc : get_turf(A)
 	if(!istype(T)) return
 
@@ -46,7 +46,7 @@
 
 	//snap pop
 	playsound(src, 'sound/effects/snap.ogg', 50, 1)
-	src.visible_message("<span class='warning'>\The [src] explodes in a bright flash!</span>")
+	src.visible_message(span_warning("\The [src] explodes in a bright flash!"))
 
 	var/datum/effect/effect/system/spark_spread/sparks = new /datum/effect/effect/system/spark_spread()
 	sparks.set_up(2, 1, T)
@@ -59,18 +59,18 @@
 /obj/item/projectile/energy/flash/flare
 	fire_sound = 'sound/weapons/grenade_launcher.ogg'
 	damage = 10
-	flash_range = 1
+	flash_range = 2
 	brightness = 15
 	flash_strength = 20
 	hud_state = "grenade_dummy"
 
-/obj/item/projectile/energy/flash/flare/on_impact(var/atom/A)
+/obj/item/projectile/energy/flash/flare/on_impact(atom/A)
 	light_colour = pick("#e58775", "#ffffff", "#90ff90", "#a09030")
 
 	..() //initial flash
 
 	//residual illumination
-	new /obj/effect/effect/smoke/illumination(src.loc, rand(190,240) SECONDS, range=8, power=3, color=light_colour) //same lighting power as flare
+	new /obj/effect/effect/smoke/illumination(loc, rand(190,240) SECONDS, 8, 3, light_colour) //same lighting power as flare
 
 /obj/item/projectile/energy/electrode
 	name = "electrode"
@@ -83,10 +83,6 @@
 	light_color = "#FFFFFF"
 	hud_state = "taser"
 	//Damage will be handled on the MOB side, to prevent window shattering.
-
-/obj/item/projectile/energy/electrode/strong
-	agony = 55
-	hud_state = "taser"
 
 /obj/item/projectile/energy/electrode/stunshot
 	name = "stunshot"
@@ -241,9 +237,9 @@
 	vacuum_traversal = 0	//Projectile disappears in empty space
 	hud_state = "plasma_rifle_blast"
 
-/obj/item/projectile/energy/plasmastun/proc/bang(var/mob/living/carbon/M)
+/obj/item/projectile/energy/plasmastun/proc/bang(mob/living/carbon/M)
 
-	to_chat(M, "<span class='danger'>You hear a loud roar.</span>")
+	to_chat(M, span_danger("You hear a loud roar."))
 	playsound(src, 'sound/effects/bang.ogg', 50, 1)
 	var/ear_safety = 0
 	ear_safety = M.get_ear_protection()
@@ -257,23 +253,23 @@
 		M.ear_damage += rand(1, 10)
 		M.ear_deaf = max(M.ear_deaf,15)
 	if (M.ear_damage >= 15)
-		to_chat(M, "<span class='danger'>Your ears start to ring badly!</span>")
+		to_chat(M, span_danger("Your ears start to ring badly!"))
 		if (prob(M.ear_damage - 5))
-			to_chat(M, "<span class='danger'>You can't hear anything!</span>")
+			to_chat(M, span_danger("You can't hear anything!"))
 			M.sdisabilities |= DEAF
 	else
 		if (M.ear_damage >= 5)
-			to_chat(M, "<span class='danger'>Your ears start to ring!</span>")
+			to_chat(M, span_danger("Your ears start to ring!"))
 	M.update_icons() //Just to apply matrix transform for laying asap
 
-/obj/item/projectile/energy/plasmastun/on_hit(var/atom/target)
+/obj/item/projectile/energy/plasmastun/on_hit(atom/target)
 	bang(target)
 	. = ..()
 
 /obj/item/projectile/energy/blue_pellet
 	name = "suppressive pellet"
 	icon_state = "blue_pellet"
-	fire_sound = 'sound/weapons/Laser4.ogg'
+	fire_sound = 'sound/weapons/laser5.ogg'
 	damage = 5
 	armor_penetration = 75
 	pass_flags = PASSTABLE | PASSGLASS | PASSGRILLE
@@ -291,24 +287,20 @@
 	icon_state = "phase"
 	range = 6
 	damage = 5
-	SA_bonus_damage = 45	// 50 total on animals
-	SA_vulnerability = SA_ANIMAL
+	mob_bonus_damage = 45
 	hud_state = "laser_heat"
 
 /obj/item/projectile/energy/phase/light
 	range = 4
-	SA_bonus_damage = 35	// 40 total on animals
 	hud_state = "laser_heat"
 
 /obj/item/projectile/energy/phase/heavy
 	range = 8
-	SA_bonus_damage = 55	// 60 total on animals
 	hud_state = "laser_heat"
 
 /obj/item/projectile/energy/phase/heavy/cannon
 	range = 10
 	damage = 15
-	SA_bonus_damage = 60	// 75 total on animals
 	hud_state = "laser_heat"
 
 /obj/item/projectile/energy/electrode/strong
@@ -319,10 +311,6 @@
 	flash_strength = 10
 	hud_state = "taser"
 
-/obj/item/projectile/energy/flash
-	flash_range = 1
-	hud_state = "grenade_dummy"
-
 /obj/item/projectile/energy/flash/strong
 	name = "chemical shell"
 	icon_state = "bullet"
@@ -332,6 +320,15 @@
 	brightness = 15
 	hud_state = "grenade_dummy"
 
-/obj/item/projectile/energy/flash/flare
-	flash_range = 2
-	hud_state = "grenade_dummy"
+/obj/item/projectile/energy/anomaly
+	name = "anomaly emitter projectile"
+	light_color = "#be008f"
+	icon_state = "purple_laser"
+	damage = 5
+	speed = 1.6
+	var/particle_type
+
+/obj/item/projectile/energy/anomaly/Initialize(mapload, particle)
+	. = ..()
+	if(particle)
+		particle_type = particle

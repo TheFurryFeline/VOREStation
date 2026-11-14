@@ -5,12 +5,11 @@
 //Blood levels. These are percentages based on the species blood_volume var.
 //Retained for archival/reference purposes - KK
 /*
-var/const/BLOOD_VOLUME_SAFE =    85
-var/const/BLOOD_VOLUME_OKAY =    75
-var/const/BLOOD_VOLUME_BAD =     60
-var/const/BLOOD_VOLUME_SURVIVE = 40
+BLOOD_VOLUME_SAFE =    85
+BLOOD_VOLUME_OKAY =    75
+BLOOD_VOLUME_BAD =     60
+BLOOD_VOLUME_SURVIVE = 40
 */
-var/const/CE_STABLE_THRESHOLD = 0.5
 
 /mob/living/carbon/human/var/datum/reagents/vessel // Container for blood and BLOOD ONLY. Do not transfer other chems here.
 /mob/living/carbon/human/var/var/pale = 0          // Should affect how mob sprite is drawn, but currently doesn't.
@@ -20,7 +19,7 @@ var/const/CE_STABLE_THRESHOLD = 0.5
  * Also called by inject_blood as fallback with amt = injected_amount
  * MUST be followed by calling fixblood() allways.
 ***/
-/mob/living/carbon/human/proc/make_blood(var/amt = 0)
+/mob/living/carbon/human/proc/make_blood(amt = 0)
 
 	if(vessel)
 		return
@@ -35,26 +34,30 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 		return
 
 	if(!amt)
-		vessel.add_reagent("blood",species.blood_volume)
+		vessel.add_reagent(REAGENT_ID_BLOOD,species.blood_volume)
 	else
-		vessel.add_reagent("blood", clamp(amt, 1, species.blood_volume))
+		vessel.add_reagent(REAGENT_ID_BLOOD, clamp(amt, 1, species.blood_volume))
 
 
 //Resets blood data
 /mob/living/carbon/human/proc/fixblood()
 	for(var/datum/reagent/blood/B in vessel.reagent_list)
-		if(B.id == "blood")
+		if(B.id == REAGENT_ID_BLOOD)
 			B.data = list(	"donor"=src,"viruses"=null,"species"=species.name,"blood_DNA"=dna.unique_enzymes,"blood_colour"= species.get_blood_colour(src),"blood_type"=dna.b_type,	\
-							"resistances"=null,"trace_chem"=null, "virus2" = null, "antibodies" = list(), "blood_name" = species.get_blood_name(src))
+							"resistances"=null,"trace_chem"=null, "virus2" = null, REAGENT_ID_ANTIBODIES = list(), "blood_name" = species.get_blood_name(src))
 
 			if(isSynthetic())
 				B.data["species"] = "synthetic"
 
+			B.data["changeling"] = (!isnull(mind) && is_changeling(mind)) || species?.ambulant_blood || HAS_TRAIT(src, TRAIT_REDSPACE_CORRUPTED)
 			B.color = B.data["blood_colour"]
 			B.name = B.data["blood_name"]
 
 // Takes care blood loss and regeneration
 /mob/living/carbon/human/handle_blood()
+	if(SEND_SIGNAL(src, COMSIG_CHECK_FOR_GODMODE) & COMSIG_GODMODE_CANCEL)
+		return
+
 	if(inStasisNow())
 		return
 
@@ -63,7 +66,7 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 
 	if(stat != DEAD && bodytemperature >= 170)	//Dead or cryosleep people do not pump the blood.
 
-		var/blood_volume_raw = vessel.get_reagent_amount("blood")
+		var/blood_volume_raw = vessel.get_reagent_amount(REAGENT_ID_BLOOD)
 		var/blood_volume = round((blood_volume_raw/species.blood_volume)*100) // Percentage.
 
 		//Blood regeneration if there is some space
@@ -85,7 +88,10 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 		if(species && should_have_organ(O_HEART))
 			var/obj/item/organ/internal/heart/heart = internal_organs_by_name[O_HEART]
 
-			if(!heart)
+			if(has_modifier_of_type(/datum/modifier/bloodpump))
+				blood_volume_raw *= 1
+				blood_volume *= 1
+			else if(!heart)
 				blood_volume_raw = 0
 				blood_volume = 0
 			else if(heart.is_broken())
@@ -105,9 +111,6 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 		if(CE_STABLE in chem_effects)
 			dmg_coef = 0.5
 			threshold_coef = 0.75
-//	These are Bay bits, do some sort of calculation.
-//			dmg_coef = min(1, 10/chem_effects[CE_STABLE]) //TODO: add effect for increased damage
-//			threshold_coef = min(dmg_coef / CE_STABLE_THRESHOLD, 1)
 
 		if(blood_volume_raw >= species.blood_volume*species.blood_level_safe)
 			if(pale)
@@ -148,6 +151,7 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 				update_icons_body()
 			eye_blurry = max(eye_blurry,6)
 			Paralyse(3)
+			Sleeping(3)
 			adjustToxLoss(3 * dmg_coef)
 			adjustOxyLoss(75 * dmg_coef) // 15 more than dexp fixes (also more than dex+dexp+tricord)
 
@@ -159,99 +163,174 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 				adjust_nutrition(-3)
 
 		//Bleeding out
-		var/blood_max = 0
-		var/blood_loss_divisor = 30.01	//lower factor = more blood loss
+		caculate_bloodloss_and_bleed(bleed = TRUE)
 
-		// Some species bleed out differently
-		blood_loss_divisor /= species.bloodloss_rate
+///Calculates our bloodloss divisor and returns what it is.
+/mob/living/carbon/human/proc/calculate_bloodloss_divisor()
+	var/blood_loss_divisor = 30.01	//lower factor = more blood loss
 
-		// Some modifiers can make bleeding better or worse.  Higher multiplers = more bleeding.
-		var/blood_loss_modifier_multiplier = 1.0
-		for(var/datum/modifier/M in modifiers)
-			if(!isnull(M.bleeding_rate_percent))
-				blood_loss_modifier_multiplier += (M.bleeding_rate_percent - 1.0)
+	// Some species bleed out differently
+	blood_loss_divisor /= species.bloodloss_rate
 
-		blood_loss_divisor /= blood_loss_modifier_multiplier
+	// Some modifiers can make bleeding better or worse.  Higher multiplers = more bleeding.
+	var/blood_loss_modifier_multiplier = 1.0
+	for(var/datum/modifier/M in modifiers)
+		if(!isnull(M.bleeding_rate_percent))
+			blood_loss_modifier_multiplier += (M.bleeding_rate_percent - 1.0)
 
+	blood_loss_divisor /= blood_loss_modifier_multiplier
+	return blood_loss_divisor
 
-		//This 30 is the "baseline" of a cut in the "vital" regions (head and torso).
-		for(var/obj/item/organ/external/temp in bad_external_organs)
-			if(!(temp.status & ORGAN_BLEEDING) || (temp.robotic >= ORGAN_ROBOT))
-				continue
-			for(var/datum/wound/W in temp.wounds)
-				if(W.bleeding())
-					if(W.damage_type == PIERCE) //gunshots and spear stabs bleed more
-						blood_loss_divisor = max(blood_loss_divisor - 5, 1)
-					else if(W.damage_type == BRUISE) //bruises bleed less
-						blood_loss_divisor = max(blood_loss_divisor + 5, 1)
-					//the farther you get from those vital regions, the less you bleed
-					//depending on how dangerous bleeding turns out to be, it might be better to only apply the reduction to hands and feet
-					if((temp.organ_tag == BP_L_ARM) || (temp.organ_tag == BP_R_ARM) || (temp.organ_tag == BP_L_LEG) || (temp.organ_tag == BP_R_LEG))
-						blood_loss_divisor = max(blood_loss_divisor + 5, 1)
-					else if((temp.organ_tag == BP_L_HAND) || (temp.organ_tag == BP_R_HAND) || (temp.organ_tag == BP_L_FOOT) || (temp.organ_tag == BP_R_FOOT))
-						blood_loss_divisor = max(blood_loss_divisor + 10, 1)
-					if(CE_STABLE in chem_effects)	//Inaprov slows bloodloss
-						blood_loss_divisor = max(blood_loss_divisor + 10, 1)
-					if(temp.applied_pressure)
-						if(ishuman(temp.applied_pressure))
-							var/mob/living/carbon/human/H = temp.applied_pressure
-							H.bloody_hands(src, 0)
-						//somehow you can apply pressure to every wound on the organ at the same time
-						//you're basically forced to do nothing at all, so let's make it pretty effective
-						var/min_eff_damage = max(0, W.damage - 10) / (blood_loss_divisor / 5) //still want a little bit to drip out, for effect
-						blood_max += max(min_eff_damage, W.damage - 30) / blood_loss_divisor
-					else
-						blood_max += W.damage / blood_loss_divisor
+///Calculates how much blood we should lose from our wounds and makes us bleed that amount if bleed is TRUE
+///ARGS:
+/// bleed: If we bleed or not while checking. DEFAULT: True
+/// organ_to_check: The organ we want to check. If we don't, it checks ALL the bad organs.
+/// count_internal: Internal bleeding counts towards our bloodloss max. DEFAULT: False
+/// count_external: External bleeding counts towards our bloodloss max. DEFAULT: True
 
-			if(temp.open)
-				blood_max += 2 //Yer stomach is cut open
+/mob/living/carbon/human/proc/caculate_bloodloss_and_bleed(bleed = TRUE, obj/item/organ/external/organ_to_check, count_internal = FALSE, count_external = TRUE)
+	var/total_blood_loss = 0
+	var/blood_max = 0
+	var/blood_loss_divisor = calculate_bloodloss_divisor()
+	var/list/organs_to_check = list()
+
+	if(organ_to_check)
+		organs_to_check += organ_to_check
+	else
+		organs_to_check = bad_external_organs
+	//This 30 is the "baseline" of a cut in the "vital" regions (head and torso).
+	for(var/obj/item/organ/external/temp in organs_to_check)
+
+		///First, we make sure it's not robotic.
+		if(temp.robotic >= ORGAN_ROBOT)
+			continue
+
+		///Second, we process internal bleeding.
+		if(bleed || count_internal)
+			for(var/datum/wound/internal_bleeding/W in temp.wounds)
+				var/internal_blood_to_lose = calculate_internal_bloodloss(W, applied_pressure = temp.applied_pressure)
+				if(count_internal)
+					total_blood_loss += internal_blood_to_lose
+				if(bleed)
+					remove_blood(internal_blood_to_lose)
+				if(prob(1))
+					custom_pain("You feel a stabbing pain in your [temp.name]!", 50)
+
+		///Thirdly, we check to see if the limb is bleeding EXTERNALLY
+		if(!(temp.status & ORGAN_BLEEDING))
+			continue
+		///Finally, we process external wounds.
+		for(var/datum/wound/W in temp.wounds)
+			if(W.bleeding())
+				var/temp_bld = blood_loss_divisor
+				if(W.damage_type == PIERCE) //gunshots and spear stabs bleed more
+					temp_bld = max(temp_bld - 5, 1)
+				else if(W.damage_type == BRUISE) //bruises bleed less
+					temp_bld = max(temp_bld + 5, 1)
+				//the farther you get from those vital regions, the less you bleed
+				//depending on how dangerous bleeding turns out to be, it might be better to only apply the reduction to hands and feet
+				if((temp.organ_tag == BP_L_ARM) || (temp.organ_tag == BP_R_ARM) || (temp.organ_tag == BP_L_LEG) || (temp.organ_tag == BP_R_LEG))
+					temp_bld = max(temp_bld + 5, 1)
+				else if((temp.organ_tag == BP_L_HAND) || (temp.organ_tag == BP_R_HAND) || (temp.organ_tag == BP_L_FOOT) || (temp.organ_tag == BP_R_FOOT))
+					temp_bld = max(temp_bld + 10, 1)
+				if(CE_STABLE in chem_effects)	//Inaprov slows bloodloss
+					temp_bld = max(temp_bld + 10, 1)
+				if(temp.applied_pressure)
+					if(ishuman(temp.applied_pressure))
+						var/mob/living/carbon/human/H = temp.applied_pressure
+						H.bloody_hands(src, 0)
+					//somehow you can apply pressure to every wound on the organ at the same time
+					//you're basically forced to do nothing at all, so let's make it pretty effective
+					var/min_eff_damage = max(0, W.damage - 10) / (temp_bld / 5) //still want a little bit to drip out, for effect
+					blood_max += max(min_eff_damage, W.damage - 30) / temp_bld
+				else
+					blood_max += W.damage / temp_bld
+
+		if(temp.open)
+			blood_max += 2 //Yer stomach is cut open
+	if(bleed)
+		blood_max = round(blood_max, 0.1)
 		drip(blood_max)
+		total_blood_loss += blood_max
+	return round(total_blood_loss, 0.1)
+
+///Calculates how much blood we should lose from an internal wound.
+/mob/living/carbon/human/proc/calculate_internal_bloodloss(datum/wound/internal_bleeding/wound_to_check, applied_pressure = FALSE)
+	if(!wound_to_check)
+		return 0
+
+	var/temp_bld = calculate_bloodloss_divisor() + 10 //IB is slower bloodloss than normal.
+	var/bicardose
+	if(reagents.get_reagent_amount(REAGENT_ID_BICARIDINE) || reagents.get_reagent_amount(REAGENT_ID_BICARIDAZE))
+		bicardose = TRUE
+	var/inaprovaline
+	if(reagents.get_reagent_amount(REAGENT_ID_INAPROVALINE) || reagents.get_reagent_amount(REAGENT_ID_INAPROVALAZE))
+		inaprovaline = TRUE
+	var/myeldose = reagents.get_reagent_amount(REAGENT_ID_MYELAMINE)
+	if(!(wound_to_check.can_autoheal() || (bicardose && inaprovaline) || myeldose))	//bicaridine and inaprovaline stop internal wounds from growing bigger with time, unless it is so small that it is already healing
+		wound_to_check.open_wound(0.1)
+	if((CE_STABLE in chem_effects) || myeldose)
+		temp_bld = max(temp_bld + 30, 1) //Inaprovaline is great on internal wounds.
+	if(applied_pressure) //Putting pressure on the afflicted wound helps stop the arterial bleeding.
+		temp_bld += 30
+	if(wound_to_check.clamped)
+		temp_bld = temp_bld * 10 //We hemostatted the internal bleeding. Bloodloss is 10 times slower.
+	return round((wound_to_check.damage/temp_bld), 0.1)
+
 
 //Makes a blood drop, leaking amt units of blood from the mob
-/mob/living/carbon/human/proc/drip(var/amt)
+/mob/living/carbon/human/proc/drip(amt)
 	if(remove_blood(amt))
 		blood_splatter(src,src)
 
-/mob/living/carbon/human/proc/remove_blood(var/amt)
+/mob/living/carbon/human/proc/remove_blood(amt)
 	if(!should_have_organ(O_HEART)) //TODO: Make drips come from the reagents instead.
 		return 0
 
 	if(!amt)
 		return 0
 
-	var/current_blood = vessel.get_reagent_amount("blood")
+	var/current_blood = vessel.get_reagent_amount(REAGENT_ID_BLOOD)
 	if(current_blood < BLOOD_MINIMUM_STOP_PROCESS)
 		return 0 //We stop processing under 3 units of blood because apparently weird shit can make it overflowrandomly.
 
 	if(amt > current_blood)
 		amt = current_blood - 2	// Bit of a safety net; it's impossible to add blood if there's not blood already in the vessel.
 
-	return vessel.remove_reagent("blood",amt)
+	return vessel.remove_reagent(REAGENT_ID_BLOOD,amt)
 
 /****************************************************
 				BLOOD TRANSFERS
 ****************************************************/
 
 //Gets blood from mob to the container, preserving all data in it.
-/mob/living/carbon/proc/take_blood(obj/item/weapon/reagent_containers/container, var/amount)
+/mob/living/carbon/proc/take_blood(obj/item/reagent_containers/container, amount)
 
 	var/datum/reagent/B = get_blood(container.reagents)
 	if(!B)
 		B = new /datum/reagent/blood
-	B.holder = container
+	B.holder = container.reagents
 	B.volume += amount
 
 	//set reagent data
 	B.data["donor"] = src
-	if (!B.data["virus2"])
-		B.data["virus2"] = list()
-	B.data["virus2"] |= virus_copylist(src.virus2)
-	B.data["antibodies"] = src.antibodies
+	if(!B.data["viruses"])
+		B.data["viruses"] = list()
+
+	for(var/datum/disease/D in GetViruses())
+		B.data["viruses"] |= D.Copy()
+
+	if(!B.data["resistances"])
+		B.data["resistances"] = list()
+
+	if(B.data["resistances"])
+		B.data["resistances"] |= GetResistances()
 	B.data["blood_DNA"] = copytext(src.dna.unique_enzymes,1,0)
 	B.data["blood_type"] = copytext(src.dna.b_type,1,0)
+	B.data["changeling"] = (!isnull(mind) && is_changeling(mind)) || species?.ambulant_blood || HAS_TRAIT(src, TRAIT_REDSPACE_CORRUPTED)
 
 	// Putting this here due to return shenanigans.
-	if(istype(src,/mob/living/carbon/human))
+	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
 		B.data["blood_colour"] = H.species.get_blood_colour(H)
 		B.color = B.data["blood_colour"]
@@ -264,27 +343,31 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 	return B
 
 //For humans, blood does not appear from blue, it comes from vessels.
-/mob/living/carbon/human/take_blood(obj/item/weapon/reagent_containers/container, var/amount)
+/mob/living/carbon/human/take_blood(obj/item/reagent_containers/container, amount)
 
 	if(!should_have_organ(O_HEART))
 		return null
 
-	if(vessel.get_reagent_amount("blood") < max(amount, BLOOD_MINIMUM_STOP_PROCESS))
+	if(vessel.get_reagent_amount(REAGENT_ID_BLOOD) < max(amount, BLOOD_MINIMUM_STOP_PROCESS))
 		return null
 
 	. = ..()
 	remove_blood(amount) // Removes blood if human
 
 //Transfers blood from container ot vessels
-/mob/living/carbon/proc/inject_blood(var/datum/reagent/blood/injected, var/amount)
+/mob/living/carbon/proc/inject_blood(datum/reagent/blood/injected, amount)
 	if (!injected || !istype(injected))
 		return
-	var/list/sniffles = virus_copylist(injected.data["virus2"])
+	var/list/sniffles = injected.data["viruses"]
 	for(var/ID in sniffles)
-		var/datum/disease2/disease/sniffle = sniffles[ID]
-		infect_virus2(src,sniffle,1)
-	if (injected.data["antibodies"] && prob(5))
-		antibodies |= injected.data["antibodies"]
+		var/datum/disease/D = ID
+		if(D.spread_flags & (DISEASE_SPREAD_SPECIAL | DISEASE_SPREAD_NON_CONTAGIOUS)) // Special/Non-Contagious stay in the blood, but they won't spread
+			continue
+		ForceContractDisease(D)
+	if (injected.data["resistances"] && prob(5))
+		antibodies |= injected.data["resistances"]
+	if (injected.data[REAGENT_ID_ANTIBODIES] && prob(5))
+		antibodies |= injected.data[REAGENT_ID_ANTIBODIES]
 	var/list/chems = list()
 	chems = params2list(injected.data["trace_chem"])
 	for(var/C in chems)
@@ -292,10 +375,10 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 	reagents.update_total()
 
 //Transfers blood from reagents to vessel, respecting blood types compatability.
-/mob/living/carbon/human/inject_blood(var/datum/reagent/blood/injected, var/amount)
+/mob/living/carbon/human/inject_blood(datum/reagent/blood/injected, amount)
 
 	if(!should_have_organ(O_HEART))
-		reagents.add_reagent("blood", amount, injected.data)
+		reagents.add_reagent(REAGENT_ID_BLOOD, amount, injected.data)
 		reagents.update_total()
 		return
 
@@ -304,30 +387,31 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 	if (!injected)
 		return
 	if(!our)
-		log_debug("[src] has no blood reagent, proceeding with fallback reinitialization.")
+		log_runtime("[src] has no blood reagent, proceeding with fallback reinitialization.")
 		var/vessel_old = vessel
 		vessel = null
 		qdel(vessel_old)
 		make_blood(amount)
 		if(!vessel)
-			log_debug("Failed to re-initialize blood datums on [src]!")
+			log_runtime("Failed to re-initialize blood datums on [src]!")
 			return
 		if(vessel.total_volume < species.blood_volume)
-			vessel.add_reagent("blood", species.blood_volume - vessel.total_volume)
+			vessel.add_reagent(REAGENT_ID_BLOOD, species.blood_volume - vessel.total_volume)
 		else if(vessel.total_volume > species.blood_volume)
 			vessel.maximum_volume = species.blood_volume
 		fixblood()
 		our = get_blood(vessel)
 		if(!our)
-			log_debug("Failed to re-initialize blood datums on [src]!")
+			log_runtime("Failed to re-initialize blood datums on [src]!")
 			return
-
-
-	if(blood_incompatible(injected.data["blood_type"],our.data["blood_type"],injected.data["species"],our.data["species"]) )
-		reagents.add_reagent("toxin",amount * 0.5)
+	if((is_changeling(src) || HAS_TRAIT(src, TRAIT_REDSPACE_CORRUPTED))) //Changelings don't reject blood!
+		vessel.add_reagent(REAGENT_ID_BLOOD, amount, injected.data)
+		vessel.update_total()
+	else if(blood_incompatible(injected.data["blood_type"],our.data["blood_type"],injected.data["species"],our.data["species"]) )
+		reagents.add_reagent(REAGENT_ID_TOXIN,amount * 0.5)
 		reagents.update_total()
 	else
-		vessel.add_reagent("blood", amount, injected.data)
+		vessel.add_reagent(REAGENT_ID_BLOOD, amount, injected.data)
 		vessel.update_total()
 	..()
 
@@ -364,7 +448,7 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 		//AB is a universal receiver.
 	return 0
 
-/proc/blood_splatter(var/target,var/datum/reagent/blood/source,var/large)
+/proc/blood_splatter(target,datum/reagent/blood/source,large)
 
 	//Vorestation Edit Start - We're not going to splatter at all because we're in something and that's silly.
 	if(istype(source,/atom/movable))
@@ -377,10 +461,15 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 	var/turf/T = get_turf(target)
 	var/synth = 0
 
-	if(istype(source,/mob/living/carbon/human))
+	if(ishuman(source))
 		var/mob/living/carbon/human/M = source
 		if(M.isSynthetic()) synth = 1
 		source = M.get_blood(M.vessel)
+
+	//Someone fed us a weird source. Let's log it.
+	if(source && !istype(source, /datum/reagent/blood))
+		log_runtime("A blood splatter was made using non-blood datum [source]!")
+		source = null //Clear the source since it's invalid. Fallback to non-source behavior.
 
 	// Are we dripping or splattering?
 	var/list/drips = list()
@@ -416,16 +505,19 @@ var/const/CE_STABLE_THRESHOLD = 0.5
 
 	// Update blood information.
 	if(source.data["blood_DNA"])
-		B.blood_DNA = list()
+		var/list/new_data = list()
 		if(source.data["blood_type"])
-			B.blood_DNA[source.data["blood_DNA"]] = source.data["blood_type"]
+			new_data[source.data["blood_DNA"]] = source.data["blood_type"]
 		else
-			B.blood_DNA[source.data["blood_DNA"]] = "O+"
+			new_data[source.data["blood_DNA"]] = "O+"
+		B.init_forensic_data().merge_blooddna(null,new_data)
 
 	// Update virus information.
-	if(source.data["virus2"])
-		B.virus2 = virus_copylist(source.data["virus2"])
+	if(source.data["viruses"])
+		B.viruses = source.data["viruses"]
 
 	B.fluorescent  = 0
-	B.invisibility = 0
+	B.invisibility = INVISIBILITY_NONE
 	return B
+
+#undef BLOOD_MINIMUM_STOP_PROCESS

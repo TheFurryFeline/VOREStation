@@ -6,19 +6,19 @@
 	HUD.adding = list()
 	HUD.other = list()
 
-	var/obj/screen/using
+	var/atom/movable/screen/using
 
-	using = new /obj/screen()
+	using = new /atom/movable/screen()
 	using.name = "mov_intent"
 	using.set_dir(SOUTHWEST)
 	using.icon = HUD.ui_style
-	using.icon_state = (m_intent == "run" ? "running" : "walking")
+	using.icon_state = (m_intent == I_RUN ? "running" : "walking")
 	using.screen_loc = ui_acti
 	using.layer = HUD_LAYER
 	HUD.adding += using
 	HUD.move_intent = using
 
-	healths = new /obj/screen()
+	healths = new /atom/movable/screen()
 	healths.icon = HUD.ui_style
 	healths.icon_state = "health0"
 	healths.name = "health"

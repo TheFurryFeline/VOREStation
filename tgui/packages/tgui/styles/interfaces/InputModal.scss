@@ -2,30 +2,28 @@
  * Copyright (c) 2020 bobbahbrown (https://github.com/bobbahbrown)
  * SPDX-License-Identifier: MIT
  */
-
-@use '../colors.scss';
-@use '../base.scss';
+@use '~tgui-core/styles/functions.scss' as fn;
 
 .InputModal__Section .Section__title {
   flex-shrink: 0;
 }
 
 .InputModal__Section .Section__titleText {
-  font-size: base.em(12px);
+  font-size: fn.em(12px);
   white-space: pre-line;
 }
 
 .InputModal__Loader {
   width: 100%;
   position: relative;
-  height: 4px;
+  height: var(--border-thickness-large);
 }
 
 .InputModal__LoaderProgress {
   position: absolute;
-  transition:
-    background-color 500ms ease-out,
-    width 500ms ease-out;
-  background-color: colors.bg(colors.$primary);
+  transition-property: background-color, width;
+  transition-duration: var(--transition-time-slow);
+  transition-timing-function: ease-out;
+  background-color: var(--color-primary);
   height: 100%;
 }

@@ -12,8 +12,8 @@
 	var/edge = FALSE //If we're an edge
 	var/forced_dirs = 0 //Force this one to pretend it's an overedge turf
 
-/turf/space/Initialize()
-	if(config.starlight)
+/turf/space/Initialize(mapload)
+	if(CONFIG_GET(number/starlight))
 		update_starlight()
 
 	//Sprite stuff only beyond here
@@ -38,7 +38,7 @@
 
 	return ..()
 
-/turf/space/proc/toggle_transit(var/direction)
+/turf/space/proc/toggle_transit(direction)
 	if(edge) //Not a great way to do this yet. Maybe we'll come up with one. We could pre-make sprites... or tile the overlay over it?
 		return
 
@@ -75,20 +75,30 @@
 
 /turf/space/proc/update_starlight()
 	if(locate(/turf/simulated) in orange(src,1))
-		set_light(config.starlight)
+		set_light(CONFIG_GET(number/starlight))
 	else
 		set_light(0)
+
+/turf/space/MakeSlippery()
+	return
+
+/turf/space/MakeDry()
+	return
+
+/turf/space/handle_slip(mob/living/M, weaken_amount, obj/slipped_on, lube, slip_dist = 0, stun_amount, force_drop)
+	return FALSE
 
 /turf/space/attackby(obj/item/C as obj, mob/user as mob)
 
 	if(istype(C, /obj/item/stack/rods))
 		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
 		if(L)
+			L.upgrade(C, user)
 			return
 		var/obj/item/stack/rods/R = C
 		if (R.use(1))
-			to_chat(user, "<span class='notice'>Constructing support lattice ...</span>")
-			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
+			to_chat(user, span_notice("Constructing support lattice ..."))
+			playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
 			ReplaceWithLattice()
 		return
 
@@ -99,12 +109,12 @@
 			if (S.get_amount() < 1)
 				return
 			qdel(L)
-			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
+			playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
 			S.use(1)
 			ChangeTurf(/turf/simulated/floor/airless)
 			return
 		else
-			to_chat(user, "<span class='warning'>The plating is going to need some support.</span>")
+			to_chat(user, span_warning("The plating is going to need some support."))
 
 	if(istype(C, /obj/item/stack/tile/roofing))
 		var/turf/T = GetAbove(src)
@@ -112,31 +122,31 @@
 
 		// Patch holes in the ceiling
 		if(T)
-			if(istype(T, /turf/simulated/open) || istype(T, /turf/space))
-			 	// Must be build adjacent to an existing floor/wall, no floating floors
+			if(isopenturf(T))
+				// Must be build adjacent to an existing floor/wall, no floating floors
 				var/turf/simulated/A = locate(/turf/simulated/floor) in T.CardinalTurfs()
 				if(!A)
 					A = locate(/turf/simulated/wall) in T.CardinalTurfs()
 				if(!A)
-					to_chat(user, "<span class='warning'>There's nothing to attach the ceiling to!</span>")
+					to_chat(user, span_warning("There's nothing to attach the ceiling to!"))
 					return
 
 				if(R.use(1)) // Cost of roofing tiles is 1:1 with cost to place lattice and plating
 					T.ReplaceWithLattice()
 					T.ChangeTurf(/turf/simulated/floor)
-					playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
-					user.visible_message("<span class='notice'>[user] expands the ceiling.</span>", "<span class='notice'>You expand the ceiling.</span>")
+					playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
+					user.visible_message(span_notice("[user] expands the ceiling."), span_notice("You expand the ceiling."))
 			else
-				to_chat(user, "<span class='warning'>There aren't any holes in the ceiling to patch here.</span>")
+				to_chat(user, span_warning("There aren't any holes in the ceiling to patch here."))
 				return
 		// Space shouldn't have weather of the sort planets with atmospheres do.
 		// If that's changed, then you'll want to swipe the rest of the roofing code from code/game/turfs/simulated/floor_attackby.dm
 	return
 
-/turf/space/Entered(var/atom/movable/A)
+/turf/space/Entered(atom/movable/A)
 	. = ..()
 
-	if(edge && ticker?.mode && !density) // !density so 'fake' space turfs don't fling ghosts everywhere
+	if(edge && SSticker?.mode && !density) // !density so 'fake' space turfs don't fling ghosts everywhere
 		if(isliving(A))
 			var/mob/living/L = A
 			if(L.pulling)
@@ -167,8 +177,8 @@
 		if(!cur_pos) return
 		cur_x = cur_pos["x"]
 		cur_y = cur_pos["y"]
-		next_x = (--cur_x||global_map.len)
-		y_arr = global_map[next_x]
+		next_x = (--cur_x||GLOB.global_map.len)
+		y_arr = GLOB.global_map[next_x]
 		target_z = y_arr[cur_y]
 /*
 		//debug
@@ -192,8 +202,8 @@
 		if(!cur_pos) return
 		cur_x = cur_pos["x"]
 		cur_y = cur_pos["y"]
-		next_x = (++cur_x > global_map.len ? 1 : cur_x)
-		y_arr = global_map[next_x]
+		next_x = (++cur_x > GLOB.global_map.len ? 1 : cur_x)
+		y_arr = GLOB.global_map[next_x]
 		target_z = y_arr[cur_y]
 /*
 		//debug
@@ -216,7 +226,7 @@
 		if(!cur_pos) return
 		cur_x = cur_pos["x"]
 		cur_y = cur_pos["y"]
-		y_arr = global_map[cur_x]
+		y_arr = GLOB.global_map[cur_x]
 		next_y = (--cur_y||y_arr.len)
 		target_z = y_arr[next_y]
 /*
@@ -241,7 +251,7 @@
 		if(!cur_pos) return
 		cur_x = cur_pos["x"]
 		cur_y = cur_pos["y"]
-		y_arr = global_map[cur_x]
+		y_arr = GLOB.global_map[cur_x]
 		next_y = (++cur_y > y_arr.len ? 1 : cur_y)
 		target_z = y_arr[next_y]
 /*
@@ -259,5 +269,5 @@
 					A.loc.Entered(A)
 	return
 
-/turf/space/ChangeTurf(var/turf/N, var/tell_universe, var/force_lighting_update, var/preserve_outdoors)
+/turf/space/ChangeTurf(turf/N, tell_universe, force_lighting_update, preserve_outdoors)
 	return ..(N, tell_universe, 1, preserve_outdoors)

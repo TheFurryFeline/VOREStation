@@ -29,18 +29,18 @@ Slime specific procs go here.
 	if(prob(40))
 		var/hasMutToxin
 		for(var/R in traitdat.chems)
-			if(R == "mutationtoxin")
+			if(R == REAGENT_ID_MUTATIONTOXIN)
 				hasMutToxin = 1
 		var/chemamount
 		if(hasMutToxin)
-			var/list/chemchoices = (xenoChemList - traitdat.chems)
+			var/list/chemchoices = (GLOB.xenoChemList - traitdat.chems)
 
 			var/chemtype = pick(chemchoices)
 			chemamount = rand(1,5)
 			traitdat.chems[chemtype] = chemamount
 		else
 			chemamount = rand(1,5)
-			traitdat.chems["mutationtoxin"] = chemamount
+			traitdat.chems[REAGENT_ID_MUTATIONTOXIN] = chemamount
 
 /mob/living/simple_mob/xeno/slime/proc/GrowUp()
 	GenerateAdult()
@@ -115,7 +115,7 @@ Slime specific procs go here.
 			return
 		if(reagents.total_volume <= 0)
 			return
-		if(reagents.has_reagent("docilitytoxin"))	//Toxin that makes them docile? Good for quelling angry mobs.
+		if(reagents.has_reagent(REAGENT_ID_MUTATIONTOXIN))	//Toxin that makes them docile? Good for quelling angry mobs.
 			hostile = 0
 			traitdat.traits[TRAIT_XENO_HOSTILE] = 0
 		..()
@@ -126,3 +126,7 @@ Slime specific procs go here.
 		GenerateChild()
 	else
 		GenerateAdult()
+
+#undef SHINYOVERLAY
+#undef LIGHTOVERLAY
+#undef MAXOVERLAY

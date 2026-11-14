@@ -4,7 +4,7 @@
 	var/max_entries = 1000 //1000 paintings is a lot, and will take a long time to cycle through.
 
 /datum/persistent/paintings/SetFilename()
-    filename = "data/persistent/paintings.json"
+	filename = "data/persistent/paintings.json"
 
 /datum/persistent/paintings/Initialize()
 	. = ..()
@@ -17,11 +17,11 @@
 				tokens -= token
 
 	SSpersistence.unpicked_paintings = SSpersistence.all_paintings.Copy()
-	
+
 	for(var/obj/structure/sign/painting/P in SSpersistence.painting_frames)
 		P.load_persistent()
 
-/datum/persistent/paintings/CheckTokenSanity(var/list/token)
+/datum/persistent/paintings/CheckTokenSanity(list/token)
 	var/png_filename = "data/paintings/[token["persistence_id"]]/[token["md5"]].png"
 	if(!fexists(png_filename))
 		return FALSE

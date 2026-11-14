@@ -24,7 +24,7 @@
 	parachuting = TRUE
 
 	meat_amount = 1
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/chicken
+	meat_type = /obj/item/reagent_containers/food/snacks/meat/chicken
 
 	attacktext = list("clawed", "pecked")
 	speak_emote = list("chirps", "caws")
@@ -32,10 +32,10 @@
 	response_help  = "pets"
 	response_disarm = "gently moves aside"
 	response_harm   = "swats"
-	organ_names = /decl/mob_organ_names/bird
+	organ_names = /datum/decl/mob_organ_names/bird
 
 	say_list_type = /datum/say_list/bird
-	holder_type = /obj/item/weapon/holder/bird
+	holder_type = /obj/item/holder/bird
 
 /datum/say_list/bird
 	speak = list("Chirp!","Caw!","Screech!","Squawk!")
@@ -89,5 +89,11 @@
 	icon_scale_x = 0.5
 	icon_scale_y = 0.5
 
-/decl/mob_organ_names/bird
+/datum/decl/mob_organ_names/bird
 	hit_zones = list("head", "chest", "left leg", "right leg", "left wing", "right wing")
+
+/mob/living/simple_mob/animal/passive/bird/european_robin/beastmode
+	movement_cooldown = 1
+
+/mob/living/simple_mob/animal/passive/bird/azure_tit/beastmode
+	movement_cooldown = 1

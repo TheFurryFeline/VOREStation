@@ -72,13 +72,12 @@
 	say_maybe_target = list("...")
 	say_got_target = list("...")
 
-/mob/living/simple_mob/vore/alienanimals/succlet/init_vore()
-	..()
+/mob/living/simple_mob/vore/alienanimals/succlet/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stummy"
 	B.desc = "It's a star shaped stomach. A stummy, if you will. It's warm and soft, not unlike plush, but it's tight!"
 	B.mode_flags = DM_FLAG_THICKBELLY | DM_FLAG_NUMBING
-	B.belly_fullscreen = "yet_another_tumby"
 	B.digest_brute = 0
 	B.digest_burn = 0
 	B.digest_oxy = 12
@@ -133,14 +132,14 @@
 	spawn(25)
 	qdel(src)
 
-/mob/living/simple_mob/vore/alienanimals/succlet/attackby(var/obj/item/O, var/mob/user)
-	if(istype(O, /obj/item/weapon/newspaper) && !ckey && isturf(user.loc))
-		user.visible_message("<span class='info'>[user] swats [src] with [O]!</span>")
+/mob/living/simple_mob/vore/alienanimals/succlet/attackby(obj/item/O, mob/user)
+	if(istype(O, /obj/item/newspaper) && !ckey && isturf(user.loc))
+		user.visible_message(span_info("[user] swats [src] with [O]!"))
 		release_vore_contents()
 	else
 		..()
 
-/mob/living/simple_mob/vore/alienanimals/succlet/proc/succlet_move(var/target)
+/mob/living/simple_mob/vore/alienanimals/succlet/proc/succlet_move(target)
 	if(!target)
 		return
 	if(isbelly(loc))	//No teleporting out of bellies
@@ -153,7 +152,7 @@
 		if(l.devourable && l.allowmobvore && l.can_be_drop_prey)
 			target_turf = get_turf(l)
 		else
-			to_chat(src, "<span class='warning'>You can't move on to [l], they are watching...</span>")
+			to_chat(src, span_warning("You can't move on to [l], they are watching..."))
 			return
 	else if(isturf(target))
 		target_turf = target
@@ -166,7 +165,7 @@
 			if(ismob(A))
 				continue
 			else if(A.density && !(A.flags & ON_BORDER))
-				to_chat(src, "<span class='warning'>You can't move there...</span>")
+				to_chat(src, span_warning("You can't move there..."))
 				return
 	else
 		return
@@ -176,19 +175,19 @@
 		if(isliving(M) && M != src && M != target && !istype(M, /mob/observer) && !M.invisibility && !istype(M,/mob/living/simple_mob/vore/alienanimals/succlet))
 			var/mob/living/check = M
 			if(check.stat == CONSCIOUS)
-				to_chat(src, "<span class='warning'>You can't move, [check] is watching...</span>")
+				to_chat(src, span_warning("You can't move, [check] is watching..."))
 				return
 			else if (!check.eye_blind)
-				to_chat(src, "<span class='warning'>You can't move, [check] is watching...</span>")
+				to_chat(src, span_warning("You can't move, [check] is watching..."))
 				return
 	for(var/atom/T in view(world.view, target_turf))	//Is anyone at our target?
 		if(isliving(T) && T != src && T != target && !istype(T, /mob/observer) && !T.invisibility && !istype(T,/mob/living/simple_mob/vore/alienanimals/succlet))
 			var/mob/living/check = T
 			if(check.stat == CONSCIOUS)
-				to_chat(src, "<span class='warning'>You can't move, [check] is watching...</span>")
+				to_chat(src, span_warning("You can't move, [check] is watching..."))
 				return
 			else if (!check.eye_blind)
-				to_chat(src, "<span class='warning'>You can't move, [check] is watching...</span>")
+				to_chat(src, span_warning("You can't move, [check] is watching..."))
 				return
 	forceMove(target_turf)
 	if(l)
@@ -221,7 +220,7 @@
 	if(user.a_intent != I_HELP)
 		if(isliving(user))
 			var/mob/living/l = user
-			to_chat(l, "<span class='warning'>You feel \the [src]'s sting!!!</span>")
+			to_chat(l, span_warning("You feel \the [src]'s sting!!!"))
 			l.hallucination += 25
 			l.adjustHalLoss(200)
 			l.adjustToxLoss(10)

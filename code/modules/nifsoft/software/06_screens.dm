@@ -2,7 +2,7 @@
 	name = "Crew Monitor"
 	desc = "A link to the local crew monitor sensors. Useful for finding people in trouble."
 	list_pos = NIF_MEDMONITOR
-	access = access_medical
+	access = ACCESS_MEDICAL
 	cost = 625
 	p_drain = 0.025
 	var/datum/tgui_module/crew_monitor/nif/arscreen
@@ -20,7 +20,7 @@
 		arscreen.tgui_interact(nif.human)
 		return TRUE
 
-/datum/nifsoft/crewmonitor/deactivate(var/force = FALSE)
+/datum/nifsoft/crewmonitor/deactivate(force = FALSE)
 	if((. = ..()))
 		return TRUE
 
@@ -31,7 +31,7 @@
 	name = "Alarm Monitor"
 	desc = "A link to the local alarm monitors. Useful for detecting alarms in a pinch."
 	list_pos = NIF_ENGMONITOR
-	access = access_engine
+	access = ACCESS_ENGINE
 	cost = 625
 	p_drain = 0.025
 	var/datum/tgui_module/alarm_monitor/engineering/nif/tgarscreen
@@ -49,7 +49,7 @@
 		tgarscreen.tgui_interact(nif.human)
 		return TRUE
 
-/datum/nifsoft/alarmmonitor/deactivate(var/force = FALSE)
+/datum/nifsoft/alarmmonitor/deactivate(force = FALSE)
 	if((. = ..()))
 		return TRUE
 

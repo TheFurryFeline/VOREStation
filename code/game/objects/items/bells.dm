@@ -1,29 +1,29 @@
-/obj/item/weapon/deskbell
+/obj/item/deskbell
 	name = "desk bell"
 	desc = "An annoying bell. Ring for service."
 	icon = 'icons/obj/items.dmi'
 	icon_state = "deskbell"
 	force = 2
 	throwforce = 2
-	w_class = 2.0
-	matter = list(MAT_STEEL = 50)
+	w_class = ITEMSIZE_SMALL
+	matter = list(MAT_STEEL = MATERIAL_COST(0.025))
 	var/broken
 	attack_verb = list("annoyed")
 	var/static/radial_examine = image(icon = 'icons/mob/radial.dmi', icon_state = "radial_examine")
 	var/static/radial_use = image(icon = 'icons/mob/radial.dmi', icon_state = "radial_use")
 	var/static/radial_pickup = image(icon = 'icons/mob/radial.dmi', icon_state = "radial_pickup")
 
-/obj/item/weapon/deskbell/examine(mob/user)
+/obj/item/deskbell/examine(mob/user)
 	. = ..()
 	if(broken)
-		. += "<b>It looks damaged, the ringer is stuck firmly inside.</b>"
+		. += span_bold("It looks damaged, the ringer is stuck firmly inside.")
 
-/obj/item/weapon/deskbell/attack(mob/target as mob, mob/living/user as mob)
+/obj/item/deskbell/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
 	if(!broken)
 		playsound(src, 'sound/effects/deskbell.ogg', 50, 1)
 	..()
 
-/obj/item/weapon/deskbell/attack_hand(mob/user)
+/obj/item/deskbell/attack_hand(mob/user)
 
 	//This defines the radials and what call we're assiging to them.
 	var/list/options = list()
@@ -60,37 +60,37 @@
 		if("pick up")
 			..()
 
-/obj/item/weapon/deskbell/proc/ring(mob/user)
-	if(user.a_intent == "harm")
+/obj/item/deskbell/proc/ring(mob/user)
+	if(user.a_intent == I_HURT)
 		playsound(src, 'sound/effects/deskbell_rude.ogg', 50, 1)
-		to_chat(user,"<span class='notice'>You hammer [src] rudely!</span>")
+		to_chat(user,span_notice("You hammer [src] rudely!"))
 		if (prob(2))
 			break_bell(user)
 	else
 		playsound(src, 'sound/effects/deskbell.ogg', 50, 1)
-		to_chat(user,"<span class='notice'>You gracefully ring [src].</span>")
+		to_chat(user,span_notice("You gracefully ring [src]."))
 
-/obj/item/weapon/deskbell/proc/check_ability(mob/user)
-	if (ishuman(user))
+/obj/item/deskbell/proc/check_ability(mob/user)
+	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
-		var/obj/item/organ/external/temp = H.organs_by_name["r_hand"]
+		var/obj/item/organ/external/temp = H.organs_by_name[BP_R_HAND]
 		if (H.hand)
-			temp = H.organs_by_name["l_hand"]
+			temp = H.organs_by_name[BP_L_HAND]
 		if(temp && !temp.is_usable())
-			to_chat(H,"<span class='notice'>You try to move your [temp.name], but cannot!</span>")
+			to_chat(H,span_notice("You try to move your [temp.name], but cannot!"))
 			return 0
 		return 1
 	else
-		to_chat(user,"<span class='notice'>You are not able to ring [src].</span>")
+		to_chat(user,span_notice("You are not able to ring [src]."))
 	return 0
 
-/obj/item/weapon/deskbell/attackby(obj/item/W, mob/user, params)
+/obj/item/deskbell/attackby(obj/item/W, mob/user, params)
 	if(!istype(W))
 		return
 	if(W.has_tool_quality(TOOL_WRENCH) && isturf(loc))
-		if(do_after(5))
+		if(do_after(user, 5, target = src))
 			if(!src) return
-			to_chat(user, "<span class='notice'>You dissasemble the desk bell</span>")
+			to_chat(user, span_notice("You dissasemble the desk bell"))
 			new /obj/item/stack/material/steel(get_turf(src), 1)
 			qdel(src)
 			return
@@ -98,6 +98,6 @@
 		ring(user)
 
 
-/obj/item/weapon/deskbell/proc/break_bell(mob/user)
-	to_chat(user,"<span class='notice'>The ringing abruptly stops as [src]'s ringer gets jammed inside!</span>")
+/obj/item/deskbell/proc/break_bell(mob/user)
+	to_chat(user,span_notice("The ringing abruptly stops as [src]'s ringer gets jammed inside!"))
 	broken = 1

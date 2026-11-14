@@ -1,5 +1,3 @@
-#define I_SINGULO "singulo"
-
 /atom/proc/singularity_act()
 	return
 
@@ -18,9 +16,9 @@
 /mob/living/carbon/human/singularity_act()
 	var/gain = 20
 	if(mind)
-		if((mind.assigned_role == "Engineer") || (mind.assigned_role == "Chief Engineer"))
+		if((mind.assigned_role == JOB_ENGINEER) || (mind.assigned_role == JOB_CHIEF_ENGINEER))
 			gain = 100
-		if(mind.assigned_role == USELESS_JOB) //VOREStation Edit - Visitor not Assistant
+		if(mind.assigned_role == JOB_ALT_VISITOR) //VOREStation Edit - Visitor not Assistant
 			gain = rand(0, 300)
 	investigate_log(I_SINGULO,"has been consumed by a singularity", I_SINGULO)
 	gib()
@@ -32,10 +30,10 @@
 		for(var/obj/item/hand in handlist)
 			if(prob(current_size*5) && hand.w_class >= ((11-current_size)/2) && unEquip(hand))
 				step_towards(hand, S)
-				to_chat(src, "<span class = 'warning'>The [S] pulls \the [hand] from your grip!</span>")
+				to_chat(src, span_warning("The [S] pulls \the [hand] from your grip!"))
 
 	if(!lying && (!shoes || !(shoes.item_flags & NOSLIP)) && (!species || !(species.flags & NOSLIP)) && prob(current_size*5))
-		to_chat(src, "<span class='danger'>A strong gravitational force slams you to the ground!</span>")
+		to_chat(src, span_danger("A strong gravitational force slams you to the ground!"))
 		Weaken(current_size)
 	..()
 
@@ -67,6 +65,9 @@
 /obj/effect/overlay/singularity_pull()
 	return
 
+/obj/effect/abstract/singularity_act()
+	return
+
 /obj/machinery/power/supermatter/shard/singularity_act()
 	qdel(src)
 	return 5000
@@ -76,12 +77,13 @@
 		return
 
 	var/prints = ""
-	if(src.fingerprintshidden)
-		prints = ", all touchers : " + src.fingerprintshidden
+	if(forensic_data?.get_hiddenprints())
+		prints = ", all touchers : " + forensic_data?.get_hiddenprints()
 
+	SSturf_cascade.start_cascade(get_turf(src), /turf/unsimulated/wall/supermatter)
 	SetUniversalState(/datum/universal_state/supermatter_cascade)
-	log_admin("New super singularity made by eating a SM crystal [prints]. Last touched by [src.fingerprintslast].")
-	message_admins("New super singularity made by eating a SM crystal [prints]. Last touched by [src.fingerprintslast].")
+	log_admin("New super singularity made by eating a SM crystal [prints]. Last touched by [forensic_data?.get_lastprint()].")
+	message_admins("New super singularity made by eating a SM crystal [prints]. Last touched by [forensic_data?.get_lastprint()].")
 	qdel(src)
 	return 50000
 
@@ -91,7 +93,7 @@
 /obj/effect/projectile/emitter/singularity_pull()
 	return
 
-/obj/item/weapon/storage/backpack/holding/singularity_act(S, current_size)
+/obj/item/storage/backpack/holding/singularity_act(S, current_size)
 	var/dist = max((current_size - 2), 1)
 	explosion(src.loc,(dist),(dist*2),(dist*4))
 	return 1000
@@ -101,7 +103,7 @@
 		for(var/obj/O in contents)
 			if(O.level != 1)
 				continue
-			if(O.invisibility == 101)
+			if(O.invisibility == INVISIBILITY_ABSTRACT)
 				O.singularity_act(src, current_size)
 	ChangeTurf(get_base_turf_by_area(src))
 	return 2
@@ -122,4 +124,7 @@
 	return 0
 
 /mob/new_player/singuloCanEat()
+	return 0
+
+/turf/unsimulated/wall/supermatter/singuloCanEat()
 	return 0

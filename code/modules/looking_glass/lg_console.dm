@@ -1,6 +1,6 @@
 /obj/machinery/computer/looking_glass
 	name = "looking glass control"
-	desc = "Controls the looking glass displays in this room. Provided courtesy of KHI."
+	desc = "Controls the looking glass displays in this room. Provided courtesy of NT's Advanced Spatial Imaging Division."
 
 	icon_keyboard = "tech_key"
 	icon_screen = "holocontrol"
@@ -19,14 +19,14 @@
 
 	var/lg_id = "change_me"
 
-/obj/machinery/computer/looking_glass/Initialize()
+/obj/machinery/computer/looking_glass/Initialize(mapload)
 	. = ..()
 	for(var/area/looking_glass/lga in world)
 		if(lga.lg_id == lg_id)
 			my_area = lga
 			break
 	if(!istype(my_area))
-		testing("Looking glass console [x],[y],[x] not in a looking glass area.")
+		log_mapping("Looking glass console [x],[y],[x] not in a looking glass area.")
 	if(!supported_programs.len)
 		supported_programs["Off"] = null
 		supported_programs["Diagnostics"] = image(icon = 'icons/skybox/skybox.dmi', icon_state = "diagnostic")
@@ -49,10 +49,10 @@
 	my_area = null
 	return ..()
 
-/obj/machinery/computer/looking_glass/attack_ai(var/mob/user as mob)
+/obj/machinery/computer/looking_glass/attack_ai(mob/user as mob)
 	return attack_hand(user)
 
-/obj/machinery/computer/looking_glass/attack_hand(var/mob/user as mob)
+/obj/machinery/computer/looking_glass/attack_hand(mob/user as mob)
 	if(..())
 		return
 
@@ -66,7 +66,7 @@
 
 /obj/machinery/computer/looking_glass/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
 	var/list/data = ..()
-	
+
 	var/list/program_list = list()
 	for(var/P in supported_programs)
 		program_list.Add(P)
@@ -78,7 +78,7 @@
 	data["supportedPrograms"] = program_list
 	data["currentProgram"] = current_program
 	data["immersion"] = immersion
-	if(my_area?.has_gravity)
+	if(my_area?.get_gravity())
 		data["gravity"] = 1
 	else
 		data["gravity"] = 0
@@ -88,7 +88,7 @@
 /obj/machinery/computer/looking_glass/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
 	if(..())
 		return TRUE
-	
+
 	switch(action)
 		if("program")
 			if(ready)
@@ -100,7 +100,7 @@
 					current_program = prog
 					load_program(prog)
 			else
-				visible_message("<span class='warning'>ERROR. Recalibrating displays.</span>")
+				visible_message(span_warning("ERROR. Recalibrating displays."))
 			return TRUE
 
 		if("gravity")
@@ -112,18 +112,18 @@
 			my_area.toggle_optional(immersion)
 			return TRUE
 
-	add_fingerprint(usr)
+	add_fingerprint(ui.user)
 
-/obj/machinery/computer/looking_glass/emag_act(var/remaining_charges, var/mob/user as mob)
+/obj/machinery/computer/looking_glass/emag_act(remaining_charges, mob/user as mob)
 	if (!emagged)
 		playsound(src, 'sound/effects/sparks4.ogg', 75, 1)
 		emagged = 1
-		to_chat(user, "<span class='notice'>You unlock several programs that were hidden somewhere in memory.</span>")
-		log_game("[key_name(usr)] emagged the [name]")
+		to_chat(user, span_notice("You unlock several programs that were hidden somewhere in memory."))
+		log_game("[key_name(user)] emagged the [name]")
 		return 1
 	return
 
-/obj/machinery/computer/looking_glass/proc/load_program(var/prog_name)
+/obj/machinery/computer/looking_glass/proc/load_program(prog_name)
 	ready = FALSE
 	VARSET_IN(src, ready, TRUE, 10 SECONDS)
 
@@ -138,16 +138,16 @@
 
 	my_area.end_program()
 
-/obj/machinery/computer/looking_glass/proc/toggle_gravity(var/area/A)
+/obj/machinery/computer/looking_glass/proc/toggle_gravity(area/A)
 	if(world.time < (last_gravity_change + 3 SECONDS))
 		if(world.time < (last_gravity_change + 1 SECOND))
 			return
-		visible_message("<span class='warning'>ERROR. Recalibrating gravity field.</span>")
+		visible_message(span_warning("ERROR. Recalibrating gravity field."))
 		return
 
 	last_gravity_change = world.time
 
-	if(A.has_gravity)
+	if(A.get_gravity())
 		A.gravitychange(0)
 	else
 		A.gravitychange(1)
@@ -155,7 +155,7 @@
 //This could all be done better, but it works for now.
 /obj/machinery/computer/looking_glass/Destroy()
 	unload_program()
-	..()
+	. = ..()
 
 /obj/machinery/computer/looking_glass/ex_act(severity)
 	unload_program()

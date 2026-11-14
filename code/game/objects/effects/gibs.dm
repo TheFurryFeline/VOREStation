@@ -1,4 +1,4 @@
-/proc/gibs(atom/location, var/datum/dna/MobDNA, gibber_type = /obj/effect/gibspawner/generic, var/fleshcolor, var/bloodcolor)
+/proc/gibs(atom/location, datum/dna/MobDNA, gibber_type = /obj/effect/gibspawner/generic, fleshcolor, bloodcolor)
 	new gibber_type(location,MobDNA,fleshcolor,bloodcolor)
 
 /obj/effect/gibspawner
@@ -8,17 +8,22 @@
 	var/list/gibdirections = list() //of lists
 	var/fleshcolor //Used for gibbed humans.
 	var/bloodcolor //Used for gibbed humans.
+	invisibility = INVISIBILITY_BADMIN // So a badmin can go view these by changing their see_invisible.
+	icon = 'icons/effects/map_effects.dmi'
+	icon_state = "gibspawn"
 
-/obj/effect/gibspawner/New(location, var/datum/dna/MobDNA, var/fleshcolor, var/bloodcolor)
-	..()
+/obj/effect/gibspawner/Initialize(mapload, datum/dna/MobDNA, fleshcolor, bloodcolor)
+	. = ..()
 
 	if(fleshcolor) src.fleshcolor = fleshcolor
 	if(bloodcolor) src.bloodcolor = bloodcolor
 	Gib(loc,MobDNA)
+	return INITIALIZE_HINT_QDEL
 
-/obj/effect/gibspawner/proc/Gib(atom/location, var/datum/dna/MobDNA = null)
+/obj/effect/gibspawner/proc/Gib(atom/location, datum/dna/MobDNA = null)
 	if(gibtypes.len != gibamounts.len || gibamounts.len != gibdirections.len)
-		to_world("<span class='warning'>Gib list length mismatch!</span>")
+		to_chat(world, span_filter_system(span_warning("Gib list length mismatch!")))
+		log_world("Gib list length mismatch!")
 		return
 
 	var/obj/effect/decal/cleanable/blood/gibs/gib = null
@@ -42,14 +47,10 @@
 
 				gib.update_icon()
 
-				gib.blood_DNA = list()
-				if(MobDNA)
-					gib.blood_DNA[MobDNA.unique_enzymes] = MobDNA.b_type
-				else if(istype(src, /obj/effect/gibspawner/human)) // Probably a monkey
-					gib.blood_DNA["Non-human DNA"] = "A+"
+				gib.init_forensic_data()
+				gib.add_blooddna(MobDNA,null)
+
 				if(istype(location,/turf/))
 					var/list/directions = gibdirections[i]
 					if(directions.len)
 						gib.streak(directions)
-
-	qdel(src)

@@ -43,13 +43,13 @@
 	// Now for sounds.
 	playsound(T, "explosion", 75, 1) // Local sound.
 
-	for(var/mob/M in player_list) // For everyone else.
+	for(var/mob/M in GLOB.player_list) // For everyone else.
 		if(M.z == T.z && get_dist(M, T) > world.view && !M.ear_deaf && !istype(M.loc,/turf/space))
 			M << 'sound/effects/explosionfar.ogg'
 
 	exploding = FALSE
 
-/datum/blob_type/explosive_lattice/on_chunk_tick(obj/item/weapon/blobcore_chunk/B)
+/datum/blob_type/explosive_lattice/on_chunk_tick(obj/item/blobcore_chunk/B)
 	var/turf/T = get_turf(B)
 	if(!T)
 		return

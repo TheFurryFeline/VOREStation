@@ -18,10 +18,10 @@
 	var/list/shockdirs
 	var/hasShocked = 0 //Used to add a delay between shocks. In some cases this used to crash servers by spawning hundreds of sparks every second.
 
-/obj/machinery/containment_field/Initialize()
+/obj/machinery/containment_field/Initialize(mapload)
 	. = ..()
 	shockdirs = list(turn(dir,90),turn(dir,-90))
-	sense_proximity(callback = /atom/proc/HasProximity)
+	sense_proximity(callback = TYPE_PROC_REF(/atom,HasProximity))
 
 /obj/machinery/containment_field/set_dir(new_dir)
 	. = ..()
@@ -29,7 +29,7 @@
 		shockdirs = list(turn(dir,90),turn(dir,-90))
 
 /obj/machinery/containment_field/Destroy()
-	unsense_proximity(callback = /atom/proc/HasProximity)
+	unsense_proximity(callback = TYPE_PROC_REF(/atom,HasProximity))
 	if(FG1 && !FG1.clean_up)
 		FG1.cleanup()
 	if(FG2 && !FG2.clean_up)
@@ -47,13 +47,29 @@
 /obj/machinery/containment_field/ex_act(severity)
 	return 0
 
-/obj/machinery/containment_field/Crossed(mob/living/L)
-	if(!istype(L) || L.incorporeal_move)
+/obj/machinery/containment_field/Crossed(atom/A)
+	. = ..()
+	if(!istype(A) || A.is_incorporeal())
 		return
-	shock(L)
+	if(isliving(A))
+		var/mob/living/L = A
+		shock(L)
+		return
+	if(A.density)
+		if(istype(A,/obj/machinery/containment_field) || istype(A,/obj/effect) || istype(A,/obj/singularity))
+			return
+		else
+			qdel(A)
+			//Destroy()
 
-/obj/machinery/containment_field/HasProximity(turf/T, atom/movable/AM, old_loc)
-	if(!istype(AM, /mob/living) || AM:incorporeal_move)
+/obj/machinery/containment_field/HasProximity(turf/T, datum/weakref/WF, old_loc)
+	if(isnull(WF))
+		return
+	var/atom/movable/AM = WF.resolve()
+	if(isnull(AM))
+		log_runtime("DEBUG: HasProximity called without reference on [src].")
+		return
+	if(!isliving(AM) || AM.is_incorporeal())
 		return 0
 	if(!(get_dir(src,AM) in shockdirs))
 		return 0
@@ -62,7 +78,7 @@
 		return 1
 	return 0
 
-/obj/machinery/containment_field/shock(mob/living/user as mob)
+/obj/machinery/containment_field/shock(mob/living/user)
 	if(hasShocked)
 		return 0
 	if(!FG1 || !FG2)
@@ -76,11 +92,9 @@
 		var/atom/target = get_edge_target_turf(user, get_dir(src, get_step_away(user, src)))
 		user.throw_at(target, 200, 4)
 
-		sleep(20)
+		VARSET_IN(src, hasShocked, FALSE, 2 SECONDS)
 
-		hasShocked = 0
-
-/obj/machinery/containment_field/proc/set_master(var/master1,var/master2)
+/obj/machinery/containment_field/proc/set_master(master1,master2)
 	if(!master1 || !master2)
 		return 0
 	FG1 = master1

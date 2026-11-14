@@ -11,6 +11,7 @@
 	var/true_description_info = null	// Ditto, for helpful examine panel entries.
 	var/true_description_fluff = null	// Ditto, for lore.
 	var/true_description_antag = null	// Ditto, for antag info (this probably won't get used).
+	var/true_description_silicon = null // Ditto, for borgs and stuff. Genuinely unsure it might be used, but, eh, lines.
 	var/identified = IDENTITY_UNKNOWN	// Can be IDENTITY_UNKNOWN, IDENTITY_PROPERTIES, IDENTITY_QUALITY, or IDENTITY_FULL.
 
 	// Holds what is displayed when not identified sufficently.
@@ -41,6 +42,7 @@
 	true_description_info = holder.description_info
 	true_description_fluff = holder.description_fluff
 	true_description_antag = holder.description_antag
+	true_description_silicon = holder.description_silicon
 
 // Formally identifies the holder.
 /datum/identification/proc/identify(new_identity = IDENTITY_FULL, mob/user)
@@ -50,11 +52,11 @@
 	if(user)
 		switch(identified)
 			if(IDENTITY_QUALITY)
-				to_chat(user, "<span class='notice'>You've identified \the [holder]'s quality.</span>")
+				to_chat(user, span_notice("You've identified \the [holder]'s quality."))
 			if(IDENTITY_PROPERTIES)
-				to_chat(user, "<span class='notice'>You've identified \the [holder]'s functionality as a [true_name].</span>")
+				to_chat(user, span_notice("You've identified \the [holder]'s functionality as a [true_name]."))
 			if(IDENTITY_FULL)
-				to_chat(user, "<span class='notice'>You've identified \the [holder] as a [true_name], and its quality.</span>")
+				to_chat(user, span_notice("You've identified \the [holder] as a [true_name], and its quality."))
 		update_name()
 		holder.update_icon()
 
@@ -66,11 +68,11 @@
 	if(user)
 		switch(identified) // Give a message based on what's left.
 			if(IDENTITY_QUALITY)
-				to_chat(user, span("warning", "You forgot what \the [holder] actually did..."))
+				to_chat(user, span_warning("You forgot what \the [holder] actually did..."))
 			if(IDENTITY_PROPERTIES)
-				to_chat(user, span("warning", "You forgot \the [holder]'s quality..."))
+				to_chat(user, span_warning("You forgot \the [holder]'s quality..."))
 			if(IDENTITY_UNKNOWN)
-				to_chat(user, span("warning", "You forgot everything about \the [holder]."))
+				to_chat(user, span_warning("You forgot everything about \the [holder]."))
 
 // Sets the holder's name to the real name if its properties are identified, or obscures it otherwise.
 /datum/identification/proc/update_name()
@@ -80,6 +82,7 @@
 		holder.description_info = true_description_info
 		holder.description_fluff = true_description_fluff
 		holder.description_antag = true_description_antag
+		holder.description_silicon = true_description_silicon
 		return
 
 	if(!unidentified_name)
@@ -90,6 +93,7 @@
 	holder.description_info = unidentified_description_info
 	holder.description_fluff = null
 	holder.description_antag = null
+	holder.description_silicon = null
 
 // Makes a name for an object that is not identified. It picks one string out of each list inside naming_list.
 /datum/identification/proc/generate_unidentified_name()

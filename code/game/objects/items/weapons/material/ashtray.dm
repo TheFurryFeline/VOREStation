@@ -1,52 +1,52 @@
-var/global/list/ashtray_cache = list()
+GLOBAL_LIST_EMPTY(ashtray_cache)
 
-/obj/item/weapon/material/ashtray
+/obj/item/material/ashtray
 	name = "ashtray"
 	icon = 'icons/obj/objects.dmi'
-	icon_state = "blank"
+	icon_state = "ashtray"
 	randpixel = 5
 	force_divisor = 0.1
 	thrown_force_divisor = 0.1
+	w_class = ITEMSIZE_SMALL
 	var/image/base_image
 	var/max_butts = 10
 
-/obj/item/weapon/material/ashtray/New(var/newloc, var/material_name)
-	..(newloc, material_name)
+/obj/item/material/ashtray/Initialize(mapload, material_key)
+	. = ..()
 	if(!material)
-		qdel(src)
-		return
+		return INITIALIZE_HINT_QDEL
+	icon_state = "blank"
 	max_butts = round(material.hardness/5) //This is arbitrary but whatever.
 	randpixel_xy()
 	update_icon()
-	return
 
-/obj/item/weapon/material/ashtray/update_icon()
+/obj/item/material/ashtray/update_icon()
 	color = null
 	cut_overlays()
 	var/cache_key = "base-[material.name]"
-	if(!ashtray_cache[cache_key])
+	if(!GLOB.ashtray_cache[cache_key])
 		var/image/I = image('icons/obj/objects.dmi',"ashtray")
 		I.color = material.icon_colour
-		ashtray_cache[cache_key] = I
-	add_overlay(ashtray_cache[cache_key])
+		GLOB.ashtray_cache[cache_key] = I
+	add_overlay(GLOB.ashtray_cache[cache_key])
 
 	if (contents.len == max_butts)
-		if(!ashtray_cache["full"])
-			ashtray_cache["full"] = image('icons/obj/objects.dmi',"ashtray_full")
-		add_overlay(ashtray_cache["full"])
+		if(!GLOB.ashtray_cache["full"])
+			GLOB.ashtray_cache["full"] = image('icons/obj/objects.dmi',"ashtray_full")
+		add_overlay(GLOB.ashtray_cache["full"])
 		desc = "It's stuffed full."
 	else if (contents.len > max_butts/2)
-		if(!ashtray_cache["half"])
-			ashtray_cache["half"] = image('icons/obj/objects.dmi',"ashtray_half")
-		add_overlay(ashtray_cache["half"])
+		if(!GLOB.ashtray_cache["half"])
+			GLOB.ashtray_cache["half"] = image('icons/obj/objects.dmi',"ashtray_half")
+		add_overlay(GLOB.ashtray_cache["half"])
 		desc = "It's half-filled."
 	else
 		desc = "An ashtray made of [material.display_name]."
 
-/obj/item/weapon/material/ashtray/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/item/material/ashtray/attackby(obj/item/W as obj, mob/user as mob)
 	if (health <= 0)
 		return
-	if (istype(W,/obj/item/trash/cigbutt) || istype(W,/obj/item/clothing/mask/smokable/cigarette) || istype(W, /obj/item/weapon/flame/match))
+	if (istype(W,/obj/item/trash/cigbutt) || istype(W,/obj/item/clothing/mask/smokable/cigarette) || istype(W, /obj/item/flame/match))
 		if (contents.len >= max_butts)
 			to_chat(user, "\The [src] is full.")
 			return
@@ -79,11 +79,11 @@ var/global/list/ashtray_cache = list()
 			shatter()
 	return
 
-/obj/item/weapon/material/ashtray/throw_impact(atom/hit_atom)
+/obj/item/material/ashtray/throw_impact(atom/hit_atom)
 	if (health > 0)
 		health = max(0,health - 3)
 		if (contents.len)
-			src.visible_message("<span class='danger'>\The [src] slams into [hit_atom], spilling its contents!</span>")
+			src.visible_message(span_danger("\The [src] slams into [hit_atom], spilling its contents!"))
 		for (var/obj/item/clothing/mask/smokable/cigarette/O in contents)
 			O.loc = src.loc
 		if (health < 1)
@@ -92,11 +92,11 @@ var/global/list/ashtray_cache = list()
 		update_icon()
 	return ..()
 
-/obj/item/weapon/material/ashtray/plastic/New(var/newloc)
-	..(newloc, "plastic")
+/obj/item/material/ashtray/plastic/Initialize(mapload)
+	. = ..(mapload, MAT_PLASTIC)
 
-/obj/item/weapon/material/ashtray/bronze/New(var/newloc)
-	..(newloc, "bronze")
+/obj/item/material/ashtray/bronze/Initialize(mapload)
+	. = ..(mapload, MAT_BRONZE)
 
-/obj/item/weapon/material/ashtray/glass/New(var/newloc)
-	..(newloc, "glass")
+/obj/item/material/ashtray/glass/Initialize(mapload)
+	. = ..(mapload, MAT_GLASS)

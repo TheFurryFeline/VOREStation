@@ -4,10 +4,11 @@
  *
  */
 
-/obj/item/device/multitool
+/obj/item/multitool
 	name = "multitool"
 	desc = "Used for pulsing wires to test which to cut. Not recommended by doctors."
 	description_info = "You can use this on airlocks or APCs to try to hack them without cutting wires."
+	icon = 'icons/obj/device.dmi'
 	icon_state = "multitool"
 	force = 5.0
 	w_class = ITEMSIZE_SMALL
@@ -17,13 +18,12 @@
 	drop_sound = 'sound/items/drop/multitool.ogg'
 	pickup_sound = 'sound/items/pickup/multitool.ogg'
 
-	matter = list(MAT_STEEL = 50,MAT_GLASS = 20)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.025),MAT_GLASS = MATERIAL_COST(0.01))
 
 	var/mode_index = 1
 	var/toolmode = MULTITOOL_MODE_STANDARD
 	var/list/modes = list(MULTITOOL_MODE_STANDARD, MULTITOOL_MODE_INTCIRCUITS)
 
-	origin_tech = list(TECH_MAGNET = 1, TECH_ENGINEERING = 1)
 	var/obj/machinery/telecomms/buffer // simple machine buffer for device linkage
 	var/obj/machinery/clonepod/connecting //same for cryopod linkage
 	var/obj/machinery/connectable	//Used to connect machinery.
@@ -31,14 +31,26 @@
 	toolspeed = 1
 	tool_qualities = list(TOOL_MULTITOOL)
 
-/obj/item/device/multitool/attack_self(mob/living/user)
-	var/choice = tgui_alert(usr, "What do you want to do with \the [src]?", "Multitool Menu", list("Switch Mode", "Clear Buffers", "Cancel"))
+	var/uplink = FALSE
+
+/obj/item/multitool/attack_self(mob/living/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+	if(uplink)
+		return
+
+	if(selected_io)
+		selected_io = null
+		to_chat(user, span_notice("You clear the wired connection from the multitool."))
+		update_icon()
+		return
+
+	update_icon()
+	var/choice = tgui_alert(user, "What do you want to do with \the [src]?", "Multitool Menu", list("Switch Mode", "Clear Buffers", "Cancel"))
 	switch(choice)
-		if("Cancel")
-			to_chat(user,"<span class='notice'>You lower \the [src].</span>")
-			return
 		if("Clear Buffers")
-			to_chat(user,"<span class='notice'>You clear \the [src]'s memory.</span>")
+			to_chat(user,span_notice("You clear \the [src]'s memory."))
 			buffer = null
 			connecting = null
 			connectable = null
@@ -48,30 +60,24 @@
 				accepting_refs = 1
 		if("Switch Mode")
 			mode_switch(user)
+		else
+			to_chat(user,span_notice("You lower \the [src]."))
+			return
 
 	update_icon()
 
-	return ..()
-
-/obj/item/device/multitool/proc/mode_switch(mob/living/user)
+/obj/item/multitool/proc/mode_switch(mob/living/user)
 	if(mode_index + 1 > modes.len) mode_index = 1
 
 	else
 		mode_index += 1
 
 	toolmode = modes[mode_index]
-	to_chat(user,"<span class='notice'>\The [src] is now set to [toolmode].</span>")
+	to_chat(user,span_notice("\The [src] is now set to [toolmode]."))
 
 	accepting_refs = (toolmode == MULTITOOL_MODE_INTCIRCUITS)
 
 	return
-
-/obj/item/device/multitool/cyborg
-	name = "multitool"
-	desc = "Optimised and stripped-down version of a regular multitool."
-	toolspeed = 0.5
-
-
 
 /datum/category_item/catalogue/anomalous/precursor_a/alien_multitool
 	name = "Precursor Alpha Object - Pulse Tool"
@@ -85,11 +91,17 @@
 	an airlock, if one knows how."
 	value = CATALOGUER_REWARD_EASY
 
-/obj/item/device/multitool/alien
+/obj/item/multitool/alien
 	name = "alien multitool"
 	desc = "An omni-technological interface."
 	catalogue_data = list(/datum/category_item/catalogue/anomalous/precursor_a/alien_multitool)
 	icon = 'icons/obj/abductor.dmi'
 	icon_state = "multitool"
 	toolspeed = 0.1
-	origin_tech = list(TECH_MAGNET = 5, TECH_ENGINEERING = 5)
+
+// Alien multitool only has those icon states
+/obj/item/multitool/alien/update_icon()
+	if(accepting_refs)
+		icon_state = "multitool_ref_scan"
+		return
+	icon_state = "multitool"

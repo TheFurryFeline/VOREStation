@@ -1,13 +1,9 @@
-var/list/grass_types = list(
-
-)
-
 /turf/simulated/floor/outdoors/grass
 	name = "grass"
 	icon_state = "grass0"
 	edge_blending_priority = 4
-	initial_flooring = /decl/flooring/grass/outdoors // VOREStation Edit
-	can_dig = TRUE
+	initial_flooring = /datum/decl/flooring/grass/outdoors // VOREStation Edit
+	flags = TURF_CAN_DIG_SHOVEL
 	turf_layers = list(
 		/turf/simulated/floor/outdoors/rocks,
 		/turf/simulated/floor/outdoors/dirt
@@ -37,7 +33,7 @@ var/list/grass_types = list(
 /turf/simulated/floor/outdoors/grass/sif
 	name = "growth"
 	icon_state = "grass_sif0"
-	initial_flooring = /decl/flooring/grass/sif
+	initial_flooring = /datum/decl/flooring/grass/sif
 	edge_blending_priority = 4
 	grass_chance = 5
 	var/tree_chance = 2
@@ -59,12 +55,12 @@ var/list/grass_types = list(
 	catalogue_data = list(/datum/category_item/catalogue/flora/sif_grass)
 	catalogue_delay = 2 SECONDS
 
-/turf/simulated/floor/outdoors/grass/sif/Initialize()
+/turf/simulated/floor/outdoors/grass/sif/Initialize(mapload)
 	if(tree_chance && prob(tree_chance) && !check_density())
 		new /obj/structure/flora/tree/sif(src)
 	. = ..()
 
-/turf/simulated/floor/outdoors/grass/Initialize()
+/turf/simulated/floor/outdoors/grass/Initialize(mapload)
 	if(grass_chance && prob(grass_chance) && !check_density())
 		var/grass_type = pickweight(grass_types)
 		new grass_type(src)
@@ -81,12 +77,12 @@ var/list/grass_types = list(
 	grass_chance = 80
 	//tree_chance = 20
 	edge_blending_priority = 5
-	initial_flooring = /decl/flooring/grass/outdoors/forest // VOREStation Edit
+	initial_flooring = /datum/decl/flooring/grass/outdoors/forest // VOREStation Edit
 
 /turf/simulated/floor/outdoors/grass/sif/forest
 	name = "thick growth"
 	icon_state = "grass_sif_dark0"
-	initial_flooring = /decl/flooring/grass/sif/forest
+	initial_flooring = /datum/decl/flooring/grass/sif/forest
 	edge_blending_priority = 5
 	tree_chance = 10
 	grass_chance = 1

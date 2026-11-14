@@ -60,8 +60,6 @@
 #define DYNAMIC_LIGHTING_ENABLED 1
 /// dynamic lighting enabled even if the area doesn't require power
 #define DYNAMIC_LIGHTING_FORCED 2
-/// dynamic lighting enabled only if starlight is.
-#define DYNAMIC_LIGHTING_IFSTARLIGHT 3
 #define IS_DYNAMIC_LIGHTING(A) A.dynamic_lighting
 
 
@@ -77,9 +75,11 @@
 
 // Emissive blocking.
 /// Uses vis_overlays to leverage caching so that very few new items need to be made for the overlay. For anything that doesn't change outline or opaque area much or at all.
-#define EMISSIVE_BLOCK_GENERIC 1
+#define EMISSIVE_BLOCK_GENERIC 0
 /// Uses a dedicated render_target object to copy the entire appearance in real time to the blocking layer. For things that can change in appearance a lot from the base state, like humans.
-#define EMISSIVE_BLOCK_UNIQUE 2
+#define EMISSIVE_BLOCK_UNIQUE 1
+/// Don't block any emissives. Useful for things like, pieces of paper?
+#define EMISSIVE_BLOCK_NONE 2
 
 /// The color matrix applied to all emissive overlays. Should be solely dependent on alpha and not have RGB overlap with [EM_BLOCK_COLOR].
 #define EMISSIVE_COLOR list(0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1, 1,1,1,0)
@@ -117,3 +117,34 @@ do { \
 		source.lum_b = 1; \
 	}; \
 } while (FALSE)
+
+//Fake ambient occlusion filter
+#define LIGHT_OK 0
+#define LIGHT_EMPTY 1
+#define LIGHT_BROKEN 2
+#define LIGHT_BURNED 3
+
+#define SUNLIGHT_RADIUS 9 //Tiles that sunlight penetrates into shade
+#define SUNLIGHT_NONE 0
+#define SUNLIGHT_POSSIBLE 1
+#define SUNLIGHT_CURRENT 2
+#define SUNLIGHT_OVERHEAD 3
+#define SUNLIGHT_ONLY 4
+#define SUNLIGHT_ONLY_SHADE 5
+
+// Keep in mind. Lighting corners accept the bottom left (northwest) set of cords to them as input
+// Handles dynamic light
+#define GENERATE_MISSING_CORNERS(gen_for) \
+	if (!gen_for.lighting_corner_NE) { \
+		gen_for.lighting_corner_NE = new /datum/lighting_corner(gen_for.x, gen_for.y, gen_for.z, gen_for.has_dynamic_lighting()); \
+	} \
+	if (!gen_for.lighting_corner_SE) { \
+		gen_for.lighting_corner_SE = new /datum/lighting_corner(gen_for.x, gen_for.y - 1, gen_for.z, gen_for.has_dynamic_lighting()); \
+	} \
+	if (!gen_for.lighting_corner_SW) { \
+		gen_for.lighting_corner_SW = new /datum/lighting_corner(gen_for.x - 1, gen_for.y - 1, gen_for.z, gen_for.has_dynamic_lighting()); \
+	} \
+	if (!gen_for.lighting_corner_NW) { \
+		gen_for.lighting_corner_NW = new /datum/lighting_corner(gen_for.x - 1, gen_for.y, gen_for.z, gen_for.has_dynamic_lighting()); \
+	} \
+	gen_for.lighting_corners_initialised = TRUE;

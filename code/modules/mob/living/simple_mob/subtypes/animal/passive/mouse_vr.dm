@@ -12,41 +12,44 @@
 	movement_cooldown = 5
 	universal_understand = 1
 
-/obj/item/weapon/holder/mouse/attack_self(var/mob/U)
-	for(var/mob/living/simple_mob/M in src.contents)
-		if((I_HELP) && U.checkClickCooldown()) //a little snowflakey, but makes it use the same cooldown as interacting with non-inventory objects
-			U.setClickCooldown(U.get_attack_speed()) //if there's a cleaner way in baycode, I'll change this
-			U.visible_message("<span class='notice'>[U] [M.response_help] \the [M].</span>")
+/obj/item/holder/mouse/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
+	for(var/mob/living/simple_mob/M in contents)
+		if((I_HELP) && user.checkClickCooldown()) //a little snowflakey, but makes it use the same cooldown as interacting with non-inventory objects
+			user.setClickCooldown(user.get_attack_speed()) //if there's a cleaner way in baycode, I'll change this
+			user.visible_message(span_notice("[user] [M.response_help] \the [M]."))
 
 //Jank grabber that uses the 'attack_hand' insead of 'MouseDrop'
-/mob/living/simple_mob/animal/passive/mouse/attack_hand(var/atom/over_object)
-	var/mob/living/carbon/human/H = over_object
-	if(holder_type && issmall(src) && istype(H) && !H.lying && Adjacent(H) && (src.a_intent == I_HELP && H.a_intent == I_HELP))
-		if(!issmall(H) || !istype(src, /mob/living/carbon/human))
-			get_scooped(H, (usr == src))
+/mob/living/simple_mob/animal/passive/mouse/attack_hand(mob/user)
+	var/mob/living/carbon/human/H = user
+	if(holder_type && issmall(src) && istype(H) && !H.lying && Adjacent(H) && (a_intent == I_HELP && H.a_intent == I_HELP))
+		if(!issmall(H) || !ishuman(src))
+			get_scooped(H, (H == src))
 		return
 	return ..()
 
-/mob/living/proc/mouse_scooped(var/mob/living/carbon/grabber, var/self_grab)
+/mob/living/proc/mouse_scooped(mob/living/carbon/grabber, self_grab)
 
 	if(!holder_type || buckled || pinned.len)
 		return
 
 	if(self_grab)
-		if(src.incapacitated()) return
+		if(incapacitated()) return
 	else
 		if(grabber.incapacitated()) return
 
-	var/obj/item/weapon/holder/H = new holder_type(get_turf(src), src)
+	var/obj/item/holder/H = new holder_type(get_turf(src), src)
 	grabber.put_in_hands(H)
 
 	if(self_grab)
-		to_chat(grabber, "<span class='notice'>\The [src] clambers onto you!</span>")
-		to_chat(src, "<span class='notice'>You climb up onto \the [grabber]!</span>")
+		to_chat(grabber, span_notice("\The [src] clambers onto you!"))
+		to_chat(src, span_notice("You climb up onto \the [grabber]!"))
 		grabber.equip_to_slot_if_possible(H, slot_back, 0, 1)
 	else
-		to_chat(grabber, "<span class='notice'>You scoop up \the [src]!</span>")
-		to_chat(src, "<span class='notice'>\The [grabber] scoops you up!</span>")
+		to_chat(grabber, span_notice("You scoop up \the [src]!"))
+		to_chat(src, span_notice("\The [grabber] scoops you up!"))
 
 	add_attack_logs(grabber, H.held_mob, "Scooped up", FALSE) // Not important enough to notify admins, but still helpful.
 	return H
@@ -56,16 +59,53 @@
 	desc = "Dainty, well groomed and cared for, her eyes glitter with untold knowledge..."
 	gender = FEMALE
 
-/mob/living/simple_mob/animal/passive/mouse/white/apple/New()
-	..()
-	// Change my name back, don't want to be named Apple (666)
-	name = initial(name)
-	desc = initial(desc)
+/mob/living/simple_mob/animal/passive/mouse/white/apple/Initialize(mapload, keep_parent_data)
+	. = ..(mapload, TRUE)
 
-/obj/item/weapon/holder/mouse/attack_self(mob/living/carbon/user)
+/obj/item/holder/mouse/attack_self(mob/living/carbon/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	user.setClickCooldown(user.get_attack_speed())
 	for(var/L in contents)
 		if(isanimal(L))
 			var/mob/living/simple_mob/S = L
-			user.visible_message("<span class='notice'>[user] [S.response_help] \the [S].</span>")
+			user.visible_message(span_notice("[user] [S.response_help] \the [S]."))
 
+/mob/living/simple_mob/animal/passive/mouse/mining
+	body_color = "brown"
+	icon = 'icons/mob/animal.dmi'
+	icon_state = "mouse_miner"
+	item_state = "mouse_miner"
+	icon_living = "mouse_miner"
+	name = "Cooper"
+	desc = "A lonely miner's best friend."
+
+/mob/living/simple_mob/animal/passive/mouse/mining/Initialize(mapload)
+	. = ..()
+
+	add_verb(src,/mob/living/proc/ventcrawl)
+	add_verb(src,/mob/living/proc/hide)
+	icon_state = "mouse_miner"
+	item_state = "mouse_miner"
+	icon_living = "mouse_miner"
+	icon_dead = "mouse_miner_dead"
+	icon_rest = "mouse_miner_sleep"
+	desc = "A lonely miner's best friend."
+
+
+/mob/living/simple_mob/animal/passive/mouse/mining/splat()
+	src.health = 0
+	src.set_stat(DEAD)
+	src.icon_dead = "mouse_miner_splat"
+	src.icon_state = "mouse_miner_splat"
+	layer = MOB_LAYER
+	if(client)
+		client.time_died_as_mouse = world.time
+
+/mob/living/simple_mob/animal/passive/mouse/beastmode
+	body_color = "white" // Always set white so it can be easily recoloured
+
+/mob/living/simple_mob/animal/passive/mouse/beastmode/Initialize(mapload)
+	. = ..()
+	remove_verb(src,/mob/living/proc/ventcrawl) //No ventcrawl for hanner

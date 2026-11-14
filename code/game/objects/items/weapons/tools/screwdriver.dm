@@ -1,13 +1,14 @@
 /*
  * Screwdriver
  */
-/obj/item/weapon/tool/screwdriver
+/obj/item/tool/screwdriver
 	name = "screwdriver"
 	desc = "You can be totally screwwy with this."
 	description_fluff = "This could be used to engrave messages on suitable surfaces if you really put your mind to it! Alt-click a floor or wall to engrave with it." //This way it's not a completely hidden, arcane art to engrave.
 	icon = 'icons/obj/tools.dmi'
 	icon_state = "screwdriver"
-	center_of_mass = list("x" = 13,"y" = 7)
+	center_of_mass_x = 13
+	center_of_mass_y = 7
 	slot_flags = SLOT_BELT | SLOT_EARS
 	force = 6
 	w_class = ITEMSIZE_TINY
@@ -18,14 +19,15 @@
 	usesound = 'sound/items/screwdriver.ogg'
 	drop_sound = 'sound/items/drop/screwdriver.ogg'
 	pickup_sound = 'sound/items/pickup/screwdriver.ogg'
-	matter = list(MAT_STEEL = 75)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.0375))
 	attack_verb = list("stabbed")
 	sharp  = TRUE
 	toolspeed = 1
 	tool_qualities = list(TOOL_SCREWDRIVER)
 	var/random_color = TRUE
 
-/obj/item/weapon/tool/screwdriver/New()
+/obj/item/tool/screwdriver/Initialize(mapload)
+	. = ..()
 	if(random_color)
 		switch(pick("red","blue","purple","brown","green","cyan","yellow"))
 			if ("red")
@@ -51,15 +53,14 @@
 				item_state = "screwdriver_yellow"
 
 	if (prob(75))
-		src.pixel_y = rand(0, 16)
-	..()
+		pixel_y = rand(0, 16)
 
-/obj/item/weapon/tool/screwdriver/attack(mob/living/carbon/M as mob, mob/living/carbon/user as mob)
-	if(!istype(M) || user.a_intent == "help")
+/obj/item/tool/screwdriver/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	if(!istype(M) || user.a_intent == I_HELP)
 		return ..()
 	if(user.zone_sel.selecting != O_EYES && user.zone_sel.selecting != BP_HEAD)
 		return ..()
-	if((CLUMSY in user.mutations) && prob(50))
+	if(CLUMSY_HARM_CHANCE(user))
 		M = user
 	return eyestab(M,user)
 
@@ -76,7 +77,7 @@
 	fastener, which includes the screws."
 	value = CATALOGUER_REWARD_EASY
 
-/obj/item/weapon/tool/screwdriver/alien
+/obj/item/tool/screwdriver/alien
 	name = "alien screwdriver"
 	desc = "An ultrasonic screwdriver."
 	catalogue_data = list(/datum/category_item/catalogue/anomalous/precursor_a/alien_screwdriver)
@@ -87,25 +88,18 @@
 	toolspeed = 0.1
 	random_color = FALSE
 
-/obj/item/weapon/tool/screwdriver/hybrid
+/obj/item/tool/screwdriver/hybrid
 	name = "strange screwdriver"
 	desc = "A strange conglomerate of a screwdriver."
 	icon_state = "hybscrewdriver"
 	item_state = "screwdriver_black"
-	origin_tech = list(TECH_MATERIAL = 3, TECH_ENGINEERING = 3)
 	w_class = ITEMSIZE_NORMAL
 	usesound = 'sound/effects/uncloak.ogg'
 	toolspeed = 0.4
 	random_color = FALSE
 	reach = 2
 
-/obj/item/weapon/tool/screwdriver/cyborg
-	name = "powered screwdriver"
-	desc = "An electrical screwdriver, designed to be both precise and quick."
-	usesound = 'sound/items/drill_use.ogg'
-	toolspeed = 0.5
-
-/obj/item/weapon/tool/screwdriver/power
+/obj/item/tool/screwdriver/power
 	name = "power screwdriver"
 	desc = "You shouldn't see this."
 	force = 8

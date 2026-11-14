@@ -1,117 +1,42 @@
-/*
-adds a dizziness amount to a mob
-use this rather than directly changing var/dizziness
-since this ensures that the dizzy_process proc is started
-currently only humans get dizzy
-
-value of dizziness ranges from 0 to 1000
-below 100 is not dizzy
-*/
-
-/mob/var/dizziness = 0//Carbon
-/mob/var/is_dizzy = 0
-
-/mob/proc/make_dizzy(var/amount)
-	if(!istype(src, /mob/living/carbon/human)) // for the moment, only humans get dizzy
-		return
-
-	dizziness = min(1000, dizziness + amount)	// store what will be new value
-													// clamped to max 1000
-	if(dizziness > 100 && !is_dizzy)
-		spawn(0)
-			dizzy_process()
-
-
-/*
-dizzy process - wiggles the client's pixel offset over time
-spawned from make_dizzy(), will terminate automatically when dizziness gets <100
-note dizziness decrements automatically in the mob's Life() proc.
-*/
-/mob/proc/dizzy_process()
-	is_dizzy = 1
-	while(dizziness > 100)
-		if(client)
-			var/amplitude = dizziness*(sin(dizziness * 0.044 * world.time) + 1) / 70
-			client.pixel_x = amplitude * sin(0.008 * dizziness * world.time)
-			client.pixel_y = amplitude * cos(0.008 * dizziness * world.time)
-
-		sleep(1)
-	//endwhile - reset the pixel offsets to zero
-	is_dizzy = 0
-	if(client)
-		client.pixel_x = 0
-		client.pixel_y = 0
-
-// jitteriness - copy+paste of dizziness
-/mob/var/is_jittery = 0
-/mob/var/jitteriness = 0//Carbon
-/mob/proc/make_jittery(var/amount)
-	if(!istype(src, /mob/living/carbon/human)) // for the moment, only humans get dizzy
-		return
-
-	jitteriness = min(1000, jitteriness + amount)	// store what will be new value
-													// clamped to max 1000
-	if(jitteriness > 100 && !is_jittery)
-		spawn(0)
-			jittery_process()
-
-
-// Typo from the oriignal coder here, below lies the jitteriness process. So make of his code what you will, the previous comment here was just a copypaste of the above.
-/mob/proc/jittery_process()
-	//var/old_x = pixel_x
-	//var/old_y = pixel_y
-	is_jittery = 1
-	while(jitteriness > 100)
-//		var/amplitude = jitteriness*(sin(jitteriness * 0.044 * world.time) + 1) / 70
-//		pixel_x = amplitude * sin(0.008 * jitteriness * world.time)
-//		pixel_y = amplitude * cos(0.008 * jitteriness * world.time)
-
-		var/amplitude = min(4, jitteriness / 100)
-		pixel_x = old_x + rand(-amplitude, amplitude)
-		pixel_y = old_y + rand(-amplitude/3, amplitude/3)
-
-		sleep(1)
-	//endwhile - reset the pixel offsets to zero
-	is_jittery = 0
-	pixel_x = old_x
-	pixel_y = old_y
-
-
 //handles up-down floaty effect in space and zero-gravity
 /mob/var/is_floating = 0
 /mob/var/floatiness = 0
 
-/mob/proc/update_floating(var/dense_object=0)
+///Returns TRUE if mob is floating
+/mob/proc/update_floating(dense_object=0)
 
 	if(anchored||buckled)
 		make_floating(0)
-		return
-	if(ishuman(src)) //VOREStation Edit Start. Floating code.
+		return FALSE
+	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
 		if(H.flying)
 			make_floating(1)
-			return //VOREStation Edit End
+			return TRUE
+	if(HAS_TRAIT(src, TRAIT_NO_GRAVITY))
+		make_floating(1)
+		return TRUE
 	var/turf/turf = get_turf(src)
 	if(!istype(turf,/turf/space))
 		var/area/A = turf.loc
-		if(istype(A) && A.has_gravity)
+		if(istype(A) && A.get_gravity())
 			make_floating(0)
-			return
+			return FALSE
 		else if (Check_Shoegrip())
 			make_floating(0)
-			return
+			return FALSE
 		else
 			make_floating(1)
-			return
+			return TRUE
 
 	if(dense_object && Check_Shoegrip())
 		make_floating(0)
-		return
+		return FALSE
 
 	make_floating(1)
-	return
+	return TRUE
 
-/mob/proc/make_floating(var/n)
+/mob/proc/make_floating(n)
 	if(buckled)
 		if(is_floating)
 			stop_floating()
@@ -144,7 +69,7 @@ note dizziness decrements automatically in the mob's Life() proc.
 	//reset the pixel offsets to zero
 	is_floating = 0
 
-/atom/movable/proc/fade_towards(atom/A,var/time = 2)
+/atom/movable/proc/fade_towards(atom/A,time = 2)
 	set waitfor = FALSE
 
 	var/pixel_x_diff = 0
@@ -195,12 +120,8 @@ note dizziness decrements automatically in the mob's Life() proc.
 	else if(direction & WEST)
 		pixel_x_diff = 8
 
-	var/default_pixel_x = initial(pixel_x)
-	var/default_pixel_y = initial(pixel_y)
-	var/mob/mob = src
-	if(istype(mob))
-		default_pixel_x = mob.default_pixel_x
-		default_pixel_y = mob.default_pixel_y
+	var/default_pixel_x = pixel_x
+	var/default_pixel_y = pixel_y
 
 	animate(src, pixel_x = pixel_x + pixel_x_diff, pixel_y = pixel_y + pixel_y_diff, time = windup_time - 2)
 	animate(pixel_x = default_pixel_x, pixel_y = default_pixel_y, time = 2)
@@ -220,12 +141,8 @@ note dizziness decrements automatically in the mob's Life() proc.
 	else if(direction & WEST)
 		pixel_x_diff = -8
 
-	var/default_pixel_x = initial(pixel_x)
-	var/default_pixel_y = initial(pixel_y)
-	var/mob/mob = src
-	if(istype(mob))
-		default_pixel_x = mob.default_pixel_x
-		default_pixel_y = mob.default_pixel_y
+	var/default_pixel_x = pixel_x
+	var/default_pixel_y = pixel_y
 
 	animate(src, pixel_x = pixel_x + pixel_x_diff, pixel_y = pixel_y + pixel_y_diff, time = 2)
 	animate(pixel_x = default_pixel_x, pixel_y = default_pixel_y, time = 2)
@@ -238,8 +155,7 @@ note dizziness decrements automatically in the mob's Life() proc.
 	//Check for clients with pref enabled
 	var/list/viewing = list()
 	for(var/mob/M as anything in viewers(A))
-		var/client/C = M.client
-		if(C && C.is_preference_enabled(/datum/client_preference/attack_icons))
+		if(M.client?.prefs?.read_preference(/datum/preference/toggle/attack_icons))
 			viewing += M.client
 
 	//Animals attacking each other in the distance, probably. Forgeddaboutit.
@@ -298,6 +214,8 @@ note dizziness decrements automatically in the mob's Life() proc.
 /mob/proc/spin(spintime, speed)
 	if(!speed || speed < 1)		// Do NOT spin with infinite speed, it will break the reality
 		return
+	if(istype(buckled,/obj/structure/bed/chair/office)) // WEEEE!!!
+		playsound(src, 'sound/effects/roll.ogg', 100, 1)
 	spawn()
 		var/D = dir
 		while(spintime >= speed)
@@ -312,5 +230,9 @@ note dizziness decrements automatically in the mob's Life() proc.
 				if(WEST)
 					D = NORTH
 			set_dir(D)
+			if(istype(buckled,/obj/structure/bed/chair/office))
+				var/obj/structure/bed/chair/office/O = buckled
+				O.dir = D
+				O.set_dir(D)
 			spintime -= speed
 	return

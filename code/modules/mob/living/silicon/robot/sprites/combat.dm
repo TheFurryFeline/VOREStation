@@ -4,18 +4,6 @@
 	module_type = "Combat"
 	sprite_icon = 'icons/mob/robot/combat.dmi'
 
-	var/has_speed_sprite = FALSE
-	var/has_shield_sprite = FALSE
-
-/datum/robot_sprite/combat/handle_extra_icon_updates(var/mob/living/silicon/robot/ourborg)
-	if(has_speed_sprite && istype(ourborg.module_active, /obj/item/borg/combat/mobility))
-		ourborg.icon_state = "[sprite_icon_state]-roll"
-	if(has_shield_sprite)
-		if(ourborg.has_active_type(/obj/item/borg/combat/shield))
-			var/obj/item/borg/combat/shield/shield = locate() in ourborg
-			if(shield && shield.active)
-				ourborg.add_overlay("[sprite_icon_state]-shield")
-
 /datum/robot_sprite/combat/default
 	name = DEFAULT_ROBOT_SPRITE_NAME
 	default_sprite = TRUE
@@ -24,17 +12,15 @@
 /datum/robot_sprite/combat/marina
 	name = "Haruka"
 	sprite_icon_state = "marina"
-	has_speed_sprite = TRUE
-	has_shield_sprite = TRUE
+	sprite_flags = ROBOT_HAS_SPEED_SPRITE | ROBOT_HAS_SHIELD_SPRITE
 
 /datum/robot_sprite/combat/droid
 	name = "Android"
 	sprite_icon_state = "droid"
-	has_speed_sprite = TRUE
-	has_shield_sprite = TRUE
+	sprite_flags = ROBOT_HAS_SPEED_SPRITE | ROBOT_HAS_SHIELD_SPRITE
 
-/datum/robot_sprite/combat/droid/get_eyes_overlay(var/mob/living/silicon/robot/ourborg)
-	if(istype(ourborg.module_active,/obj/item/borg/combat/mobility))
+/datum/robot_sprite/combat/droid/get_eyes_overlay(mob/living/silicon/robot/ourborg)
+	if(ourborg.has_active_type(/obj/item/borg/combat/mobility))
 		return
 	else
 		return ..()
@@ -42,45 +28,62 @@
 /datum/robot_sprite/combat/insekt
 	name = "Insekt"
 	sprite_icon_state = "insekt"
-	has_shield_sprite = TRUE
+	sprite_flags = ROBOT_HAS_SHIELD_SPRITE
 
 /datum/robot_sprite/combat/decapod
 	name = "Decapod"
 	sprite_icon_state = "decapod"
 	has_custom_open_sprites = TRUE
-	has_shield_sprite = TRUE
+	sprite_flags = ROBOT_HAS_SHIELD_SPRITE
 
 /datum/robot_sprite/combat/mechoid
 	name = "Acheron"
 	sprite_icon_state = "mechoid"
-	has_speed_sprite = TRUE
-	has_shield_sprite = TRUE
+	sprite_flags = ROBOT_HAS_SPEED_SPRITE | ROBOT_HAS_SHIELD_SPRITE
 
 /datum/robot_sprite/combat/zoomba
 	name = "ZOOM-BA"
 	sprite_icon_state = "zoomba"
 	has_dead_sprite = TRUE
-	has_speed_sprite = TRUE
-	has_shield_sprite = TRUE
+	sprite_flags = ROBOT_HAS_SPEED_SPRITE | ROBOT_HAS_SHIELD_SPRITE
+	hat_offset = ZOOMBA_HAT_OFFSET
 
 /datum/robot_sprite/combat/worm
 	name = "W02M"
-	sprite_icon_state = "worm"
+	sprite_icon_state = "worm-combat"
 	has_custom_open_sprites = TRUE
-	has_shield_sprite = TRUE
+	sprite_flags = ROBOT_HAS_SHIELD_SPRITE
+	sprite_icon = 'icons/mob/robot/wormborg.dmi'
+	has_dead_sprite_overlay = FALSE
+	has_custom_open_sprites = FALSE
+	has_vore_belly_sprites = TRUE
+	has_dead_sprite = TRUE
+	hat_offset = WORM_HAT_OFFSET
+
 
 /datum/robot_sprite/combat/uptall
 	name = "Feminine Humanoid"
 	sprite_icon_state = "uptall"
 
 // Wide/dogborg sprites
-/*
+
 /datum/robot_sprite/dogborg/combat
 	module_type = "Combat"
-	sprite_icon = 'icons/mob/robot/combat_wide.dmi'
+/*	sprite_icon = 'icons/mob/robot/combat_wide.dmi'
 
 		// None yet
 */
+
+/datum/robot_sprite/dogborg/combat/smolraptor
+	sprite_icon = 'icons/mob/robot/smallraptors/smolraptor_syndie.dmi'
+	name = "Small Raptor"
+	sprite_icon_state = "smolraptor"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_dead_sprite_overlay = FALSE
+	rest_sprite_options = list("Default", "Sit", "Bellyup")
+	hat_offset = SMOL_RAPTOR_HAT_OFFSET
+
 // Tall sprites
 
 /datum/robot_sprite/dogborg/tall/combat
@@ -88,33 +91,17 @@
 	sprite_icon = 'icons/mob/robot/combat_large.dmi'
 	has_custom_equipment_sprites = TRUE
 
-	var/has_gun_sprite = FALSE
-	var/has_speed_sprite = FALSE
-	var/has_shield_sprite = FALSE
+/datum/robot_sprite/dogborg/tall/combat/do_equipment_glamour(obj/item/robot_module/module)
+	..()
 
-/datum/robot_sprite/dogborg/tall/combat/handle_extra_icon_updates(var/mob/living/silicon/robot/ourborg)
-	if(has_gun_sprite && (istype(ourborg.module_active, /obj/item/weapon/gun/energy/laser/mounted) || istype(ourborg.module_active, /obj/item/weapon/gun/energy/taser/mounted/cyborg/ertgun) || istype(ourborg.module_active, /obj/item/weapon/gun/energy/lasercannon/mounted)))
-		ourborg.add_overlay("[sprite_icon_state]-gun")
-	if(has_speed_sprite && (istype(ourborg.module_active, /obj/item/borg/combat/mobility)))
-		ourborg.icon_state = "[sprite_icon_state]-roll"
-	if(has_shield_sprite)
-		if(ourborg.has_active_type(/obj/item/borg/combat/shield))
-			var/obj/item/borg/combat/shield/shield = locate() in ourborg
-			if(shield && shield.active)
-				ourborg.add_overlay("[sprite_icon_state]-shield")
-
-
-/datum/robot_sprite/dogborg/tall/combat/do_equipment_glamour(var/obj/item/weapon/robot_module/module)
 	if(!has_custom_equipment_sprites)
 		return
 
-	..()
-
-	var/obj/item/weapon/melee/combat_borgblade/CBB = locate() in module.modules
+	var/obj/item/melee/robotic/blade/dagger/CBB = locate() in module.modules
 	if(CBB)
 		CBB.name = "sword tail"
 		CBB.desc = "A glowing dagger normally attached to the end of a cyborg's tail. It appears to be extremely sharp."
-	var/obj/item/weapon/melee/borg_combat_shocker/BCS = locate() in module.modules
+	var/obj/item/melee/robotic/borg_combat_shocker/BCS = locate() in module.modules
 	if(BCS)
 		BCS.name = "combat jaws"
 		BCS.desc = "Shockingly chompy!"
@@ -124,10 +111,24 @@
 		BCS.dogborg = TRUE
 
 /datum/robot_sprite/dogborg/tall/combat/derg
-	name = "ERT"
+	name = "ERT Dragon"
 	sprite_icon_state = "derg"
-	rest_sprite_options = list("Default")
-	has_gun_sprite = TRUE
+	sprite_hud_icon_state = "ert"
+	rest_sprite_options = list("Default", "Sit")
+	sprite_flags = ROBOT_HAS_GUN_SPRITE | ROBOT_HAS_SHIELD_SPRITE
+
+/datum/robot_sprite/dogborg/tall/combat/derg/handle_extra_icon_updates(mob/living/silicon/robot/ourborg)
+	..()
+	if(ourborg.resting)
+		return
+	if(ourborg.has_active_type(/obj/item/borg/combat/mobility))
+		ourborg.add_overlay("[sprite_icon_state]-roll")
+
+/datum/robot_sprite/dogborg/tall/combat/derg/get_eyes_overlay(mob/living/silicon/robot/ourborg)
+	if(ourborg.has_active_type(/obj/item/borg/combat/mobility))
+		return
+	else
+		return ..()
 
 /datum/robot_sprite/dogborg/tall/combat/hound
 	name = "Hound"
@@ -142,29 +143,96 @@
 	rest_sprite_options = list("Default")
 	has_eye_sprites = FALSE
 	has_eye_light_sprites = TRUE
+	hat_offset = BORGI_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/combat/raptor
 	name = "Raptor V-4"
 	sprite_icon_state = "raptor"
 	sprite_hud_icon_state = "ert"
 	rest_sprite_options = list("Default", "Bellyup")
-	has_gun_sprite = TRUE
 	has_eye_light_sprites = TRUE
-	has_shield_sprite = TRUE
-	has_speed_sprite = TRUE
+	sprite_flags = ROBOT_HAS_GUN_SPRITE | ROBOT_HAS_SHIELD_SPRITE | ROBOT_HAS_SPEED_SPRITE
+	hat_offset = RAPTOR_HAT_OFFSET
 
-/datum/robot_sprite/dogborg/tall/combat/raptor/get_eyes_overlay(var/mob/living/silicon/robot/ourborg)
-	if(istype(ourborg.module_active,/obj/item/borg/combat/mobility))
+/datum/robot_sprite/dogborg/tall/combat/raptor/get_eyes_overlay(mob/living/silicon/robot/ourborg)
+	if(ourborg.has_active_type(/obj/item/borg/combat/mobility))
 		return
 	else
 		return ..()
-/datum/robot_sprite/dogborg/tall/combat/raptor/get_eye_light_overlay(var/mob/living/silicon/robot/ourborg)
-	if(istype(ourborg.module_active,/obj/item/borg/combat/mobility))
+/datum/robot_sprite/dogborg/tall/combat/raptor/get_eye_light_overlay(mob/living/silicon/robot/ourborg)
+	if(ourborg.has_active_type(/obj/item/borg/combat/mobility))
 		return
 	else
 		return ..()
-/datum/robot_sprite/dogborg/tall/combat/raptor/get_belly_overlay(var/mob/living/silicon/robot/ourborg)
-	if(istype(ourborg.module_active,/obj/item/borg/combat/mobility))
+/datum/robot_sprite/dogborg/tall/combat/raptor/get_belly_overlay(mob/living/silicon/robot/ourborg)
+	if(ourborg.has_active_type(/obj/item/borg/combat/mobility))
 		return
 	else
 		return ..()
+
+/datum/robot_sprite/dogborg/tall/combat/tall
+	name = "MEKA"
+	sprite_icon_state = "mekasyndi"
+	module_type = "Combat"
+	sprite_icon = 'icons/mob/robot/tallrobot/tallrobots.dmi'
+	has_vore_belly_sprites = TRUE
+	icon_x = 32
+	pixel_x = 0
+	hat_offset = MEKA_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/combat/tall/mmeka
+	name = "NIKO"
+	sprite_icon_state = "mmekasyndi"
+	has_vore_belly_sprites = TRUE
+	icon_x = 32
+	pixel_x = 0
+	hat_offset = MEKA_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/combat/tall/fmeka
+	name = "NIKA"
+	sprite_icon_state = "fmekasyndi"
+	has_vore_belly_sprites = TRUE
+	icon_x = 32
+	pixel_x = 0
+	hat_offset = MEKA_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/combat/tall/k4t
+	name = "K4T"
+	sprite_icon_state = "k4tsyndi"
+	has_vore_belly_sprites = FALSE
+	icon_x = 32
+	pixel_x = 0
+	hat_offset = K4T_HAT_OFFSET
+
+//Using our own category wide here not to interfere with upstream in case they add wide sprites under just dogborg.
+/datum/robot_sprite/dogborg/wide/combat
+	module_type = "Combat"
+	has_custom_equipment_sprites = TRUE
+	has_eye_sprites = FALSE
+
+/datum/robot_sprite/dogborg/wide/combat/blade/do_equipment_glamour(obj/item/robot_module/module)
+	..()
+
+	if(!has_custom_equipment_sprites)
+		return
+
+	var/obj/item/melee/robotic/blade/CBB = locate() in module.modules
+	if(CBB)
+		CBB.name = "combat saw"
+		CBB.desc = "A high frequency blade attached to the end of a cyborg's tail. It appears to be extremely sharp."
+	var/obj/item/melee/robotic/borg_combat_shocker/BCS = locate() in module.modules
+	if(BCS)
+		BCS.name = "combat jaws"
+		BCS.desc = "Shockingly chompy!"
+		BCS.icon_state = "ertjaws"
+		BCS.hitsound = 'sound/weapons/bite.ogg'
+		BCS.attack_verb = list("chomped", "bit", "ripped", "mauled", "enforced")
+		BCS.dogborg = TRUE
+
+/datum/robot_sprite/dogborg/wide/combat/blade
+	sprite_icon = 'icons/mob/robot/widerobot/widerobot.dmi'
+	name = "Blade"
+	sprite_icon_state = "blade"
+	sprite_hud_icon_state = "ert"
+	rest_sprite_options = list()
+	sprite_flags = ROBOT_HAS_LASER_SPRITE | ROBOT_HAS_DISABLER_SPRITE | ROBOT_HAS_DAGGER_SPRITE

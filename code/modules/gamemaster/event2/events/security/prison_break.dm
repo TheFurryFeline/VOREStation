@@ -13,7 +13,7 @@
 
 /datum/event2/meta/prison_break/get_weight()
 	// First, don't do this if nobody can fix the doors.
-	var/door_fixers = metric.count_people_in_department(DEPARTMENT_ENGINEERING) + metric.count_people_in_department(DEPARTMENT_SYNTHETIC)
+	var/door_fixers = GLOB.metric.count_people_in_department(DEPARTMENT_ENGINEERING) + GLOB.metric.count_people_in_department(DEPARTMENT_SYNTHETIC)
 	if(!door_fixers)
 		return 0
 	var/list/afflicted_departments = departments.Copy()
@@ -21,7 +21,7 @@
 
 	afflicted_departments -= DEPARTMENT_SYNTHETIC
 	for(var/D in afflicted_departments)
-		afflicted_crew += metric.count_people_in_department(D)
+		afflicted_crew += GLOB.metric.count_people_in_department(D)
 
 	// Don't do it if nobody is around to ""appreciate"" it.
 	if(!afflicted_crew)
@@ -56,10 +56,10 @@
 
 /datum/event2/meta/prison_break/brig/get_odds_from_trapped_mobs()
 	. = 0
-	for(var/mob/living/L in player_list)
+	for(var/mob/living/L in GLOB.player_list)
 		if(is_mob_in_relevant_area(L))
 			// Don't count them if they're in security.
-			if(!(L in metric.count_people_in_department(DEPARTMENT_SECURITY)))
+			if(!(L in GLOB.metric.count_people_in_department(DEPARTMENT_SECURITY)))
 				. += 40
 
 
@@ -91,7 +91,7 @@
 
 /datum/event2/meta/prison_break/xenobio/get_odds_from_trapped_mobs()
 	. = 0
-	for(var/mob/living/simple_mob/slime/xenobio/X in living_mob_list)
+	for(var/mob/living/simple_mob/slime/xenobio/X in GLOB.living_mob_list)
 		if(is_mob_in_relevant_area(X))
 			. += 5
 
@@ -107,10 +107,10 @@
 
 /datum/event2/meta/prison_break/virology/get_odds_from_trapped_mobs()
 	. = 0
-	for(var/mob/living/L in player_list)
+	for(var/mob/living/L in GLOB.player_list)
 		if(is_mob_in_relevant_area(L))
 			// Don't count them if they're in medical.
-			if(!(L in metric.count_people_in_department(DEPARTMENT_MEDICAL)))
+			if(!(L in GLOB.metric.count_people_in_department(DEPARTMENT_MEDICAL)))
 				. += 40
 
 
@@ -183,7 +183,7 @@
 			areas_to_break += A
 
 	if(!areas_to_break.len)
-		log_debug("Prison Break event failed to find any areas to break. Aborting.")
+		log_game("Prison Break event failed to find any areas to break. Aborting.")
 		abort()
 		return
 
@@ -194,14 +194,14 @@
 	within approximately three minutes. Direct intervention is required immediately. Disabling the \
 	main breaker in the APCs will protect the APC's room from being compromised."
 
-	for(var/obj/machinery/message_server/MS in machines)
+	for(var/obj/machinery/message_server/MS in GLOB.machines)
 		MS.send_rc_message(DEPARTMENT_ENGINEERING, my_department, "[message]<br>", "", "", 2)
 
 	// Nobody reads the requests consoles so lets use the radio as well.
-	global_announcer.autosay(message, my_department, DEPARTMENT_ENGINEERING)
+	GLOB.global_announcer.autosay(message, my_department, DEPARTMENT_ENGINEERING)
 
-	for(var/mob/living/silicon/ai/A in player_list)
-		to_chat(A, span("danger", "Malicious program detected in the [area_display_name] lighting and airlock control systems by [my_department]. \
+	for(var/mob/living/silicon/ai/A in GLOB.player_list)
+		to_chat(A, span_danger("Malicious program detected in the [area_display_name] lighting and airlock control systems by [my_department]. \
 		Disabling the main breaker in the APCs will protect the APC's room from being compromised."))
 
 	var/time_to_flicker = start_delay - 10 SECONDS
@@ -223,11 +223,11 @@
 // There's between 40 seconds and one minute before the whole station knows.
 // If there's a baddie engineer, they can choose to keep their early announcement to themselves and get a minute to exploit it.
 /datum/event2/event/prison_break/end()
-	command_announcement.Announce("[pick("Gr3y.T1d3 virus","Malignant trojan")] was detected \
+	GLOB.command_announcement.Announce("[pick("Gr3y.T1d3 virus","Malignant trojan")] was detected \
 	in \the [location_name()] [area_display_name] [containment_display_desc] subroutines. Secure any compromised \
-	areas immediately. AI involvement is recommended.", "[capitalize(containment_display_desc)] Alert")
+	areas immediately. AI involvement is recommended.", "[capitalize(containment_display_desc)] Alert", new_sound = ANNOUNCER_MSG_GREYTIDEVIRUS)
 
-	global_announcer.autosay(
+	GLOB.global_announcer.autosay(
 		"It is now safe to reactivate the APCs' main breakers inside [area_display_name].",
 		"[location_name()] Firewall Subroutines",
 		DEPARTMENT_ENGINEERING

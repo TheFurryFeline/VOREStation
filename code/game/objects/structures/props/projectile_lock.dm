@@ -18,7 +18,7 @@
 				var/obj/machinery/door/blast/puzzle/P = O
 				P.locks -= src
 				linked_objects -= P
-	..()
+	. = ..()
 
 /obj/structure/prop/lock/proc/toggle_lock()
 	enabled = !enabled
@@ -37,15 +37,15 @@
 	var/timing = 0
 	var/time_limit = 1500 // In ticks. Ten is one second.
 
-	interaction_message = "<span class='notice'>The object remains inert to your touch.</span>"
+	interaction_message = span_notice("The object remains inert to your touch.")
 
-/obj/structure/prop/lock/projectile/bullet_act(var/obj/item/projectile/Proj)
+/obj/structure/prop/lock/projectile/bullet_act(obj/item/projectile/Proj)
 	if(!istype(Proj, projectile_key) || timing)
 		return
 
 	if(istype(Proj, /obj/item/projectile/beam/heavylaser/cannon) || istype(Proj, /obj/item/projectile/beam/emitter) || (Proj.damage >= 80 && Proj.damtype == BURN))
 		toggle_lock()
-		visible_message("<span class='notice'>\The [src] [enabled ? "disengages" : "engages"] its locking mechanism.</span>")
+		visible_message(span_notice("\The [src] [enabled ? "disengages" : "engages"] its locking mechanism."))
 
 		if(timed)
 			timing = 1

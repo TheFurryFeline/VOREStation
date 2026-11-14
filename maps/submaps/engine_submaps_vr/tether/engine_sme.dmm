@@ -238,7 +238,7 @@
 	dir = 4;
 	external_pressure_bound = 100;
 	external_pressure_bound_default = 0;
-	frequency = 1438;
+	frequency = 1433;
 	icon_state = "map_vent_in";
 	id_tag = "cooling_out";
 	initialize_directions = 4;
@@ -319,9 +319,6 @@
 	},
 /turf/simulated/floor,
 /area/engineering/engine_room)
-"aV" = (
-/turf/simulated/floor/tiled/techmaint,
-/area/template_noop)
 "aW" = (
 /obj/effect/floor_decal/industrial/warning{
 	dir = 4
@@ -459,7 +456,7 @@
 	dir = 10
 	},
 /obj/machinery/atmospherics/unary/outlet_injector{
-	frequency = 1438;
+	frequency = 1433;
 	id = "cooling_in";
 	name = "Coolant Injector";
 	pixel_y = 1;
@@ -488,7 +485,7 @@
 	dir = 6
 	},
 /obj/machinery/air_sensor{
-	frequency = 1438;
+	frequency = 1433;
 	id_tag = "engine_sensor";
 	output = 63
 	},
@@ -629,7 +626,7 @@
 /obj/machinery/light{
 	dir = 8
 	},
-/obj/item/device/geiger/wall/west{
+/obj/item/geiger/wall/west{
 	pixel_x = -36
 	},
 /turf/simulated/floor,
@@ -663,7 +660,7 @@
 /turf/simulated/floor,
 /area/template_noop)
 "bA" = (
-/obj/item/weapon/book/manual/supermatter_engine,
+/obj/item/book/manual/supermatter_engine,
 /turf/template_noop,
 /area/template_noop)
 "bB" = (
@@ -1367,7 +1364,6 @@
 	},
 /obj/machinery/alarm{
 	dir = 1;
-	icon_state = "alarm0";
 	pixel_y = -22
 	},
 /turf/simulated/floor,
@@ -1379,7 +1375,7 @@
 /turf/simulated/floor,
 /area/engineering/engine_room)
 "dh" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	pixel_y = -24
 	},
 /turf/simulated/floor,
@@ -1538,7 +1534,7 @@
 /turf/simulated/floor/tiled/steel_grid,
 /area/template_noop)
 "vA" = (
-/obj/item/device/geiger/wall/south,
+/obj/item/geiger/wall/south,
 /turf/template_noop,
 /area/template_noop)
 "UW" = (
@@ -1588,7 +1584,7 @@ ac
 ad
 ac
 ac
-ac
+ab
 ac
 ac
 ac
@@ -2359,8 +2355,8 @@ af
 av
 av
 av
-aV
-aV
+aa
+aa
 av
 bz
 bz

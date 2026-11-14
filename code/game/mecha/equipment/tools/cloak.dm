@@ -2,7 +2,6 @@
 	name = "cloaking device"
 	desc = "Integrated cloaking system. High power usage, but does render you invisible to the naked eye. Doesn't prevent noise, however."
 	icon_state = "tesla"
-	origin_tech = list(TECH_MAGNET = 5, TECH_DATA = 5)
 	energy_drain = 300
 	range = 0
 	equip_type = EQUIP_SPECIAL
@@ -22,7 +21,7 @@
 /obj/item/mecha_parts/mecha_equipment/cloak/get_equip_info()
 	if(!chassis)
 		return
-	return "<span style=\"color:[equip_ready ? "#0f0":"#f00"];\">*</span>&nbsp;[src.name] - <a href='?src=\ref[src];toggle_cloak=1'>[equip_ready ? "A" : "Dea"]ctivate</a>"
+	return (equip_ready ? span_green("*") : span_red("*")) + "&nbsp;[src.name] - <a href='byond://?src=\ref[src];toggle_cloak=1'>[equip_ready ? "A" : "Dea"]ctivate</a>"
 
 /obj/item/mecha_parts/mecha_equipment/cloak/Topic(href, href_list)
 	..()
@@ -36,7 +35,7 @@
 /obj/item/mecha_parts/mecha_equipment/cloak/proc/start_cloak()
 	if(chassis)
 		chassis.cloak()
-	log_message("Activated.")
+	src.mecha_log_message("Activated.")
 	START_PROCESSING(SSobj, src)
 	set_ready_state(FALSE)
 	playsound(src, 'sound/effects/EMPulse.ogg', 100, 1)
@@ -44,7 +43,7 @@
 /obj/item/mecha_parts/mecha_equipment/cloak/proc/stop_cloak()
 	if(chassis)
 		chassis.uncloak()
-	log_message("Deactivated.")
+	src.mecha_log_message("Deactivated.")
 	STOP_PROCESSING(SSobj, src)
 	set_ready_state(TRUE)
 	playsound(src, 'sound/effects/EMPulse.ogg', 100, 1)

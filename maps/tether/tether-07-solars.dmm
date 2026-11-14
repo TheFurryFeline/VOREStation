@@ -34,7 +34,7 @@
 	dir = 9
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "af" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 1
@@ -43,7 +43,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "ag" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 1
@@ -55,7 +55,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "ah" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 5
@@ -64,7 +64,7 @@
 	icon_state = "2-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "ai" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-2"
@@ -76,14 +76,14 @@
 	dir = 8
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aj" = (
 /obj/machinery/power/solar,
 /obj/structure/cable/yellow{
 	icon_state = "0-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "ak" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-2"
@@ -92,10 +92,10 @@
 	icon_state = "1-4"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "al" = (
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "am" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 4
@@ -104,7 +104,7 @@
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "an" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-4"
@@ -113,13 +113,13 @@
 	dir = 8
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "ao" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-4"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "ap" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 8
@@ -128,13 +128,13 @@
 	icon_state = "2-4"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aq" = (
 /obj/structure/cable/yellow{
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "ar" = (
 /obj/structure/cable/yellow{
 	icon_state = "2-4"
@@ -143,7 +143,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "as" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 4
@@ -155,7 +155,7 @@
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "at" = (
 /obj/structure/railing,
 /obj/structure/railing{
@@ -192,7 +192,7 @@
 	icon_state = "0-2"
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "ay" = (
 /obj/structure/grille,
 /obj/structure/cable/yellow{
@@ -206,7 +206,7 @@
 	icon_state = "0-4"
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aA" = (
 /obj/structure/cable/yellow{
 	icon_state = "2-4"
@@ -218,7 +218,7 @@
 	icon_state = "2-8"
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aB" = (
 /obj/structure/cable/yellow{
 	icon_state = "4-8"
@@ -292,18 +292,18 @@
 	name_tag = "Solar Farm Output"
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aK" = (
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aL" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aM" = (
-/obj/item/weapon/stool,
+/obj/item/stool,
 /obj/structure/cable/yellow{
 	icon_state = "1-2"
 	},
@@ -314,14 +314,15 @@
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aO" = (
-/obj/machinery/power/smes/buildable{
-	RCon_tag = "Power - Solar Array";
-	cur_coils = 3;
-	output_attempt = 0
+/obj/machinery/power/smes/buildable/disable_output{
+	RCon_tag = "Power - Solar Array"
 	},
 /obj/structure/cable/heavyduty,
+/obj/item/smes_coil,
+/obj/item/smes_coil,
+/obj/item/smes_coil,
 /turf/simulated/floor/virgo3b_indoors,
 /area/tether/outpost/solars_shed)
 "aP" = (
@@ -388,7 +389,7 @@
 "aW" = (
 /obj/structure/railing,
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aX" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-2"
@@ -405,7 +406,7 @@
 	name_tag = "Solar Farm Input"
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "aY" = (
 /obj/effect/floor_decal/industrial/warning/dust,
 /obj/effect/floor_decal/rust,
@@ -423,7 +424,7 @@
 	dir = 8
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bb" = (
 /obj/structure/sign/securearea{
 	desc = "A warning sign which reads 'HIGH VOLTAGE'";
@@ -442,7 +443,7 @@
 	icon_state = "1-4"
 	},
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bd" = (
 /obj/effect/floor_decal/rust,
 /obj/effect/map_effect/portal/line/side_b{
@@ -455,7 +456,7 @@
 	dir = 8
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bf" = (
 /obj/effect/floor_decal/industrial/warning/dust/corner{
 	dir = 4
@@ -467,7 +468,7 @@
 	icon_state = "1-4"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bg" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 1
@@ -476,20 +477,20 @@
 	icon_state = "1-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bh" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 1
 	},
 /obj/machinery/camera/network/engineering,
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bi" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 1
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bj" = (
 /obj/effect/floor_decal/rust,
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
@@ -502,25 +503,25 @@
 	dir = 1
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bl" = (
 /obj/effect/floor_decal/rust,
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bm" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 1
 	},
 /obj/effect/floor_decal/rust,
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bn" = (
 /obj/structure/cable/heavyduty{
 	icon_state = "4-8"
 	},
 /obj/structure/railing,
 /turf/simulated/floor/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bo" = (
 /obj/effect/floor_decal/rust,
 /obj/structure/cable/heavyduty{
@@ -551,14 +552,14 @@
 "br" = (
 /obj/tether_away_spawner/tether_outside,
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bs" = (
 /obj/effect/floor_decal/industrial/warning/dust/corner,
 /obj/structure/cable/yellow{
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bt" = (
 /obj/structure/cable/heavyduty{
 	icon_state = "2-8"
@@ -574,12 +575,12 @@
 "bu" = (
 /obj/effect/floor_decal/industrial/warning/dust,
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bv" = (
 /obj/effect/floor_decal/industrial/warning/dust,
 /obj/effect/floor_decal/rust,
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bw" = (
 /obj/structure/cable/yellow{
 	icon_state = "2-4"
@@ -588,13 +589,13 @@
 	dir = 8
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bx" = (
 /obj/structure/cable/yellow{
 	icon_state = "2-4"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "by" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-2"
@@ -606,7 +607,7 @@
 	dir = 8
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bz" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-2"
@@ -615,7 +616,7 @@
 	icon_state = "2-4"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bA" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 8
@@ -624,7 +625,7 @@
 	icon_state = "1-4"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bB" = (
 /obj/structure/cable/yellow{
 	icon_state = "1-4"
@@ -633,7 +634,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bC" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 4
@@ -645,7 +646,7 @@
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bD" = (
 /obj/effect/floor_decal/industrial/warning/dust{
 	dir = 10
@@ -654,14 +655,14 @@
 	icon_state = "1-4"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bE" = (
 /obj/effect/floor_decal/industrial/warning/dust,
 /obj/structure/cable/yellow{
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bF" = (
 /turf/simulated/mineral/virgo3b,
 /area/mine/unexplored)
@@ -677,7 +678,7 @@
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "bI" = (
 /obj/structure/cable/heavyduty{
 	icon_state = "1-2"
@@ -844,7 +845,7 @@
 /area/rnd/outpost/mixing)
 "cf" = (
 /turf/simulated/wall,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cg" = (
 /turf/simulated/wall,
 /area/rnd/outpost/eva)
@@ -926,7 +927,7 @@
 /turf/simulated/floor/tiled/white,
 /area/rnd/outpost/mixing)
 "cr" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24;
 	req_access = list()
@@ -975,23 +976,23 @@
 "cw" = (
 /obj/machinery/bomb_tester,
 /turf/simulated/floor/tiled/steel_grid,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cx" = (
 /obj/structure/filingcabinet/filingcabinet,
 /turf/simulated/floor/tiled/steel_grid,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cy" = (
 /obj/effect/floor_decal/industrial/warning/cee{
 	dir = 1
 	},
 /turf/simulated/floor/greengrid,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cz" = (
 /obj/structure/table/rack,
 /obj/machinery/door/window/eastleft,
-/obj/item/clothing/mask/gas,
+/obj/item/clothing/mask/gas/clear,
 /obj/item/clothing/suit/storage/hooded/wintercoat/science,
-/obj/item/weapon/tank/emergency/oxygen/engi,
+/obj/item/tank/emergency/oxygen/engi,
 /obj/structure/window/basic{
 	dir = 1
 	},
@@ -1012,8 +1013,8 @@
 	dir = 8
 	},
 /obj/structure/table/standard,
-/obj/item/weapon/storage/toolbox/emergency,
-/obj/item/device/radio/intercom{
+/obj/item/storage/toolbox/emergency,
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = 24
 	},
@@ -1160,16 +1161,16 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 4
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24;
 	req_access = list()
 	},
 /obj/structure/table/standard,
-/obj/item/weapon/folder/white,
-/obj/item/weapon/pen/fountain,
+/obj/item/folder/white,
+/obj/item/pen/fountain,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cR" = (
 /obj/structure/table/standard,
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
@@ -1180,15 +1181,15 @@
 	},
 /obj/item/stack/cable_coil,
 /obj/item/stack/cable_coil,
-/obj/item/weapon/tool/wirecutters,
+/obj/item/tool/wirecutters,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cS" = (
 /obj/structure/cable/green{
 	icon_state = "2-4"
 	},
 /turf/simulated/floor/tiled/steel_grid,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cT" = (
 /obj/machinery/alarm{
 	pixel_y = 22
@@ -1197,7 +1198,7 @@
 	dir = 10
 	},
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cU" = (
 /obj/machinery/power/apc{
 	dir = 4;
@@ -1208,19 +1209,19 @@
 	icon_state = "0-8"
 	},
 /turf/simulated/floor/tiled/steel_grid,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cV" = (
 /obj/structure/cable/green{
 	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled/steel_grid,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "cW" = (
 /obj/structure/table/rack,
 /obj/machinery/door/window/eastright,
-/obj/item/clothing/mask/gas,
+/obj/item/clothing/mask/gas/clear,
 /obj/item/clothing/suit/storage/hooded/wintercoat/science,
-/obj/item/weapon/tank/emergency/oxygen/engi,
+/obj/item/tank/emergency/oxygen/engi,
 /obj/structure/window/basic,
 /obj/structure/window/basic{
 	dir = 8
@@ -1237,11 +1238,11 @@
 	dir = 1
 	},
 /obj/structure/table/standard,
-/obj/item/weapon/storage/briefcase/inflatable{
+/obj/item/storage/briefcase/inflatable{
 	pixel_x = -1;
 	pixel_y = -2
 	},
-/obj/item/weapon/storage/briefcase/inflatable{
+/obj/item/storage/briefcase/inflatable{
 	pixel_x = 2;
 	pixel_y = 1
 	},
@@ -1259,10 +1260,10 @@
 /obj/machinery/vending/phoronresearch{
 	dir = 8;
 	name = "Toximate 2556";
-	products = list(/obj/item/device/transfer_valve = 3, /obj/item/device/assembly/timer = 6, /obj/item/device/assembly/signaler = 6, /obj/item/device/assembly/prox_sensor = 6, /obj/item/device/assembly/igniter = 12)
+	products = list(/obj/item/transfer_valve = 3, /obj/item/assembly/timer = 6, /obj/item/assembly/signaler = 6, /obj/item/assembly/prox_sensor = 6, /obj/item/assembly/igniter = 12)
 	},
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "da" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	frequency = 1379;
@@ -1394,33 +1395,33 @@
 	dir = 8
 	},
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "ds" = (
 /obj/structure/table/standard,
-/obj/item/weapon/tank/phoron,
+/obj/item/tank/phoron,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dt" = (
 /obj/structure/cable/green{
 	icon_state = "1-2"
 	},
 /obj/machinery/hologram/holopad,
 /turf/simulated/floor/tiled/monotile,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "du" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dv" = (
 /obj/structure/dispenser,
 /obj/machinery/light{
 	dir = 4
 	},
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dw" = (
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dx" = (
 /obj/machinery/washing_machine,
 /obj/machinery/atmospherics/unary/vent_pump/on{
@@ -1587,17 +1588,17 @@
 	dir = 4
 	},
 /obj/structure/table/standard,
-/obj/item/weapon/weldingtool,
+/obj/item/weldingtool,
 /obj/item/clothing/glasses/welding,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dS" = (
 /obj/structure/table/standard,
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 4
 	},
-/obj/item/weapon/tool/screwdriver,
-/obj/item/device/assembly_holder/timer_igniter,
+/obj/item/tool/screwdriver,
+/obj/item/assembly_holder/timer_igniter,
 /obj/machinery/camera/network/research_outpost{
 	dir = 4
 	},
@@ -1607,20 +1608,20 @@
 	pixel_y = -24
 	},
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dT" = (
 /obj/structure/cable/green{
 	icon_state = "1-2"
 	},
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dU" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 10
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dV" = (
 /obj/machinery/vending/cola{
 	dir = 8
@@ -1632,7 +1633,7 @@
 	pixel_y = -30
 	},
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "dX" = (
 /obj/machinery/door/window/southright{
 	name = "Science Outpost EVA"
@@ -1833,7 +1834,7 @@
 	},
 /obj/machinery/door/firedoor/glass,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "es" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
@@ -1842,7 +1843,7 @@
 	},
 /obj/machinery/door/firedoor/glass,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/testing)
+/area/rnd/outpost/test)
 "et" = (
 /obj/effect/floor_decal/borderfloor{
 	dir = 9
@@ -1951,9 +1952,9 @@
 /area/mine/explored)
 "eC" = (
 /obj/structure/table/rack,
-/obj/item/device/suit_cooling_unit,
-/obj/item/device/suit_cooling_unit,
-/obj/item/device/radio/intercom{
+/obj/item/suit_cooling_unit,
+/obj/item/suit_cooling_unit,
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24;
 	req_access = list()
@@ -2367,9 +2368,8 @@
 /turf/simulated/floor,
 /area/maintenance/substation/outpost)
 "ff" = (
-/obj/machinery/power/smes/buildable{
-	RCon_tag = "Substation - Science Outpost";
-	output_attempt = 0
+/obj/machinery/power/smes/buildable/disable_output{
+	RCon_tag = "Substation - Science Outpost"
 	},
 /obj/structure/cable/green,
 /obj/structure/cable/green{
@@ -2620,7 +2620,7 @@
 	dir = 1
 	},
 /obj/structure/table/standard,
-/obj/item/device/analyzer,
+/obj/item/analyzer,
 /obj/machinery/camera/network/research_outpost{
 	dir = 1
 	},
@@ -2637,14 +2637,14 @@
 	dir = 1
 	},
 /obj/structure/table/standard,
-/obj/item/weapon/tool/wrench{
+/obj/item/tool/wrench{
 	pixel_x = 2;
 	pixel_y = 2
 	},
 /obj/effect/floor_decal/corner/purple{
 	dir = 10
 	},
-/obj/item/weapon/tool/wrench{
+/obj/item/tool/wrench{
 	pixel_x = -2;
 	pixel_y = -2
 	},
@@ -2664,7 +2664,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/black{
 	dir = 4
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	pixel_y = -24
 	},
 /obj/effect/floor_decal/corner/purple{
@@ -3161,11 +3161,11 @@
 	},
 /obj/machinery/atmospherics/unary/vent_scrubber/on,
 /obj/structure/table/standard,
-/obj/item/weapon/tool/wrench,
+/obj/item/tool/wrench,
 /obj/machinery/camera/network/research_outpost{
 	dir = 8
 	},
-/obj/item/device/analyzer,
+/obj/item/analyzer,
 /turf/simulated/floor/tiled/white,
 /area/rnd/outpost/heating)
 "gA" = (
@@ -3174,12 +3174,12 @@
 /obj/effect/floor_decal/corner/purple{
 	dir = 5
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24;
 	req_access = list()
 	},
-/obj/item/weapon/tool/wrench,
+/obj/item/tool/wrench,
 /turf/simulated/floor/tiled/white,
 /area/rnd/outpost/heating)
 "gB" = (
@@ -3223,7 +3223,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 8;
 	pixel_x = -24
 	},
@@ -3269,7 +3269,6 @@
 /obj/machinery/meter,
 /obj/machinery/alarm{
 	dir = 4;
-	icon_state = "alarm0";
 	pixel_x = -22
 	},
 /turf/simulated/floor,
@@ -3509,7 +3508,7 @@
 	icon_state = "0-2"
 	},
 /obj/machinery/power/apc{
-	cell_type = /obj/item/weapon/cell/super;
+	cell_type = /obj/item/cell/super;
 	dir = 8;
 	name = "west bump";
 	pixel_x = -28
@@ -3842,7 +3841,7 @@
 /area/rnd/outpost/chamber)
 "hF" = (
 /obj/machinery/power/apc{
-	cell_type = /obj/item/weapon/cell/super;
+	cell_type = /obj/item/cell/super;
 	dir = 8;
 	name = "west bump";
 	pixel_x = -28
@@ -4043,7 +4042,7 @@
 	pixel_x = -26;
 	pixel_y = -8
 	},
-/obj/item/weapon/stool/padded,
+/obj/item/stool/padded,
 /turf/simulated/floor/tiled/white,
 /area/rnd/outpost/heating)
 "hZ" = (
@@ -4714,7 +4713,7 @@
 /area/rnd/outpost/storage)
 "jw" = (
 /turf/simulated/wall/r_wall,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "jx" = (
 /turf/simulated/wall,
 /area/rnd/outpost/anomaly_lab)
@@ -4885,11 +4884,11 @@
 	dir = 8
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "jO" = (
 /obj/effect/floor_decal/industrial/warning,
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "jP" = (
 /turf/simulated/wall/r_wall,
 /area/rnd/outpost/anomaly_lab/airlock)
@@ -5027,16 +5026,16 @@
 "kf" = (
 /obj/effect/floor_decal/industrial/outline/red,
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "kg" = (
 /obj/effect/floor_decal/industrial/warning/corner{
 	dir = 8
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "kh" = (
 /obj/machinery/door/airlock/glass_external{
-	frequency = 1452;
+	frequency = 1453;
 	icon_state = "door_locked";
 	id_tag = "anomaly_testing_exterior";
 	locked = 1;
@@ -5083,7 +5082,7 @@
 /obj/effect/floor_decal/corner/purple/border{
 	dir = 4
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -5178,7 +5177,7 @@
 	name = "Anomaly Testing Vent"
 	},
 /turf/simulated/floor/reinforced/airless,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "kw" = (
 /obj/effect/floor_decal/borderfloor{
 	dir = 4
@@ -5200,7 +5199,7 @@
 /area/rnd/outpost)
 "kx" = (
 /obj/machinery/access_button{
-	frequency = 1452;
+	frequency = 1453;
 	master_tag = "anomaly_chamber_airlock";
 	pixel_x = -25;
 	pixel_y = 25
@@ -5454,7 +5453,7 @@
 	dir = 1
 	},
 /obj/machinery/atmospherics/unary/vent_pump/on,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24;
 	req_access = list()
@@ -5487,12 +5486,12 @@
 	dir = 8
 	},
 /obj/machinery/access_button{
-	frequency = 1452;
+	frequency = 1453;
 	master_tag = "anomaly_chamber_airlock";
 	pixel_x = 25
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "kV" = (
 /obj/machinery/door/firedoor/glass,
 /obj/structure/cable/green{
@@ -5501,7 +5500,7 @@
 /obj/structure/grille,
 /obj/structure/window/reinforced/full,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "kW" = (
 /obj/effect/floor_decal/industrial/danger{
 	dir = 4
@@ -5668,11 +5667,11 @@
 /area/rnd/outpost/anomaly_lab)
 "lk" = (
 /obj/structure/table/steel,
-/obj/item/device/measuring_tape,
-/obj/item/weapon/tool/wrench,
-/obj/item/weapon/storage/excavation,
+/obj/item/measuring_tape,
+/obj/item/tool/wrench,
+/obj/item/storage/excavation,
 /obj/item/stack/flag/yellow,
-/obj/item/weapon/pickaxe,
+/obj/item/pickaxe,
 /obj/structure/cable/green{
 	icon_state = "0-8"
 	},
@@ -5732,7 +5731,7 @@
 "lp" = (
 /obj/effect/floor_decal/industrial/warning/corner,
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "lq" = (
 /obj/structure/table/rack,
 /obj/item/clothing/suit/bio_suit/anomaly,
@@ -5741,7 +5740,7 @@
 /obj/item/clothing/gloves/sterile/latex,
 /obj/item/clothing/glasses/science,
 /obj/effect/floor_decal/industrial/hatch/yellow,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 1;
 	pixel_y = 24;
 	req_access = list()
@@ -5813,7 +5812,7 @@
 	},
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 8;
-	frequency = 1452;
+	frequency = 1453;
 	id_tag = "anomaly_airlock_pump";
 	name = "Anomaly Airlock Pump"
 	},
@@ -5875,7 +5874,7 @@
 	dir = 8
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "lz" = (
 /obj/machinery/alarm{
 	alarm_id = "anomaly_testing";
@@ -5885,17 +5884,17 @@
 	report_danger_level = 0
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "lA" = (
 /obj/machinery/airlock_sensor/phoron{
-	frequency = 1452;
+	frequency = 1453;
 	id_tag = "anomaly_chamber_airlock_sensor";
 	master_tag = null;
 	pixel_x = -25;
 	pixel_y = -10
 	},
 /obj/machinery/embedded_controller/radio/airlock/phoron{
-	frequency = 1452;
+	frequency = 1453;
 	id_tag = "anomaly_chamber_airlock";
 	pixel_x = -25;
 	tag_airpump = "anomaly_airlock_pump";
@@ -6070,11 +6069,11 @@
 /area/rnd/outpost/anomaly_lab)
 "lQ" = (
 /obj/structure/table/steel,
-/obj/item/device/measuring_tape,
-/obj/item/weapon/tool/wrench,
-/obj/item/weapon/storage/excavation,
+/obj/item/measuring_tape,
+/obj/item/tool/wrench,
+/obj/item/storage/excavation,
 /obj/item/stack/flag/yellow,
-/obj/item/weapon/pickaxe,
+/obj/item/pickaxe,
 /obj/machinery/alarm{
 	dir = 8;
 	pixel_x = 22
@@ -6126,13 +6125,13 @@
 	dir = 4
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "lU" = (
 /obj/machinery/atmospherics/pipe/manifold/visible/yellow{
 	dir = 1
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "lV" = (
 /obj/machinery/atmospherics/unary/vent_scrubber{
 	dir = 8
@@ -6141,16 +6140,16 @@
 	icon_state = "2-4"
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "lW" = (
 /obj/effect/floor_decal/industrial/warning{
 	dir = 4
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "lX" = (
 /obj/machinery/door/airlock/glass_external{
-	frequency = 1452;
+	frequency = 1453;
 	icon_state = "door_locked";
 	id_tag = "anomaly_testing_interior";
 	locked = 1;
@@ -6227,13 +6226,13 @@
 /obj/item/clothing/suit/space/anomaly,
 /obj/item/clothing/head/helmet/space/anomaly,
 /obj/item/clothing/mask/breath,
-/obj/item/weapon/storage/belt/archaeology,
+/obj/item/storage/belt/archaeology,
 /obj/machinery/light_switch{
 	dir = 1;
 	pixel_x = 4;
 	pixel_y = -24
 	},
-/obj/item/weapon/melee/umbrella/random,
+/obj/item/melee/umbrella/random,
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/xenoarch_storage)
 "mf" = (
@@ -6241,12 +6240,12 @@
 /obj/item/clothing/suit/space/anomaly,
 /obj/item/clothing/head/helmet/space/anomaly,
 /obj/item/clothing/mask/breath,
-/obj/item/weapon/storage/belt/archaeology,
+/obj/item/storage/belt/archaeology,
 /obj/machinery/firealarm{
 	dir = 1;
 	pixel_y = -26
 	},
-/obj/item/weapon/melee/umbrella/random,
+/obj/item/melee/umbrella/random,
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/xenoarch_storage)
 "mg" = (
@@ -6254,19 +6253,19 @@
 	dir = 1
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "mh" = (
 /obj/effect/floor_decal/industrial/warning/corner{
 	dir = 1
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "mi" = (
 /obj/structure/grille,
 /obj/machinery/door/firedoor/glass,
 /obj/structure/window/reinforced/full,
 /turf/simulated/floor,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "mj" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
 /obj/effect/floor_decal/industrial/warning{
@@ -6295,7 +6294,7 @@
 /area/rnd/outpost/anomaly_lab)
 "mm" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/storage/box/donkpockets,
+/obj/item/storage/box/donkpockets,
 /obj/machinery/light_switch{
 	dir = 4;
 	pixel_x = -28
@@ -6327,7 +6326,6 @@
 /turf/simulated/floor/tiled/monotile,
 /area/rnd/outpost/anomaly_lab)
 "mp" = (
-/obj/structure/reagent_dispensers/coolanttank,
 /obj/effect/floor_decal/steeldecal/steel_decals9,
 /obj/effect/floor_decal/steeldecal/steel_decals9{
 	dir = 4
@@ -6337,6 +6335,10 @@
 	},
 /obj/effect/floor_decal/steeldecal/steel_decals9{
 	dir = 1
+	},
+/obj/structure/sink/kitchen{
+	pixel_x = 0;
+	pixel_y = 17
 	},
 /turf/simulated/floor/tiled/monotile,
 /area/rnd/outpost/anomaly_lab)
@@ -6357,7 +6359,7 @@
 "mr" = (
 /obj/structure/table/standard,
 /obj/item/stack/nanopaste,
-/obj/item/weapon/reagent_containers/glass/bucket,
+/obj/item/reagent_containers/glass/bucket,
 /obj/structure/window/reinforced{
 	dir = 4
 	},
@@ -6431,7 +6433,7 @@
 /obj/structure/window/reinforced/full,
 /obj/machinery/atmospherics/pipe/simple/visible/yellow,
 /turf/simulated/floor,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "mA" = (
 /obj/machinery/atmospherics/unary/vent_pump/on,
 /obj/machinery/alarm{
@@ -6590,16 +6592,16 @@
 /area/rnd/outpost/anomaly_lab/analysis)
 "mN" = (
 /obj/structure/table/standard,
-/obj/item/device/flashlight/lamp,
+/obj/item/flashlight/lamp,
 /turf/simulated/floor/tiled/dark,
 /area/rnd/outpost/anomaly_lab/analysis)
 "mO" = (
 /obj/structure/table/standard,
-/obj/item/weapon/tool/crowbar,
-/obj/item/weapon/anodevice{
+/obj/item/tool/crowbar,
+/obj/item/anodevice{
 	pixel_x = -2
 	},
-/obj/item/weapon/anodevice{
+/obj/item/anodevice{
 	pixel_x = 1
 	},
 /obj/structure/window/reinforced{
@@ -6628,7 +6630,7 @@
 	icon_state = "0-4"
 	},
 /obj/machinery/power/apc{
-	cell_type = /obj/item/weapon/cell/super;
+	cell_type = /obj/item/cell/super;
 	dir = 8;
 	name = "west bump";
 	pixel_x = -28
@@ -6644,7 +6646,7 @@
 	dir = 4
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "mS" = (
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 4
@@ -6779,7 +6781,7 @@
 /area/rnd/outpost/anomaly_lab)
 "nm" = (
 /obj/structure/table/standard,
-/obj/item/weapon/paper_bin,
+/obj/item/paper_bin,
 /obj/structure/window/reinforced{
 	dir = 4
 	},
@@ -6789,24 +6791,24 @@
 /obj/effect/floor_decal/industrial/warning{
 	dir = 1
 	},
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	pixel_y = -24
 	},
 /turf/simulated/floor,
 /area/rnd/outpost/anomaly_lab/storage)
 "no" = (
 /obj/structure/table/standard,
-/obj/item/weapon/tool/screwdriver,
-/obj/item/weapon/anobattery{
+/obj/item/tool/screwdriver,
+/obj/item/anobattery{
 	pixel_x = 5;
 	pixel_y = 2
 	},
-/obj/item/weapon/anobattery,
-/obj/item/weapon/anobattery{
+/obj/item/anobattery,
+/obj/item/anobattery{
 	pixel_x = -4;
 	pixel_y = 3
 	},
-/obj/item/weapon/anobattery{
+/obj/item/anobattery{
 	pixel_x = -5;
 	pixel_y = -3
 	},
@@ -6901,7 +6903,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 4
 	},
-/obj/item/weapon/stool,
+/obj/item/stool,
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/anomaly_lab)
 "nx" = (
@@ -6920,17 +6922,17 @@
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/anomaly_lab)
 "ny" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	pixel_y = -24
 	},
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/anomaly_lab)
 "nz" = (
 /obj/structure/table/standard,
-/obj/item/weapon/folder/white,
-/obj/item/weapon/pen,
+/obj/item/folder/white,
+/obj/item/pen,
 /obj/machinery/light,
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	pixel_y = -24
 	},
 /turf/simulated/floor/tiled,
@@ -6977,7 +6979,7 @@
 /area/rnd/outpost/anomaly_lab)
 "nD" = (
 /obj/structure/table/standard,
-/obj/item/device/multitool,
+/obj/item/multitool,
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/anomaly_lab)
 "nE" = (
@@ -7018,7 +7020,7 @@
 /area/rnd/outpost/anomaly_lab)
 "nI" = (
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "nJ" = (
 /obj/machinery/power/apc{
 	dir = 4;
@@ -7029,7 +7031,7 @@
 	icon_state = "0-8"
 	},
 /turf/simulated/floor/tiled/dark,
-/area/rnd/outpost/anomaly_lab/testing)
+/area/rnd/outpost/anomaly_lab/test)
 "nK" = (
 /obj/machinery/atmospherics/portables_connector{
 	dir = 1
@@ -7097,7 +7099,7 @@
 /area/rnd/outpost/anomaly_lab)
 "nS" = (
 /obj/machinery/portable_atmospherics/powered/scrubber/huge/stationary{
-	frequency = 1452;
+	frequency = 1453;
 	scrub_id = "anomaly_airlock_scrubber"
 	},
 /turf/simulated/floor/tiled,
@@ -7173,8 +7175,11 @@
 	},
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/anomaly_lab)
+"ob" = (
+/turf/simulated/wall,
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "oc" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	dir = 4;
 	pixel_x = 24
 	},
@@ -7249,7 +7254,7 @@
 	dir = 1
 	},
 /obj/machinery/access_button{
-	frequency = 1452;
+	frequency = 1453;
 	master_tag = "anomaly_chamber_airlock";
 	pixel_y = 25
 	},
@@ -7264,7 +7269,7 @@
 	pixel_x = -23
 	},
 /obj/machinery/access_button{
-	frequency = 1452;
+	frequency = 1453;
 	master_tag = "anomaly_chamber_airlock";
 	pixel_y = 25
 	},
@@ -7285,7 +7290,8 @@
 /area/rnd/outpost/breakroom)
 "oo" = (
 /obj/machinery/door/airlock/research{
-	name = "Science Outpost Personal Quarters"
+	name = "Science Outpost Personal Quarters";
+	id_tag = "sci_outpost_dormdoor2"
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 4
@@ -7294,8 +7300,11 @@
 	dir = 4
 	},
 /obj/machinery/door/firedoor/border_only,
+/obj/structure/cable/green{
+	icon_state = "4-8"
+	},
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "op" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 4
@@ -7304,47 +7313,84 @@
 	dir = 9
 	},
 /obj/machinery/light,
+/obj/structure/cable/green{
+	icon_state = "4-8"
+	},
+/obj/machinery/button/remote/airlock{
+	id = "sci_outpost_dormdoor1";
+	name = "Outpost Quarters Lock";
+	pixel_x = -13;
+	pixel_y = -23;
+	specialfunctions = 4;
+	dir = 1
+	},
+/obj/machinery/button/windowtint{
+	id = "sci_outpost_dorms1";
+	layer = 3.3;
+	name = "Window Tint Control";
+	pixel_x = -6;
+	pixel_y = -23;
+	range = 10
+	},
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm1)
 "oq" = (
-/obj/structure/bed/double,
+/obj/structure/bed/double/padded,
+/obj/item/bedsheet/purpledouble,
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm1)
 "or" = (
-/obj/structure/bed,
+/obj/structure/bed/double/padded,
+/obj/item/bedsheet/purpledouble,
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "os" = (
-/obj/structure/window/basic/full,
-/obj/structure/window/basic{
-	dir = 4
+/obj/structure/window/reinforced/polarized/full{
+	id = "sci_outpost_dorms2";
+	name = "Tintable Window"
+	},
+/obj/structure/window/reinforced/polarized{
+	dir = 4;
+	id = "sci_outpost_dorms2"
 	},
 /obj/structure/grille,
 /obj/machinery/door/firedoor/glass,
 /turf/simulated/floor/tiled,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "ot" = (
 /obj/structure/table/woodentable,
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "ou" = (
 /obj/structure/bed/chair/comfy/brown{
 	dir = 4
 	},
+/obj/structure/cable/green{
+	icon_state = "0-2"
+	},
+/obj/machinery/power/apc{
+	dir = 1;
+	name = "north bump";
+	pixel_y = 28
+	},
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm1)
 "ov" = (
 /obj/machinery/atmospherics/unary/vent_pump/on,
 /obj/machinery/alarm{
 	dir = 4;
-	icon_state = "alarm0";
 	pixel_x = -22
 	},
 /obj/machinery/firealarm{
 	pixel_y = 25
 	},
+/obj/machinery/button/remote/airlock/release{
+	pixel_y = 24;
+	pixel_x = -14;
+	id = "sci_outpost_dormdoor1"
+	},
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm1)
 "ow" = (
 /obj/structure/window/reinforced{
 	dir = 4
@@ -7358,12 +7404,27 @@
 	},
 /obj/machinery/alarm{
 	dir = 4;
-	icon_state = "alarm0";
 	pixel_x = -22
 	},
 /obj/machinery/light,
+/obj/machinery/button/remote/airlock{
+	id = "sci_outpost_dormdoor2";
+	name = "Outpost Quarters Lock";
+	pixel_x = -13;
+	pixel_y = -23;
+	specialfunctions = 4;
+	dir = 1
+	},
+/obj/machinery/button/windowtint{
+	id = "sci_outpost_dorms2";
+	layer = 3.3;
+	name = "Window Tint Control";
+	pixel_x = -6;
+	pixel_y = -23;
+	range = 10
+	},
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "oy" = (
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 8
@@ -7372,8 +7433,15 @@
 	dir = 1;
 	pixel_y = -24
 	},
+/obj/structure/cable/green{
+	icon_state = "1-8"
+	},
+/obj/structure/privacyswitch{
+	pixel_y = -22;
+	pixel_x = 6
+	},
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm1)
 "oz" = (
 /obj/structure/bed/chair/comfy/brown{
 	dir = 4
@@ -7381,8 +7449,16 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 10
 	},
+/obj/structure/cable/green{
+	icon_state = "0-8"
+	},
+/obj/machinery/power/apc{
+	dir = 1;
+	name = "north bump";
+	pixel_y = 28
+	},
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "oA" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 4
@@ -7393,11 +7469,19 @@
 /obj/machinery/firealarm{
 	pixel_y = 25
 	},
+/obj/machinery/button/remote/airlock/release{
+	pixel_y = 24;
+	pixel_x = -14;
+	id = "sci_outpost_dormdoor2"
+	},
+/obj/structure/cable/green{
+	icon_state = "4-8"
+	},
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "oB" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/storage/box/donut,
+/obj/item/storage/box/donut,
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/breakroom)
 "oC" = (
@@ -7412,12 +7496,46 @@
 	},
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/breakroom)
+"oE" = (
+/obj/structure/cable/green{
+	icon_state = "4-8"
+	},
+/turf/simulated/floor/tiled,
+/area/rnd/outpost/breakroom)
+"oF" = (
+/obj/structure/cable/green{
+	icon_state = "1-2"
+	},
+/obj/machinery/atmospherics/pipe/simple/hidden/supply,
+/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
+/obj/structure/cable/green{
+	icon_state = "1-4"
+	},
+/turf/simulated/floor/tiled,
+/area/rnd/outpost/breakroom)
+"oG" = (
+/obj/machinery/door/airlock/research{
+	name = "Science Outpost Personal Quarters";
+	id_tag = "sci_outpost_dormdoor1"
+	},
+/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
+	dir = 4
+	},
+/obj/machinery/atmospherics/pipe/simple/hidden/supply{
+	dir = 4
+	},
+/obj/machinery/door/firedoor/border_only,
+/obj/structure/cable/green{
+	icon_state = "4-8"
+	},
+/turf/simulated/floor/tiled,
+/area/rnd/outpost/breakroom/quarters/dorm1)
 "oH" = (
 /obj/structure/table/standard,
 /obj/machinery/light,
-/obj/item/weapon/storage/box/beakers,
-/obj/item/weapon/reagent_containers/glass/beaker/large,
-/obj/item/weapon/reagent_containers/dropper,
+/obj/item/storage/box/beakers,
+/obj/item/reagent_containers/glass/beaker/large,
+/obj/item/reagent_containers/dropper,
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/anomaly_lab)
 "oI" = (
@@ -7452,6 +7570,9 @@
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 6
+	},
+/obj/structure/cable/green{
+	icon_state = "4-8"
 	},
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/breakroom)
@@ -7490,8 +7611,12 @@
 	dir = 1;
 	pixel_y = -24
 	},
+/obj/structure/privacyswitch{
+	pixel_y = -22;
+	pixel_x = 6
+	},
 /turf/simulated/floor/wood,
-/area/rnd/outpost/breakroom)
+/area/rnd/outpost/breakroom/quarters/dorm2)
 "oR" = (
 /obj/structure/extinguisher_cabinet{
 	dir = 1;
@@ -7562,7 +7687,7 @@
 	icon_state = "1-8"
 	},
 /turf/simulated/floor/tiled/steel_dirty/virgo3b,
-/area/tether/outpost/solars_outside)
+/area/tether/outpost/solars_outside/lower)
 "pb" = (
 /obj/machinery/alarm{
 	dir = 8;
@@ -7586,6 +7711,9 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 5
 	},
+/obj/structure/cable/green{
+	icon_state = "4-8"
+	},
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/breakroom)
 "pd" = (
@@ -7595,8 +7723,31 @@
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 1
 	},
+/obj/structure/cable/green{
+	icon_state = "1-4"
+	},
 /turf/simulated/floor/tiled,
 /area/rnd/outpost/breakroom)
+"pe" = (
+/obj/structure/window/reinforced/polarized/full{
+	id = "sci_outpost_dorms1";
+	name = "Tintable Window"
+	},
+/obj/structure/window/reinforced/polarized{
+	dir = 4;
+	id = "sci_outpost_dorms1"
+	},
+/obj/structure/grille,
+/obj/machinery/door/firedoor/glass,
+/turf/simulated/floor/tiled,
+/area/rnd/outpost/breakroom/quarters/dorm1)
+"pf" = (
+/turf/simulated/wall,
+/area/rnd/outpost/breakroom/quarters/dorm1)
+"pg" = (
+/obj/structure/table/woodentable,
+/turf/simulated/floor/wood,
+/area/rnd/outpost/breakroom/quarters/dorm1)
 "zg" = (
 /obj/effect/shuttle_landmark{
 	base_area = /area/mine/explored;
@@ -24380,9 +24531,9 @@ oK
 oK
 oK
 oK
-oK
+oF
 oW
-on
+oE
 oB
 oU
 ab
@@ -24662,13 +24813,13 @@ hM
 hM
 hM
 hM
-ks
-ks
+pf
+pf
+oG
+ob
 oo
-ks
-oo
-ks
-ks
+ob
+ob
 ab
 ab
 ab
@@ -24804,13 +24955,13 @@ jf
 jo
 ji
 mV
-hM
+pf
 ov
 op
-ks
+ob
 oA
 ox
-ks
+ob
 ab
 ab
 ab
@@ -24946,13 +25097,13 @@ iV
 jo
 ji
 jF
-hM
+pf
 ou
 oy
-ks
+ob
 oz
 oQ
-ks
+ob
 ab
 ab
 ab
@@ -25088,13 +25239,13 @@ iV
 jq
 jA
 jG
-hM
-ot
+pf
+pg
 oq
-ks
+ob
 ot
 or
-ks
+ob
 ab
 ab
 ab
@@ -25230,13 +25381,13 @@ iC
 iV
 jh
 jH
-hM
+pf
+pe
+pe
+ob
 os
 os
-ks
-os
-os
-ks
+ob
 ab
 ab
 ab

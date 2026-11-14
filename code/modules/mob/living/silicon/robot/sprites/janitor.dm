@@ -79,6 +79,7 @@
 /datum/robot_sprite/janitor/handy
 	name = "Handy"
 	sprite_icon_state = "handy"
+	hat_offset = BORG_HAT_OFFSET_NONE
 
 /datum/robot_sprite/janitor/mechoid
 	name = "Acheron"
@@ -93,11 +94,17 @@
 	name = "ZOOM-BA"
 	sprite_icon_state = "zoomba"
 	has_dead_sprite = TRUE
+	hat_offset = ZOOMBA_HAT_OFFSET
 
 /datum/robot_sprite/janitor/worm
 	name = "W02M"
-	sprite_icon_state = "worm"
-	has_custom_open_sprites = TRUE
+	sprite_icon_state = "worm-janitor"
+	sprite_icon = 'icons/mob/robot/wormborg.dmi'
+	has_dead_sprite_overlay = FALSE
+	has_custom_open_sprites = FALSE
+	has_vore_belly_sprites = TRUE
+	has_dead_sprite = TRUE
+	hat_offset = WORM_HAT_OFFSET
 
 /datum/robot_sprite/janitor/uptall
 	name = "Feminine Humanoid"
@@ -120,6 +127,7 @@
 	sprite_icon_state = "vale"
 	sprite_hud_icon_state = "janihound"
 	has_eye_light_sprites = TRUE
+	hat_offset = VALE_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/janitor/borgi
 	name = "Borgi"
@@ -128,16 +136,20 @@
 	has_eye_sprites = FALSE
 	has_eye_light_sprites = TRUE
 	has_dead_sprite_overlay = FALSE
+	hat_offset = BORGI_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/janitor/otie
 	name = "Otieborg"
 	sprite_icon_state = "otie"
 	sprite_hud_icon_state = "janihound"
 	has_eye_light_sprites = TRUE
+	hat_offset = OTIE_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/janitor/drake
 	name = "Drake"
 	sprite_icon_state = "drake"
+	has_vore_belly_resting_sprites = TRUE
+	hat_offset = DRAKE_HAT_OFFSET
 
 // Tall sprites
 
@@ -150,6 +162,7 @@
 	sprite_icon_state = "raptor"
 	has_custom_equipment_sprites = TRUE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = RAPTOR_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/janitor/meka
 	name = "MEKA"
@@ -158,6 +171,7 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/janitor/newmeka
 	name = "MEKA v2"
@@ -166,6 +180,7 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/janitor/mmeka
 	name = "NIKO"
@@ -174,6 +189,7 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/janitor/fmeka
 	name = "NIKA"
@@ -182,6 +198,7 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/janitor/k4t
 	name = "K4T"
@@ -190,11 +207,89 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = K4T_HAT_OFFSET
 
-/datum/robot_sprite/dogborg/tall/mining/k4t_alt1
+/datum/robot_sprite/dogborg/tall/janitor/k4t_alt1
 	name = "K4T Alt"
 	sprite_icon_state = "k4t_alt1"
 	has_eye_light_sprites = TRUE
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = K4T_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/janitor/dullahan
+	name = "Dullahan"
+	sprite_icon_state = "dullahanjani"
+	module_type = "Janitor"
+	sprite_icon = 'icons/mob/robot/dullahan/v1/dullahan_jani.dmi'
+	has_eye_light_sprites = TRUE
+	has_rest_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	has_rest_lights_sprites = TRUE
+	has_rest_eyes_sprites = TRUE
+	rest_sprite_options = list("Default", "Sit")
+	sprite_decals = list("breastplate", "eyecover")
+	icon_x = 32
+	pixel_x = 0
+	hat_offset = DULLAHAN_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/janitor/dullataurjani
+	name = "Dullataur"
+	sprite_icon_state = "dullataurjani"
+	sprite_icon = 'icons/mob/robot/dullahan/dullataurs/dullataur.dmi'
+	rest_sprite_options = list("Default")
+	has_eye_light_sprites = TRUE
+	has_rest_sprites = TRUE
+	has_vore_belly_sprites = FALSE
+	has_vore_belly_resting_sprites = FALSE
+	has_rest_lights_sprites = TRUE
+	has_rest_eyes_sprites = TRUE
+	sprite_decals = list("breastplate")
+	icon_x = 64
+	pixel_x = -16
+	hat_offset = DULLAHAN_TAUR_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/janitor/dullahanv3
+	name = "Dullahan v3"
+	sprite_icon = 'icons/mob/robot/dullahan/v3/janitor.dmi'
+	sprite_icon_state = "dullahanjanitor"
+	has_eye_light_sprites = TRUE
+	has_rest_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	belly_capacity_list = list("sleeper" = 3)
+	rest_sprite_options = list("Default", "Sit")
+	sprite_decals = list("decals")
+	icon_x = 64
+	pixel_x = -16
+	hat_offset = DULLAHAN_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/janitor/cat
+	name = "Cat"
+	sprite_icon = 'icons/mob/robot/catborg_variant.dmi'
+	sprite_icon_state = "vixjani"
+	has_vore_belly_resting_sprites = TRUE
+	has_eye_light_sprites = TRUE
+	has_dead_sprite_overlay = FALSE
+
+/datum/robot_sprite/dogborg/janitor/smolraptor
+	sprite_icon = 'icons/mob/robot/smallraptors/smolraptor_serv.dmi'
+	module_type = "Janitor"
+	name = "Small Raptor"
+	sprite_icon_state = "smolraptor_alt"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_dead_sprite_overlay = FALSE
+	rest_sprite_options = list("Default", "Sit", "Bellyup")
+	hat_offset = SMOL_RAPTOR_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/janitor/possum
+	name = "0-P0SSm"
+	sprite_icon = 'icons/mob/robot/possumborg.dmi'
+	sprite_icon_state = "possjani"
+	//has_vore_belly_resting_sprites = TRUE
+	has_eye_light_sprites = TRUE
+	has_dead_sprite_overlay = FALSE
+	rest_sprite_options = list("Default")

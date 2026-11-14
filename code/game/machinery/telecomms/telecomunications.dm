@@ -13,10 +13,9 @@
 	Look at radio.dm for the prequel to this code.
 */
 
-var/global/list/obj/machinery/telecomms/telecomms_list = list()
 
 /obj/machinery/telecomms
-	icon = 'icons/obj/stationobjs_vr.dmi' //VOREStation Add
+	icon = 'icons/obj/stationobjs.dmi'
 	unacidable = TRUE
 	var/list/links = list() // list of machines this machine is linked to
 	var/traffic = 0 // value increases as traffic increases
@@ -37,6 +36,8 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	var/hide = 0				// Is it a hidden machine?
 	var/listening_level = 0	// 0 = auto set in New() - this is the z level that the machine is listening to.
 
+	var/datum/looping_sound/tcomms/soundloop
+	var/noisy = TRUE
 
 /obj/machinery/telecomms/proc/relay_information(datum/signal/signal, filter, copysig, amount = 20)
 	// relay signal to all linked machinery that are of type [filter]. If signal has been sent [amount] times, stop sending
@@ -103,46 +104,65 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	// receive information from linked machinery
 	return
 
+/obj/machinery/telecomms/proc/receive_information_delayed(datum/signal/signal, obj/machinery/telecomms/machine_from)
+	// The second half of receive_information(), called after the slowness delay from its first half.
+	PROTECTED_PROC(TRUE)
+	return
+
 /obj/machinery/telecomms/proc/is_freq_listening(datum/signal/signal)
 	// return 1 if found, 0 if not found
 	if(!signal)
-		return 0
-	if((signal.frequency in freq_listening) || (!freq_listening.len))
-		return 1
-	else
-		return 0
+		return FALSE
+	if((signal.frequency in freq_listening) || (!length(freq_listening)))
+		return TRUE
+	return FALSE
 
 
-/obj/machinery/telecomms/New()
-	telecomms_list += src
+/obj/machinery/telecomms/Initialize(mapload)
+	GLOB.telecomms_list += src
 	..()
+	default_apply_parts()
+	return INITIALIZE_HINT_LATELOAD
 
+
+/obj/machinery/telecomms/LateInitialize()
 	//Set the listening_level if there's none.
 	if(!listening_level)
 		//Defaults to our Z level!
 		var/turf/position = get_turf(src)
 		listening_level = position.z
 
-/obj/machinery/telecomms/Initialize()
 	if(autolinkers.len)
 		// Links nearby machines
 		if(!long_range_link)
 			for(var/obj/machinery/telecomms/T in orange(20, src))
 				add_link(T)
 		else
-			for(var/obj/machinery/telecomms/T in telecomms_list)
+			for(var/obj/machinery/telecomms/T in GLOB.telecomms_list)
 				add_link(T)
-	. = ..()
+	soundloop = new(list(src), FALSE)
+	if(prob(60)) // 60% chance to change the midloop
+		if(prob(40))
+			soundloop.mid_sounds = list('sound/machines/tcomms/tcomms_02.ogg' = 1)
+			soundloop.mid_length = 40
+		else if(prob(20))
+			soundloop.mid_sounds = list('sound/machines/tcomms/tcomms_03.ogg' = 1)
+			soundloop.mid_length = 10
+		else
+			soundloop.mid_sounds = list('sound/machines/tcomms/tcomms_04.ogg' = 1)
+			soundloop.mid_length = 30
+	soundloop.start()
 
 /obj/machinery/telecomms/Destroy()
-	telecomms_list -= src
-	for(var/obj/machinery/telecomms/comm in telecomms_list)
+	GLOB.telecomms_list -= src
+	for(var/obj/machinery/telecomms/comm in GLOB.telecomms_list)
 		comm.links -= src
 	links = list()
-	..()
+	QDEL_NULL(soundloop)
+	. = ..()
 
 // Used in auto linking
-/obj/machinery/telecomms/proc/add_link(var/obj/machinery/telecomms/T)
+/obj/machinery/telecomms/proc/add_link(obj/machinery/telecomms/T)
 	var/pos_z = get_z(src)
 	var/tpos_z = get_z(T)
 	if((pos_z == tpos_z) || (src.long_range_link && T.long_range_link))
@@ -161,11 +181,18 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 
 	if(toggled)
 		if(stat & (BROKEN|NOPOWER|EMPED) || integrity <= 0) // if powered, on. if not powered, off. if too damaged, off
-			on = 0
+			on = FALSE
+			soundloop.stop()
+			noisy = FALSE
 		else
-			on = 1
+			on = TRUE
 	else
-		on = 0
+		on = FALSE
+		soundloop.stop()
+		noisy = FALSE
+	if(!noisy)
+		soundloop.start()
+		noisy = TRUE
 
 /obj/machinery/telecomms/process()
 	update_power()
@@ -179,16 +206,21 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	if(traffic > 0)
 		traffic -= netspeed
 
-/obj/machinery/telecomms/emp_act(severity)
+/obj/machinery/telecomms/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
 	if(prob(100/severity))
 		if(!(stat & EMPED))
 			stat |= EMPED
+			playsound(src, 'sound/machines/tcomms/tcomms_pulse.ogg', 70, 1, 30)
 			var/duration = (300 * 10)/severity
 			spawn(rand(duration - 20, duration + 20)) // Takes a long time for the machines to reboot.
 				stat &= ~EMPED
-	..()
 
 /obj/machinery/telecomms/proc/checkheat()
+	if(QDELETED(src))
+		return
 	// Checks heat from the environment and applies any integrity damage
 	var/datum/gas_mixture/environment = loc.return_air()
 	var/damage_chance = 0                           // Percent based chance of applying 1 integrity damage this tick
@@ -257,7 +289,7 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	idle_power_usage = 600
 	machinetype = 1
 	produces_heat = 0
-	circuit = /obj/item/weapon/circuitboard/telecomms/receiver
+	circuit = /obj/item/circuitboard/telecomms/receiver
 	//Vars only used if you're using the overmap
 	var/overmap_range = 0
 	var/overmap_range_min = 0
@@ -265,11 +297,7 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 
 	var/list/linked_radios_weakrefs = list()
 
-/obj/machinery/telecomms/receiver/Initialize()
-	. = ..()
-	default_apply_parts()
-
-/obj/machinery/telecomms/receiver/proc/link_radio(var/obj/item/device/radio/R)
+/obj/machinery/telecomms/receiver/proc/link_radio(obj/item/radio/R)
 	if(!istype(R))
 		return
 	linked_radios_weakrefs |= WEAKREF(R)
@@ -296,7 +324,7 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 /obj/machinery/telecomms/receiver/proc/check_receive_level(datum/signal/signal)
 	// If it's a direct message from a bluespace radio, we eat it and convert it into a subspace signal locally
 	if(signal.transmission_method == TRANSMISSION_BLUESPACE)
-		var/obj/item/device/radio/R = signal.data["radio"]
+		var/obj/item/radio/R = signal.data["radio"]
 
 		//Who're you?
 		if(!(WEAKREF(R) in linked_radios_weakrefs))
@@ -344,13 +372,9 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 1600
 	machinetype = 7
-	circuit = /obj/item/weapon/circuitboard/telecomms/hub
+	circuit = /obj/item/circuitboard/telecomms/hub
 	long_range_link = 1
 	netspeed = 40
-
-/obj/machinery/telecomms/hub/Initialize()
-	. = ..()
-	default_apply_parts()
 
 /obj/machinery/telecomms/hub/receive_information(datum/signal/signal, obj/machinery/telecomms/machine_from)
 	if(is_freq_listening(signal))
@@ -382,18 +406,14 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	idle_power_usage = 600
 	machinetype = 8
 	produces_heat = 0
-	circuit = /obj/item/weapon/circuitboard/telecomms/relay
+	circuit = /obj/item/circuitboard/telecomms/relay
 	netspeed = 5
 	long_range_link = 1
 	var/broadcasting = 1
 	var/receiving = 1
 
-/obj/machinery/telecomms/relay/Initialize()
-	. = ..()
-	default_apply_parts()
-
-/obj/machinery/telecomms/relay/forceMove(var/newloc)
-	. = ..(newloc)
+/obj/machinery/telecomms/relay/forceMove(atom/destination, direction, movetime)
+	. = ..(destination, direction, movetime)
 	listening_level = z
 
 /obj/machinery/telecomms/relay/receive_information(datum/signal/signal, obj/machinery/telecomms/machine_from)
@@ -441,13 +461,9 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 1000
 	machinetype = 2
-	circuit = /obj/item/weapon/circuitboard/telecomms/bus
+	circuit = /obj/item/circuitboard/telecomms/bus
 	netspeed = 40
-	var/change_frequency = 0
-
-/obj/machinery/telecomms/bus/Initialize()
-	. = ..()
-	default_apply_parts()
+	var/change_frequency = ZERO_FREQ
 
 /obj/machinery/telecomms/bus/receive_information(datum/signal/signal, obj/machinery/telecomms/machine_from)
 
@@ -498,12 +514,8 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	idle_power_usage = 600
 	machinetype = 3
 	delay = 5
-	circuit = /obj/item/weapon/circuitboard/telecomms/processor
+	circuit = /obj/item/circuitboard/telecomms/processor
 	var/process_mode = 1 // 1 = Uncompress Signals, 0 = Compress Signals
-
-/obj/machinery/telecomms/processor/Initialize()
-	. = ..()
-	default_apply_parts()
 
 /obj/machinery/telecomms/processor/receive_information(datum/signal/signal, obj/machinery/telecomms/machine_from)
 
@@ -539,7 +551,7 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 300
 	machinetype = 4
-	circuit = /obj/item/weapon/circuitboard/telecomms/server
+	circuit = /obj/item/circuitboard/telecomms/server
 	var/list/log_entries = list()
 	var/list/stored_names = list()
 	var/list/TrafficActions = list()
@@ -554,17 +566,13 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	var/encryption = "null" // encryption key: ie "password"
 	var/salt = "null"		// encryption salt: ie "123comsat"
 							// would add up to md5("password123comsat")
-	var/obj/item/device/radio/headset/server_radio = null
+	var/obj/item/radio/headset/server_radio = null
 
-/obj/machinery/telecomms/server/New()
-	..()
+/obj/machinery/telecomms/server/Initialize(mapload)
 	Compiler = new()
 	Compiler.Holder = src
 	server_radio = new()
-
-/obj/machinery/telecomms/server/Initialize()
 	. = ..()
-	default_apply_parts()
 
 /obj/machinery/telecomms/server/receive_information(datum/signal/signal, obj/machinery/telecomms/machine_from)
 
@@ -616,7 +624,7 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 
 				log.parameters["race"] = race
 
-				if(!istype(M, /mob/new_player) && M)
+				if(!isnewplayer(M) && M)
 					log.parameters["uspeech"] = M.universal_speak
 				else
 					log.parameters["uspeech"] = 0
@@ -649,7 +657,7 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 				relay_information(signal, /obj/machinery/telecomms/broadcaster)
 
 
-/obj/machinery/telecomms/server/proc/setcode(var/t)
+/obj/machinery/telecomms/server/proc/setcode(t)
 	if(t)
 		if(istext(t))
 			rawcode = t
@@ -668,7 +676,7 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 				logs--
 				break
 
-/obj/machinery/telecomms/server/proc/add_entry(var/content, var/input)
+/obj/machinery/telecomms/server/proc/add_entry(content, input)
 	var/datum/comm_log_entry/log = new
 	var/identifier = num2text( rand(-1000,1000) + world.time )
 	log.name = "[input] ([md5(identifier)])"
@@ -690,9 +698,9 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 	var/input_type = "Speech File"
 
 //Generic telecomm connectivity test proc
-/proc/can_telecomm(var/atom/A, var/atom/B, var/ad_hoc = FALSE)
+/proc/can_telecomm(atom/A, atom/B, ad_hoc = FALSE)
 	if(!A || !B)
-		log_debug("can_telecomm(): Undefined endpoints!")
+		log_mapping("can_telecomm(): Undefined endpoints!")
 		return FALSE
 
 	//Can't in this case, obviously!

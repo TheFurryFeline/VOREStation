@@ -5,7 +5,6 @@
 	icon = 'icons/obj/railing.dmi'
 	density = TRUE
 	throwpass = 1
-	climbable = TRUE
 	layer = WINDOW_LAYER
 	anchored = TRUE
 	flags = ON_BORDER
@@ -22,16 +21,13 @@
 	icon_modifier = "grey_"
 	icon_state = "grey_railing0"
 
-/obj/structure/railing/New(loc, constructed = 0)
-	..()
+/obj/structure/railing/Initialize(mapload, constructed = 0)
+	. = ..()
 	// TODO - "constructed" is not passed to us. We need to find a way to do this safely.
 	if (constructed) // player-constructed railings
 		anchored = FALSE
-	if(climbable)
-		verbs += /obj/structure/proc/climb_on
-
-/obj/structure/railing/Initialize()
-	. = ..()
+	AddElement(/datum/element/climbable/unanchored_can_break, 3.4 SECONDS, TRUE) // It's a RAILING!
+	AddElement(/datum/element/rotatable)
 	if(src.anchored)
 		update_icon(0)
 
@@ -44,7 +40,7 @@
 /obj/structure/railing/CanPass(atom/movable/mover, turf/target)
 	if(istype(mover) && mover.checkpass(PASSTABLE))
 		return TRUE
-	if(get_dir(mover, target) == reverse_dir[dir]) // From elsewhere to here, can't move against our dir
+	if(get_dir(mover, target) == GLOB.reverse_dir[dir]) // From elsewhere to here, can't move against our dir
 		return !density
 	return TRUE
 
@@ -60,21 +56,21 @@
 	if(health < maxhealth)
 		switch(health / maxhealth)
 			if(0.0 to 0.5)
-				. += "<span class='warning'>It looks severely damaged!</span>"
+				. += span_warning("It looks severely damaged!")
 			if(0.25 to 0.5)
-				. += "<span class='warning'>It looks damaged!</span>"
+				. += span_warning("It looks damaged!")
 			if(0.5 to 1.0)
-				. += "<span class='notice'>It has a few scrapes and dents.</span>"
+				. += span_notice("It has a few scrapes and dents.")
 
 /obj/structure/railing/take_damage(amount)
 	health -= amount
 	if(health <= 0)
-		visible_message("<span class='warning'>\The [src] breaks down!</span>")
+		visible_message(span_warning("\The [src] breaks down!"))
 		playsound(src, 'sound/effects/grillehit.ogg', 50, 1)
 		new /obj/item/stack/rods(get_turf(src))
 		qdel(src)
 
-/obj/structure/railing/proc/NeighborsCheck(var/UpdateNeighbors = 1)
+/obj/structure/railing/proc/NeighborsCheck(UpdateNeighbors = 1)
 	check = 0
 	//if (!anchored) return
 	var/Rturn = turn(src.dir, -90)
@@ -112,7 +108,7 @@
 			if (UpdateNeighbors)
 				R.update_icon(0)
 
-/obj/structure/railing/update_icon(var/UpdateNeighgors = 1)
+/obj/structure/railing/update_icon(UpdateNeighgors = 1)
 	NeighborsCheck(UpdateNeighgors)
 	//layer = (dir == SOUTH) ? FLY_LAYER : initial(layer) // wtf does this even do
 	cut_overlays()
@@ -137,43 +133,12 @@
 					if (WEST)
 						add_overlay(image(icon, src, "[icon_modifier]mcorneroverlay", pixel_y = 32))
 
-/obj/structure/railing/verb/rotate_counterclockwise()
-	set name = "Rotate Railing Counter-Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	if(usr.incapacitated())
-		return 0
-
-	if (!can_touch(usr) || ismouse(usr))
-		return
-
-	if(anchored)
-		to_chat(usr, "It is fastened to the floor therefore you can't rotate it!")
-		return 0
-
-	src.set_dir(turn(src.dir, 90))
-	update_icon()
-	return
-
-/obj/structure/railing/verb/rotate_clockwise()
-	set name = "Rotate Railing Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	if(usr.incapacitated())
-		return 0
-
-	if (!can_touch(usr) || ismouse(usr))
-		return
-
-	if(anchored)
-		to_chat(usr, "It is fastened to the floor therefore you can't rotate it!")
-		return 0
-
-	src.set_dir(turn(src.dir, 270))
-	update_icon()
-	return
+/obj/structure/railing/handle_rotation_verbs(angle, mob/user)
+	if(!can_touch(user))
+		return FALSE
+	. = ..()
+	if(.)
+		update_icon()
 
 /obj/structure/railing/verb/flip() // This will help push railing to remote places, such as open space turfs
 	set name = "Flip Railing"
@@ -183,14 +148,14 @@
 	if(usr.incapacitated())
 		return 0
 
-	if (!can_touch(usr) || ismouse(usr))
+	if (!can_touch(usr) || HAS_TRAIT(usr, TRAIT_AMBIENT_PEST_MOB))
 		return
 
 	if(anchored)
 		to_chat(usr, "It is fastened to the floor therefore you can't flip it!")
 		return 0
 
-	var/obj/occupied = neighbor_turf_impassable()
+	var/obj/occupied = can_climb_neighbor_turf(src)
 	if(occupied)
 		to_chat(usr, "You can't flip \the [src] because there's \a [occupied] in the way.")
 		return 0
@@ -204,50 +169,50 @@
 	// Dismantle
 	if(W.has_tool_quality(TOOL_WRENCH) && !anchored)
 		playsound(src, W.usesound, 50, 1)
-		if(do_after(user, 20, src))
-			user.visible_message("<b>\The [user]</b> dismantles \the [src].", "<span class='notice'>You dismantle \the [src].</span>")
-			new /obj/item/stack/material/steel(get_turf(usr), 2)
+		if(do_after(user, 2 SECONDS, target = src))
+			user.visible_message(span_infoplain(span_bold("\The [user]") + " dismantles \the [src]."), span_notice("You dismantle \the [src]."))
+			new /obj/item/stack/material/steel(get_turf(user), 2)
 			qdel(src)
 			return
 
 	// Repair
 	if(health < maxhealth && W.has_tool_quality(TOOL_WELDER))
-		var/obj/item/weapon/weldingtool/F = W.get_welder()
+		var/obj/item/weldingtool/F = W.get_welder()
 		if(F.welding)
 			playsound(src, F.usesound, 50, 1)
-			if(do_after(user, 20, src))
-				user.visible_message("<b>\The [user]</b> repairs some damage to \the [src].", "<span class='notice'>You repair some damage to \the [src].</span>")
+			if(do_after(user, 2 SECONDS, target = src))
+				user.visible_message(span_infoplain(span_bold("\The [user]") + " repairs some damage to \the [src]."), span_notice("You repair some damage to \the [src]."))
 				health = min(health+(maxhealth/5), maxhealth) // 20% repair per application
 				return
 
 	// Install
 	if(W.has_tool_quality(TOOL_SCREWDRIVER))
-		user.visible_message(anchored ? "<b>\The [user]</b> begins unscrewing \the [src]." : "<b>\The [user]</b> begins fasten \the [src]." )
+		user.visible_message(span_info((anchored ? (span_bold("\The [user]") + " begins unscrewing \the [src].") : (span_bold("\The [user]") + "begins fasten \the [src]."))))
 		playsound(src, W.usesound, 75, 1)
-		if(do_after(user, 10, src))
-			to_chat(user, (anchored ? "<span class='notice'>You have unfastened \the [src] from the floor.</span>" : "<span class='notice'>You have fastened \the [src] to the floor.</span>"))
+		if(do_after(user, 1 SECOND, target = src))
+			to_chat(user, (anchored ? span_notice("You have unfastened \the [src] from the floor.") : span_notice("You have fastened \the [src] to the floor.")))
 			anchored = !anchored
 			update_icon()
 			return
 
 	// Handle harm intent grabbing/tabling.
-	if(istype(W, /obj/item/weapon/grab) && get_dist(src,user)<2)
-		var/obj/item/weapon/grab/G = W
-		if (istype(G.affecting, /mob/living))
+	if(istype(W, /obj/item/grab) && get_dist(src,user)<2)
+		var/obj/item/grab/G = W
+		if (isliving(G.affecting))
 			var/mob/living/M = G.affecting
-			var/obj/occupied = turf_is_crowded()
+			var/obj/occupied = can_climb_turf(src)
 			if(occupied)
-				to_chat(user, "<span class='danger'>There's \a [occupied] in the way.</span>")
+				to_chat(user, span_danger("There's \a [occupied] in the way."))
 				return
 			if (G.state < 2)
 				if(user.a_intent == I_HURT)
 					if (prob(15))	M.Weaken(5)
 					M.apply_damage(8,def_zone = "head")
 					take_damage(8)
-					visible_message("<span class='danger'>[G.assailant] slams [G.affecting]'s face against \the [src]!</span>")
+					visible_message(span_danger("[G.assailant] slams [G.affecting]'s face against \the [src]!"))
 					playsound(src, 'sound/effects/grillehit.ogg', 50, 1)
 				else
-					to_chat(user, "<span class='danger'>You need a better grip to do that!</span>")
+					to_chat(user, span_danger("You need a better grip to do that!"))
 					return
 			else
 				if (get_turf(G.affecting) == get_turf(src))
@@ -255,7 +220,7 @@
 				else
 					G.affecting.forceMove(get_turf(src))
 				G.affecting.Weaken(5)
-				visible_message("<span class='danger'>[G.assailant] throws [G.affecting] over \the [src]!</span>")
+				visible_message(span_danger("[G.assailant] throws [G.affecting] over \the [src]!"))
 			qdel(W)
 			return
 
@@ -277,57 +242,17 @@
 		if(3.0)
 			qdel(src)
 			return
-		else
 	return
 
-// Duplicated from structures.dm, but its a bit different.
-/obj/structure/railing/do_climb(var/mob/living/user)
-	if(!can_climb(user))
-		return
+/obj/structure/railing/overhang/hazard
+	name = "hazardous ledge"
+	desc = "An overhang made of a steel. It's painted with vibrant hazard markings."
+	icon = 'icons/obj/railing.dmi'
+	icon_modifier = "hazard_"
+	icon_state = "hazard_railing0"
+	interactable = TRUE
 
-	usr.visible_message("<span class='warning'>[user] starts climbing onto \the [src]!</span>")
-	LAZYDISTINCTADD(climbers, user)
-
-	if(!do_after(user,(issmall(user) ? 20 : 34)))
-		LAZYREMOVE(climbers, user)
-		return
-
-	if(!can_climb(user, post_climb_check=1))
-		LAZYREMOVE(climbers, user)
-		return
-
-	if(get_turf(user) == get_turf(src))
-		usr.forceMove(get_step(src, src.dir))
-	else
-		usr.forceMove(get_turf(src))
-
-	usr.visible_message("<span class='warning'>[user] climbed over \the [src]!</span>")
-	if(!anchored)	take_damage(maxhealth) // Fatboy
-	LAZYREMOVE(climbers, user)
-
-/obj/structure/railing/can_climb(var/mob/living/user, post_climb_check=0)
-	if(!..())
-		return 0
-
-	// Normal can_climb() handles climbing from adjacent turf onto our turf.  But railings also allow climbing
-	// from our turf onto an adjacent! If that is the case we need to do checks for that too...
-	if(get_turf(user) == get_turf(src))
-		var/obj/occupied = neighbor_turf_impassable()
-		if(occupied)
-			to_chat(user, "<span class='danger'>You can't climb there, there's \a [occupied] in the way.</span>")
-			return 0
-	return 1
-
-// TODO - This here might require some investigation
-/obj/structure/proc/neighbor_turf_impassable()
-	var/turf/T = get_step(src, src.dir)
-	if(!T || !istype(T))
-		return 0
-	if(T.density == 1)
-		return T
-	for(var/obj/O in T.contents)
-		if(istype(O,/obj/structure))
-			var/obj/structure/S = O
-			if(S.climbable) continue
-		if(O && O.density && !(O.flags & ON_BORDER && !(turn(O.dir, 180) & dir)))
-			return O
+/obj/structure/railing/overhang/hazard/nanite
+	icon_modifier = "inactive_"
+	icon_state = "inactive_railing0"
+	interactable = FALSE

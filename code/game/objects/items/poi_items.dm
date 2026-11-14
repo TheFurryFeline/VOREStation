@@ -27,17 +27,57 @@
 	name = "misshapen manhole cover"
 	desc = "The top of this twisted chunk of metal is faintly stamped with a five pointed star. 'Property of US Army, Pascal B - 1957'."
 	catalogue_data = list(/datum/category_item/catalogue/information/objects/pascalb)
+	var/last_event = 0
+	/// Mutex to prevent infinite recursion when propagating radiation pulses
+	var/active = null
 
-/obj/item/poi/pascalb/New()
+/obj/item/poi/pascalb/Initialize(mapload)
+	. = ..()
 	START_PROCESSING(SSobj, src)
-	return ..()
 
 /obj/item/poi/pascalb/process()
-	SSradiation.radiate(src, 5)
+	radiate()
+	..()
+
+/obj/item/poi/pascalb/proc/radiate()
+	SIGNAL_HANDLER
+	if(active)
+		return
+	if(world.time <= last_event + 1.5 SECONDS)
+		return
+	active = TRUE
+	radiation_pulse(
+		src,
+		max_range = 3,
+		threshold = RAD_MEDIUM_INSULATION,
+		chance = URANIUM_IRRADIATION_CHANCE,
+		minimum_exposure_time = URANIUM_RADIATION_MINIMUM_EXPOSURE_TIME,
+		strength = 25
+	)
+	last_event = world.time
+	active = FALSE
 
 /obj/item/poi/pascalb/Destroy()
 	STOP_PROCESSING(SSobj, src)
 	return ..()
+
+/obj/item/poi/pascalb/deadly //For testing purposes, mainly.
+
+/obj/item/poi/pascalb/deadly/radiate()
+	if(active)
+		return
+	if(world.time <= last_event + 1.5 SECONDS)
+		return
+	active = TRUE
+	radiation_pulse(
+		src,
+		max_range = 3,
+		threshold = RAD_MEDIUM_INSULATION,
+		chance = 100,
+		strength = 250
+	)
+	last_event = world.time
+	active = FALSE
 
 /datum/category_item/catalogue/information/objects/oldreactor
 	name = "Object - Zorren Fission Reactor Rack"
@@ -64,25 +104,52 @@
 	icon = 'icons/obj/closets/poireactor.dmi'
 	closet_appearance = null
 	catalogue_data = list(/datum/category_item/catalogue/information/objects/oldreactor)
-	climbable = FALSE
 
 	starts_with = list(
-		/obj/item/weapon/fuel_assembly/deuterium = 6)
+		/obj/item/fuel_assembly/deuterium = 6)
+
+/obj/structure/closet/crate/oldreactor/Initialize(mapload)
+	. = ..()
+	// Not climbable!
+	RemoveElement(/datum/element/climbable)
 
 /obj/item/poi/brokenoldreactor
 	icon_state = "poireactor_broken"
 	name = "ruptured fission reactor rack"
 	desc = "This broken hunk of machinery looks extremely dangerous."
 	catalogue_data = list(/datum/category_item/catalogue/information/objects/oldreactor)
+	var/last_event = 0
+	/// Mutex to prevent infinite recursion when propagating radiation pulses
+	var/active = null
 
-/obj/item/poi/brokenoldreactor/New()
+/obj/item/poi/brokenoldreactor/Initialize(mapload)
+	. = ..()
 	START_PROCESSING(SSobj, src)
-	return ..()
 
 /obj/item/poi/brokenoldreactor/process()
-	SSradiation.radiate(src, 25)
+	radiate()
+	..()
+
+/obj/item/poi/brokenoldreactor/proc/radiate()
+	SIGNAL_HANDLER
+	if(active)
+		return
+	if(world.time <= last_event + 1.5 SECONDS)
+		return
+	active = TRUE
+	radiation_pulse(
+		src,
+		max_range = 5,
+		threshold = RAD_MEDIUM_INSULATION,
+		chance = URANIUM_IRRADIATION_CHANCE,
+		minimum_exposure_time = URANIUM_RADIATION_MINIMUM_EXPOSURE_TIME,
+		strength = 50
+	)
+	last_event = world.time
+	active = FALSE
 
 /obj/item/poi/brokenoldreactor/Destroy()
+	UnregisterSignal(src, COMSIG_ATOM_PROPAGATE_RAD_PULSE)
 	STOP_PROCESSING(SSobj, src)
 	return ..()
 
@@ -124,7 +191,6 @@
 	icon = 'icons/obj/module.dmi'
 	icon_state = "mainboard"
 	w_class = ITEMSIZE_NORMAL
-	origin_tech = list(TECH_ENGINEERING = 4, TECH_MATERIAL = 3, TECH_DATA = 4)
 	var/drone_name = ""	//Randomly picked unless pre-defined. Used by tool examines
 	var/examine_multitool = "TEST_multi - CONTACT DEV"	//Read by attacking with multitool
 	var/examine_canalyzer = "TEST_canalyzer spoken - CONTACT DEV"	//Read by attacking with cyborg analyzer. Define in New() if using vars
@@ -136,7 +202,8 @@
 	var/has_paper = FALSE
 
 
-/obj/item/poi/broken_drone_circuit/New()
+/obj/item/poi/broken_drone_circuit/Initialize(mapload)
+	. = ..()
 	drone_name = "[pick(list("ADA","DOS","GNU","MAC","WIN","NJS","SKS","DRD","IOS","CRM","IBM","TEX","LVM","BSD",))]-[rand(1000, 9999)]]"
 	var/new_canalyzer = "[drone_name] [examine_canalyzer]"	//Only way I could think to dynamically insert drone name here
 	examine_canalyzer = new_canalyzer
@@ -149,15 +216,15 @@
 		return FALSE
 
 	var/turf/message_turf = get_turf(user)	//We use this to ensure everyone can see it!
-	if(istype(I, /obj/item/weapon/tool/screwdriver))
+	if(istype(I, /obj/item/tool/screwdriver))
 		unscrewed = !unscrewed
 		to_chat(user, "You screw the blackbox panel [unscrewed ? "off" : "on"]")
 
-	if(istype(I, /obj/item/weapon/tool/wirecutters))
+	if(istype(I, /obj/item/tool/wirecutters))
 		wirecutted = !wirecutted
 		to_chat(user, "You [wirecutted ? "cut" : "mend"] the power wire to the blackbox")
 
-	if(istype(I, /obj/item/weapon/paper) && unscrewed)
+	if(istype(I, /obj/item/paper) && unscrewed)
 		if(!has_paper)
 			to_chat(user, "You feed the debug printer some paper")
 			has_paper = TRUE
@@ -165,16 +232,16 @@
 		else
 			to_chat(user, span_notice("[src] cannot hold more than 1 sheet of paper."))
 
-	if(istype(I, /obj/item/device/multitool))
+	if(istype(I, /obj/item/multitool))
 		if(!unscrewed && !wirecutted)
 			to_chat(user, span_notice("You cannot access the debug interface with the panel screwed on!"))
 		else if(unscrewed && !wirecutted)
 			message_turf.audible_message(message = examine_multitool,
-			deaf_message = "<b>[src]</b> flashes red repeatedly", runemessage= "Beep! Beep!")
+			deaf_message = span_bold("[src]") + " flashes red repeatedly", runemessage= "Beep! Beep!")
 			to_chat(user, span_warning("The components spark from the multitool's unregulated pulse. \
 			Perhaps it'd been better to use more sophisticated tools..."))
 			fried = TRUE
-			message_turf.visible_message(message = "<b>[src]</b> FLASHES VIOLENTLY!",
+			message_turf.visible_message(message = span_bold("[src]") + " FLASHES VIOLENTLY!",
 			blind_message = "ZAP!", runemessage = "CRACKLE!")
 			var/used_hand = user.get_organ(user.get_active_hand())
 			user.electrocute_act(10,def_zone = used_hand)
@@ -182,7 +249,7 @@
 			to_chat(user, span_notice("You modify the security settings."))
 			unlocked = TRUE
 
-	if(istype(I, /obj/item/device/robotanalyzer))
+	if(istype(I, /obj/item/robotanalyzer))
 		if(!unscrewed)
 			to_chat(user, span_notice("You cannot access the debug interface with the panel screwed on!"))
 		else if(wirecutted)
@@ -192,14 +259,14 @@
 			Perhaps, it would've been a good idea to disconnect some wires while pulsing the security circuit..."))
 		else
 			if(!has_paper)
-				message_turf.visible_message(message = "<b>[src]</b> displays, 'PAPER NOT BIN'",
+				message_turf.visible_message(message = span_bold("[src]") + " displays, 'PAPER NOT BIN'",
 				blind_message = "you hear VERY ANGRY beeping.", runemessage = "BEEP BEEP!")
-				message_turf.audible_message(message = "<b>[src]</b> recites, \n '[examine_canalyzer]'",
-				deaf_message = "<b>[src]</b> flashes green!", runemessage= "Ping!")
+				message_turf.audible_message(message = span_bold("[src]") + " recites, \n '[examine_canalyzer]'",
+				deaf_message = span_bold("[src]") + " flashes green!", runemessage= "Ping!")
 			else
-				message_turf.audible_message(message = "<b>[src]</b> rattles loudly as it prints",
-				deaf_message = "<b>[src]</b> flashes green!", runemessage= "RATTLE RATTLE")
-				var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(get_turf(src))
+				message_turf.audible_message(message = span_bold("[src]") + " rattles loudly as it prints",
+				deaf_message = span_bold("[src]") + " flashes green!", runemessage= "RATTLE RATTLE")
+				var/obj/item/paper/P = new /obj/item/paper(get_turf(src))
 				P.name = "[drone_name] blackbox transcript"
 				P.info = "[examine_canalyzer_printed ? examine_canalyzer_printed : examine_canalyzer]"
 				has_paper = FALSE
@@ -207,8 +274,10 @@
 
 	return ..()
 
-/obj/item/poi/broken_drone_circuit/attack_self(mob/living/user as mob)
-
+/obj/item/poi/broken_drone_circuit/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 
 	user.visible_message(message = "[user] is studiously examining [src]", self_message = "You take your time to analyze the circuit...")
 	var/message = ""
@@ -235,9 +304,5 @@
 		message += "Looks like there's a printer without any paper in it."
 
 
-	if(do_after(user, delay = 5 SECONDS))
+	if(do_after(user, delay = 5 SECONDS, target = src))
 		to_chat(user, message)
-
-
-
-	..()

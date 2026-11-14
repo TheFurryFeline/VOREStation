@@ -5,8 +5,8 @@
 
 	icon_state = "hippo"
 	icon_living = "hippo"
-	icon_dead = "hippo_dead"
-	icon_gib = "hippo_gib"
+	icon_dead = "hippo-dead"
+	icon_gib = "hippo-dead" // No gib sprite yet
 	icon = 'icons/mob/vore64x64.dmi'
 
 	maxHealth = 200
@@ -39,7 +39,7 @@
 	pixel_y = 0
 
 	meat_amount = 15 //Infinite meat!
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
+	meat_type = /obj/item/reagent_containers/food/snacks/meat
 
 	max_buckled_mobs = 1 //Yeehaw
 	can_buckle = TRUE
@@ -50,12 +50,14 @@
 	say_list_type = /datum/say_list/hippo
 	ai_holder_type = /datum/ai_holder/simple_mob/retaliate
 
+	can_be_drop_prey = FALSE
+
 // Activate Noms!
 /mob/living/simple_mob/vore/hippo //I don't know why it's in a seperate line but everyone does it so i do it
 	vore_active = 1
 	vore_capacity = 1
 	vore_bump_chance = 15
-	vore_bump_emote = "lazily wraps its tentacles around"
+	vore_bump_emote = "lazily wraps its mouth around"
 	vore_standing_too = 1
 	vore_ignores_undigestable = 0
 	vore_default_mode = DM_HOLD
@@ -70,8 +72,8 @@
 	. = ..()
 	if(!riding_datum)
 		riding_datum = new /datum/riding/simple_mob(src)
-	verbs |= /mob/living/simple_mob/proc/animal_mount
-	verbs |= /mob/living/proc/toggle_rider_reins
+	add_verb(src, /mob/living/simple_mob/proc/animal_mount)
+	add_verb(src, /mob/living/proc/toggle_rider_reins)
 	movement_cooldown = 0
 
 /mob/living/simple_mob/vore/hippo/MouseDrop_T(mob/living/M, mob/living/user)

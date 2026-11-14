@@ -7,7 +7,7 @@ possible_descriptors are populated by subtypes of /obj/effect/landmark/overmap_r
 */
 /obj/effect/overmap/visitable/proc/modify_descriptors()
 	if(!possible_descriptors || !islist(possible_descriptors) || possible_descriptors == list() || !length(possible_descriptors))
-		error("List of possible descriptors for [name] was empty!")
+		log_mapping("## ERROR List of possible descriptors for [name] was empty!")
 		return
 
 	var/list/chosen_descriptor = pick(possible_descriptors)
@@ -22,7 +22,7 @@ possible_descriptors are populated by subtypes of /obj/effect/landmark/overmap_r
 //			testing("Defaulting to default!") //Uncomment when adding a new landmark to confirm it works OK, but recomment before commiting
 			return
 		if(breakWhile > 10 || length(possible_descriptors) < 1)
-			error("No valid descriptors could be found for [name]!") //Checking default separately for sake of error messages
+			log_mapping("## ERROR No valid descriptors could be found for [name]!") //Checking default separately for sake of error messages
 			return
 
 	//Using real_name to ensure get_scan_data() does not override the renamed code
@@ -45,12 +45,12 @@ possible_descriptors are populated by subtypes of /obj/effect/landmark/overmap_r
 	var/list/descriptors = list() //Elements: A = name, B = desc C = scanner desc. Each element must be a string
 //	var/static/reference //exists to avoid having to iterate over the overmap objs list more than once. Commented out here. Add this to subtype
 
-/obj/effect/landmark/overmap_renamer/Initialize()
+/obj/effect/landmark/overmap_renamer/Initialize(mapload)
 //	testing("Loading renamer landmark: [name]") //Uncomment when adding a new POI/Landmark for testing aid.
 	if(LAZYLEN(descriptors) != 3)
-		error("POI [name] renamer landmark is invalid! Make sure its descriptors var is a list of 3 elements!")
+		log_mapping("## ERROR POI [name] renamer landmark is invalid! Make sure its descriptors var is a list of 3 elements!")
 		return
 	if(!istext(descriptors[1]) || !istext(descriptors[2]) || !istext(descriptors[3]))
-		error("POI [name] renamer landmark is invalid! One of the elements is NOT a string!")
+		log_mapping("## ERROR POI [name] renamer landmark is invalid! One of the elements is NOT a string!")
 		return
 	. = ..()

@@ -1,5 +1,5 @@
 //TODO: Convert this over for languages.
-/mob/living/carbon/brain/say(var/message, var/datum/language/speaking = null, var/whispering = 0)
+/mob/living/carbon/brain/say(message, datum/language/speaking = null, whispering = 0)
 	if(silent)
 		return
 
@@ -19,11 +19,11 @@
 /mob/living/carbon/brain/handle_message_mode(message_mode, message, verb, speaking, used_radios)
 	..()
 	if(message_mode)
-		var/obj/item/device/mmi/R = container
+		var/obj/item/mmi/R = container
 		if(R.radio && R.radio.radio_enabled)
 			if(message_mode == "general")
 				message_mode = null
 			return R.radio.talk_into(src, message, message_mode, verb, speaking)
 		else
-			to_chat(src, "<span class='danger'>Your radio is disabled.</span>")
+			to_chat(src, span_danger("Your radio is disabled."))
 			return 0

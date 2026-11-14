@@ -33,14 +33,15 @@
 	unacidable = TRUE
 	plane = TURF_PLANE
 	layer = ABOVE_TURF_LAYER
+	var/delete_me
 
 	var/health = 15
 	var/obj/effect/alien/weeds/node/linked_node = null
 	var/static/list/weedImageCache
 
-/obj/effect/alien/weeds/Initialize(var/mapload, var/node, var/newcolor)
+/obj/effect/alien/weeds/Initialize(mapload, node, newcolor)
 	. = ..()
-	if(isspace(loc))
+	if(isspace(loc) || delete_me)
 		return INITIALIZE_HINT_QDEL
 
 	linked_node = node
@@ -75,13 +76,16 @@
 	var/node_range = NODERANGE
 	var/set_color = "#321D37"
 
-/obj/effect/alien/weeds/node/Initialize(var/mapload, var/node, var/newcolor)
+/obj/effect/alien/weeds/node/Initialize(mapload, node, newcolor)
 	. = ..()
 
 	for(var/obj/effect/alien/weeds/existing in loc)
 		if(existing == src)
 			continue
 		else
+			if(!(existing.flags & ATOM_INITIALIZED))
+				existing.delete_me = TRUE
+				continue
 			qdel(existing)
 
 	linked_node = src
@@ -141,7 +145,7 @@
 	if(get_dist(linked_node, src) > linked_node.node_range)
 		return
 
-	for(var/dirn in cardinal)
+	for(var/dirn in GLOB.cardinal)
 		var/turf/T1 = get_turf(src)
 		var/turf/T2 = get_step(src, dirn)
 
@@ -183,17 +187,17 @@
 				qdel(src)
 	return
 
-/obj/effect/alien/weeds/attackby(var/obj/item/weapon/W, var/mob/user)
+/obj/effect/alien/weeds/attackby(obj/item/W, mob/user)
 	user.setClickCooldown(user.get_attack_speed(W))
 	if(LAZYLEN(W.attack_verb))
-		visible_message("<span class='danger'>\The [src] have been [pick(W.attack_verb)] with \the [W][(user ? " by [user]." : ".")]</span>")
+		visible_message(span_danger("\The [src] have been [pick(W.attack_verb)] with \the [W][(user ? " by [user]." : ".")]"))
 	else
-		visible_message("<span class='danger'>\The [src] have been attacked with \the [W][(user ? " by [user]." : ".")]</span>")
+		visible_message(span_danger("\The [src] have been attacked with \the [W][(user ? " by [user]." : ".")]"))
 
 	var/damage = W.force / 4.0
 
 	if(W.has_tool_quality(TOOL_WELDER))
-		var/obj/item/weapon/weldingtool/WT = W.get_welder()
+		var/obj/item/weldingtool/WT = W.get_welder()
 
 		if(WT.remove_fuel(0, user))
 			damage = 15
@@ -202,14 +206,14 @@
 	health -= damage
 	healthcheck()
 
-/obj/effect/alien/weeds/attack_generic(var/mob/user, var/damage, var/attack_verb)
-	visible_message("<span class='danger'>[user] [attack_verb] the [src]!</span>")
+/obj/effect/alien/weeds/attack_generic(mob/user, damage, attack_verb)
+	visible_message(span_danger("[user] [attack_verb] the [src]!"))
 	user.do_attack_animation(src)
 	health -= damage
 	healthcheck()
 	return
 
-/obj/effect/alien/weeds/take_damage(var/damage)
+/obj/effect/alien/weeds/take_damage(damage)
 	health -= damage
 	healthcheck()
 	return
@@ -248,8 +252,8 @@
 	var/ticks = 0
 	var/target_strength = 0
 
-/obj/effect/alien/acid/New(loc, target)
-	..(loc)
+/obj/effect/alien/acid/Initialize(mapload, target)
+	. = ..()
 	src.target = target
 
 	if(isturf(target)) // Turf take twice as long to take down.
@@ -267,7 +271,7 @@
 	if(ticks >= target_strength)
 
 		for(var/mob/O in hearers(src, null))
-			O.show_message("<span class='alium'>[src.target] collapses under its own weight into a puddle of goop and undigested debris!</span>", 1)
+			O.show_message(span_alium("[src.target] collapses under its own weight into a puddle of goop and undigested debris!"), 1)
 
 		if(iswall(target)) //Gurgs : Spruced up corrosive acid
 			var/turf/simulated/wall/W = target
@@ -282,13 +286,13 @@
 
 	switch(target_strength - ticks)
 		if(6)
-			visible_message("<span class='alium'>[src.target] is holding up against the acid!</span>")
+			visible_message(span_alium("[src.target] is holding up against the acid!"))
 		if(4)
-			visible_message("<span class='alium'>[src.target]\s structure is being melted by the acid!</span>")
+			visible_message(span_alium("[src.target]\s structure is being melted by the acid!"))
 		if(2)
-			visible_message("<span class='alium'>[src.target] is struggling to withstand the acid!</span>")
+			visible_message(span_alium("[src.target] is struggling to withstand the acid!"))
 		if(0 to 1)
-			visible_message("<span class='alium'>[src.target] begins to crumble under the acid!</span>")
+			visible_message(span_alium("[src.target] begins to crumble under the acid!"))
 	spawn(rand(150, 200)) tick()
 
 //Xenomorph Effect egg removed, replaced with Structure Egg.

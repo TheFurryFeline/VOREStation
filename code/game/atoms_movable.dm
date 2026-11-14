@@ -1,24 +1,23 @@
 /atom/movable
 	layer = OBJ_LAYER
-	appearance_flags = TILE_BOUND|PIXEL_SCALE|KEEP_TOGETHER|LONG_GLIDE
 	glide_size = 8
+	appearance_flags = TILE_BOUND|PIXEL_SCALE|KEEP_TOGETHER|LONG_GLIDE
+
 	var/last_move = null //The direction the atom last moved
 	var/anchored = FALSE
 	// var/elevation = 2    - not used anywhere
 	var/moving_diagonally
 	var/move_speed = 10
 	var/l_move_time = 1
-	var/throwing = 0
-	var/thrower
-	var/turf/throw_source = null
+	var/datum/thrownthing/throwing
 	var/throw_speed = 2
 	var/throw_range = 7
 	var/moved_recently = 0
 	var/mob/pulledby = null
 	var/item_state = null // Used to specify the item state for the on-mob overlays.
-	var/icon_scale_x = 1 // Used to scale icons up or down horizonally in update_transform().
-	var/icon_scale_y = 1 // Used to scale icons up or down vertically in update_transform().
-	var/icon_rotation = 0 // Used to rotate icons in update_transform()
+	var/icon_scale_x = DEFAULT_ICON_SCALE_X // Used to scale icons up or down horizonally in update_transform().
+	var/icon_scale_y = DEFAULT_ICON_SCALE_Y // Used to scale icons up or down vertically in update_transform().
+	var/icon_rotation = DEFAULT_ICON_ROTATION // Used to rotate icons in update_transform()
 	var/icon_expected_height = 32
 	var/icon_expected_width = 32
 	var/old_x = 0
@@ -29,22 +28,39 @@
 
 	var/cloaked = FALSE //If we're cloaked or not
 	var/image/cloaked_selfimage //The image we use for our client to let them see where we are
+	var/belly_cycles = 0 // Counting current belly process cycles for autotransfer.
+	var/autotransferable = TRUE // Toggle for autotransfer mechanics.
+	var/recursive_listeners
+	var/listening_recursive = NON_LISTENING_ATOM
+	var/unacidable = TRUE
 
 /atom/movable/Initialize(mapload)
 	. = ..()
-	switch(blocks_emissive)
-		if(EMISSIVE_BLOCK_GENERIC)
-			var/mutable_appearance/gen_emissive_blocker = mutable_appearance(icon, icon_state, plane = PLANE_EMISSIVE, alpha = src.alpha)
-			gen_emissive_blocker.color = GLOB.em_block_color
-			gen_emissive_blocker.dir = dir
-			gen_emissive_blocker.appearance_flags |= appearance_flags
-			add_overlay(list(gen_emissive_blocker), TRUE)
-		if(EMISSIVE_BLOCK_UNIQUE)
+
+#if EMISSIVE_BLOCK_GENERIC != 0
+	#error EMISSIVE_BLOCK_GENERIC is expected to be 0 to facilitate a weird optimization hack where we rely on it being the most common.
+	#error Read the comment in code/game/atoms_movable.dm for details.
+#endif
+
+	if (blocks_emissive)
+		if (blocks_emissive == EMISSIVE_BLOCK_UNIQUE)
 			render_target = ref(src)
-			em_block = new(src, render_target)
+			em_block = new(null, src)
+			// Note, this should be refactored to drop priority overlays
 			add_overlay(list(em_block), TRUE)
+			RegisterSignal(em_block, COMSIG_QDELETING, PROC_REF(emblocker_gc))
+	else
+		var/mutable_appearance/gen_emissive_blocker = mutable_appearance(icon, icon_state, plane = PLANE_EMISSIVE, alpha = src.alpha)
+		gen_emissive_blocker.color = GLOB.em_block_color
+		gen_emissive_blocker.dir = dir
+		gen_emissive_blocker.appearance_flags |= appearance_flags
+		// Note, this should be refactored to drop priority overlays
+		add_overlay(list(gen_emissive_blocker), TRUE)
+
 	if(opacity)
 		AddElement(/datum/element/light_blocking)
+	if(icon_scale_x != DEFAULT_ICON_SCALE_X || icon_scale_y != DEFAULT_ICON_SCALE_Y || icon_rotation != DEFAULT_ICON_ROTATION)
+		update_transform()
 	switch(light_system)
 		if(STATIC_LIGHT)
 			update_light()
@@ -52,9 +68,19 @@
 			AddComponent(/datum/component/overlay_lighting, starts_on = light_on)
 		if(MOVABLE_LIGHT_DIRECTIONAL)
 			AddComponent(/datum/component/overlay_lighting, is_directional = TRUE, starts_on = light_on)
+	if (listening_recursive)
+		set_listening(listening_recursive)
+
 
 /atom/movable/Destroy()
+	if(em_block)
+		cut_overlay(em_block)
+		UnregisterSignal(em_block, COMSIG_QDELETING)
+		QDEL_NULL(em_block)
 	. = ..()
+
+	unbuckle_all_mobs()
+
 	for(var/atom/movable/AM in contents)
 		qdel(AM)
 
@@ -72,12 +98,8 @@
 
 	if(orbiting)
 		stop_orbit()
-	QDEL_NULL(riding_datum) //VOREStation Add
-
-/atom/movable/vv_edit_var(var_name, var_value)
-	if(var_name in GLOB.VVpixelmovement)			//Pixel movement is not yet implemented, changing this will break everything irreversibly.
-		return FALSE
-	return ..()
+	QDEL_NULL(riding_datum)
+	set_listening(NON_LISTENING_ATOM)
 
 ////////////////////////////////////////
 /atom/movable/Move(atom/newloc, direct = 0, movetime)
@@ -95,7 +117,7 @@
 	if(loc != newloc)
 		if(!direct)
 			direct = get_dir(oldloc, newloc)
-		if (IS_CARDINAL(direct)) //Cardinal move
+		if (IS_CARDINAL(direct)) //GLOB.cardinal move
 			// Track our failure if any in this value
 			. = TRUE
 
@@ -155,7 +177,7 @@
 			else if(. && newloc)
 				. = doMove(newloc)
 
-		//Diagonal move, split it into cardinal moves
+		//Diagonal move, split it into GLOB.cardinal moves
 		else
 			moving_diagonally = FIRST_DIAG_STEP
 			var/first_step_dir
@@ -163,7 +185,7 @@
 			// place due to a Crossed, Bumped, etc. call will interrupt
 			// the second half of the diagonal movement, or the second attempt
 			// at a first half if step() fails because we hit something.
-			glide_for(movetime * 2)
+			glide_for(movetime * SQRT_2)
 			if (direct & NORTH)
 				if (direct & EAST)
 					if (step(src, NORTH) && moving_diagonally)
@@ -216,7 +238,7 @@
 
 	// If we moved, call Moved() on ourselves
 	if(.)
-		Moved(oldloc, direct, FALSE, movetime ? movetime : ( (TICKS2DS(WORLD_ICON_SIZE/glide_size)) * (moving_diagonally ? (0.5) : 1) ) )
+		Moved(oldloc, direct, FALSE, movetime ? movetime : MOVE_GLIDE_CALC(glide_size, moving_diagonally) )
 
 	// Update timers/cooldown stuff
 	move_speed = world.time - l_move_time
@@ -224,7 +246,7 @@
 	last_move = direct // The direction you last moved
 	// set_dir(direct) //Don't think this is necessary
 
-//Called after a successful Move(). By this point, we've already moved
+///Called after a successful Move(). By this point, we've already moved
 /atom/movable/proc/Moved(atom/old_loc, direction, forced = FALSE, movetime)
 	SEND_SIGNAL(src, COMSIG_MOVABLE_MOVED, old_loc, direction, forced, movetime)
 	// Handle any buckled mobs on this movable
@@ -235,10 +257,13 @@
 		riding_datum.handle_vehicle_offsets()
 	for (var/datum/light_source/light as anything in light_sources) // Cycle through the light sources on this atom and tell them to update.
 		light.source_atom.update_light()
-
-	SEND_SIGNAL(src, COMSIG_MOVABLE_MOVED, old_loc, direction)
-
 	return TRUE
+
+/mob/Moved(atom/old_loc, direction, forced, movetime)
+	. = ..()
+	//If we return focus to our own mob, but we are still inside something with an inherent remote view. Restart it.
+	if(client)
+		restore_remote_views()
 
 /atom/movable/set_dir(newdir)
 	. = ..(newdir)
@@ -253,7 +278,17 @@
 // Make sure you know what you're doing if you call this, this is intended to only be called by byond directly.
 // You probably want CanPass()
 /atom/movable/Cross(atom/movable/AM)
+	if(SEND_SIGNAL(src, COMSIG_MOVABLE_CROSS, AM) & COMPONENT_BLOCK_CROSS)
+		return FALSE
+	if(SEND_SIGNAL(AM, COMSIG_MOVABLE_CROSS_OVER, src) & COMPONENT_BLOCK_CROSS)
+		return FALSE
 	return CanPass(AM, loc)
+
+///oldloc = old location on atom, inserted when forceMove is called and ONLY when forceMove is called!
+/atom/movable/Crossed(atom/movable/AM, oldloc)
+	SHOULD_CALL_PARENT(TRUE)
+	. = ..()
+	SEND_SIGNAL(src, COMSIG_MOVABLE_CROSSED, AM)
 
 /atom/movable/CanPass(atom/movable/mover, turf/target)
 	. = ..()
@@ -266,9 +301,8 @@
 	if(!A)
 		CRASH("Bump was called with no argument.")
 	. = ..()
-	if(throwing)
-		throw_impact(A)
-		throwing = 0
+	if(!QDELETED(throwing))
+		throwing.finalize(hit = TRUE, t_target = A)
 		if(QDELETED(A))
 			return
 
@@ -372,7 +406,7 @@
 		return TRUE
 
 /atom/movable/proc/onTransitZ(old_z,new_z)
-	GLOB.z_moved_event.raise_event(src, old_z, new_z)
+	SEND_SIGNAL(src, COMSIG_OBSERVER_Z_MOVED, old_z, new_z)
 	SEND_SIGNAL(src, COMSIG_MOVABLE_Z_CHANGED, old_z, new_z)
 	for(var/atom/movable/AM as anything in src) // Notify contents of Z-transition. This can be overridden IF we know the items contents do not care.
 		AM.onTransitZ(old_z,new_z)
@@ -388,44 +422,22 @@
 /////////////////////////////////////////////////////////////////
 
 //called when src is thrown into hit_atom
-/atom/movable/proc/throw_impact(atom/hit_atom, var/speed)
-	if(istype(hit_atom,/mob/living))
+/atom/movable/proc/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+	if(isliving(hit_atom))
 		var/mob/living/M = hit_atom
 		if(M.buckled == src)
 			return // Don't hit the thing we're buckled to.
-		M.hitby(src,speed)
+		M.hitby(src, throwingdatum)
 
 	else if(isobj(hit_atom))
 		var/obj/O = hit_atom
 		if(!O.anchored)
 			step(O, src.last_move)
-		O.hitby(src,speed)
+		O.hitby(src, throwingdatum)
 
 	else if(isturf(hit_atom))
-		src.throwing = 0
 		var/turf/T = hit_atom
-		T.hitby(src,speed)
-
-//decided whether a movable atom being thrown can pass through the turf it is in.
-/atom/movable/proc/hit_check(var/speed)
-	if(src.throwing)
-		for(var/atom/A in get_turf(src))
-			if(A == src) continue
-			if(istype(A,/mob/living))
-				if(A:lying) continue
-				src.throw_impact(A,speed)
-			if(isobj(A))
-				if(!A.density || A.throwpass)
-					continue
-				// Special handling of windows, which are dense but block only from some directions
-				if(istype(A, /obj/structure/window))
-					var/obj/structure/window/W = A
-					if (!W.is_fulltile() && !(turn(src.last_move, 180) & A.dir))
-						continue
-				// Same thing for (closed) windoors, which have the same problem
-				else if(istype(A, /obj/machinery/door/window) && !(turn(src.last_move, 180) & A.dir))
-					continue
-				src.throw_impact(A,speed)
+		T.hitby(src, throwingdatum)
 
 /atom/movable/proc/throw_at(atom/target, range, speed, mob/thrower, spin = TRUE, datum/callback/callback) //If this returns FALSE then callback will not be called.
 	. = TRUE
@@ -435,7 +447,12 @@
 	if (pulledby)
 		pulledby.stop_pulling()
 
-	var/datum/thrownthing/TT = new(src, target, range, speed, thrower, callback)
+	var/real_force = 0
+	if(isitem(src))
+		var/obj/item/thrown_item = src
+		real_force = thrown_item.throwforce
+
+	var/datum/thrownthing/TT = new(src, target, dir, range, speed, thrower, FALSE, real_force, FALSE, callback)
 	throwing = TT
 
 	pixel_z = 0
@@ -451,10 +468,10 @@
 	var/atom/master = null
 	anchored = TRUE
 
-/atom/movable/overlay/New()
+/atom/movable/overlay/Initialize(mapload)
+	. = ..()
 	for(var/x in src.verbs)
 		src.verbs -= x
-	..()
 
 /atom/movable/overlay/attackby(a, b)
 	if (src.master)
@@ -496,8 +513,8 @@
 			new_y = TRANSITIONEDGE + 1
 			new_x = rand(TRANSITIONEDGE + 2, world.maxx - TRANSITIONEDGE - 2)
 
-		if(ticker && istype(ticker.mode, /datum/game_mode/nuclear)) //only really care if the game mode is nuclear
-			var/datum/game_mode/nuclear/G = ticker.mode
+		if(SSticker && istype(SSticker.mode, /datum/game_mode/nuclear)) //only really care if the game mode is nuclear
+			var/datum/game_mode/nuclear/G = SSticker.mode
 			G.check_nuke_disks()
 
 		var/turf/T = locate(new_x, new_y, new_z)
@@ -580,7 +597,7 @@
 
 
 // Animations for cloaking/uncloaking
-/atom/movable/proc/cloak_animation(var/length = 1 SECOND)
+/atom/movable/proc/cloak_animation(length = 1 SECOND)
 	//Save these
 	var/initial_alpha = alpha
 
@@ -601,7 +618,7 @@
 	//Back to original alpha
 	alpha = initial_alpha
 
-/atom/movable/proc/uncloak_animation(var/length = 1 SECOND)
+/atom/movable/proc/uncloak_animation(length = 1 SECOND)
 	//Save these
 	var/initial_alpha = alpha
 
@@ -638,3 +655,113 @@
 
 /atom/movable/proc/get_cell()
 	return
+
+/atom/movable/proc/emblocker_gc(datum/source)
+	SIGNAL_HANDLER
+	UnregisterSignal(source, COMSIG_QDELETING)
+	cut_overlay(source)
+	if(em_block == source)
+		em_block = null
+
+/atom/movable/proc/abstract_move(atom/new_loc)
+	var/atom/old_loc = loc
+	var/direction = get_dir(old_loc, new_loc)
+	loc = new_loc
+	Moved(old_loc, direction, TRUE)
+
+// Helper procs called on entering/exiting a belly. Does nothing by default, override on children for special behavior.
+/atom/movable/proc/enter_belly(obj/belly/B)
+	return
+
+/atom/movable/proc/exit_belly(obj/belly/B)
+	return
+
+/atom/movable/proc/set_listening(set_to)
+	if (listening_recursive && !set_to)
+		LAZYREMOVE(recursive_listeners, src)
+		if (!LAZYLEN(recursive_listeners))
+			for (var/atom/movable/location as anything in get_nested_locs(src))
+				LAZYREMOVE(location.recursive_listeners, src)
+	if (!listening_recursive && set_to)
+		LAZYOR(recursive_listeners, src)
+		for (var/atom/movable/location as anything in get_nested_locs(src))
+			LAZYOR(location.recursive_listeners, src)
+	listening_recursive = set_to
+
+///Returns a list of all locations (except the area) the movable is within.
+/proc/get_nested_locs(atom/movable/atom_on_location, include_turf = FALSE)
+	. = list()
+	var/atom/location = atom_on_location.loc
+	var/turf/our_turf = get_turf(atom_on_location)
+	while(location && location != our_turf)
+		. += location
+		location = location.loc
+	if(our_turf && include_turf) //At this point, only the turf is left, provided it exists.
+		. += our_turf
+
+/atom/movable/Exited(atom/movable/gone, atom/new_loc)
+	. = ..()
+
+	if (!LAZYLEN(gone.recursive_listeners))
+		return
+	for (var/atom/movable/location as anything in get_nested_locs(src)|src)
+		LAZYREMOVE(location.recursive_listeners, gone.recursive_listeners)
+
+/atom/movable/Entered(atom/movable/arrived, atom/old_loc)
+	. = ..()
+
+	if (!LAZYLEN(arrived.recursive_listeners))
+		return
+	for (var/atom/movable/location as anything in get_nested_locs(src)|src)
+		LAZYOR(location.recursive_listeners, arrived.recursive_listeners)
+
+/atom/movable/proc/show_message(msg, type, alt, alt_type)//Message, type of message (1 or 2), alternative message, alt message type (1 or 2)
+	return
+
+/atom/movable/vv_get_dropdown()
+	. = ..()
+	VV_DROPDOWN_OPTION("", "---------")
+	//VV_DROPDOWN_OPTION(VV_HK_OBSERVE_FOLLOW, "Observe Follow")
+	VV_DROPDOWN_OPTION(VV_HK_GET_MOVABLE, "Get Movable")
+	VV_DROPDOWN_OPTION(VV_HK_EDIT_PARTICLES, "Edit Particles")
+	//VV_DROPDOWN_OPTION(VV_HK_DEADCHAT_PLAYS, "Start/Stop Deadchat Plays")
+	//VV_DROPDOWN_OPTION(VV_HK_ADD_FANTASY_AFFIX, "Add Fantasy Affix")
+
+/atom/movable/vv_do_topic(list/href_list)
+	. = ..()
+
+	if(!.)
+		return
+
+	//if(href_list[VV_HK_OBSERVE_FOLLOW])
+	//	if(!check_rights(R_ADMIN))
+	//		return
+	//	usr.client?.admin_follow(src)
+
+	if(href_list[VV_HK_GET_MOVABLE])
+		if(!check_rights(R_ADMIN))
+			return
+		if(QDELETED(src))
+			return
+		if(ismob(src)) // incase there was a client inside an object being yoinked
+			var/mob/M = src
+			M.reset_perspective(src) // Force reset to self before teleport
+		forceMove(get_turf(usr))
+
+	if(href_list[VV_HK_EDIT_PARTICLES] && check_rights(R_VAREDIT))
+		var/client/C = usr.client
+		C?.open_particle_editor(src)
+
+	//if(href_list[VV_HK_DEADCHAT_PLAYS] && check_rights(R_FUN))
+	//	if(tgui_alert(usr, "Allow deadchat to control [src] via chat commands?", "Deadchat Plays [src]", list("Allow", "Cancel")) != "Allow")
+	//		return
+	//	// Alert is async, so quick sanity check to make sure we should still be doing this.
+	//	if(QDELETED(src))
+	//		return
+	//	// This should never happen, but if it does it should not be silent.
+	//	if(deadchat_plays() == COMPONENT_INCOMPATIBLE)
+	//		to_chat(usr, span_warning("Deadchat control not compatible with [src]."))
+	//		CRASH("deadchat_control component incompatible with object of type: [type]")
+	//	to_chat(usr, span_notice("Deadchat now control [src]."))
+	//	log_admin("[key_name(usr)] has added deadchat control to [src]")
+	//	message_admins(span_notice("[key_name(usr)] has added deadchat control to [src]"))

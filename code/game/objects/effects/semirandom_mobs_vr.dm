@@ -1,5 +1,3 @@
-var/global/list/semirandom_mob_spawner_decisions = list()
-
 /obj/random/mob/semirandom_mob_spawner
 	name = "Semi-Random Spawner"
 	desc = "Spawns groups of mobs that are all of the same theme type/theme."
@@ -48,6 +46,7 @@ var/global/list/semirandom_mob_spawner_decisions = list()
 		list(/mob/living/simple_mob/animal/passive/lizard),
 		list(/mob/living/simple_mob/animal/passive/mouse),
 		list(/mob/living/simple_mob/animal/passive/mouse/jerboa),
+		list(/mob/living/simple_mob/animal/passive/mothroach),
 		list(/mob/living/simple_mob/animal/passive/opossum),
 		list(/mob/living/simple_mob/animal/passive/pillbug),
 		list(/mob/living/simple_mob/animal/passive/snake),
@@ -308,11 +307,11 @@ var/global/list/semirandom_mob_spawner_decisions = list()
 		)
 
 /obj/random/mob/semirandom_mob_spawner/item_to_spawn()
-	var/list/choice = semirandom_mob_spawner_decisions[type]
+	var/list/choice = GLOB.semirandom_mob_spawner_decisions[type]
 
 	if(!choice)
 		choice = pickweight(possible_mob_types)
-		semirandom_mob_spawner_decisions[type] = choice
+		GLOB.semirandom_mob_spawner_decisions[type] = choice
 
 	return pickweight(choice)
 
@@ -1018,6 +1017,7 @@ var/global/list/semirandom_mob_spawner_decisions = list()
 	overwrite_hostility = 1
 	mob_hostile = 0
 	mob_retaliate = 0
+	mob_ghostjoin = 25 //25% chance to be ghost joinable
 
 /obj/random/mob/semirandom_mob_spawner/vore/passive/b
 	mob_faction = "pasvoreb"
@@ -1030,6 +1030,7 @@ var/global/list/semirandom_mob_spawner_decisions = list()
 	overwrite_hostility = 1
 	mob_hostile = 0
 	mob_retaliate = 1
+	mob_ghostjoin = 25 //25% chance to be ghost joinable
 
 /obj/random/mob/semirandom_mob_spawner/vore/retaliate/b
 	mob_faction = "retvoreb"

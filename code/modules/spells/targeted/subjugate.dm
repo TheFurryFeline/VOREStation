@@ -1,4 +1,4 @@
-/spell/targeted/subjugation
+/datum/spell/targeted/subjugation
 	name = "Subjugation"
 	desc = "This spell temporarily subjugates a target's mind and does not require wizard garb."
 
@@ -7,7 +7,7 @@
 	spell_flags = 0
 	invocation = "DII ODA BAJI"
 	invocation_type = SpI_WHISPER
-	message = "<span class='danger'>You suddenly feel completely overwhelmed!</span>"
+	message = span_danger("You suddenly feel completely overwhelmed!")
 
 	max_targets = 1
 

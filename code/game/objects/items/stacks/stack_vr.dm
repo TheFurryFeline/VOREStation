@@ -6,8 +6,7 @@
 	if(pulledby)
 		pulledby.start_pulling(S)
 	transfer_fingerprints_to(S)
-	if(blood_DNA)
-		S.blood_DNA |= blood_DNA
+	S.init_forensic_data().merge_blooddna(forensic_data)
 	use(transfer)
 	S.add(transfer)
 
@@ -30,7 +29,7 @@
 		return FALSE
 	return TRUE
 
-/obj/item/stack/Crossed(var/atom/movable/AM)
+/obj/item/stack/Crossed(atom/movable/AM)
 	if(istype(AM, src.type)) // Sanity so we don't try to merge non-stacks.
 		if(can_merge(AM))
 			merge(AM)

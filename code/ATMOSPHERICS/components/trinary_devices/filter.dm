@@ -19,43 +19,49 @@
 
 	/*
 	Filter types:
-	-1: Nothing
-	 0: Phoron: Phoron, Oxygen Agent B
-	 1: Oxygen: Oxygen ONLY
-	 2: Nitrogen: Nitrogen ONLY
-	 3: Carbon Dioxide: Carbon Dioxide ONLY
-	 4: Nitrous Oxide (Formerly called Sleeping Agent) (N2O)
+		-1: Nothing
+		0: Phoron: Phoron, Oxygen Agent B
+		1: Oxygen: Oxygen ONLY
+		2: Nitrogen: Nitrogen ONLY
+		3: Carbon Dioxide: Carbon Dioxide ONLY
+		4: Nitrous Oxide (Formerly called Sleeping Agent) (N2O)
+		5: Methane: Methane only
 	*/
 	var/filter_type = -1
 	var/list/filtered_out = list()
 
 
-	var/frequency = 0
+	var/frequency = ZERO_FREQ
 	var/datum/radio_frequency/radio_connection
 
 /obj/machinery/atmospherics/trinary/atmos_filter/proc/set_frequency(new_frequency)
-	radio_controller.remove_object(src, frequency)
+	SSradio.remove_object(src, frequency)
 	frequency = new_frequency
 	if(frequency)
-		radio_connection = radio_controller.add_object(src, frequency, RADIO_ATMOSIA)
+		radio_connection = SSradio.add_object(src, frequency, RADIO_ATMOSIA)
 
-/obj/machinery/atmospherics/trinary/atmos_filter/New()
-	..()
+/obj/machinery/atmospherics/trinary/atmos_filter/Initialize(mapload)
+	. = ..()
+
 	switch(filter_type)
 		if(0) //removing hydrocarbons
-			filtered_out = list("phoron")
+			filtered_out = list(GAS_PHORON)
 		if(1) //removing O2
-			filtered_out = list("oxygen")
+			filtered_out = list(GAS_O2)
 		if(2) //removing N2
-			filtered_out = list("nitrogen")
+			filtered_out = list(GAS_N2)
 		if(3) //removing CO2
-			filtered_out = list("carbon_dioxide")
+			filtered_out = list(GAS_CO2)
 		if(4)//removing N2O
-			filtered_out = list("nitrous_oxide")
+			filtered_out = list(GAS_N2O)
+		if(5)//removing CH4
+			filtered_out = list(GAS_CH4)
 
 	air1.volume = ATMOS_DEFAULT_VOLUME_FILTER
 	air2.volume = ATMOS_DEFAULT_VOLUME_FILTER
 	air3.volume = ATMOS_DEFAULT_VOLUME_FILTER
+	if(frequency)
+		set_frequency(frequency)
 
 /obj/machinery/atmospherics/trinary/atmos_filter/Destroy()
 	unregister_radio(src, frequency)
@@ -106,59 +112,15 @@
 
 	return 1
 
-/obj/machinery/atmospherics/trinary/atmos_filter/Initialize()
-	. = ..()
-	if(frequency)
-		set_frequency(frequency)
-
 /obj/machinery/atmospherics/trinary/atmos_filter/attack_hand(user) // -- TLE
 	if(..())
 		return
 
 	if(!src.allowed(user))
-		to_chat(user, "<span class='warning'>Access denied.</span>")
+		to_chat(user, span_warning("Access denied."))
 		return
 
 	tgui_interact(user)
-
-	// var/dat
-	// var/current_filter_type
-	// switch(filter_type)
-	// 	if(0)
-	// 		current_filter_type = "Phoron"
-	// 	if(1)
-	// 		current_filter_type = "Oxygen"
-	// 	if(2)
-	// 		current_filter_type = "Nitrogen"
-	// 	if(3)
-	// 		current_filter_type = "Carbon Dioxide"
-	// 	if(4)
-	// 		current_filter_type = "Nitrous Oxide"
-	// 	if(-1)
-	// 		current_filter_type = "Nothing"
-	// 	else
-	// 		current_filter_type = "ERROR - Report this bug to the admin, please!"
-
-	// dat += {"
-	// 		<b>Power: </b><a href='?src=\ref[src];power=1'>[use_power?"On":"Off"]</a><br>
-	// 		<b>Filtering: </b>[current_filter_type]<br><HR>
-	// 		<h4>Set Filter Type:</h4>
-	// 		<A href='?src=\ref[src];filterset=0'>Phoron</A><BR>
-	// 		<A href='?src=\ref[src];filterset=1'>Oxygen</A><BR>
-	// 		<A href='?src=\ref[src];filterset=2'>Nitrogen</A><BR>
-	// 		<A href='?src=\ref[src];filterset=3'>Carbon Dioxide</A><BR>
-	// 		<A href='?src=\ref[src];filterset=4'>Nitrous Oxide</A><BR>
-	// 		<A href='?src=\ref[src];filterset=-1'>Nothing</A><BR>
-	// 		<HR>
-	// 		<B>Set Flow Rate Limit:</B>
-	// 		[src.set_flow_rate]L/s | <a href='?src=\ref[src];set_flow_rate=1'>Change</a><BR>
-	// 		<B>Flow rate: </B>[round(last_flow_rate, 0.1)]L/s
-	// 		"}
-
-	// user << browse("<HEAD><TITLE>[src.name] control</TITLE></HEAD><TT>[dat]</TT>", "window=atmos_filter")
-	// onclose(user, "atmos_filter")
-	
-
 
 /obj/machinery/atmospherics/trinary/atmos_filter/tgui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
@@ -176,15 +138,16 @@
 
 	data["filter_types"] = list()
 	data["filter_types"] += list(list("name" = "Nothing", "f_type" = -1, "selected" = filter_type == -1))
-	data["filter_types"] += list(list("name" = "Phoron", "f_type" = 0, "selected" = filter_type == 0))
-	data["filter_types"] += list(list("name" = "Oxygen", "f_type" = 1, "selected" = filter_type == 1))
-	data["filter_types"] += list(list("name" = "Nitrogen", "f_type" = 2, "selected" = filter_type == 2))
-	data["filter_types"] += list(list("name" = "Carbon Dioxide", "f_type" = 3, "selected" = filter_type == 3))
-	data["filter_types"] += list(list("name" = "Nitrous Oxide", "f_type" = 4, "selected" = filter_type == 4))
+	data["filter_types"] += list(list("name" = GASNAME_PHORON, "f_type" = 0, "selected" = filter_type == 0))
+	data["filter_types"] += list(list("name" = GASNAME_O2, "f_type" = 1, "selected" = filter_type == 1))
+	data["filter_types"] += list(list("name" = GASNAME_N2, "f_type" = 2, "selected" = filter_type == 2))
+	data["filter_types"] += list(list("name" = GASNAME_CO2, "f_type" = 3, "selected" = filter_type == 3))
+	data["filter_types"] += list(list("name" = GASNAME_N2O, "f_type" = 4, "selected" = filter_type == 4))
+	data["filter_types"] += list(list("name" = GASNAME_CH4, "f_type" = 5, "selected" = filter_type == 5))
 
 	return data
 
-/obj/machinery/atmospherics/trinary/atmos_filter/tgui_act(action, params)
+/obj/machinery/atmospherics/trinary/atmos_filter/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return TRUE
 
@@ -207,18 +170,20 @@
 			filtered_out.Cut()	//no need to create new lists unnecessarily
 			switch(filter_type)
 				if(0) //removing hydrocarbons
-					filtered_out += "phoron"
+					filtered_out += GAS_PHORON
 					filtered_out += "oxygen_agent_b"
 				if(1) //removing O2
-					filtered_out += "oxygen"
+					filtered_out += GAS_O2
 				if(2) //removing N2
-					filtered_out += "nitrogen"
+					filtered_out += GAS_N2
 				if(3) //removing CO2
-					filtered_out += "carbon_dioxide"
+					filtered_out += GAS_CO2
 				if(4)//removing N2O
-					filtered_out += "nitrous_oxide"
+					filtered_out += GAS_N2O
+				if(5)//removing CH4
+					filtered_out += GAS_CH4
 
-	add_fingerprint(usr)
+	add_fingerprint(ui.user)
 	update_icon()
 
 //

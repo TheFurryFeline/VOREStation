@@ -6,7 +6,7 @@
 
 	icon_state = "arrow_omni"
 
-	invisibility = 100
+	invisibility = INVISIBILITY_MAXIMUM
 
 // The atom which created this.
 	var/atom/movable/creator
@@ -22,14 +22,13 @@
 // Is the snake hunting a specific atom? (Will always try to meander toward this target.)
 	var/atom/hunting
 
-/obj/effect/temporary_effect/pulse/snake/New(var/turf/T, var/atom/hunt_target, var/atom/Creator)
+/obj/effect/temporary_effect/pulse/snake/Initialize(mapload, atom/hunt_target, atom/Creator)
+	. = ..()
 	if(hunt_target)
 		hunting = hunt_target
 
 	if(Creator)
 		creator = Creator
-
-	..()
 
 /obj/effect/temporary_effect/pulse/snake/pulse_loop()	// Override needed unfortunately to handle the possibility of not finding a target turf.
 	set waitfor = FALSE
@@ -48,7 +47,7 @@
 	if(LAZYLEN(iterated_turfs) && iterated_turfs.len > total_turf_memory)
 		iterated_turfs.Cut(total_turf_memory + 1)
 
-	for(var/direction in list(NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST) - turn(src.dir,180))
+	for(var/direction in GLOB.alldirs - turn(src.dir,180))
 		var/turf/T = get_step(src, direction)
 		if(T in iterated_turfs)
 			continue
@@ -90,22 +89,22 @@
 		on_leave_turf(get_turf(src))
 		return FALSE
 
-/obj/effect/temporary_effect/pulse/snake/proc/on_leave_turf(var/turf/T)
+/obj/effect/temporary_effect/pulse/snake/proc/on_leave_turf(turf/T)
 
-/obj/effect/temporary_effect/pulse/snake/proc/on_enter_turf(var/turf/T)
+/obj/effect/temporary_effect/pulse/snake/proc/on_enter_turf(turf/T)
 
-/obj/effect/temporary_effect/pulse/snake/testing/on_leave_turf(var/turf/T)
+/obj/effect/temporary_effect/pulse/snake/test/on_leave_turf(turf/T)
 	if(T)
-		new /obj/effect/temporary_effect/eruption/testing(T, 3 SECONDS, "#ff0000")
+		new /obj/effect/temporary_effect/eruption/test(T, 3 SECONDS, "#ff0000")
 
-/obj/effect/temporary_effect/pulse/snake/testing/on_enter_turf(var/turf/T)
+/obj/effect/temporary_effect/pulse/snake/test/on_enter_turf(turf/T)
 	if(T)
 		T.color = "#00ff00"
 
 		spawn(3 SECONDS)
 			T.color = initial(T.color)
 
-/obj/effect/temporary_effect/pulse/snake/testing/hunter/pulse_loop()
+/obj/effect/temporary_effect/pulse/snake/test/hunter/pulse_loop()
 	hunting = locate(/mob/living) in range(7, src)
 	..()
 
@@ -120,6 +119,6 @@
 	pulses_remaining = 8
 	pulse_delay = 0.2 SECONDS
 
-/obj/effect/temporary_effect/pulse/snake/flamestrike/on_leave_turf(var/turf/T)
+/obj/effect/temporary_effect/pulse/snake/flamestrike/on_leave_turf(turf/T)
 	if(T)
 		new /obj/effect/temporary_effect/eruption/flamestrike(T, 1.2 SECONDS, "#f75000")

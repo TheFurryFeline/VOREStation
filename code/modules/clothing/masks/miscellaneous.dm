@@ -15,10 +15,10 @@
 	item_state_slots = list(slot_r_hand_str = null, slot_l_hand_str = null)
 	w_class = ITEMSIZE_TINY
 
-/obj/item/clothing/mask/muzzle/New()
-    ..()
-    say_messages = list("Mmfph!", "Mmmf mrrfff!", "Mmmf mnnf!")
-    say_verbs = list("mumbles", "says")
+/obj/item/clothing/mask/muzzle/Initialize(mapload)
+	. = ..()
+	say_messages = list("Mmfph!", "Mmmf mrrfff!", "Mmmf mnnf!")
+	say_verbs = list("mumbles", "says")
 
 // Clumsy folks can't take the mask off themselves.
 /obj/item/clothing/mask/muzzle/attack_hand(mob/living/user as mob)
@@ -39,21 +39,21 @@
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 60, rad = 0)
 	var/hanging = 0
 
-/obj/item/clothing/mask/surgical/proc/adjust_mask(mob_user)
-	if(usr.canmove && !usr.stat)
+/obj/item/clothing/mask/surgical/proc/adjust_mask(mob/user)
+	if(user.canmove && !user.stat)
 		src.hanging = !src.hanging
 		if (src.hanging)
 			gas_transfer_coefficient = 1
 			body_parts_covered = body_parts_covered & ~FACE
 			armor = list(melee = 0, bullet = 0, laser = 0, energy = 0, bomb = 0, bio = 0, rad = 0)
 			icon_state = "steriledown"
-			to_chat(usr, "You pull the mask below your chin.")
+			to_chat(user, "You pull the mask below your chin.")
 		else
 			gas_transfer_coefficient = initial(gas_transfer_coefficient)
 			body_parts_covered = initial(body_parts_covered)
 			icon_state = initial(icon_state)
 			armor = initial(armor)
-			to_chat(usr, "You pull the mask up to cover your face.")
+			to_chat(user, "You pull the mask up to cover your face.")
 		update_clothing_icon()
 
 /obj/item/clothing/mask/surgical/verb/toggle()
@@ -97,6 +97,7 @@
 
 //scarves (fit in in mask slot)
 //None of these actually have on-mob sprites...
+/* //Lost to time.
 /obj/item/clothing/mask/bluescarf
 	name = "blue neck scarf"
 	desc = "A blue neck scarf."
@@ -123,11 +124,11 @@
 	item_flags = FLEXIBLEMATERIAL
 	w_class = ITEMSIZE_SMALL
 	gas_transfer_coefficient = 0.90
-
+*/
 /obj/item/clothing/mask/ninjascarf
 	name = "ninja scarf"
 	desc = "A stealthy, dark scarf."
-	icon_state = "ninja_scarf"
+	icon_state = "s-ninja"
 	body_parts_covered = FACE
 	item_flags = FLEXIBLEMATERIAL
 	w_class = ITEMSIZE_SMALL
@@ -187,7 +188,7 @@
 	body_parts_covered = HEAD|FACE|EYES
 	w_class = ITEMSIZE_SMALL
 	siemens_coefficient = 0.9
-
+/* //Lost to time.
 /obj/item/clothing/mask/nock_scarab
 	name = "nock mask (blue, scarab)"
 	desc = "To Nock followers, masks symbolize rebirth and a new persona. Damaging the wearer's mask is generally considered an attack on their person itself."
@@ -215,12 +216,12 @@
 	icon_state = "nock_ornate"
 	w_class = ITEMSIZE_SMALL
 	body_parts_covered = HEAD|FACE
-
-/obj/item/clothing/mask/horsehead/New()
-    ..()
-    // The horse mask doesn't cause voice changes by default, the wizard spell changes the flag as necessary
-    say_messages = list("NEEIIGGGHHHH!", "NEEEIIIIGHH!", "NEIIIGGHH!", "HAAWWWWW!", "HAAAWWW!")
-    say_verbs = list("whinnies", "neighs", "says")
+*/
+/obj/item/clothing/mask/horsehead/Initialize(mapload)
+	. = ..()
+	// The horse mask doesn't cause voice changes by default, the wizard spell changes the flag as necessary
+	say_messages = list("NEEIIGGGHHHH!", "NEEEIIIIGHH!", "NEIIIGGHH!", "HAAWWWWW!", "HAAAWWW!")
+	say_verbs = list("whinnies", "neighs", "says")
 
 /obj/item/clothing/mask/ai
 	name = "camera MIU"
@@ -231,10 +232,11 @@
 	body_parts_covered = 0
 	var/mob/observer/eye/aiEye/eye
 
-/obj/item/clothing/mask/ai/New()
+/obj/item/clothing/mask/ai/Initialize(mapload)
+	. = ..()
 	eye = new(src)
 
-/obj/item/clothing/mask/ai/equipped(var/mob/user, var/slot)
+/obj/item/clothing/mask/ai/equipped(mob/user, slot)
 	..(user, slot)
 	if(slot == slot_wear_mask)
 		eye.owner = user
@@ -244,7 +246,7 @@
 			c.remove(eye)
 		eye.setLoc(user)
 
-/obj/item/clothing/mask/ai/dropped(var/mob/user)
+/obj/item/clothing/mask/ai/dropped(mob/user, equipping, slot)
 	..()
 	if(eye.owner == user)
 		for(var/datum/chunk/c in eye.visibleChunks)
@@ -263,7 +265,7 @@
 	icon_state = "bandblack"
 	item_state_slots = list(slot_r_hand_str = "bandblack", slot_l_hand_str = "bandblack")
 
-/obj/item/clothing/mask/bandana/equipped(var/mob/user, var/slot)
+/obj/item/clothing/mask/bandana/equipped(mob/user, slot)
 	switch(slot)
 		if(slot_wear_mask) //Mask is the default for all the settings
 			flags_inv = initial(flags_inv)
@@ -320,9 +322,9 @@
 	w_class = ITEMSIZE_SMALL
 	body_parts_covered = FACE
 	icon_state = "papermask"
-	action_button_name = "Redraw Design"
-	action_button_is_hands_free = TRUE
+	actions_types = list(/datum/action/item_action/hands_free/redraw_design)
 	var/list/papermask_designs = list()
+	special_handling = TRUE
 
 /obj/item/clothing/mask/paper/Initialize(mapload)
 	. = ..()
@@ -355,7 +357,9 @@
 		)
 
 /obj/item/clothing/mask/paper/attack_self(mob/user)
-	. = ..()
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(!istype(user) || user.incapacitated())
 		return
 
@@ -374,9 +378,8 @@
 	if(src && choice && !user.incapacitated() && in_range(user,src))
 		icon_state = options[choice]
 		user.update_inv_wear_mask()
-		user.update_action_buttons()
-		to_chat(user, "<span class='notice'>Your paper mask now is now [choice].</span>")
-		return 1
+		user.update_mob_action_buttons()
+		to_chat(user, span_notice("Your paper mask now is now [choice]."))
 
 /obj/item/clothing/mask/emotions
 	name = "emotional mask"
@@ -384,9 +387,9 @@
 	w_class = ITEMSIZE_SMALL
 	body_parts_covered = FACE
 	icon_state = "joy"
-	action_button_name = "Redraw Design"
-	action_button_is_hands_free = TRUE
+	actions_types = list(/datum/action/item_action/hands_free/redraw_design)
 	var/static/list/joymask_designs = list()
+	special_handling = TRUE
 
 
 /obj/item/clothing/mask/emotions/Initialize(mapload)
@@ -399,7 +402,9 @@
 		)
 
 /obj/item/clothing/mask/emotions/attack_self(mob/user)
-	. = ..()
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(!istype(user) || user.incapacitated())
 		return
 
@@ -410,9 +415,8 @@
 	if(src && choice && !user.incapacitated() && in_range(user,src))
 		icon_state = options[choice]
 		user.update_inv_wear_mask()
-		user.update_action_buttons()
-		to_chat(user, "<span class='notice'>Your [src] now displays a [choice] emotion.</span>")
-		return 1
+		user.update_mob_action_buttons()
+		to_chat(user, span_notice("Your [src] now displays a [choice] emotion."))
 
 /obj/item/clothing/mask/mouthwheat
 	name = "mouth wheat"

@@ -23,8 +23,8 @@
 	buckle_lying = 1
 
 	// BubbleWrap
-/obj/machinery/atmospherics/pipe/simple/heat_exchanging/New()
-	..()
+/obj/machinery/atmospherics/pipe/simple/heat_exchanging/Initialize(mapload)
+	. = ..()
 // BubbleWrap END
 	color = "#404040" //we don't make use of the fancy overlay system for colours, use this to set the default.
 
@@ -37,7 +37,7 @@
 	return ..() | initialize_directions_he
 
 // Use initialize_directions_he to connect to neighbors instead.
-/obj/machinery/atmospherics/pipe/simple/heat_exchanging/can_be_node(var/obj/machinery/atmospherics/pipe/simple/heat_exchanging/target)
+/obj/machinery/atmospherics/pipe/simple/heat_exchanging/can_be_node(obj/machinery/atmospherics/pipe/simple/heat_exchanging/target)
 	if(!istype(target))
 		return FALSE
 	return (target.initialize_directions_he & get_dir(target,src)) && check_connectable(target) && target.check_connectable(src)
@@ -47,18 +47,18 @@
 	var/node1_dir
 	var/node2_dir
 
-	for(var/direction in cardinal)
+	for(var/direction in GLOB.cardinal)
 		if(direction&initialize_directions_he)
 			if (!node1_dir)
 				node1_dir = direction
 			else if (!node2_dir)
 				node2_dir = direction
 
-	for(var/obj/machinery/atmospherics/pipe/simple/heat_exchanging/target in get_step(src,node1_dir))
+	for(var/obj/machinery/atmospherics/pipe/simple/heat_exchanging/target in get_prioritized_nodes(get_step(src,node1_dir)))
 		if(can_be_node(target, 1))
 			node1 = target
 			break
-	for(var/obj/machinery/atmospherics/pipe/simple/heat_exchanging/target in get_step(src,node2_dir))
+	for(var/obj/machinery/atmospherics/pipe/simple/heat_exchanging/target in get_prioritized_nodes(get_step(src,node2_dir)))
 		if(can_be_node(target, 2))
 			node2 = target
 			break
@@ -70,7 +70,7 @@
 	handle_leaking()
 	return
 
-/obj/machinery/atmospherics/pipe/simple/heat_exchanging/set_leaking(var/new_leaking) // They already process, no need for manual processing toggles.
+/obj/machinery/atmospherics/pipe/simple/heat_exchanging/set_leaking(new_leaking) // They already process, no need for manual processing toggles.
 	if(new_leaking && !leaking)
 		leaking = TRUE
 		if(parent)
@@ -118,7 +118,7 @@
 					heat_limit = H.species.heat_level_3
 
 				if(pipe_air.temperature > heat_limit + 1)
-					L.apply_damage(4 * log(pipe_air.temperature - heat_limit), BURN, BP_TORSO, used_weapon = "Excessive Heat")
+					L.apply_damage(4 * log(pipe_air.temperature - heat_limit), BURN, BP_TORSO)
 
 		//fancy radiation glowing
 		if(pipe_air.temperature && (icon_temperature > 500 || pipe_air.temperature > 500)) //start glowing at 500K

@@ -14,7 +14,7 @@
 	health = 200
 	movement_cooldown = -1
 
-	faction = "worm"
+	faction = FACTION_WORM
 
 	status_flags = 0
 	universal_speak = 0
@@ -29,14 +29,14 @@
 
 	attacktext = list("slammed")
 
-	organ_names = /decl/mob_organ_names
+	organ_names = /datum/decl/mob_organ_names
 
 	ai_holder_type = /datum/ai_holder/simple_mob/inert
 
 	mob_class = MOB_CLASS_ABERRATION	// It's a monster.
 
 	meat_amount = 10
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/worm
+	meat_type = /obj/item/reagent_containers/food/snacks/meat/worm
 
 	var/mob/living/simple_mob/animal/space/space_worm/previous //next/previous segments, correspondingly
 	var/mob/living/simple_mob/animal/space/space_worm/next     //head is the nextest segment
@@ -58,6 +58,8 @@
 	var/time_maw_opened = 0
 	var/maw_cooldown = 30 SECONDS
 	var/open_maw = FALSE	// Are we trying to eat things?
+
+	can_be_drop_prey = FALSE
 
 /mob/living/simple_mob/animal/space/space_worm/head
 	name = "space worm"
@@ -109,7 +111,7 @@
 	if(stat)
 		icon_state = "[icon_state]_dead"
 
-/mob/living/simple_mob/animal/space/space_worm/head/Initialize()
+/mob/living/simple_mob/animal/space/space_worm/head/Initialize(mapload)
 	. = ..()
 
 	var/mob/living/simple_mob/animal/space/space_worm/current = src
@@ -124,19 +126,19 @@
 /mob/living/simple_mob/animal/space/space_worm/head/verb/toggle_devour()
 	set name = "Toggle Feeding"
 	set desc = "Extends your teeth for 30 seconds so that you can chew through mobs and structures alike."
-	set category = "Abilities"
+	set category = "Abilities.Worm"
 
 	if(world.time < time_maw_opened + maw_cooldown)
 		if(open_maw)
-			to_chat(src, "<span class='notice'>You retract your teeth.</span>")
+			to_chat(src, span_notice("You retract your teeth."))
 			time_maw_opened -= maw_cooldown / 2	// Recovers half cooldown if you end it early manually.
 		else
-			to_chat(src, "<span class='notice'>You are too tired to do this..</span>")
+			to_chat(src, span_notice("You are too tired to do this.."))
 		set_maw(FALSE)
 	else
 		set_maw(!open_maw)
 
-/mob/living/simple_mob/animal/space/space_worm/proc/set_maw(var/state = FALSE)
+/mob/living/simple_mob/animal/space/space_worm/proc/set_maw(state = FALSE)
 	open_maw = state
 	if(open_maw)
 		time_maw_opened = world.time
@@ -158,7 +160,7 @@
 
 	if(world.time > time_maw_opened + maw_cooldown)	// Auto-stop eating.
 		if(open_maw)
-			to_chat(src, "<span class='notice'>Your jaws cannot remain open..</span>")
+			to_chat(src, span_notice("Your jaws cannot remain open.."))
 			set_maw(FALSE)
 
 	if(next && !(next in view(src,1)) && !z_transitioning)
@@ -196,7 +198,7 @@
 	if(next)
 		next.previous = null
 		next = null
-	..()
+	. = ..()
 
 /mob/living/simple_mob/animal/space/space_worm/Moved(atom/old_loc, direction, forced = FALSE)
 	. = ..()
@@ -239,15 +241,15 @@
 
 	return
 
-/mob/living/simple_mob/animal/space/space_worm/proc/AttemptToEat(var/atom/target)
+/mob/living/simple_mob/animal/space/space_worm/proc/AttemptToEat(atom/target)
 	if(istype(target,/turf/simulated/wall))
 		var/turf/simulated/wall/W = target
-		if((!W.reinf_material && do_after(src, 5 SECONDS)) || do_after(src, 10 SECONDS)) // 10 seconds for an R-wall, 5 seconds for a normal one.
+		if((!W.reinf_material && do_after(src, 5 SECONDS, target)) || do_after(src, 10 SECONDS, target)) // 10 seconds for an R-wall, 5 seconds for a normal one.
 			if(target)
 				W.dismantle_wall()
 				return 1
 	else if(istype(target,/atom/movable))
-		if(istype(target,/mob) || do_after(src, 5)) // 5 ticks to eat stuff like tables.
+		if(istype(target,/mob) || do_after(src, 5, target)) // 5 ticks to eat stuff like tables.
 			var/atom/movable/objectOrMob = target
 			if(istype(objectOrMob, /obj/machinery/door))	// Doors and airlocks take time based on their durability and our damageo.
 				var/obj/machinery/door/D = objectOrMob
@@ -259,14 +261,14 @@
 						objectOrMob = null
 						break
 
-					if(do_after(src, 5))
-						D.visible_message("<span class='danger'>Something crashes against \the [D]!</span>")
+					if(do_after(src, 5, target))
+						D.visible_message(span_danger("Something crashes against \the [D]!"))
 						D.take_damage(2 * melee_damage_upper)
 					else
 						objectOrMob = null
 						break
 
-					if(D && (D.stat & BROKEN|NOPOWER))
+					if(D && (D.stat & (BROKEN|NOPOWER)))
 						D.open(TRUE)
 						break
 
@@ -274,14 +276,14 @@
 				var/obj/effect/energy_field/EF = objectOrMob
 				objectOrMob = null	// No eating shields.
 				if(EF.opacity)
-					EF.visible_message("<span class='danger'>Something begins forcing itself through \the [EF]!</span>")
+					EF.visible_message(span_danger("Something begins forcing itself through \the [EF]!"))
 				else
-					EF.visible_message("<span class='danger'>\The [src] begins forcing itself through \the [EF]!</span>")
-				if(do_after(src, EF.strength * 5))
+					EF.visible_message(span_danger("\The [src] begins forcing itself through \the [EF]!"))
+				if(do_after(src, EF.strength * 5, target))
 					EF.adjust_strength(rand(-8, -10))
-					EF.visible_message("<span class='danger'>\The [src] crashes through \the [EF]!</span>")
+					EF.visible_message(span_danger("\The [src] crashes through \the [EF]!"))
 				else
-					EF.visible_message("<span class='danger'>\The [EF] reverberates as it returns to normal.</span>")
+					EF.visible_message(span_danger("\The [EF] reverberates as it returns to normal."))
 
 			if(objectOrMob)
 				objectOrMob.update_nearby_tiles(need_rebuild=1)
@@ -290,7 +292,7 @@
 
 	return 0
 
-/mob/living/simple_mob/animal/space/space_worm/proc/Attach(var/mob/living/simple_mob/animal/space/space_worm/attachement)
+/mob/living/simple_mob/animal/space/space_worm/proc/Attach(mob/living/simple_mob/animal/space/space_worm/attachement)
 	if(!attachement)
 		return
 
@@ -358,10 +360,10 @@
 			stomachContent.forceMove(get_turf(src))
 	return
 
-/mob/living/simple_mob/animal/space/space_worm/proc/stomach_special(var/atom/A)	// Futureproof. Anything that interacts with contents without relying on digestion probability. Return TRUE if it should skip digest.
+/mob/living/simple_mob/animal/space/space_worm/proc/stomach_special(atom/A)	// Futureproof. Anything that interacts with contents without relying on digestion probability. Return TRUE if it should skip digest.
 	return FALSE
 
-/mob/living/simple_mob/animal/space/space_worm/proc/stomach_special_digest(var/atom/A)	// Futureproof. Any special checks that interact with digested atoms. I.E., ore processing. Return TRUE if it should skip future digest checks.
+/mob/living/simple_mob/animal/space/space_worm/proc/stomach_special_digest(atom/A)	// Futureproof. Any special checks that interact with digested atoms. I.E., ore processing. Return TRUE if it should skip future digest checks.
 	return FALSE
 
 /mob/living/simple_mob/animal/space/space_worm/proc/update_body_faction()

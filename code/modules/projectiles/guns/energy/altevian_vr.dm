@@ -1,4 +1,4 @@
-/obj/item/weapon/gun/energy/altevian
+/obj/item/gun/energy/altevian
 	name = "Magneto-Electric Energy Projector"
 	desc = "A hand-held version of an energy weapon for the Altevian Hegemony. This one is the civilian grade version that has a reduced charge capacity. However, it is a lot easier to use."
 	icon_state = "meep"
@@ -7,12 +7,11 @@
 	slot_flags = SLOT_BELT
 	w_class = ITEMSIZE_NORMAL
 	force = 5
-	origin_tech = list(TECH_COMBAT = 3, TECH_MAGNET = 2)
-	matter = list(MAT_STEEL = 1000)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.5))
 	projectile_type = /obj/item/projectile/beam/meeplaser
 	charge_cost = 400
 
-/obj/item/weapon/gun/energy/altevian/large
+/obj/item/gun/energy/altevian/large
 	name = "Proto-Reactive Beam Thruster"
 	desc = "The main energy rifle that the Altevian Hegemony uses for its military operations."
 	icon_state = "altevian-pdw"
@@ -20,8 +19,7 @@
 	slot_flags = SLOT_BELT
 	w_class = ITEMSIZE_LARGE
 	force = 10
-	origin_tech = list(TECH_COMBAT = 3, TECH_MAGNET = 4)
-	matter = list(MAT_STEEL = 2000)
+	matter = list(MAT_STEEL = MATERIAL_COST(1))
 	projectile_type = /obj/item/projectile/beam/meeplaser/strong
 	charge_cost = 200
 
@@ -58,7 +56,7 @@
 	light_power = 0.5
 	light_color = "#77A6E1"
 
-/obj/item/weapon/gun/energy/ratminer
+/obj/item/gun/energy/ratminer
 	name = "Altevian Repulsion Mineral Slicer"
 	desc = "An advanced piece of mining focused technology from the Altevian Hegemony. \
 			This model appears to be their standard asteroid clearing laser with a tailored system to work with an ore-bag, \
@@ -70,8 +68,7 @@
 	slot_flags = SLOT_BACK
 	w_class = ITEMSIZE_HUGE
 	force = 10
-	origin_tech = list(TECH_COMBAT = 2, TECH_MAGNET = 4)
-	matter = list(MAT_STEEL = 2000)
+	matter = list(MAT_STEEL = MATERIAL_COST(1))
 	projectile_type = /obj/item/projectile/scatter/ratminer
 	charge_cost = 400
 	fire_sound = 'sound/weapons/laser3.ogg'
@@ -111,7 +108,7 @@
 	. = ..()
 	strike_thing(A)
 
-/obj/item/projectile/beam/ratminer/proc/strike_thing(var/atom/A)
+/obj/item/projectile/beam/ratminer/proc/strike_thing(atom/A)
 	var/turf/target_turf = get_turf(A)
 	if(!target_turf)
 		target_turf = get_turf(src)
@@ -123,7 +120,7 @@
 			var/turf/simulated/mineral/M = T
 			M.GetDrilled(TRUE)
 	if(firer)
-		var/obj/item/weapon/storage/bag/ore/orebag = locate(/obj/item/weapon/storage/bag/ore) in firer
+		var/obj/item/ore_bag/orebag = locate(/obj/item/ore_bag) in firer
 		if(orebag)
 			for(var/turf/T in RANGE_TURFS(2, target_turf))
 				orebag.gather_all(T, firer, TRUE)

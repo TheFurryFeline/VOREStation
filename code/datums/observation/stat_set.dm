@@ -7,27 +7,29 @@
 //			/mob/living/stat_mob: The mob whose stat changed
 //			/old_stat: Status before the change.
 //			/new_stat: Status after the change.
+/*
+stat_set_event, /datum/decl/observ/stat_set, new)
 
-GLOBAL_DATUM_INIT(stat_set_event, /decl/observ/stat_set, new)
-
-/decl/observ/stat_set
+/datum/decl/observ/stat_set
 	name = "Stat Set"
 	expected_type = /mob/living
+*/
+//Deprecated in favor of Comsigs
 
 /****************
 * Stat Handling *
 ****************/
-/mob/living/set_stat(var/new_stat)
+/mob/living/set_stat(new_stat)
 	var/old_stat = stat
 	. = ..()
 	if(stat != old_stat)
-		GLOB.stat_set_event.raise_event(src, old_stat, new_stat)
+		SEND_SIGNAL(src, COMSIG_MOB_STATCHANGE, old_stat, new_stat)
 
-		if(isbelly(src.loc))
+		if(isbelly(src.loc)) //Should probably be listening to the signal tbh
 			var/obj/belly/ourbelly = src.loc
 			if(!ourbelly.owner.client)
 				return
-			if(stat == CONSCIOUS)
-				to_chat(ourbelly.owner, "<span class='notice'>\The [src.name] is awake.</span>")
-			else if(stat == UNCONSCIOUS)
-				to_chat(ourbelly.owner, "<span class='red'>\The [src.name] has fallen unconscious!</span>")
+			if(stat == CONSCIOUS && old_stat >= UNCONSCIOUS) //Unconcious or dead to concious
+				to_chat(ourbelly.owner, span_notice("\The [src.name] is awake."))
+			else if(stat >= UNCONSCIOUS) //Concious to dead or unconcious
+				to_chat(ourbelly.owner, span_red("\The [src.name] has fallen unconscious!"))

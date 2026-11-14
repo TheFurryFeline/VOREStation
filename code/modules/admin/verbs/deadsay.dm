@@ -1,28 +1,20 @@
-/client/proc/dsay(msg as text)
-	set category = "Special Verbs"
-	set name = "Dsay" //Gave this shit a shorter name so you only have to time out "dsay" rather than "dead say" to use it --NeoFite
-	set hidden = 1
-	if(!src.holder)
-		to_chat(src, "Only administrators may use this command.")
-		return
-	if(!src.mob)
-		return
-	if(prefs.muted & MUTE_DEADCHAT)
-		to_chat(src, "<span class='warning'>You cannot send DSAY messages (muted).</span>")
+ADMIN_VERB(dsay, R_HOLDER, "Dsay", "Speak to the dead.", ADMIN_CATEGORY_CHAT, msg as text)
+	if(user.prefs.muted & MUTE_DEADCHAT)
+		to_chat(user, span_warning("You cannot send DSAY messages (muted)."))
 		return
 
-	if(!is_preference_enabled(/datum/client_preference/show_dsay))
-		to_chat(src, "<span class='warning'>You have deadchat muted.</span>")
+	if(!user.prefs?.read_preference(/datum/preference/toggle/show_dsay))
+		to_chat(user, span_warning("You have deadchat muted."))
 		return
 
-	var/stafftype = uppertext(holder.rank)
+	var/stafftype = uppertext(user.holder.rank_names())
 
 	msg = sanitize(msg)
-	log_admin("DSAY: [key_name(src)] : [msg]")
+	log_admin("DSAY: [key_name(user)] : [msg]")
 
 	if (!msg)
 		return
 
-	say_dead_direct("<span class='name'>[stafftype]([src.holder.fakekey ? src.holder.fakekey : src.key])</span> says, <span class='message'>\"[msg]\"</span>")
+	say_dead_direct(span_name("[stafftype]([user.holder.fakekey ? user.holder.fakekey : user.key])") + " says, " + span_message("\"[msg]\""))
 
 	feedback_add_details("admin_verb","D") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!

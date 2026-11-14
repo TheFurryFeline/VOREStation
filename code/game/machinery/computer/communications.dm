@@ -7,16 +7,16 @@
 	icon_keyboard = "tech_key"
 	icon_screen = "comm"
 	light_color = "#0099ff"
-	req_access = list(access_heads)
-	circuit = /obj/item/weapon/circuitboard/communications
+	req_access = list(ACCESS_HEADS)
+	circuit = /obj/item/circuitboard/communications
 
 	var/datum/tgui_module/communications/communications
 
-/obj/machinery/computer/communications/Initialize()
+/obj/machinery/computer/communications/Initialize(mapload)
 	. = ..()
 	communications = new(src)
 
-/obj/machinery/computer/communications/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/computer/communications/emag_act(remaining_charges, mob/user)
 	if(!emagged)
 		emagged = TRUE
 		communications.emagged = TRUE

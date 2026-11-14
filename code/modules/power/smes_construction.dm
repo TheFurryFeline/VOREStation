@@ -6,60 +6,87 @@
 // It also supports RCON System which allows you to operate it remotely, if properly set.
 
 //MAGNETIC COILS - These things actually store and transmit power within the SMES. Different types have different
-/obj/item/weapon/smes_coil
+/obj/item/smes_coil
 	name = "superconductive magnetic coil"
 	desc = "The standard superconductive magnetic coil, with average capacity and I/O rating."
 	icon = 'icons/obj/stock_parts.dmi'
 	icon_state = "smes_coil"			// Just few icons patched together. If someone wants to make better icon, feel free to do so!
-	w_class = ITEMSIZE_LARGE 						// It's LARGE (backpack size)
-	var/ChargeCapacity = 6000000		// 100 kWh
-	var/IOCapacity = 250000				// 250 kW
+	w_class = ITEMSIZE_LARGE 			// It's LARGE (backpack size)
+	var/ChargeCapacity = 6 MEGAWATTS	// 100 kWh
+	var/IOCapacity = 250 KILOWATTS		// 250 kW
 
 // 20% Charge Capacity, 60% I/O Capacity. Used for substation/outpost SMESs.
-/obj/item/weapon/smes_coil/weak
+/obj/item/smes_coil/weak
 	name = "basic superconductive magnetic coil"
 	desc = "A cheaper model of superconductive magnetic coil. Its capacity and I/O rating are considerably lower."
 	icon_state = "smes_coil_weak"
-	ChargeCapacity = 1200000			// 20 kWh
-	IOCapacity = 150000					// 150 kW
+	ChargeCapacity = 1.2 MEGAWATTS		// 20 kWh
+	IOCapacity = 150 KILOWATTS			// 150 kW
 
-// 1000% Charge Capacity, 20% I/O Capacity
-/obj/item/weapon/smes_coil/super_capacity
+// Capacity Coils: High Capacity, Low Flow
+/obj/item/smes_coil/super_capacity
 	name = "superconductive capacitance coil"
 	desc = "A specialised type of superconductive magnetic coil with a significantly stronger containment field, allowing for larger power storage. Its IO rating is much lower, however."
 	icon_state = "smes_coil_capacitance"
-	ChargeCapacity = 60000000			// 1000 kWh
-	IOCapacity = 50000					// 50 kW
+	ChargeCapacity = 60 MEGAWATTS	// 1000 kWh
+	IOCapacity = 50 KILOWATTS		// 50 kW
 
-// 10% Charge Capacity, 400% I/O Capacity. Technically turns SMES into large super capacitor.Ideal for shields.
-/obj/item/weapon/smes_coil/super_io
+/obj/item/smes_coil/super_capacity/ultra
+	name = "ultraconductive capacitance coil"
+	desc = "A specialised type of superconductive magnetic coil with a significantly stronger containment field, allowing for larger power storage. Its IO rating is much lower, however."
+	icon_state = "smes_coil_capacitance_ultra"
+	ChargeCapacity = 120 MEGAWATTS			// 2000 kWh
+	IOCapacity = 100 KILOWATTS				// 100 kW
+
+/obj/item/smes_coil/super_capacity/hyper
+	name = "hyperconductive capacitance coil"
+	desc = "A specialised type of superconductive magnetic coil with a significantly stronger containment field, allowing for larger power storage. Its IO rating is much lower, however."
+	icon_state = "smes_coil_capacitance_hyper"
+	ChargeCapacity = 360 MEGAWATTS		// 6000 kWh
+	IOCapacity = 200 KILOWATTS			// 200 kW
+
+// Flow Coils: Low Capacity, High Flow
+/obj/item/smes_coil/super_io
 	name = "superconductive transmission coil"
 	desc = "A specialised type of superconductive magnetic coil with reduced storage capabilites but vastly improved power transmission capabilities, making it useful in systems which require large throughput."
 	icon_state = "smes_coil_transmission"
-	ChargeCapacity = 600000				// 10 kWh
-	IOCapacity = 1000000				// 1000 kW
+	ChargeCapacity = 600 KILOWATTS		// 10 kWh
+	IOCapacity = 1 MEGAWATTS			// 1000 kW
 
+/obj/item/smes_coil/super_io/ultra
+	name = "ultraconductive transmission coil"
+	desc = "A specialised type of superconductive magnetic coil with reduced storage capabilites but vastly improved power transmission capabilities, making it useful in systems which require large throughput."
+	icon_state = "smes_coil_transmission_ultra"
+	ChargeCapacity = 1.2 MEGAWATTS		// 20 kWh
+	IOCapacity = 2 MEGAWATTS			// 2000 kW
+
+/obj/item/smes_coil/super_io/hyper
+	name = "hyperconductive transmission coil"
+	desc = "A specialised type of superconductive magnetic coil with reduced storage capabilites but vastly improved power transmission capabilities, making it useful in systems which require large throughput."
+	icon_state = "smes_coil_transmission_hyper"
+	ChargeCapacity = 2.4 MEGAWATTS		// 40 kWh
+	IOCapacity = 6 MEGAWATTS			// 6000 kW
 
 // SMES SUBTYPES - THESE ARE MAPPED IN AND CONTAIN DIFFERENT TYPES OF COILS
 
 // These are used on individual outposts as backup should power line be cut, or engineering outpost lost power.
 // 1M Charge, 150K I/O
-/obj/machinery/power/smes/buildable/outpost_substation/Initialize()
+/obj/machinery/power/smes/buildable/outpost_substation/Initialize(mapload)
 	. = ..()
-	component_parts += new /obj/item/weapon/smes_coil/weak(src)
+	component_parts += new /obj/item/smes_coil/weak(src)
 	recalc_coils()
 
 // This one is pre-installed on engineering shuttle. Allows rapid charging/discharging for easier transport of power to outpost
 // 11M Charge, 2.5M I/O
-/obj/machinery/power/smes/buildable/power_shuttle/Initialize()
+/obj/machinery/power/smes/buildable/power_shuttle/Initialize(mapload)
 	. = ..()
-	component_parts += new /obj/item/weapon/smes_coil/super_io(src)
-	component_parts += new /obj/item/weapon/smes_coil/super_io(src)
-	component_parts += new /obj/item/weapon/smes_coil(src)
+	component_parts += new /obj/item/smes_coil/super_io(src)
+	component_parts += new /obj/item/smes_coil/super_io(src)
+	component_parts += new /obj/item/smes_coil(src)
 	recalc_coils()
 
 // Pre-installed and pre-charged SMES hidden from the station, for use in submaps.
-/obj/machinery/power/smes/buildable/point_of_interest/Initialize()
+/obj/machinery/power/smes/buildable/point_of_interest/Initialize(mapload)
 	. = ..()
 	charge = capacity // Should be enough for an individual POI.
 	RCon = FALSE
@@ -77,7 +104,6 @@
 	var/cur_coils = 1 			// Current amount of installed coils
 	var/safeties_enabled = 1 	// If 0 modifications can be done without discharging the SMES, at risk of critical failure.
 	var/failing = 0 			// If 1 critical failure has occured and SMES explosion is imminent.
-	var/datum/wires/smes/wires
 	var/grounding = 1			// Cut to quickly discharge, at cost of "minor" electrical issues in output powernet.
 	var/RCon = 1				// Cut to disable AI and remote control.
 	var/RCon_tag = "NO_TAG"		// RCON tag, change to show it on SMES Remote control console.
@@ -109,38 +135,38 @@
 // Proc: attack_ai()
 // Parameters: None
 // Description: AI requires the RCON wire to be intact to operate the SMES.
-/obj/machinery/power/smes/buildable/attack_ai()
+/obj/machinery/power/smes/buildable/attack_ai(mob/user)
 	if(RCon)
 		..()
 	else // RCON wire cut
-		to_chat(usr, "<span class='warning'>Connection error: Destination Unreachable.</span>")
+		to_chat(user, span_warning("Connection error: Destination Unreachable."))
 
 	// Cyborgs standing next to the SMES can play with the wiring.
-	if(istype(usr, /mob/living/silicon/robot) && Adjacent(usr) && panel_open)
-		wires.Interact(usr)
+	if(isrobot(user) && Adjacent(user) && panel_open)
+		wires.Interact(user)
 
 // Proc: New()
 // Parameters: None
 // Description: Adds standard components for this SMES, and forces recalculation of properties.
-/obj/machinery/power/smes/buildable/Initialize(var/install_coils = 1)
+/obj/machinery/power/smes/buildable/Initialize(mapload)
 	. = ..()
 	component_parts = list()
 	component_parts += new /obj/item/stack/cable_coil(src,30)
-	wires = new /datum/wires/smes(src)
+	set_wires(new /datum/wires/smes(src))
 
 	// Allows for mapped-in SMESs with larger capacity/IO
-	if(install_coils)
+	if(mapload)
 		for(var/i = 1, i <= cur_coils, i++)
-			component_parts += new /obj/item/weapon/smes_coil(src)
+			component_parts += new /obj/item/smes_coil(src)
 		recalc_coils()
 
 // Proc: attack_hand()
 // Parameters: None
 // Description: Opens the UI as usual, and if cover is removed opens the wiring panel.
-/obj/machinery/power/smes/buildable/attack_hand()
+/obj/machinery/power/smes/buildable/attack_hand(mob/user)
 	..()
 	if(panel_open)
-		wires.Interact(usr)
+		wires.Interact(user)
 
 /obj/machinery/power/smes/buildable/RefreshParts()
 	recalc_coils()
@@ -153,7 +179,7 @@
 		capacity = 0
 		input_level_max = 0
 		output_level_max = 0
-		for(var/obj/item/weapon/smes_coil/C in component_parts)
+		for(var/obj/item/smes_coil/C in component_parts)
 			capacity += C.ChargeCapacity
 			input_level_max += C.IOCapacity
 			output_level_max += C.IOCapacity
@@ -164,7 +190,7 @@
 // Proc: total_system_failure()
 // Parameters: 2 (intensity - how strong the failure is, user - person which caused the failure)
 // Description: Checks the sensors for alerts. If change (alerts cleared or detected) occurs, calls for icon update.
-/obj/machinery/power/smes/buildable/proc/total_system_failure(var/intensity = 0, var/mob/user)
+/obj/machinery/power/smes/buildable/proc/total_system_failure(intensity = 0, mob/user)
 	// SMESs store very large amount of power. If someone screws up (ie: Disables safeties and attempts to modify the SMES) very bad things happen.
 	// Bad things are based on charge percentage.
 	// Possible effects:
@@ -191,10 +217,10 @@
 		var/obj/item/clothing/gloves/G = h_user.gloves
 		if(G.siemens_coefficient == 0)
 			user_protected = 1
-	log_game("SMES FAILURE: <b>[src.x]X [src.y]Y [src.z]Z</b> User: [usr.ckey], Intensity: [intensity]/100")
-	message_admins("SMES FAILURE: <b>[src.x]X [src.y]Y [src.z]Z</b> User: [usr.ckey], Intensity: [intensity]/100 - <A HREF='?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>JMP</a>")
+	log_game("SMES FAILURE: <b>[src.x]X [src.y]Y [src.z]Z</b> User: [h_user.ckey], Intensity: [intensity]/100")
+	message_admins("SMES FAILURE: <b>[src.x]X [src.y]Y [src.z]Z</b> User: [h_user.ckey], Intensity: [intensity]/100 - <A href='byond://?_src_=holder;[HrefToken()];adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>JMP</a>")
 
-	var/used_hand = h_user.hand?"l_hand":"r_hand"
+	var/used_hand = h_user.hand?BP_L_HAND:BP_R_HAND
 
 	switch (intensity)
 		if (0 to 15)
@@ -275,7 +301,7 @@
 // Proc: apcs_overload()
 // Parameters: 2 (failure_chance - chance to actually break the APC, overload_chance - Chance of breaking lights)
 // Description: Damages output powernet by power surge. Destroys few APCs and lights, depending on parameters.
-/obj/machinery/power/smes/buildable/proc/apcs_overload(var/failure_chance, var/overload_chance)
+/obj/machinery/power/smes/buildable/proc/apcs_overload(failure_chance, overload_chance)
 	if (!powernet)
 		return
 
@@ -300,10 +326,10 @@
 // Proc: attackby()
 // Parameters: 2 (W - object that was used on this machine, user - person which used the object)
 // Description: Handles tool interaction. Allows deconstruction/upgrading/fixing.
-/obj/machinery/power/smes/buildable/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
+/obj/machinery/power/smes/buildable/attackby(obj/item/W, mob/user)
 	// No more disassembling of overloaded SMESs. You broke it, now enjoy the consequences.
 	if (failing)
-		to_chat(user, "<span class='warning'>The [src]'s indicator lights are flashing wildly. It seems to be overloaded! Touching it now is probably not a good idea.</span>")
+		to_chat(user, span_warning("The [src]'s indicator lights are flashing wildly. It seems to be overloaded! Touching it now is probably not a good idea."))
 		return
 	// If parent returned 1:
 	// - Hatch is open, so we can modify the SMES
@@ -311,20 +337,24 @@
 	if (..())
 
 		// Multitool - change RCON tag
-		if(istype(W, /obj/item/device/multitool))
+		if(istype(W, /obj/item/multitool))
 			var/newtag = tgui_input_text(user, "Enter new RCON tag. Use \"NO_TAG\" to disable RCON or leave empty to cancel.", "SMES RCON system", "", MAX_NAME_LEN)
-			newtag = sanitize(newtag,MAX_NAME_LEN)
-			if(newtag)
-				RCon_tag = newtag
-				to_chat(user, "<span class='notice'>You changed the RCON tag to: [newtag]</span>")
+			if(!newtag)
+				return
+			for(var/obj/machinery/power/smes/buildable/smes in GLOB.smeses)
+				if(smes.RCon_tag == newtag)
+					to_chat(user, span_warning("The entered RCON tag [newtag] already exists. Aborting."))
+					return
+			RCon_tag = newtag
+			to_chat(user, span_notice("You changed the RCON tag to: [newtag]"))
 			return
 		// Charged above 1% and safeties are enabled.
 		if((charge > (capacity/100)) && safeties_enabled)
-			to_chat(user, "<span class='warning'>The safety circuit of [src] is preventing modifications while there is charge stored!</span>")
+			to_chat(user, span_warning("The safety circuit of [src] is preventing modifications while there is charge stored!"))
 			return
 
 		if (output_attempt || input_attempt)
-			to_chat(user, "<span class='warning'>Turn off the [src] first!</span>")
+			to_chat(user, span_warning("Turn off the [src] first!"))
 			return
 
 		// Probability of failure if safety circuit is disabled (in %)
@@ -337,12 +367,12 @@
 		// Crowbar - Disassemble the SMES.
 		if(W.has_tool_quality(TOOL_CROWBAR))
 			if (terminals.len)
-				to_chat(user, "<span class='warning'>You have to disassemble the terminal first!</span>")
+				to_chat(user, span_warning("You have to disassemble the terminal first!"))
 				return
 
 			playsound(src, W.usesound, 50, 1)
-			to_chat(user, "<span class='warning'>You begin to disassemble the [src]!</span>")
-			if (do_after(usr, (100 * cur_coils) * W.toolspeed)) // More coils = takes longer to disassemble. It's complex so largest one with 5 coils will take 50s with a normal crowbar
+			to_chat(user, span_warning("You begin to disassemble the [src]!"))
+			if (do_after(user, (10 SECONDS * cur_coils) * W.toolspeed, target = src)) // More coils = takes longer to disassemble. It's complex so largest one with 5 coils will take 50s with a normal crowbar
 
 				if (failure_probability && prob(failure_probability))
 					total_system_failure(failure_probability, user)
@@ -353,7 +383,7 @@
 				return
 
 		// Superconducting Magnetic Coil - Upgrade the SMES
-		else if(istype(W, /obj/item/weapon/smes_coil))
+		else if(istype(W, /obj/item/smes_coil))
 			if (cur_coils < max_coils)
 
 				if (failure_probability && prob(failure_probability))

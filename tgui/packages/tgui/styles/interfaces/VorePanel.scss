@@ -1,0 +1,85 @@
+@use '~tgui-core/styles/colors.scss';
+
+.VorePanel__floatingButton {
+  cursor: var(--cursor-pointer);
+  display: inline-block;
+  line-height: 1.667em;
+  padding: 0 var(--space-m);
+  outline: 0;
+  border-radius: var(--button-border-radius);
+  transition-property: background-color, color, opacity;
+  transition-duration: var(--button-transition);
+  transition-timing-function: var(--button-transition-timing);
+  user-select: none;
+
+  --vp-color: currentColor;
+  --vp-background: var(--button-background-default);
+
+  background-color: var(--vp-background);
+  color: var(--vp-color);
+
+  &:hover {
+    background-color: hsl(
+      from var(--vp-background) h s calc(l + var(--adjust-hover))
+    );
+  }
+
+  &.color-bg-transparent {
+    --vp-background: hsl(from var(--vp-color) h s l / 0.2);
+    background-color: var(--vp-background);
+    opacity: 1;
+  }
+}
+
+@each $color-name, $color-value in colors.$color-map {
+  .VorePanel__floatingButton.color-bg-#{$color-name} {
+    --vp-background: #{$color-value};
+
+    @each $low-color in colors.$low-contrast-color-map {
+      @if $color-name == $low-color {
+        --vp-color: var(--color-black);
+      }
+    }
+  }
+}
+
+.VorePanel__floatingButton.VorePanel__noCursor {
+  cursor: default;
+}
+
+.VorePanel__floatingButton.VorePanel__selected {
+  box-shadow: inset 0 0 0 2px var(--color-white);
+}
+
+.VorePanel__pasteArea {
+  height: 200px;
+  width: 600px;
+  background-color: var(--color-section);
+  backdrop-filter: var(--blur-medium);
+  border: var(--border-thickness-tiny) solid var(--color-border);
+  border-radius: var(--border-radius-medium);
+  box-shadow: var(--shadow-glow-medium) hsla(0, 0%, 0%, 0.5);
+  margin: var(--space-m);
+  color: var(--color-text);
+  overflow: hidden;
+  padding: var(--space-m);
+}
+
+.VorePanel__Floating {
+  height: auto;
+  max-height: 325px;
+  width: auto;
+  max-width: 580px;
+
+  background-color: var(--color-section);
+  backdrop-filter: var(--blur-medium);
+  border: var(--border-thickness-tiny) solid var(--color-border);
+  border-radius: var(--border-radius-medium);
+  box-shadow: var(--shadow-glow-medium) hsla(0, 0%, 0%, 0.5);
+  margin: var(--space-m);
+  color: var(--color-text);
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-m);
+}

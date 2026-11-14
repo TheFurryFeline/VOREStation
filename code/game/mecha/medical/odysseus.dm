@@ -20,12 +20,11 @@
 	icon_scale_x = 1.2
 	icon_scale_y = 1.2
 
-/obj/mecha/medical/odysseus/New()
-	..()
+/obj/mecha/medical/odysseus/Initialize(mapload)
+	. = ..()
 	hud = new /obj/item/clothing/glasses/hud/health/mech(src)
-	return
 
-/obj/mecha/medical/odysseus/moved_inside(var/mob/living/carbon/human/H as mob)
+/obj/mecha/medical/odysseus/moved_inside(mob/living/carbon/human/H as mob)
 	if(..())
 		if(H.glasses)
 			occupant_message(span_red("[H.glasses] prevent you from using [src] [hud]!"))
@@ -44,31 +43,7 @@
 			H.recalculate_vis()
 	..()
 	return
-/*
-	verb/set_perspective()
-		set name = "Set client perspective."
-		set category = "Exosuit Interface"
-		set src = usr.loc
-		var/perspective = input(usr, "Select a perspective type.",
-                      "Client perspective",
-                      occupant.client.perspective) in list(MOB_PERSPECTIVE,EYE_PERSPECTIVE)
-		to_world("[perspective]")
-		occupant.client.perspective = perspective
-		return
 
-	verb/toggle_eye()
-		set name = "Toggle eye."
-		set category = "Exosuit Interface"
-		set src = usr.loc
-		if(occupant.client.eye == occupant)
-			occupant.client.eye = src
-		else
-			occupant.client.eye = occupant
-		to_world("[occupant.client.eye]")
-		return
-*/
-
-//TODO - Check documentation for client.eye and client.perspective...
 /obj/item/clothing/glasses/hud/health/mech
 	name = "Integrated Medical Hud"
 
@@ -105,7 +80,7 @@
 				holder.icon_state = "hudhealth-100"
 				C.images += holder
 			else
-				holder.icon_state = RoundHealth((patient.health-config.health_threshold_crit)/(patient.getMaxHealth()-config.health_threshold_crit)*100)
+				holder.icon_state = RoundHealth((-patient.getMaxHealth()*0.5))/(patient.getMaxHealth()-(-getMaxHealth()*0.5)*100)
 				C.images += holder
 
 			holder = patient.hud_list[STATUS_HUD]
@@ -126,7 +101,7 @@
 
 			C.images += holder
 */
-/obj/mecha/medical/odysseus/loaded/Initialize()
+/obj/mecha/medical/odysseus/loaded/Initialize(mapload)
 	. = ..()
 	var/obj/item/mecha_parts/mecha_equipment/ME = new /obj/item/mecha_parts/mecha_equipment/tool/sleeper
 	ME.attach(src)
@@ -139,8 +114,8 @@
 /obj/mecha/medical/odysseus/old
 	desc = "An aging combat exosuit utilized by many corporations. Originally developed to combat hostile alien lifeforms. This one is particularly worn looking and likely isn't as sturdy."
 
-/obj/mecha/medical/odysseus/old/New()
-	..()
+/obj/mecha/medical/odysseus/old/Initialize(mapload)
+	. = ..()
 	health = 25
 	maxhealth = 50	//Just slightly worse.
 	cell.charge = rand(0, (cell.charge/2))

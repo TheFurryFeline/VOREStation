@@ -10,16 +10,16 @@
 
 	spawncount = rand(2 * severity, 6 * severity)
 
-	for(var/obj/machinery/atmospherics/unary/vent_pump/temp_vent in machines)
+	for(var/obj/machinery/atmospherics/unary/vent_pump/temp_vent in GLOB.machines)
 		var/area/A = get_area(temp_vent)
-		if(A.forbid_events)
+		if(A.flag_check(AREA_FORBID_EVENTS))
 			continue
 		if(!temp_vent.welded && temp_vent.network && (temp_vent.loc.z in using_map.station_levels))
 			if(temp_vent.network.normal_members.len > 50)
 				vents += temp_vent
 
 /datum/event/grub_infestation/announce()
-	command_announcement.Announce("Solargrubs detected coming aboard [station_name()]. Please clear them out before this starts to affect productivity. All crew efforts are appreciated and encouraged.", "Lifesign Alert", new_sound = 'sound/AI/aliens.ogg')
+	GLOB.command_announcement.Announce("Solargrubs detected coming aboard [station_name()]. Please clear them out before this starts to affect productivity. All crew efforts are appreciated and encouraged.", "Lifesign Alert", new_sound = ANNOUNCER_MSG_UNIDENTIFIED_LIFESIGNS)
 
 /datum/event/grub_infestation/start()
 	while((spawncount >= 1) && vents.len)
@@ -32,7 +32,7 @@
 
 /datum/event/grub_infestation/end()
 	var/list/area_names = list()
-	for(var/mob/living/G as anything in existing_solargrubs)
+	for(var/mob/living/G as anything in GLOB.existing_solargrubs)
 		if(!G || G.stat == DEAD)
 			continue
 		if(istype(G, /mob/living/simple_mob/animal/solargrub_larva))
@@ -51,4 +51,4 @@
 		area_names |= grub_area.name
 	if(area_names.len)
 		var/english_list = english_list(area_names)
-		command_announcement.Announce("Sensors have narrowed down remaining active solargrubs to the following areas: [english_list]", "Lifesign Alert")
+		GLOB.command_announcement.Announce("Sensors have narrowed down remaining active solargrubs to the following areas: [english_list]", "Lifesign Alert")

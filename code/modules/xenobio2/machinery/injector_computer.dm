@@ -14,39 +14,40 @@
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 250
 	active_power_usage = 500
-	circuit = /obj/item/weapon/circuitboard/xenobio2computer
+	circuit = /obj/item/circuitboard/xenobio2computer
 	var/obj/machinery/xenobio2/manualinjector/injector
 	var/transfer_amount = 5 //VOREStation Edit - This is never set anywhere, and 1 is too slow (1 is the default in the transfer proc).
 	var/active
 
 /obj/machinery/computer/xenobio2/Destroy()
 	injector.computer = null
-	..()
+	. = ..()
 
 /obj/machinery/computer/xenobio2/attack_hand(mob/user)
 	if(..())
 		return 1
 	ui_interact(user)
 
-/obj/machinery/computer/xenobio2/attackby(var/obj/item/W, var/mob/user)
+/obj/machinery/computer/xenobio2/attackby(obj/item/W, mob/user)
 
 	//Did you want to link it?
-	if(istype(W, /obj/item/device/multitool))
-		var/obj/item/device/multitool/P = W
+	if(istype(W, /obj/item/multitool))
+		var/obj/item/multitool/P = W
 		if(P.connectable)
 			if(istype(P.connectable, /obj/machinery/xenobio2/manualinjector))
 				var/obj/machinery/xenobio2/manualinjector/I = P.connectable
 				injector = I
 				I.computer = src
-				to_chat(user, "<span class='warning'> You link the [src] to the [P.connectable]!</span>")
+				to_chat(user, span_warning(" You link the [src] to the [P.connectable]!"))
 		else
-			to_chat(user, "<span class='warning'> You store the [src] in the [P]'s buffer!</span>")
+			to_chat(user, span_warning(" You store the [src] in the [P]'s buffer!"))
 			P.connectable = src
 		return
 
 	..()
 
-/obj/machinery/computer/xenobio2/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
+//Is missing a tgui interface?
+/obj/machinery/computer/xenobio2/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1)
 	if(!user)
 		return
 	if(!injector)
@@ -107,7 +108,6 @@
 	usr.set_machine(src)
 	src.add_fingerprint(usr)
 
-/obj/item/weapon/circuitboard/xenobio2computer
+/obj/item/circuitboard/xenobio2computer
 	name = T_BOARD("injector control console")
-	build_path = /obj/machinery/computer/xenobio2
-	origin_tech = list()	//To be filled
+	build_path = /obj/machinery/computer/xenobio2	//To be filled

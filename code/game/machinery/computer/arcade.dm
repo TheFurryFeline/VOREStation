@@ -4,17 +4,17 @@
 	icon_state = "arcade1"
 	icon_keyboard = null
 	clicksound = null	//Gets too spammy and makes no sense for arcade to have the console keyboard noise anyway
-	var/list/prizes = list(	/obj/item/weapon/storage/box/snappops					= 2,
+	var/list/prizes = list(	/obj/item/storage/box/snappops					= 2,
 							/obj/item/toy/blink										= 2,
 							/obj/item/clothing/under/syndicate/tacticool			= 2,
 							/obj/item/toy/sword										= 2,
-							/obj/item/weapon/storage/box/capguntoy					= 2,
-							/obj/item/weapon/gun/projectile/revolver/toy/crossbow	= 2,
+							/obj/item/storage/box/capguntoy					= 2,
+							/obj/item/gun/projectile/revolver/toy/crossbow	= 2,
 							/obj/item/clothing/suit/syndicatefake					= 2,
-							/obj/item/weapon/storage/fancy/crayons					= 2,
+							/obj/item/storage/fancy/crayons					= 2,
 							/obj/item/toy/spinningtoy								= 2,
 							/obj/random/mech_toy									= 1,
-							/obj/item/weapon/reagent_containers/spray/waterflower	= 1,
+							/obj/item/reagent_containers/spray/waterflower	= 1,
 							/obj/random/action_figure								= 1,
 							/obj/random/plushie										= 1,
 							/obj/item/toy/cultsword									= 1,
@@ -25,17 +25,20 @@
 							)
 	var/list/special_prizes = list() // Holds instanced objects, intended for admins to shove surprises inside or something.
 
-/obj/machinery/computer/arcade/Initialize()
+/obj/machinery/computer/arcade/Initialize(mapload)
 	. = ..()
 	// If it's a generic arcade machine, pick a random arcade
 	// circuit board for it and make the new machine
 	if(!circuit)
-		var/choice = pick(subtypesof(/obj/item/weapon/circuitboard/arcade) - /obj/item/weapon/circuitboard/arcade/clawmachine)
-		var/obj/item/weapon/circuitboard/CB = new choice()
+		var/choice = pick(subtypesof(/obj/item/circuitboard/arcade) - /obj/item/circuitboard/arcade/clawmachine)
+		var/obj/item/circuitboard/CB = new choice()
 		new CB.build_path(loc, CB)
 		return INITIALIZE_HINT_QDEL
 
-/obj/machinery/computer/arcade/proc/prizevend()
+/obj/machinery/computer/arcade/proc/prizevend(mob/user)
+	SEND_SIGNAL(src, COMSIG_ARCADE_PRIZEVEND, user)
+	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_ARCADE_PRIZEVEND)
+
 	if(LAZYLEN(special_prizes)) // Downstream wanted the 'win things inside contents sans circuitboard' feature kept.
 		var/atom/movable/AM = pick_n_take(special_prizes)
 		AM.forceMove(get_turf(src))
@@ -43,6 +46,13 @@
 
 	else if(LAZYLEN(prizes))
 		var/prizeselect = pickweight(prizes)
+		//VOREstation edit - Randomized map objects were put in loot piles, so handle them...
+		if(istype(prizeselect,/obj/random))
+			var/obj/random/randy = prizeselect
+			var/new_I = randy.spawn_item()
+			qdel(prizeselect)
+			prizeselect = new_I // swap it
+		//VOREstation edit end
 		new prizeselect(src.loc)
 
 		if(istype(prizeselect, /obj/item/clothing/suit/syndicatefake)) //Helmet is part of the suit
@@ -52,9 +62,9 @@
 	return attack_hand(user)
 
 
-/obj/machinery/computer/arcade/emp_act(severity)
-	if(stat & (NOPOWER|BROKEN))
-		..(severity)
+/obj/machinery/computer/arcade/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF || (stat & (NOPOWER|BROKEN)))
 		return
 	var/empprize = null
 	var/num_of_prizes = 0
@@ -71,8 +81,6 @@
 		empprize = pickweight(prizes)
 		new empprize(src.loc)
 
-	..(severity)
-
 ///////////////////
 //  BATTLE HERE  //
 ///////////////////
@@ -82,7 +90,7 @@
 	desc = "Fight through what space has to offer!"
 	icon_state = "arcade2"
 	icon_screen = "battler"
-	circuit = /obj/item/weapon/circuitboard/arcade/battle
+	circuit = /obj/item/circuitboard/arcade/battle
 	var/enemy_name = "Space Villian"
 	var/temp = "Winners don't use space drugs" //Temporary message, for attack messages, etc
 	var/enemy_action = ""
@@ -94,7 +102,7 @@
 	var/blocked = 0 //Player cannot attack/heal while set
 	var/turtle = 0
 
-/obj/machinery/computer/arcade/battle/Initialize()
+/obj/machinery/computer/arcade/battle/Initialize(mapload)
 	. = ..()
 	randomize_characters()
 
@@ -115,7 +123,6 @@
 /obj/machinery/computer/arcade/battle/attack_hand(mob/user as mob)
 	if(..())
 		return
-	user.set_machine(src)
 	tgui_interact(user)
 
 /obj/machinery/computer/arcade/battle/tgui_interact(mob/user, datum/tgui/ui)
@@ -152,9 +159,9 @@
 
 				sleep(10)
 				enemy_hp -= attackamt
-				arcade_action()
+				arcade_action(ui.user)
 
-			if("heal")
+			if(XENO_CHEM_HEAL)
 				blocked = 1
 				var/pointamt = rand(1,3)
 				var/healamt = rand(6,8)
@@ -166,7 +173,7 @@
 				player_mp -= pointamt
 				player_hp += healamt
 				blocked = 1
-				arcade_action()
+				arcade_action(ui.user)
 
 			if("charge")
 				blocked = 1
@@ -178,7 +185,7 @@
 					turtle--
 
 				sleep(10)
-				arcade_action()
+				arcade_action(ui.user)
 
 
 	if(action == "newgame") //Reset everything
@@ -194,10 +201,10 @@
 			randomize_characters()
 			emagged = 0
 
-	add_fingerprint(usr)
+	add_fingerprint(ui.user)
 	return TRUE
 
-/obj/machinery/computer/arcade/battle/proc/arcade_action()
+/obj/machinery/computer/arcade/battle/proc/arcade_action(mob/user)
 	if ((enemy_mp <= 0) || (enemy_hp <= 0))
 		if(!gameover)
 			gameover = 1
@@ -208,17 +215,17 @@
 				feedback_inc("arcade_win_emagged")
 				new /obj/effect/spawner/newbomb/timer/syndicate(src.loc)
 				new /obj/item/clothing/head/collectable/petehat(src.loc)
-				message_admins("[key_name_admin(usr)] has outbombed Cuban Pete and been awarded a bomb.")
-				log_game("[key_name_admin(usr)] has outbombed Cuban Pete and been awarded a bomb.")
+				message_admins("[key_name_admin(user)] has outbombed Cuban Pete and been awarded a bomb.")
+				log_game("[key_name_admin(user)] has outbombed Cuban Pete and been awarded a bomb.")
 				randomize_characters()
 				emagged = 0
 			else if(!contents.len)
 				feedback_inc("arcade_win_normal")
-				prizevend()
+				prizevend(user)
 
 			else
 				feedback_inc("arcade_win_normal")
-				prizevend()
+				prizevend(user)
 
 	else if (emagged && (turtle >= 4))
 		var/boomamt = rand(5,10)
@@ -238,7 +245,7 @@
 			temp = "You have been drained! GAME OVER"
 			if(emagged)
 				feedback_inc("arcade_loss_mana_emagged")
-				usr.gib()
+				user.gib()
 			else
 				feedback_inc("arcade_loss_mana_normal")
 
@@ -260,7 +267,7 @@
 		playsound(src, 'sound/arcade/lose.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
 		if(emagged)
 			feedback_inc("arcade_loss_hp_emagged")
-			usr.gib()
+			user.gib()
 		else
 			feedback_inc("arcade_loss_hp_normal")
 
@@ -268,9 +275,9 @@
 	return
 
 
-/obj/machinery/computer/arcade/battle/emag_act(var/charges, var/mob/user)
+/obj/machinery/computer/arcade/battle/emag_act(charges, mob/user)
 	if(!emagged)
-		to_chat(user, span("notice","You override the cheat code menu and skip to Cheat #[rand(1, 50)]: Hyper-Lethal Mode."))
+		to_chat(user, span_notice("You override the cheat code menu and skip to Cheat #[rand(1, 50)]: Hyper-Lethal Mode."))
 
 		temp = "If you die in the game, you die for real!"
 		player_hp = 30
@@ -314,7 +321,7 @@
 	desc = "Learn how our ancestors got to Orion, and have fun in the process!"
 	icon_state = "arcade1"
 	icon_screen = "orion"
-	circuit = /obj/item/weapon/circuitboard/arcade/orion_trail
+	circuit = /obj/item/circuitboard/arcade/orion_trail
 	var/busy = 0 //prevent clickspam that allowed people to ~speedrun~ the game.
 	var/engine = 0
 	var/hull = 0
@@ -344,8 +351,8 @@
 	var/gameStatus = ORION_STATUS_START
 	var/canContinueEvent = 0
 
-/obj/machinery/computer/arcade/orion_trail/New()
-	..()
+/obj/machinery/computer/arcade/orion_trail/Initialize(mapload)
+	. = ..()
 	// Sets up the main trail
 	stops = list("Pluto","Asteroid Belt","Proxima Centauri","Dead Space","Rigel Prime","Tau Ceti Beta","Black Hole","Space Outpost Beta-9","Orion Prime")
 	stopblurbs = list(
@@ -360,12 +367,12 @@
 		"You have made it to Orion! Congratulations! Your crew is one of the few to start a new foothold for mankind!"
 		)
 
-/obj/machinery/computer/arcade/orion_trail/proc/newgame()
+/obj/machinery/computer/arcade/orion_trail/proc/newgame(mob/user)
 	// Set names of settlers in crew
 	settlers = list()
 	for(var/i = 1; i <= 3; i++)
 		add_crewmember()
-	add_crewmember("[usr]")
+	add_crewmember("[user]")
 	// Re-set items to defaults
 	engine = 1
 	hull = 1
@@ -392,7 +399,7 @@
 	user.set_machine(src)
 	var/dat = ""
 	if(gameStatus == ORION_STATUS_GAMEOVER)
-		playsound(src, 'sound/arcade/Ori_fail.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
+		playsound(src, 'sound/arcade/ori_fail.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
 		dat = "<center><h1>Game Over</h1></center>"
 		dat += "Like many before you, your crew never made it to Orion, lost to space... <br><b>forever</b>."
 		if(settlers.len == 0)
@@ -402,18 +409,18 @@
 				dat += "<br>You ran out of food and starved."
 				if(emagged)
 					user.nutrition = 0 //yeah you pretty hongry
-					to_chat(user, span("danger", "<font size=3>Your body instantly contracts to that of one who has not eaten in months. Agonizing cramps seize you as you fall to the floor.</font>"))
+					to_chat(user, span_danger(span_large("Your body instantly contracts to that of one who has not eaten in months. Agonizing cramps seize you as you fall to the floor.")))
 			if(fuel <= 0)
 				dat += "<br>You ran out of fuel, and drift, slowly, into a star."
 				if(emagged)
 					var/mob/living/M = user
 					M.adjust_fire_stacks(5)
-					M.IgniteMob() //flew into a star, so you're on fire
-					to_chat(user,span("danger", "<font size=3>You feel an immense wave of heat emanate from \the [src]. Your skin bursts into flames.</font>"))
+					M.ignite_mob() //flew into a star, so you're on fire
+					to_chat(user,span_danger(span_large("You feel an immense wave of heat emanate from \the [src]. Your skin bursts into flames.")))
 		dat += "<br><P ALIGN=Right><a href='byond://?src=\ref[src];menu=1'>OK...</a></P>"
 
 		if(emagged)
-			to_chat(user, span("danger", "<font size=3>You're never going to make it to Orion...</font>"))
+			to_chat(user, span_danger(span_large("You're never going to make it to Orion...")))
 			user.death()
 			emagged = 0 //removes the emagged status after you lose
 			gameStatus = ORION_STATUS_START
@@ -442,7 +449,7 @@
 		dat += "<br><center><h3>Experience the journey of your ancestors!</h3></center><br><br>"
 		dat += "<center><b><a href='byond://?src=\ref[src];newgame=1'>New Game</a></b></center>"
 		dat += "<P ALIGN=Right><a href='byond://?src=\ref[src];close=1'>Close</a></P>"
-	user << browse(dat,"window=arcade")
+	user << browse("<html>[dat]</html>","window=arcade")
 	return
 
 /obj/machinery/computer/arcade/orion_trail/Topic(href, href_list)
@@ -459,7 +466,7 @@
 	if (href_list["continue"]) //Continue your travels
 		if(gameStatus == ORION_STATUS_NORMAL && !event && turns != 7)
 			if(turns >= ORION_TRAIL_WINTURN)
-				win()
+				win(usr)
 			else
 				food -= (alive+traitors_aboard)*2
 				fuel -= 5
@@ -478,22 +485,22 @@
 				switch(event)
 					if(ORION_TRAIL_RAIDERS)
 						if(prob(50))
-							to_chat(usr, span("warning", "You hear battle shouts. The tramping of boots on cold metal. Screams of agony. The rush of venting air. Are you going insane?"))
+							to_chat(usr, span_warning("You hear battle shouts. The tramping of boots on cold metal. Screams of agony. The rush of venting air. Are you going insane?"))
 							M.hallucination += 30
 						else
-							to_chat(usr, span("danger", "Something strikes you from behind! It hurts like hell and feel like a blunt weapon, but nothing is there..."))
+							to_chat(usr, span_danger("Something strikes you from behind! It hurts like hell and feel like a blunt weapon, but nothing is there..."))
 							M.take_organ_damage(25)
 					if(ORION_TRAIL_ILLNESS)
 						var/severity = rand(1,3) //pray to RNGesus. PRAY, PIGS
 						if(severity == 1)
-							to_chat(M, span("warning", "You suddenly feel slightly nauseous.")) //got off lucky
+							to_chat(M, span_warning("You suddenly feel slightly nauseous.")) //got off lucky
 						if(severity == 2)
-							to_chat(usr, span("warning", "You suddenly feel extremely nauseous and hunch over until it passes."))
+							to_chat(usr, span_warning("You suddenly feel extremely nauseous and hunch over until it passes."))
 							M.Stun(3)
 						if(severity >= 3) //you didn't pray hard enough
-							to_chat(M, span("warning", "An overpowering wave of nausea consumes over you. You hunch over, your stomach's contents preparing for a spectacular exit."))
+							to_chat(M, span_warning("An overpowering wave of nausea consumes over you. You hunch over, your stomach's contents preparing for a spectacular exit."))
 							spawn(30)
-							if(istype(M,/mob/living/carbon/human))
+							if(ishuman(M))
 								var/mob/living/carbon/human/H = M
 								H.vomit()
 					if(ORION_TRAIL_FLUX)
@@ -502,12 +509,12 @@
 							src.visible_message("A sudden gust of powerful wind slams \the [M] into the floor!", "You hear a large fwooshing sound, followed by a bang.")
 							M.take_organ_damage(15)
 						else
-							to_chat(M, span("warning", "A violent gale blows past you, and you barely manage to stay standing!"))
+							to_chat(M, span_warning("A violent gale blows past you, and you barely manage to stay standing!"))
 					if(ORION_TRAIL_COLLISION) //by far the most damaging event
 						if(prob(90) && !hull)
 							var/turf/simulated/floor/F = src.loc
 							F.ChangeTurf(/turf/space)
-							src.visible_message(span("danger", "Something slams into the floor around \the [src], exposing it to space!"), "You hear something crack and break.")
+							src.visible_message(span_danger("Something slams into the floor around \the [src], exposing it to space!"), "You hear something crack and break.")
 						else
 							src.visible_message("Something slams into the floor around \the [src] - luckily, it didn't get through!", "You hear something crack.")
 					if(ORION_TRAIL_MALFUNCTION)
@@ -527,8 +534,8 @@
 
 	else if(href_list["newgame"]) //Reset everything
 		if(gameStatus == ORION_STATUS_START)
-			playsound(src, 'sound/arcade/Ori_begin.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
-			newgame()
+			playsound(src, 'sound/arcade/ori_begin.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
+			newgame(usr)
 	else if(href_list["menu"]) //back to the main menu
 		if(gameStatus == ORION_STATUS_GAMEOVER)
 			gameStatus = ORION_STATUS_START
@@ -577,9 +584,9 @@
 				event()
 				if(emagged) //has to be here because otherwise it doesn't work
 					src.show_message("\The [src] states, 'YOU ARE EXPERIENCING A BLACKHOLE. BE TERRIFIED.","You hear something say, 'YOU ARE EXPERIENCING A BLACKHOLE. BE TERRFIED'")
-					to_chat(usr, span("warning", "Something draws you closer and closer to the machine."))
+					to_chat(usr, span_warning("Something draws you closer and closer to the machine."))
 					sleep(10)
-					to_chat(usr, span("danger", "This is really starting to hurt!"))
+					to_chat(usr, span_danger("This is really starting to hurt!"))
 					var i; //spawning a literal blackhole would be fun, but a bit disruptive.
 					for(i=0;i<4;i++)
 						var/mob/living/L = usr
@@ -675,7 +682,7 @@
 						last_spaceport_action = "You failed to raid the spaceport! You lost [FU*-1] Fuel and [FO*-1] Food, AND [lost_crew] in your scramble to escape! ([FU]FI,[FO]FO,-Crew)"
 						if(emagged)
 							src.visible_message("The machine states, 'YOU ARE UNDER ARREST, RAIDER!' and shoots handcuffs onto [usr]!", "You hear something say 'YOU ARE UNDER ARREST, RAIDER!' and a clinking sound")
-							var/obj/item/weapon/handcuffs/C = new(src.loc)
+							var/obj/item/handcuffs/C = new(src.loc)
 							var/mob/living/carbon/human/H = usr
 							if(istype(H))
 								C.forceMove(H)
@@ -725,7 +732,7 @@
 							event()
 
 	src.add_fingerprint(usr)
-	src.updateUsrDialog()
+	src.updateUsrDialog(usr)
 	busy = 0
 	return
 
@@ -967,21 +974,21 @@
 				eventdat += "<P ALIGN=Right><a href='byond://?src=\ref[src];leave_spaceport=1'>Depart Spaceport</a></P>"
 
 
-/obj/machinery/computer/arcade/orion_trail/proc/add_crewmember(var/specific = "")
+/obj/machinery/computer/arcade/orion_trail/proc/add_crewmember(specific = "")
 	var/newcrew = ""
 	if(specific)
 		newcrew = specific
 	else
 		if(prob(50))
-			newcrew = pick(first_names_male)
+			newcrew = pick(GLOB.first_names_male)
 		else
-			newcrew = pick(first_names_female)
+			newcrew = pick(GLOB.first_names_female)
 	if(newcrew)
 		settlers += newcrew
 		alive++
 	return newcrew
 
-/obj/machinery/computer/arcade/orion_trail/proc/remove_crewmember(var/specific = "", var/dont_remove = "")
+/obj/machinery/computer/arcade/orion_trail/proc/remove_crewmember(specific = "", dont_remove = "")
 	var/list/safe2remove = settlers
 	var/removed = ""
 	if(dont_remove)
@@ -999,30 +1006,30 @@
 	return removed
 
 
-/obj/machinery/computer/arcade/orion_trail/proc/win()
+/obj/machinery/computer/arcade/orion_trail/proc/win(mob/user)
 	gameStatus = ORION_STATUS_START
 	src.visible_message("\The [src] plays a triumpant tune, stating 'CONGRATULATIONS, YOU HAVE MADE IT TO ORION.'")
-	playsound(src, 'sound/arcade/Ori_win.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
+	playsound(src, 'sound/arcade/ori_win.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
 	if(emagged)
-		new /obj/item/weapon/orion_ship(src.loc)
-		message_admins("[key_name_admin(usr)] made it to Orion on an emagged machine and got an explosive toy ship.")
-		log_game("[key_name(usr)] made it to Orion on an emagged machine and got an explosive toy ship.")
+		new /obj/item/orion_ship(src.loc)
+		message_admins("[key_name_admin(user)] made it to Orion on an emagged machine and got an explosive toy ship.")
+		log_game("[key_name(user)] made it to Orion on an emagged machine and got an explosive toy ship.")
 	else
-		prizevend()
+		prizevend(user)
 	emagged = 0
 	name = "The Orion Trail"
 	desc = "Learn how our ancestors got to Orion, and have fun in the process!"
 
 /obj/machinery/computer/arcade/orion_trail/emag_act(mob/user)
 	if(!emagged)
-		to_chat(user, span("notice", "You override the cheat code menu and skip to Cheat #[rand(1, 50)]: Realism Mode."))
+		to_chat(user, span_notice("You override the cheat code menu and skip to Cheat #[rand(1, 50)]: Realism Mode."))
 		name = "The Orion Trail: Realism Edition"
 		desc = "Learn how our ancestors got to Orion, and try not to die in the process!"
-		newgame()
+		newgame(user)
 		emagged = 1
 		return 1
 
-/obj/item/weapon/orion_ship
+/obj/item/orion_ship
 	name = "model settler ship"
 	desc = "A model spaceship, it looks like those used back in the day when travelling to Orion! It even has a miniature FX-293 reactor, which was renowned for its instability and tendency to explode..."
 	icon = 'icons/obj/toy.dmi'
@@ -1030,32 +1037,35 @@
 	w_class = ITEMSIZE_SMALL
 	var/active = 0 //if the ship is on
 
-/obj/item/weapon/orion_ship/examine(mob/user)
+/obj/item/orion_ship/examine(mob/user)
 	. = ..()
 	if(in_range(user, src))
 		if(!active)
-			. += span("notice", "There's a little switch on the bottom. It's flipped down.")
+			. += span_notice("There's a little switch on the bottom. It's flipped down.")
 		else
-			. += span("notice", "There's a little switch on the bottom. It's flipped up.")
+			. += span_notice("There's a little switch on the bottom. It's flipped up.")
 
-/obj/item/weapon/orion_ship/attack_self(mob/user)
+/obj/item/orion_ship/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if(active)
 		return
 
-	message_admins("[key_name_admin(usr)] primed an explosive Orion ship for detonation.")
-	log_game("[key_name(usr)] primed an explosive Orion ship for detonation.")
+	message_admins("[key_name_admin(user)] primed an explosive Orion ship for detonation.")
+	log_game("[key_name(user)] primed an explosive Orion ship for detonation.")
 
-	to_chat(user, span("warning", "You flip the switch on the underside of [src]."))
+	to_chat(user, span_warning("You flip the switch on the underside of [src]."))
 	active = 1
-	src.visible_message(span("notice", "[src] softly beeps and whirs to life!"))
-	src.audible_message("<b>\The [src]</b> says, 'This is ship ID #[rand(1,1000)] to Orion Port Authority. We're coming in for landing, over.'")
+	src.visible_message(span_notice("[src] softly beeps and whirs to life!"))
+	src.audible_message(span_bold("\The [src]") + " says, 'This is ship ID #[rand(1,1000)] to Orion Port Authority. We're coming in for landing, over.'")
 	sleep(20)
-	src.visible_message(span("warning", "[src] begins to vibrate..."))
-	src.audible_message("<b>\The [src]</b> says, 'Uh, Port? Having some issues with our reactor, could you check it out? Over.'")
+	src.visible_message(span_warning("[src] begins to vibrate..."))
+	src.audible_message(span_bold("\The [src]") + " says, 'Uh, Port? Having some issues with our reactor, could you check it out? Over.'")
 	sleep(30)
-	src.audible_message("<b>\The [src]</b> says, 'Oh, God! Code Eight! CODE EIGHT! IT'S GONNA BL-'")
+	src.audible_message(span_bold("\The [src]") + " says, 'Oh, God! Code Eight! CODE EIGHT! IT'S GONNA BL-'")
 	sleep(3.6)
-	src.visible_message(span("danger", "[src] explodes!"))
+	src.visible_message(span_danger("[src] explodes!"))
 	explosion(src.loc, 1,2,4)
 	qdel(src)
 
@@ -1086,7 +1096,7 @@
 	icon_state = "clawmachine_new"
 	icon_keyboard = null
 	icon_screen = null
-	circuit = /obj/item/weapon/circuitboard/arcade/clawmachine
+	circuit = /obj/item/circuitboard/arcade/clawmachine
 	prizes = list(/obj/random/plushie)
 	var/wintick = 0
 	var/winprob = 0
@@ -1101,16 +1111,16 @@
 	if(..())
 		return
 
-	if(gamepaid == 0 && vendor_account && !vendor_account.suspended)
+	if(gamepaid == 0 && GLOB.vendor_account && !GLOB.vendor_account.suspended)
 		var/paid = 0
-		var/obj/item/weapon/card/id/W = I.GetID()
+		var/obj/item/card/id/W = I.GetID()
 		if(W) //for IDs and PDAs and wallets with IDs
-			paid = pay_with_card(W,I)
-		else if(istype(I, /obj/item/weapon/spacecash/ewallet))
-			var/obj/item/weapon/spacecash/ewallet/C = I
-			paid = pay_with_ewallet(C)
-		else if(istype(I, /obj/item/weapon/spacecash))
-			var/obj/item/weapon/spacecash/C = I
+			paid = pay_with_card(W, I, user)
+		else if(istype(I, /obj/item/spacecash/ewallet))
+			var/obj/item/spacecash/ewallet/C = I
+			paid = pay_with_ewallet(C, user)
+		else if(istype(I, /obj/item/spacecash))
+			var/obj/item/spacecash/C = I
 			paid = pay_with_cash(C, user)
 		if(paid)
 			gamepaid = 1
@@ -1119,22 +1129,22 @@
 		return
 
 ////// Cash
-/obj/machinery/computer/arcade/clawmachine/proc/pay_with_cash(var/obj/item/weapon/spacecash/cashmoney, mob/user)
+/obj/machinery/computer/arcade/clawmachine/proc/pay_with_cash(obj/item/spacecash/cashmoney, mob/user)
 	if(!emagged)
 		if(gameprice > cashmoney.worth)
 
 			// This is not a status display message, since it's something the character
 			// themselves is meant to see BEFORE putting the money in
-			to_chat(usr, "\icon[cashmoney][bicon(cashmoney)] <span class='warning'>That is not enough money.</span>")
+			to_chat(user, "[icon2html(cashmoney,user.client)] " + span_warning("That is not enough money."))
 			return 0
 
-		if(istype(cashmoney, /obj/item/weapon/spacecash))
+		if(istype(cashmoney, /obj/item/spacecash))
 
-			visible_message("<span class='info'>\The [usr] inserts some cash into \the [src].</span>")
+			visible_message(span_info("\The [user] inserts some cash into \the [src]."))
 			cashmoney.worth -= gameprice
 
 			if(cashmoney.worth <= 0)
-				usr.drop_from_inventory(cashmoney)
+				user.drop_from_inventory(cashmoney)
 				qdel(cashmoney)
 			else
 				cashmoney.update_icon()
@@ -1144,16 +1154,16 @@
 		return 1
 	if(emagged)
 		playsound(src, 'sound/arcade/steal.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
-		to_chat(user, "<span class='info'>It doesn't seem to accept that! Seem you'll need to swipe a valid ID.</span>")
+		to_chat(user, span_info("It doesn't seem to accept that! Seem you'll need to swipe a valid ID."))
 
 
 ///// Ewallet
-/obj/machinery/computer/arcade/clawmachine/proc/pay_with_ewallet(var/obj/item/weapon/spacecash/ewallet/wallet)
+/obj/machinery/computer/arcade/clawmachine/proc/pay_with_ewallet(obj/item/spacecash/ewallet/wallet, mob/user)
 	if(!emagged)
-		visible_message("<span class='info'>\The [usr] swipes \the [wallet] through \the [src].</span>")
+		visible_message(span_info("\The [user] swipes \the [wallet] through \the [src]."))
 		playsound(src, 'sound/machines/id_swipe.ogg', 50, 1)
 		if(gameprice > wallet.worth)
-			visible_message("<span class='info'>Insufficient funds.</span>")
+			visible_message(span_info("Insufficient funds."))
 			return 0
 		else
 			wallet.worth -= gameprice
@@ -1161,36 +1171,36 @@
 			return 1
 	if(emagged)
 		playsound(src, 'sound/arcade/steal.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
-		to_chat(usr, "<span class='info'>It doesn't seem to accept that! Seem you'll need to swipe a valid ID.</span>")
+		to_chat(user, span_info("It doesn't seem to accept that! Seem you'll need to swipe a valid ID."))
 
 ///// ID
-/obj/machinery/computer/arcade/clawmachine/proc/pay_with_card(var/obj/item/weapon/card/id/I, var/obj/item/ID_container)
+/obj/machinery/computer/arcade/clawmachine/proc/pay_with_card(obj/item/card/id/I, obj/item/ID_container, mob/user)
 	if(I==ID_container || ID_container == null)
-		visible_message("<span class='info'>\The [usr] swipes \the [I] through \the [src].</span>")
+		visible_message(span_info("\The [user] swipes \the [I] through \the [src]."))
 	else
-		visible_message("<span class='info'>\The [usr] swipes \the [ID_container] through \the [src].</span>")
+		visible_message(span_info("\The [user] swipes \the [ID_container] through \the [src]."))
 	playsound(src, 'sound/machines/id_swipe.ogg', 50, 1)
 	var/datum/money_account/customer_account = get_account(I.associated_account_number)
 	if(!customer_account)
-		visible_message("<span class='info'>Error: Unable to access account. Please contact technical support if problem persists.</span>")
+		visible_message(span_info("Error: Unable to access account. Please contact technical support if problem persists."))
 		return 0
 
 	if(customer_account.suspended)
-		visible_message("<span class='info'>Unable to access account: account suspended.</span>")
+		visible_message(span_info("Unable to access account: account suspended."))
 		return 0
 
 	// Have the customer punch in the PIN before checking if there's enough money. Prevents people from figuring out acct is
 	// empty at high security levels
 	if(customer_account.security_level != 0) //If card requires pin authentication (ie seclevel 1 or 2)
-		var/attempt_pin = tgui_input_number(usr, "Enter pin code", "Vendor transaction")
+		var/attempt_pin = tgui_input_number(user, "Enter pin code", "Vendor transaction")
 		customer_account = attempt_account_access(I.associated_account_number, attempt_pin, 2)
 
 		if(!customer_account)
-			visible_message("<span class='info'>Unable to access account: incorrect credentials.</span>")
+			visible_message(span_info("Unable to access account: incorrect credentials."))
 			return 0
 
 	if(gameprice > customer_account.money)
-		visible_message("<span class='info'>Insufficient funds in account.</span>")
+		visible_message(span_info("Insufficient funds in account."))
 		return 0
 	else
 		// Okay to move the money at this point
@@ -1201,14 +1211,14 @@
 
 		// create entry in the purchaser's account log
 		var/datum/transaction/T = new()
-		T.target_name = "[vendor_account.owner_name] (via [name])"
+		T.target_name = "[GLOB.vendor_account.owner_name] (via [name])"
 		T.purpose = "Purchase of arcade game([name])"
 		if(gameprice > 0)
 			T.amount = "([gameprice])"
 		else
 			T.amount = "[gameprice]"
 		T.source_terminal = name
-		T.date = current_date_string
+		T.date = GLOB.current_date_string
 		T.time = stationtime2text()
 		customer_account.transaction_log.Add(T)
 
@@ -1220,23 +1230,19 @@
 
 /// Add to vendor account
 
-/obj/machinery/computer/arcade/clawmachine/proc/credit_purchase(var/target as text)
-	vendor_account.money += gameprice
+/obj/machinery/computer/arcade/clawmachine/proc/credit_purchase(target as text)
+	GLOB.vendor_account.money += gameprice
 
 	var/datum/transaction/T = new()
 	T.target_name = target
 	T.purpose = "Purchase of arcade game([name])"
 	T.amount = "[gameprice]"
 	T.source_terminal = name
-	T.date = current_date_string
+	T.date = GLOB.current_date_string
 	T.time = stationtime2text()
-	vendor_account.transaction_log.Add(T)
+	GLOB.vendor_account.transaction_log.Add(T)
 
 /// End Payment
-
-/obj/machinery/computer/arcade/clawmachine/New()
-	..()
-
 /obj/machinery/computer/arcade/clawmachine/attack_hand(mob/living/user)
 	if(..())
 		return
@@ -1261,7 +1267,7 @@
 
 	return data
 
-/obj/machinery/computer/arcade/clawmachine/tgui_act(action, params)
+/obj/machinery/computer/arcade/clawmachine/tgui_act(action, params, datum/tgui/ui)
 	if(..())
 		return
 
@@ -1282,28 +1288,28 @@
 
 	if(action == "pointless" && wintick >= 10)
 		instructions = "Insert 1 thaler or swipe a card to play!"
-		clawvend()
+		clawvend(ui.user)
 
-/obj/machinery/computer/arcade/clawmachine/proc/clawvend() /// True to a real claw machine, it's NEARLY impossible to win.
+/obj/machinery/computer/arcade/clawmachine/proc/clawvend(mob/user) /// True to a real claw machine, it's NEARLY impossible to win.
 	winprob += 1 /// Yeah.
 
 	if(prob(winprob)) /// YEAH.
 		if(!emagged)
-			prizevend()
+			prizevend(user)
 			winscreen = "You won!"
 		else if(emagged)
 			gameprice = 1
 			emagged = 0
 			winscreen = "You won...?"
-			var/obj/item/weapon/grenade/G = new /obj/item/weapon/grenade/explosive(get_turf(src)) /// YEAAAAAAAAAAAAAAAAAAH!!!!!!!!!!
+			var/obj/item/grenade/G = new /obj/item/grenade/explosive(get_turf(src)) /// YEAAAAAAAAAAAAAAAAAAH!!!!!!!!!!
 			G.activate()
-			G.throw_at(get_turf(usr),10,10) /// Play stupid games, win stupid prizes.
+			G.throw_at(get_turf(user),10,10) /// Play stupid games, win stupid prizes.
 
-		playsound(src, 'sound/arcade/Ori_win.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
+		playsound(src, 'sound/arcade/ori_win.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
 		winprob = 0
 
 	else
-		playsound(src, 'sound/arcade/Ori_fail.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
+		playsound(src, 'sound/arcade/ori_fail.ogg', 50, 1, extrarange = -3, falloff = 0.1, ignore_walls = FALSE)
 		winscreen = "Aw, shucks. Try again!"
 	wintick = 0
 	gamepaid = 0
@@ -1312,7 +1318,7 @@
 
 /obj/machinery/computer/arcade/clawmachine/emag_act(mob/user)
 	if(!emagged)
-		to_chat(user, "<span class='info'>You modify the claw of the machine. The next one is sure to win! You just have to pay...</span>")
+		to_chat(user, span_info("You modify the claw of the machine. The next one is sure to win! You just have to pay..."))
 		name = "AlliCo Snag-A-Prize"
 		desc = "Get some goodies, all for you!"
 		instructions = "Swipe a card to play!"
@@ -1329,13 +1335,13 @@
 		var/obj/item/stack/arcadeticket/T = O
 		var/amount = T.get_amount()
 		if(amount <2)
-			to_chat(user, "<span class='warning'>You need 2 tickets to claim a prize!</span>")
+			to_chat(user, span_warning("You need 2 tickets to claim a prize!"))
 			return
 		prizevend(user)
 		T.pay_tickets()
 		T.update_icon()
 		O = T
-		to_chat(user, "<span class='notice'>You turn in 2 tickets to the [src] and claim a prize!</span>")
+		to_chat(user, span_notice("You turn in 2 tickets to the [src] and claim a prize!"))
 		return
 	else
 		..() //You can now actually deconstruct these.

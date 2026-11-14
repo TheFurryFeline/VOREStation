@@ -1,0 +1,43 @@
+//Explo doggos
+/obj/item/robot_module/robot/exploration
+	name = "exploration robot module"
+	channels = list("Explorer" = 1)
+	languages = list(
+					LANGUAGE_SOL_COMMON	= 1,
+					LANGUAGE_UNATHI		= 1,
+					LANGUAGE_SIIK		= 1,
+					LANGUAGE_AKHANI		= 1,
+					LANGUAGE_SKRELLIAN	= 1,
+					LANGUAGE_SKRELLIANFAR = 0,
+					LANGUAGE_ROOTLOCAL	= 0,
+					LANGUAGE_TRADEBAND	= 1,
+					LANGUAGE_GUTTER		= 0,
+					LANGUAGE_SCHECHI	= 1,
+					LANGUAGE_EAL		= 1,
+					LANGUAGE_TERMINUS	= 1,
+					LANGUAGE_SIGN		= 0
+					)
+
+/obj/item/robot_module/robot/exploration
+	can_be_pushed = 0
+	idcard_type = /obj/item/card/id/synthetic/borg
+
+/obj/item/robot_module/robot/exploration/create_equipment(mob/living/silicon/robot/robot)
+	..()
+	src.modules += new /obj/item/dogborg/sleeper/exploration(src)
+	src.modules += new /obj/item/cataloguer(src)
+	src.modules += new /obj/item/gun/energy/robotic/flare(src)
+	src.modules += new /obj/item/dogborg/pounce(src)
+	src.modules += new /obj/item/melee/robotic/blade/explotailspear(src)
+	src.modules += new /obj/item/gun/energy/robotic/smallmedigun(src)
+	src.modules += new /obj/item/shield_projector/line/exploborg(src)
+	src.modules += new /obj/item/roller_holder(src)
+	src.modules += new /obj/item/self_repair_system(src)
+
+	var/obj/item/card/id/robot_id = robot.idcard
+	robot_id.name = "\improper Synthetic Exploration ID"
+	robot_id.initial_sprite_stack = list("base-stamp", "top-olive", "stamp-n")
+	robot_id.reset_icon()
+	robot_id.forceMove(src)
+
+	src.emag += new /obj/item/melee/robotic/jaws/big/explojaws(src)

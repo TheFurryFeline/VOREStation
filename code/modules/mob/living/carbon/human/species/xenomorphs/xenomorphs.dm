@@ -1,4 +1,4 @@
-/proc/create_new_xenomorph(var/alien_caste,var/target)
+/proc/create_new_xenomorph(alien_caste,target)
 
 	target = get_turf(target)
 	if(!target || !alien_caste) return
@@ -7,24 +7,24 @@
 	new_alien.set_species("Xenomorph [alien_caste]")
 	return new_alien
 
-/mob/living/carbon/human/xdrone/New(var/new_loc)
+/mob/living/carbon/human/xdrone/Initialize(mapload)
 	h_style = "Bald"
-	faction = "xeno"
-	..(new_loc, SPECIES_XENO_DRONE)
+	faction = FACTION_XENO
+	. = ..(mapload, SPECIES_XENO_DRONE)
 
-/mob/living/carbon/human/xsentinel/New(var/new_loc)
+/mob/living/carbon/human/xsentinel/Initialize(mapload)
 	h_style = "Bald"
-	faction = "xeno"
-	..(new_loc, SPECIES_XENO_SENTINEL)
+	faction = FACTION_XENO
+	. = ..(mapload, SPECIES_XENO_SENTINEL)
 
-/mob/living/carbon/human/xhunter/New(var/new_loc)
+/mob/living/carbon/human/xhunter/Initialize(mapload)
 	h_style = "Bald"
-	faction = "xeno"
-	..(new_loc, SPECIES_XENO_HUNTER)
+	faction = FACTION_XENO
+	. = ..(mapload, SPECIES_XENO_HUNTER)
 
-/mob/living/carbon/human/xqueen/New(var/new_loc)
+/mob/living/carbon/human/xqueen/Initialize(mapload)
 	h_style = "Bald"
-	faction = "xeno"
-	..(new_loc, SPECIES_XENO_QUEEN)
+	faction = FACTION_XENO
+	. = ..(mapload, SPECIES_XENO_QUEEN)
 
 //Removed AddInfectionImages, no longer required.

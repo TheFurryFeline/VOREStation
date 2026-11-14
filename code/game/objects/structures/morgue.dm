@@ -35,7 +35,7 @@
 	for(var/obj/structure/closet/body_bag/B in contents)
 		occupants += B.get_occupants()
 
-/obj/structure/morgue/proc/update(var/broadcast=0)
+/obj/structure/morgue/proc/update(broadcast=0)
 	if (src.connected)
 		src.icon_state = "morgue0"
 	else
@@ -43,13 +43,13 @@
 			src.icon_state = "morgue2"
 			get_occupants()
 			for (var/mob/living/carbon/human/H in occupants)
-				if(H.isSynthetic() || H.suiciding || !H.ckey || !H.client || (NOCLONE in H.mutations) || (H.species && H.species.flags & NO_SCAN))
+				if(H.isSynthetic() || H.suiciding || !H.ckey || !H.client || (NOCLONE in H.mutations) || (H.species && H.species.flags & NO_SLEEVE))
 					src.icon_state = "morgue2"
 					break
 				else
 					src.icon_state = "morgue3"
 					if(broadcast)
-						global_announcer.autosay("[src] was able to establish a mental interface with occupant.", "[src]", "Medical")
+						GLOB.global_announcer.autosay("[src] was able to establish a mental interface with occupant.", "[src]", "Medical")
 		else
 			src.icon_state = "morgue1"
 	return
@@ -120,11 +120,11 @@
 
 
 /obj/structure/morgue/attackby(P as obj, mob/user as mob)
-	if (istype(P, /obj/item/weapon/pen))
+	if (istype(P, /obj/item/pen))
 		var/t = tgui_input_text(user, "What would you like the label to be?", text("[]", src.name), null)
 		if (user.get_active_hand() != P)
 			return
-		if ((!in_range(src, usr) && src.loc != user))
+		if ((!in_range(src, user) && src.loc != user))
 			return
 		t = sanitizeSafe(t, MAX_NAME_LEN)
 		if (t)
@@ -189,7 +189,7 @@
 	if (user != O)
 		for(var/mob/B in viewers(user, 3))
 			if ((B.client && !( B.blinded )))
-				to_chat(B, "<span class='warning'>\The [user] stuffs [O] into [src]!</span>")
+				to_chat(B, span_warning("\The [user] stuffs [O] into [src]!"))
 	return
 
 
@@ -220,15 +220,14 @@ GLOBAL_LIST_BOILERPLATE(all_crematoriums, /obj/structure/morgue/crematorium)
 
 /obj/structure/morgue/crematorium/attack_hand(mob/user as mob)
 	if (cremating)
-		to_chat(usr, "<span class='warning'>It's locked.</span>")
+		to_chat(user, span_warning("It's locked."))
 		return
 	if ((src.connected) && (src.locked == 0))
 		for(var/atom/movable/A as mob|obj in src.connected.loc)
 			if (!( A.anchored ))
 				A.forceMove(src)
 		playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
-		//src.connected = null
-		qdel(src.connected)
+		QDEL_NULL(connected)
 	else if (src.locked == 0)
 		playsound(src, 'sound/items/Deconstruct.ogg', 50, 1)
 		src.connected = new /obj/structure/m_tray/c_tray( src.loc )
@@ -242,17 +241,16 @@ GLOBAL_LIST_BOILERPLATE(all_crematoriums, /obj/structure/morgue/crematorium)
 				A.forceMove(src.connected.loc)
 			src.connected.icon_state = "cremat"
 		else
-			//src.connected = null
-			qdel(src.connected)
+			QDEL_NULL(connected)
 	src.add_fingerprint(user)
 	update()
 
 /obj/structure/morgue/crematorium/attackby(P as obj, mob/user as mob)
-	if (istype(P, /obj/item/weapon/pen))
+	if (istype(P, /obj/item/pen))
 		var/t = tgui_input_text(user, "What would you like the label to be?", text("[]", src.name), null)
 		if (user.get_active_hand() != P)
 			return
-		if ((!in_range(src, usr) > 1 && src.loc != user))
+		if ((!in_range(src, user) > 1 && src.loc != user))
 			return
 		t = sanitizeSafe(t, MAX_NAME_LEN)
 		if (t)
@@ -286,16 +284,16 @@ GLOBAL_LIST_BOILERPLATE(all_crematoriums, /obj/structure/morgue/crematorium)
 
 	if(contents.len <= 0)
 		for (var/mob/M in viewers(src))
-			to_chat(M, "<span class='warning'>You hear a hollow crackle.</span>")
+			to_chat(M, span_warning("You hear a hollow crackle."))
 			return
 
 	else
-		if(!isemptylist(src.search_contents_for(/obj/item/weapon/disk/nuclear)))
+		if(!isemptylist(src.search_contents_for(/obj/item/disk/nuclear)))
 			to_chat(user, "You get the feeling that you shouldn't cremate one of the items in the cremator.")
 			return
 
 		for (var/mob/M in viewers(src))
-			to_chat(M, "<span class='warning'>You hear a roar as the crematorium activates.</span>")
+			to_chat(M, span_warning("You hear a roar as the crematorium activates."))
 
 		cremating = 1
 		locked = 1
@@ -338,16 +336,16 @@ GLOBAL_LIST_BOILERPLATE(all_crematoriums, /obj/structure/morgue/crematorium)
 	desc = "Burn baby burn!"
 	icon = 'icons/obj/power.dmi'
 	icon_state = "crema_switch"
-	req_access = list(access_crematorium)
+	req_access = list(ACCESS_CREMATORIUM)
 	id = 1
 
 /obj/machinery/button/crematorium/attack_hand(mob/user as mob)
 	if(..())
 		return
 	if(src.allowed(user))
-		for (var/obj/structure/morgue/crematorium/C in all_crematoriums)
+		for (var/obj/structure/morgue/crematorium/C in GLOB.all_crematoriums)
 			if (C.id == id)
 				if (!C.cremating)
 					C.cremate(user)
 	else
-		to_chat(user, "<span class='warning'>Access denied.</span>")
+		to_chat(user, span_warning("Access denied."))

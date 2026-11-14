@@ -6,7 +6,7 @@
 	var/lastprocess
 	var/matrix/init_transform
 
-/datum/orbit/New(var/atom/movable/_orbiter, var/atom/_orbiting, _lock)
+/datum/orbit/New(atom/movable/_orbiter, atom/_orbiting, _lock)
 	orbiter = _orbiter
 	orbiting = _orbiting
 	init_transform = _orbiter.transform
@@ -105,7 +105,7 @@
 
 /atom/movable/proc/stop_orbit()
 	SpinAnimation(0,0)
-	qdel(orbiting)
+	QDEL_NULL(orbiting)
 
 /atom/Destroy(force = FALSE)
 	. = ..()
@@ -113,6 +113,7 @@
 		for(var/datum/orbit/O as anything in orbiters)
 			if (O.orbiter)
 				O.orbiter.stop_orbit()
+	orbiters = null
 
 /atom/movable/Destroy(force = FALSE)
 	. = ..()
@@ -124,6 +125,6 @@
 	if(orbiters)
 		for(var/datum/orbit/O as anything in orbiters)
 			if(O.orbiter && isobserver(O.orbiter))
-				var/mob/dead/observer/D = O.orbiter
+				var/mob/observer/dead/D = O.orbiter
 				D.ManualFollow(target)
 */

@@ -3,26 +3,31 @@
  */
 
 /datum/reagent/modapplying
-	name = "brute juice"
-	id = "berserkmed"
+	name = REAGENT_BERSERKMED
+	id = REAGENT_ID_BERSERKMED
 	description = "A liquid that is capable of causing a prolonged state of heightened aggression and durability."
 	taste_description = "metal"
 	reagent_state = LIQUID
+	dermal_absorption = 0.2
 	color = "#ff5555"
 	metabolism = REM
+	scannable = SCANNABLE_SECRETIVE
 
 	var/modifier_to_add = /datum/modifier/berserk
 	var/modifier_duration = 3 SECONDS	// How long, per unit dose, will this last?
 										// 2 SECONDS is the resolution of life code, and the modifier will expire before chemical processing tries to re-add it
 
-/datum/reagent/modapplying/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+	supply_conversion_value = REFINERYEXPORT_VALUE_MASSINDUSTRY
+	industrial_use = REFINERYEXPORT_REASON_WEAPONS
+
+/datum/reagent/modapplying/affect_blood(mob/living/carbon/M, alien, removed)
 	if(alien == IS_DIONA)
 		return
 	M.add_modifier(modifier_to_add, modifier_duration, suppress_failure = TRUE)
 
 /datum/reagent/modapplying/cryofluid
-	name = "cryogenic slurry"
-	id = "cryoslurry"
+	name = REAGENT_CRYOSLURRY
+	id = REAGENT_ID_CRYOSLURRY
 	description = "An incredibly strange liquid that rapidly absorbs thermal energy from materials it contacts."
 	taste_description = "siberian hellscape"
 	color = "#4CDBDB"
@@ -31,17 +36,20 @@
 	modifier_to_add = /datum/modifier/cryogelled
 	modifier_duration = 3 SECONDS
 
-/datum/reagent/modapplying/cryofluid/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+	supply_conversion_value = REFINERYEXPORT_VALUE_MASSINDUSTRY
+	industrial_use = REFINERYEXPORT_REASON_CLONEDRUG
+
+/datum/reagent/modapplying/cryofluid/affect_blood(mob/living/carbon/M, alien, removed)
 	..(M, alien, removed)
 	M.bodytemperature -= removed * 20
 
-/datum/reagent/modapplying/cryofluid/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/modapplying/cryofluid/affect_ingest(mob/living/carbon/M, alien, removed)
 	affect_blood(M, alien, removed * 2.5)
 
-/datum/reagent/modapplying/cryofluid/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/modapplying/cryofluid/affect_touch(mob/living/carbon/M, alien, removed)
 	affect_blood(M, alien, removed * 0.6)
 
-/datum/reagent/modapplying/cryofluid/touch_mob(var/mob/M, var/amount)
+/datum/reagent/modapplying/cryofluid/touch_mob(mob/M, amount)
 	..()
 	if(isliving(M))
 		var/mob/living/L = M
@@ -49,20 +57,21 @@
 			L.add_modifier(modifier_to_add, amount * rand(modifier_duration / 2, modifier_duration * 2))
 	return
 
-/datum/reagent/modapplying/cryofluid/touch_turf(var/turf/T, var/amount)
+/datum/reagent/modapplying/cryofluid/touch_turf(turf/T, amount)
 	..()
 	if(istype(T, /turf/simulated/floor/water) && prob(amount))
-		T.visible_message("<span class='danger'>\The [T] crackles loudly as the cryogenic fluid causes it to boil away, leaving behind a hard layer of ice.</span>")
+		T.visible_message(span_danger("\The [T] crackles loudly as the cryogenic fluid causes it to boil away, leaving behind a hard layer of ice."))
 		T.ChangeTurf(/turf/simulated/floor/outdoors/ice, 1, 1, TRUE)
 	else
 		if(istype(T, /turf/simulated))
 			var/turf/simulated/S = T
-			S.freeze_floor()
+			S.MakeSlippery(TURF_WET_WATER, 160 SECONDS, min(volume * 2 SECONDS)) //bandaid fix for ice instantly melting if the atmos temp isnt below freezing
+			S.MakeSlippery(TURF_WET_ICE, 160 SECONDS, min(volume * 2 SECONDS)) //same time as lube.
 	return
 
 /datum/reagent/modapplying/vatstabilizer
-	name = "clone growth inhibitor"
-	id = "vatstabilizer"
+	name = REAGENT_VATSTABILIZER
+	id = REAGENT_ID_VATSTABILIZER
 	description = "A compound produced by NanoTrasen using a secret blend of phoron and toxins to stop the rampant growth of a clone beyond intended states."
 	taste_description = "sour glue"
 	color = "#060501"
@@ -70,3 +79,6 @@
 
 	modifier_to_add = /datum/modifier/clone_stabilizer
 	modifier_duration = 30 SECONDS
+
+	supply_conversion_value = REFINERYEXPORT_VALUE_MASSINDUSTRY
+	industrial_use = REFINERYEXPORT_REASON_PHORON

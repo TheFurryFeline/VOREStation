@@ -1,6 +1,6 @@
 
 /hook/startup/proc/createDatacore()
-	data_core = new /datum/datacore()
+	GLOB.data_core = new /datum/datacore()
 	return 1
 
 /datum/datacore
@@ -17,7 +17,7 @@
 	var/static/list/locked = list()
 
 
-/datum/datacore/proc/get_manifest(monochrome, OOC)
+/datum/datacore/proc/get_manifest(monochrome, OOC,snowflake = FALSE)
 	var/list/heads = new()
 	var/list/sec = new()
 	var/list/eng = new()
@@ -40,18 +40,19 @@
 		.manifest tr.alt td {[monochrome?"border-top-width: 2px":"background-color: [OOC?"#373737; color:white":"#DEF"]"]}
 	</style></head>
 	<table class="manifest" width='350px'>
+	[snowflake?"<tr><th colspan=3 style = \"background-color: #026e6a\"><b>Online players:</b> [TGS_CLIENT_COUNT]</th></tr><tr><th colspan=3 style = \"background-color: #027a76\"><b>Crew members:</b> [GLOB.data_core.general.len]</th></tr><tr class='head'>":""]
 	<tr class='head'><th>Name</th><th>Rank</th><th>Activity</th></tr>
 	"}
 	var/even = 0
 	// sort mobs
-	for(var/datum/data/record/t in data_core.general)
+	for(var/datum/data/record/t in GLOB.data_core.general)
 		var/name = t.fields["name"]
 		var/rank = t.fields["rank"]
 		var/real_rank = make_list_rank(t.fields["real_rank"])
 
 		if(OOC)
 			var/active = 0
-			for(var/mob/M in player_list)
+			for(var/mob/M in GLOB.player_list)
 				if(M.real_name == name && M.client && M.client.inactivity <= 10 MINUTES)
 					active = 1
 					break
@@ -98,7 +99,7 @@
 			var/real_rank = make_list_rank(t.fields["real_rank"])
 
 			var/active = 0
-			for(var/mob/M in player_list)
+			for(var/mob/M in GLOB.player_list)
 				if(M.real_name == name && M.client && M.client.inactivity <= 10 MINUTES)
 					active = 1
 					break
@@ -109,10 +110,10 @@
 				off[name] = rank
 
 	// Synthetics don't have actual records, so we will pull them from here.
-	for(var/mob/living/silicon/ai/ai in mob_list)
+	for(var/mob/living/silicon/ai/ai in GLOB.mob_list)
 		bot[ai.name] = "Artificial Intelligence"
 
-	for(var/mob/living/silicon/robot/robot in mob_list)
+	for(var/mob/living/silicon/robot/robot in GLOB.mob_list)
 		// No combat/syndicate cyborgs, no drones, and no AI shells.
 		if(!robot.scrambledcodes && !robot.shell && !(robot.module && robot.module.hide_on_manifest()))
 			bot[robot.name] = "[robot.modtype] [robot.braintype]"
@@ -191,10 +192,10 @@ we'll only update it when it changes.  The PDA_Manifest global list is zeroed ou
 using /datum/datacore/proc/manifest_inject( ), or manifest_insert( )
 */
 
-var/global/list/PDA_Manifest = list()
+GLOBAL_LIST_EMPTY(PDA_Manifest)
 
 /datum/datacore/proc/get_manifest_list()
-	if(PDA_Manifest.len)
+	if(GLOB.PDA_Manifest.len)
 		return
 	var/list/heads = list()
 	var/list/sec = list()
@@ -206,7 +207,7 @@ var/global/list/PDA_Manifest = list()
 	var/list/civ = list()
 	var/list/bot = list()
 	var/list/misc = list()
-	for(var/datum/data/record/t in data_core.general)
+	for(var/datum/data/record/t in GLOB.data_core.general)
 		var/name = sanitize(t.fields["name"])
 		var/rank = sanitize(t.fields["rank"])
 		var/real_rank = make_list_rank(t.fields["real_rank"])
@@ -218,7 +219,7 @@ var/global/list/PDA_Manifest = list()
 			heads[++heads.len] = list("name" = name, "rank" = rank, "active" = isactive)
 			department = 1
 			depthead = 1
-			if(rank=="Site Manager" && heads.len != 1)
+			if(rank==JOB_SITE_MANAGER && heads.len != 1)
 				heads.Swap(1,heads.len)
 
 		if(SSjob.is_job_in_department(real_rank, DEPARTMENT_SECURITY))
@@ -270,10 +271,10 @@ var/global/list/PDA_Manifest = list()
 
 	// Synthetics don't have actual records, so we will pull them from here.
 	// Synths don't have records, which is the means by which isactive is retrieved, so I'm hardcoding it to active, don't really have any better means
-	for(var/mob/living/silicon/ai/ai in mob_list)
+	for(var/mob/living/silicon/ai/ai in GLOB.mob_list)
 		bot[++bot.len] = list("name" = ai.real_name, "rank" = "Artificial Intelligence", "active" = "Active")
 
-	for(var/mob/living/silicon/robot/robot in mob_list)
+	for(var/mob/living/silicon/robot/robot in GLOB.mob_list)
 		// No combat/syndicate cyborgs, no drones, and no AI shells.
 		if(robot.scrambledcodes || robot.shell || (robot.module && robot.module.hide_on_manifest()))
 			continue
@@ -281,7 +282,7 @@ var/global/list/PDA_Manifest = list()
 		bot[++bot.len] = list("name" = robot.real_name, "rank" = "[robot.modtype] [robot.braintype]", "active" = "Active")
 
 
-	PDA_Manifest = list(
+	GLOB.PDA_Manifest = list(
 		list("cat" = "Command", "elems" = heads),
 		list("cat" = "Security", "elems" = sec),
 		list("cat" = "Engineering", "elems" = eng),
@@ -297,16 +298,16 @@ var/global/list/PDA_Manifest = list()
 
 /datum/datacore/proc/manifest()
 	spawn()
-		for(var/mob/living/carbon/human/H in player_list)
+		for(var/mob/living/carbon/human/H in GLOB.player_list)
 			manifest_inject(H)
 		return
 
-/datum/datacore/proc/manifest_modify(var/name, var/assignment, var/rank)
+/datum/datacore/proc/manifest_modify(name, assignment, rank)
 	ResetPDAManifest()
 	var/datum/data/record/foundrecord
 	var/real_title = assignment
 
-	for(var/datum/data/record/t in data_core.general)
+	for(var/datum/data/record/t in GLOB.data_core.general)
 		if (t)
 			if(t.fields["name"] == name)
 				foundrecord = t
@@ -331,8 +332,8 @@ var/global/list/PDA_Manifest = list()
 		foundrecord.fields["rank"] = assignment
 		foundrecord.fields["real_rank"] = real_title
 
-/datum/datacore/proc/manifest_inject(var/mob/living/carbon/human/H)
-	if(H.mind && !player_is_antag(H.mind, only_offstation_roles = 1))
+/datum/datacore/proc/manifest_inject(mob/living/carbon/human/H)
+	if(H.mind && !SSantag_job.player_is_antag(H.mind, only_offstation_roles = 1))
 		var/assignment = GetAssignment(H)
 		var/hidden
 		var/datum/job/J = SSjob.get_job(H.mind.assigned_role)
@@ -356,7 +357,10 @@ var/global/list/PDA_Manifest = list()
 		G.fields["p_stat"]		= "Active"
 		G.fields["m_stat"]		= "Stable"
 		G.fields["sex"]			= gender2text(H.gender)
-		G.fields["species"]		= "[H.custom_species ? "[H.custom_species] ([H.species.name])" : H.species.name]" //VOREStation Edit
+		if(H.species.name == SPECIES_HANNER)
+			G.fields["species"] = "[H.custom_species ? "[H.custom_species]" : H.species.name]"
+		else
+			G.fields["species"]		= "[H.custom_species ? "[H.custom_species] ([H.species.name])" : H.species.name]"
 		G.fields["home_system"]	= H.home_system
 		G.fields["birthplace"]	= H.birthplace
 		G.fields["citizenship"]	= H.citizenship
@@ -367,9 +371,13 @@ var/global/list/PDA_Manifest = list()
 
 		//Medical Record
 		var/datum/data/record/M = CreateMedicalRecord(H.real_name, id, hidden)
-		M.fields["species"]		= "[H.custom_species ? "[H.custom_species] ([H.species.name])" : H.species.name]" //VOREStation Edit
-		M.fields["b_type"]		= H.b_type
-		M.fields["blood_reagent"]	= H.species.blood_reagents
+		if(H.species.name == SPECIES_HANNER)
+			M.fields["species"] = "[H.custom_species ? "[H.custom_species]" : H.species.name]"
+		else
+			M.fields["species"]		= "[H.custom_species ? "[H.custom_species] ([H.species.name])" : H.species.name]"
+		M.fields["b_type"]		= H.dna ? H.dna.b_type : DEFAULT_BLOOD_TYPE
+		M.fields["blood_reagent"]	= H.dna.blood_reagents
+		M.fields["blood_color"]	= H.dna.blood_color
 		M.fields["b_dna"]		= H.dna.unique_enzymes
 		M.fields["id_gender"]	= gender2text(H.identifying_gender)
 		if(H.get_FBP_type())
@@ -381,7 +389,10 @@ var/global/list/PDA_Manifest = list()
 
 		//Security Record
 		var/datum/data/record/S = CreateSecurityRecord(H.real_name, id, hidden)
-		S.fields["species"]		= "[H.custom_species ? "[H.custom_species] ([H.species.name])" : H.species.name]" //VOREStation Edit
+		if(H.species.name == SPECIES_HANNER)
+			S.fields["species"] = "[H.custom_species ? "[H.custom_species]" : H.species.name]"
+		else
+			S.fields["species"]		= "[H.custom_species ? "[H.custom_species] ([H.species.name])" : H.species.name]"
 		if(H.get_FBP_type())
 			S.fields["brain_type"] = H.get_FBP_type()
 		else
@@ -403,11 +414,14 @@ var/global/list/PDA_Manifest = list()
 			L.fields["brain_type"] = H.get_FBP_type()
 		else
 			L.fields["brain_type"] = "Organic"
-		L.fields["b_type"]		= H.b_type
+		L.fields["b_type"]		= H.dna ? H.dna.b_type : DEFAULT_BLOOD_TYPE
 		L.fields["b_dna"]		= H.dna.unique_enzymes
 		L.fields["enzymes"]		= H.dna.SE // Used in respawning
 		L.fields["identity"]	= H.dna.UI // "
-		L.fields["species"]		= "[H.custom_species ? "[H.custom_species] ([H.species.name])" : H.species.name]" //VOREStation Edit
+		if(H.species.name == SPECIES_HANNER)
+			L.fields["species"] = "[H.custom_species ? "[H.custom_species]" : H.species.name]"
+		else
+			L.fields["species"]		= "[H.custom_species ? "[H.custom_species] ([H.species.name])" : H.species.name]"
 		L.fields["home_system"]	= H.home_system
 		L.fields["birthplace"]	= H.birthplace
 		L.fields["citizenship"]	= H.citizenship
@@ -425,9 +439,9 @@ var/global/list/PDA_Manifest = list()
 	return
 
 /proc/generate_record_id()
-	return add_zero(num2hex(rand(1, 65535)), 4)	//no point generating higher numbers because of the limitations of num2hex
+	return add_zero(num2hex(rand(1, 65535), 5), 4)	//no point generating higher numbers because of the limitations of num2hex
 
-/datum/datacore/proc/CreateGeneralRecord(var/mob/living/carbon/human/H, var/id, var/hidden)
+/datum/datacore/proc/CreateGeneralRecord(mob/living/carbon/human/H, id, hidden)
 	ResetPDAManifest()
 	var/icon/front
 	var/icon/side
@@ -440,7 +454,7 @@ var/global/list/PDA_Manifest = list()
 		side = icon('html/images/no_image32.png')
 
 	if(!id)
-		id = text("[]", add_zero(num2hex(rand(1, 65536)), 4))
+		id = text("[]", add_zero(num2hex(rand(1, 65536), 5), 4))
 	var/datum/data/record/G = new /datum/data/record()
 	G.name = "Employee Record #[id]"
 	G.fields["name"] = "New Record"
@@ -472,7 +486,7 @@ var/global/list/PDA_Manifest = list()
 
 	return G
 
-/datum/datacore/proc/CreateSecurityRecord(var/name, var/id, var/hidden)
+/datum/datacore/proc/CreateSecurityRecord(name, id, hidden)
 	ResetPDAManifest()
 	var/datum/data/record/R = new /datum/data/record()
 	R.name = "Security Record #[id]"
@@ -486,7 +500,6 @@ var/global/list/PDA_Manifest = list()
 	R.fields["ma_crim"]		= "None"
 	R.fields["ma_crim_d"]	= "No major crime convictions."
 	R.fields["notes"]		= "No notes."
-	R.fields["notes"] = "No notes."
 	if(hidden)
 		hidden_security += R
 	else
@@ -494,7 +507,7 @@ var/global/list/PDA_Manifest = list()
 
 	return R
 
-/datum/datacore/proc/CreateMedicalRecord(var/name, var/id, var/hidden)
+/datum/datacore/proc/CreateMedicalRecord(name, id, hidden)
 	ResetPDAManifest()
 	var/datum/data/record/M = new()
 	M.name = "Medical Record #[id]"
@@ -522,24 +535,24 @@ var/global/list/PDA_Manifest = list()
 	return M
 
 /datum/datacore/proc/ResetPDAManifest()
-	if(PDA_Manifest.len)
-		PDA_Manifest.Cut()
+	if(GLOB.PDA_Manifest.len)
+		GLOB.PDA_Manifest.Cut()
 
 /proc/find_general_record(field, value)
-	return find_record(field, value, data_core.general)
+	return find_record(field, value, GLOB.data_core.general)
 
 /proc/find_medical_record(field, value)
-	return find_record(field, value, data_core.medical)
+	return find_record(field, value, GLOB.data_core.medical)
 
 /proc/find_security_record(field, value)
-	return find_record(field, value, data_core.security)
+	return find_record(field, value, GLOB.data_core.security)
 
 /proc/find_record(field, value, list/L)
 	for(var/datum/data/record/R in L)
 		if(R.fields[field] == value)
 			return R
 
-/proc/GetAssignment(var/mob/living/carbon/human/H)
+/proc/GetAssignment(mob/living/carbon/human/H)
 	if(H.mind.role_alt_title)
 		return H.mind.role_alt_title
 	else if(H.mind.assigned_role)

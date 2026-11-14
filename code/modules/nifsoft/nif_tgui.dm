@@ -4,7 +4,7 @@
 /**
  * Etc variables on the NIF to keep this self contained
  */
-/obj/item/device/nif
+/obj/item/nif
 	var/static/list/valid_ui_themes = list(
 		"abductor",
 		"cardtable",
@@ -22,11 +22,16 @@
  * Small helper component to manage the HUD icon
  */
 /datum/component/nif_menu
-	var/obj/screen/nif/screen_icon
+	var/atom/movable/screen/nif/screen_icon
 
 /datum/component/nif_menu/Initialize()
 	if(!ismob(parent))
 		return COMPONENT_INCOMPATIBLE
+	. = ..()
+
+/datum/component/nif_menu/Destroy(force)
+	if(screen_icon)
+		QDEL_NULL(screen_icon)
 	. = ..()
 
 /datum/component/nif_menu/RegisterWithParent()
@@ -44,12 +49,13 @@
 		if(screen_icon)
 			owner?.client?.screen -= screen_icon
 			UnregisterSignal(screen_icon, COMSIG_CLICK)
-			qdel_null(screen_icon)
+			QDEL_NULL(screen_icon)
 		if(ishuman(parent))
-			owner.verbs -= /mob/living/carbon/human/proc/nif_menu
+			remove_verb(owner, /mob/living/carbon/human/proc/nif_menu)
 
 
 /datum/component/nif_menu/proc/create_mob_button(mob/user)
+	SIGNAL_HANDLER
 	var/datum/hud/HUD = user.hud_used
 	if(!screen_icon)
 		screen_icon = new()
@@ -60,9 +66,10 @@
 	LAZYADD(HUD.other_important, screen_icon)
 	user.client?.screen += screen_icon
 
-	user.verbs |= /mob/living/carbon/human/proc/nif_menu
+	add_verb(user, /mob/living/carbon/human/proc/nif_menu)
 
 /datum/component/nif_menu/proc/nif_menu_click(source, location, control, params, user)
+	SIGNAL_HANDLER
 	var/mob/living/carbon/human/H = user
 	if(istype(H) && H.nif)
 		INVOKE_ASYNC(H.nif, PROC_REF(tgui_interact), user)
@@ -70,7 +77,7 @@
 /**
  * Screen object for NIF menu access
  */
-/obj/screen/nif
+/atom/movable/screen/nif
 	name = "nif menu"
 	icon = 'icons/mob/screen/midnight.dmi'
 	icon_state = "nif"
@@ -81,23 +88,23 @@
  */
 /mob/living/carbon/human/proc/nif_menu()
 	set name = "NIF Menu"
-	set category = "IC"
+	set category = "IC.NIF"
 	set desc = "Open the NIF user interface."
 
-	var/obj/item/device/nif/N = nif
+	var/obj/item/nif/N = nif
 	if(istype(N))
-		N.tgui_interact(usr)
+		N.tgui_interact(src)
 
 /**
  * The NIF State ensures that only our authorized implanted user can touch us.
  */
-/obj/item/device/nif/tgui_state(mob/user)
+/obj/item/nif/tgui_state(mob/user)
 	return GLOB.tgui_nif_main_state
 
 /**
  * Standard TGUI stub to open the NIF.js template.
  */
-/obj/item/device/nif/tgui_interact(mob/user, datum/tgui/ui, datum/tgui/parent_ui)
+/obj/item/nif/tgui_interact(mob/user, datum/tgui/ui, datum/tgui/parent_ui)
 	if(!ishuman(user))
 		return FALSE
 	ui = SStgui.try_update_ui(user, src, ui)
@@ -109,7 +116,7 @@
  * tgui_data gives the UI any relevant data it needs.
  * In our case, that's basically everything from our statpanel.
  */
-/obj/item/device/nif/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
+/obj/item/nif/tgui_data(mob/user, datum/tgui/ui, datum/tgui_state/state)
 	var/list/data = ..()
 
 	data["valid_themes"] = valid_ui_themes
@@ -150,7 +157,7 @@
 /**
  * tgui_act handles all user input in the UI.
  */
-/obj/item/device/nif/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
+/obj/item/nif/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
 	if(..())
 		return TRUE
 

@@ -8,18 +8,15 @@
 	desc = "This is rubbish."
 	drop_sound = 'sound/items/drop/wrapper.ogg'
 	pickup_sound = 'sound/items/pickup/wrapper.ogg'
-	matter = list(MAT_STEEL = 30)
+	matter = list(MAT_STEEL = MATERIAL_COST(0.015))
 	var/age = 0
 
-/obj/item/trash/New(var/newloc, var/_age)
-	..(newloc)
+/obj/item/trash/Initialize(mapload, _age)
+	. = ..()
 	if(!isnull(_age))
 		age = _age
-
-/obj/item/trash/Initialize(mapload)
-	if(!mapload || !config.persistence_ignore_mapload)
+	if(!mapload || !CONFIG_GET(flag/persistence_ignore_mapload))
 		SSpersistence.track_value(src, /datum/persistent/filth/trash)
-	. = ..()
 
 /obj/item/trash/Destroy()
 	SSpersistence.forget_value(src, /datum/persistent/filth/trash)
@@ -112,6 +109,12 @@
 /obj/item/trash/small_bowl
 	name = "small bowl"
 	icon_state	= "small_bowl"
+	drop_sound = 'sound/items/drop/food.ogg'
+	pickup_sound = 'sound/items/pickup/food.ogg'
+
+/obj/item/trash/turkeybones
+	name = "turkey bones"
+	icon_state	= "turkeybones"
 	drop_sound = 'sound/items/drop/food.ogg'
 	pickup_sound = 'sound/items/pickup/food.ogg'
 
@@ -233,8 +236,8 @@
 	pickup_sound = 'sound/items/pickup/flesh.ogg'
 	slot_flags = SLOT_EARS | SLOT_MASK
 
-/obj/item/trash/attack(mob/M as mob, mob/living/user as mob)
-	return
+/obj/item/trash/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	return NONE
 
 
 /obj/item/trash/beef

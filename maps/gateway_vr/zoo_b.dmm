@@ -15,20 +15,20 @@
 /obj/effect/floor_decal/spline/fancy/wood{
 	dir = 5
 	},
-/obj/item/weapon/coin/gold,
+/obj/item/coin/gold,
 /turf/simulated/floor/beach/water{
 	icon_state = "seadeep"
 	},
 /area/awaymission/zoo)
 "ah" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/material/knife/butch,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
+/obj/item/material/knife/butch,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
 /obj/effect/floor_decal/corner/blue/diagonal,
 /turf/simulated/floor/tiled/white,
 /area/awaymission/zoo/pirateship)
@@ -109,7 +109,7 @@
 /area/awaymission/zoo)
 "aC" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/storage/box,
+/obj/item/storage/box,
 /obj/machinery/light/small{
 	dir = 1
 	},
@@ -194,10 +194,7 @@
 /area/awaymission/zoo/syndieship)
 "bp" = (
 /obj/structure/flora/ausbushes/leafybush,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "br" = (
 /obj/structure/table/reinforced,
@@ -235,7 +232,7 @@
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "bD" = (
-/obj/item/weapon/stool,
+/obj/item/stool,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "bF" = (
@@ -329,10 +326,7 @@
 /area/awaymission/zoo/pirateship)
 "cE" = (
 /obj/structure/flora/ausbushes,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "cI" = (
 /obj/structure/window/reinforced,
@@ -406,9 +400,9 @@
 /area/awaymission/zoo/pirateship)
 "de" = (
 /obj/structure/table/woodentable,
-/obj/item/weapon/spacecash/c500,
-/obj/item/weapon/spacecash/c100,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/spacecash/c500,
+/obj/item/spacecash/c100,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
 /turf/simulated/floor/wood,
 /area/awaymission/zoo/pirateship)
 "dj" = (
@@ -422,18 +416,14 @@
 	},
 /area/awaymission/zoo)
 "dq" = (
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/turf/flooring/misc_vr.dmi';
-	icon_state = "hive";
-	name = "giant honeycomb"
-	},
+/turf/simulated/floor/holofloor/grass/hive,
 /area/awaymission/zoo)
 "dt" = (
 /obj/structure/closet,
-/obj/item/weapon/reagent_containers/food/snacks/tastybread,
-/obj/item/weapon/reagent_containers/food/snacks/tastybread,
-/obj/item/weapon/reagent_containers/food/snacks/tastybread,
-/obj/item/weapon/reagent_containers/food/snacks/tastybread,
+/obj/item/reagent_containers/food/snacks/tastybread,
+/obj/item/reagent_containers/food/snacks/tastybread,
+/obj/item/reagent_containers/food/snacks/tastybread,
+/obj/item/reagent_containers/food/snacks/tastybread,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "dw" = (
@@ -460,20 +450,12 @@
 /turf/simulated/floor/tiled/steel,
 /area/awaymission/zoo/pirateship)
 "dC" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
 /mob/living/simple_mob/animal/space/alien{
 	faction = "zoo";
 	name = "invisible alien hunter"
 	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "dF" = (
 /obj/structure/flora/ausbushes/lavendergrass,
@@ -542,29 +524,17 @@
 /turf/simulated/floor/holofloor/lino,
 /area/awaymission/zoo)
 "em" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_s";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/east,
+/obj/effect/floor_decal/spline/asteroid/south,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "et" = (
 /obj/structure/table/rack{
 	dir = 1
 	},
-/obj/item/weapon/extinguisher,
+/obj/item/extinguisher,
 /obj/item/clothing/head/hardhat/red,
-/obj/item/device/flashlight,
+/obj/item/flashlight,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo)
 "ey" = (
@@ -599,43 +569,15 @@
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "eE" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_s";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
+/obj/effect/floor_decal/spline/asteroid/east,
+/obj/effect/floor_decal/spline/asteroid/south,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "eF" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_s";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
+/obj/effect/floor_decal/spline/asteroid/south,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "eG" = (
 /obj/effect/floor_decal/corner/green/full{
@@ -682,26 +624,10 @@
 /turf/simulated/floor/wood,
 /area/awaymission/zoo)
 "fe" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_s";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_n";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
+/obj/effect/floor_decal/spline/asteroid/south,
+/obj/effect/floor_decal/spline/asteroid/north,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "fk" = (
 /obj/structure/flora/pottedplant{
@@ -790,7 +716,7 @@
 /turf/space,
 /area/awaymission/zoo/syndieship)
 "fV" = (
-/obj/item/device/multitool,
+/obj/item/multitool,
 /turf/simulated/floor/reinforced,
 /area/awaymission/zoo/pirateship)
 "fW" = (
@@ -798,11 +724,11 @@
 /area/awaymission/zoo/syndieship)
 "fY" = (
 /obj/structure/table/standard,
-/obj/item/weapon/paper_bin{
+/obj/item/paper_bin{
 	pixel_x = -3;
 	pixel_y = 8
 	},
-/obj/item/weapon/pen{
+/obj/item/pen{
 	pixel_y = 4
 	},
 /turf/simulated/shuttle/floor/darkred,
@@ -876,21 +802,9 @@
 /turf/simulated/floor/plating,
 /area/awaymission/zoo)
 "gx" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
+/obj/effect/floor_decal/spline/asteroid/east,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "gz" = (
 /obj/effect/floor_decal/spline/fancy/wood{
@@ -915,11 +829,7 @@
 	},
 /area/awaymission/zoo)
 "gM" = (
-/turf/simulated/floor/holofloor/reinforced{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "lava";
-	name = "hololava"
-	},
+/turf/simulated/floor/holofloor/reinforced/lava,
 /area/awaymission/zoo)
 "gS" = (
 /turf/simulated/floor/holofloor/snow,
@@ -972,12 +882,12 @@
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "hx" = (
-/obj/item/weapon/storage/box/matches,
-/obj/item/weapon/storage/fancy/cigarettes/dromedaryco,
+/obj/item/storage/box/matches,
+/obj/item/storage/fancy/cigarettes/dromedaryco,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "hy" = (
-/obj/item/weapon/coin/silver,
+/obj/item/coin/silver,
 /turf/simulated/floor/beach/water{
 	icon_state = "seadeep"
 	},
@@ -1050,16 +960,8 @@
 	},
 /area/awaymission/zoo)
 "hS" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/east,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "hU" = (
 /obj/structure/flora/ausbushes/pointybush,
@@ -1123,7 +1025,7 @@
 	},
 /area/awaymission/zoo)
 "iy" = (
-/obj/item/weapon/storage/box,
+/obj/item/storage/box,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "iE" = (
@@ -1147,11 +1049,7 @@
 	faction = "zoo";
 	name = "invisible alien hunter"
 	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "iQ" = (
 /obj/structure/window/phoronreinforced{
@@ -1201,7 +1099,7 @@
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "jc" = (
-/obj/item/weapon/reagent_containers/food/snacks/hugemushroomslice,
+/obj/item/reagent_containers/food/snacks/hugemushroomslice,
 /obj/effect/floor_decal/corner/red/diagonal,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
@@ -1250,19 +1148,11 @@
 	},
 /area/awaymission/zoo)
 "jL" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
+/obj/effect/floor_decal/spline/asteroid/east,
 /mob/living/simple_mob/animal/space/alien/drone{
 	faction = "zoo"
 	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "jN" = (
 /obj/item/trash/syndi_cakes,
@@ -1275,19 +1165,11 @@
 	},
 /area/awaymission/zoo)
 "jT" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
+/obj/effect/floor_decal/spline/asteroid/east,
 /mob/living/simple_mob/animal/space/alien/queen{
 	faction = "zoo"
 	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "jY" = (
 /mob/living/simple_mob/animal/passive/chick,
@@ -1300,7 +1182,7 @@
 	dir = 4;
 	id = "meatConvey2"
 	},
-/obj/item/weapon/material/knife,
+/obj/item/material/knife,
 /turf/simulated/shuttle/plating,
 /area/awaymission/zoo/pirateship)
 "kc" = (
@@ -1360,7 +1242,7 @@
 	},
 /area/awaymission/zoo)
 "ky" = (
-/obj/item/weapon/tool/crowbar,
+/obj/item/tool/crowbar,
 /turf/simulated/floor/tiled/white,
 /area/awaymission/zoo/pirateship)
 "kC" = (
@@ -1398,7 +1280,7 @@
 	dir = 1
 	},
 /obj/structure/sign/kiddieplaque{
-	desc = "The Xenomorph XX121, better known just as Xenomorph, are an extraterrestrial, endoparasitoid species with multiple life cycles, possibly originating from the planet Proteus (also known as Xenomorph Prime), which orbits the star A6 454. One of the deadliest of all known alien species, these creatures need a host organism in order to reproduce. The appearance of the Xenomorph varies depending on its host. The Human phenotype is generally around 7�8 feet, and roughly 136.0 to 181.4 kilograms in weight, with a long, muscular tail and large, curved, oblong head. The Queen of this species is generally twice as large (they can grow even larger, some even up to 100 feet tall, and stronger if given time) and possesses superior speed, strength and intelligence. The term Xenomorph is derived from the Greek words xeno ('stranger', 'alien', and 'foreigner') and morphe ('form', 'shape'). There are no solid facts as to the origins of the Xenomorph species; instead, there are many assumptions which cannot be confirmed. Based on the limited information we have, the most commonly accepted hypothesis is that they are an artificially created species, although another hypothesis says that they evolved naturally on a planet much different than our own. The Xenomorph lives in a hive together with its queen. Amazingly, the blood and other bodily fluids of the Xenomorph are highly acidic. It is not yet understood how a creature of such biology can exist. The planet Proteus is also home to rare, red-hued Xenomorphs, who frequently fight their black-colored rivals. Some Xenomorphs are alleged to be able to cloak themselves to be invisible to the human eye, but this has not been confirmed by independent study.";
+	desc = "The Xenomorph XX121, better known just as Xenomorph, are an extraterrestrial, endoparasitoid species with multiple life cycles, possibly originating from the planet Proteus (also known as Xenomorph Prime), which orbits the star A6 454. One of the deadliest of all known alien species, these creatures need a host organism in order to reproduce. The appearance of the Xenomorph varies depending on its host. The Human phenotype is generally around 7-8 feet, and roughly 136.0 to 181.4 kilograms in weight, with a long, muscular tail and large, curved, oblong head. The Queen of this species is generally twice as large (they can grow even larger, some even up to 100 feet tall, and stronger if given time) and possesses superior speed, strength and intelligence. The term Xenomorph is derived from the Greek words xeno ('stranger', 'alien', and 'foreigner') and morphe ('form', 'shape'). There are no solid facts as to the origins of the Xenomorph species; instead, there are many assumptions which cannot be confirmed. Based on the limited information we have, the most commonly accepted hypothesis is that they are an artificially created species, although another hypothesis says that they evolved naturally on a planet much different than our own. The Xenomorph lives in a hive together with its queen. Amazingly, the blood and other bodily fluids of the Xenomorph are highly acidic. It is not yet understood how a creature of such biology can exist. The planet Proteus is also home to rare, red-hued Xenomorphs, who frequently fight their black-colored rivals. Some Xenomorphs are alleged to be able to cloak themselves to be invisible to the human eye, but this has not been confirmed by independent study.";
 	name = "Xenomorph Exhibit"
 	},
 /turf/simulated/floor/plating,
@@ -1421,7 +1303,7 @@
 /turf/simulated/floor/lino,
 /area/awaymission/zoo)
 "lv" = (
-/obj/item/weapon/cell/high,
+/obj/item/cell/high,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
 "lw" = (
@@ -1430,7 +1312,7 @@
 /area/awaymission/zoo/syndieship)
 "lB" = (
 /obj/structure/table/reinforced,
-/obj/item/device/flashlight/lamp,
+/obj/item/flashlight/lamp,
 /turf/simulated/floor/lino,
 /area/awaymission/zoo)
 "lH" = (
@@ -1522,16 +1404,8 @@
 	},
 /area/awaymission/zoo)
 "mM" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_s";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/south,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "mT" = (
 /obj/machinery/vending/cola,
@@ -1549,38 +1423,30 @@
 /area/awaymission/zoo/pirateship)
 "nj" = (
 /obj/structure/closet/crate/freezer,
-/obj/item/weapon/reagent_containers/food/snacks/meat,
+/obj/item/reagent_containers/food/snacks/meat,
 /obj/effect/floor_decal/industrial/warning{
 	dir = 1
 	},
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "nm" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_n";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/north,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "no" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/folder{
+/obj/item/folder{
 	pixel_x = -4
 	},
-/obj/item/weapon/folder/red{
+/obj/item/folder/red{
 	pixel_y = 3
 	},
-/obj/item/weapon/folder/blue{
+/obj/item/folder/blue{
 	pixel_x = 5
 	},
-/obj/item/weapon/folder/yellow,
-/obj/item/weapon/stamp/internalaffairs,
-/obj/item/weapon/stamp/denied{
+/obj/item/folder/yellow,
+/obj/item/stamp/internalaffairs,
+/obj/item/stamp/denied{
 	pixel_x = 4;
 	pixel_y = -2
 	},
@@ -1588,7 +1454,7 @@
 /area/awaymission/zoo)
 "nr" = (
 /obj/structure/table/rack,
-/obj/item/weapon/storage/pill_bottle/dice_nerd,
+/obj/item/storage/pill_bottle/dice_nerd,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "ns" = (
@@ -1649,7 +1515,7 @@
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
 "nS" = (
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
 "nT" = (
@@ -1715,7 +1581,7 @@
 	},
 /area/awaymission/zoo)
 "oq" = (
-/obj/item/weapon/reagent_containers/glass/bucket,
+/obj/item/reagent_containers/glass/bucket,
 /obj/effect/floor_decal/corner/red/diagonal,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
@@ -1725,7 +1591,7 @@
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "oA" = (
-/obj/item/weapon/reagent_containers/glass/bucket,
+/obj/item/reagent_containers/glass/bucket,
 /turf/simulated/floor/tiled/freezer,
 /area/awaymission/zoo/pirateship)
 "oE" = (
@@ -1750,7 +1616,7 @@
 /area/awaymission/zoo/pirateship)
 "oJ" = (
 /obj/structure/table/rack,
-/obj/item/device/multitool,
+/obj/item/multitool,
 /obj/machinery/light{
 	dir = 8
 	},
@@ -1773,7 +1639,7 @@
 /obj/machinery/vending/cigarette{
 	name = "hacked cigarette machine";
 	prices = list();
-	products = list(/obj/item/weapon/storage/fancy/cigarettes = 10, /obj/item/weapon/storage/box/matches = 10, /obj/item/weapon/flame/lighter/zippo = 4, /obj/item/clothing/mask/smokable/cigarette/cigar/havana = 2)
+	products = list(/obj/item/storage/fancy/cigarettes = 10, /obj/item/storage/box/matches = 10, /obj/item/flame/lighter/zippo = 4, /obj/item/clothing/mask/smokable/cigarette/cigar/havana = 2)
 	},
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
@@ -1792,7 +1658,7 @@
 /turf/space,
 /area/awaymission/zoo/pirateship)
 "pa" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	desc = "Talk through this. Evilly";
 	frequency = 1213;
 	name = "Syndicate Intercom";
@@ -1809,10 +1675,7 @@
 /area/awaymission/zoo/pirateship)
 "pg" = (
 /obj/structure/flora/ausbushes/grassybush,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "ph" = (
 /obj/effect/floor_decal/spline/plain{
@@ -1886,11 +1749,7 @@
 /turf/simulated/shuttle/plating,
 /area/awaymission/zoo/syndieship)
 "pS" = (
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "pU" = (
 /obj/structure/closet/secure_closet/medical_wall{
@@ -1903,8 +1762,8 @@
 /obj/item/stack/medical/bruise_pack,
 /obj/item/stack/medical/bruise_pack,
 /obj/item/stack/medical/bruise_pack,
-/obj/item/weapon/storage/belt/medical/emt,
-/obj/item/weapon/storage/belt/medical/emt,
+/obj/item/storage/belt/medical/emt,
+/obj/item/storage/belt/medical/emt,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "pX" = (
@@ -1916,7 +1775,7 @@
 /area/awaymission/zoo/pirateship)
 "qb" = (
 /obj/structure/table/rack,
-/obj/item/weapon/tank/oxygen/yellow,
+/obj/item/tank/oxygen/yellow,
 /obj/item/clothing/suit/space/emergency,
 /obj/item/clothing/head/helmet/space/emergency,
 /obj/effect/floor_decal/industrial/warning{
@@ -2041,26 +1900,14 @@
 	},
 /area/awaymission/zoo)
 "ro" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_n";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
+/obj/effect/floor_decal/spline/asteroid/north,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "rw" = (
 /obj/structure/closet/crate/freezer,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "rz" = (
@@ -2068,7 +1915,7 @@
 /area/awaymission/zoo)
 "rA" = (
 /obj/structure/table/rack,
-/obj/item/device/binoculars,
+/obj/item/binoculars,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "rF" = (
@@ -2089,7 +1936,7 @@
 /obj/machinery/porta_turret{
 	dir = 8;
 	emagged = 1;
-	installation = /obj/item/weapon/gun/energy/lasercannon
+	installation = /obj/item/gun/energy/lasercannon
 	},
 /turf/simulated/floor/reinforced,
 /area/awaymission/zoo/pirateship)
@@ -2138,14 +1985,14 @@
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "sd" = (
-/obj/item/weapon/weldingtool,
+/obj/item/weldingtool,
 /obj/machinery/light{
 	dir = 8
 	},
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "sh" = (
-/obj/item/weapon/hand_labeler,
+/obj/item/hand_labeler,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "so" = (
@@ -2173,14 +2020,14 @@
 /area/awaymission/zoo)
 "sz" = (
 /obj/structure/closet/crate,
-/obj/item/weapon/spacecash/c10,
-/obj/item/weapon/spacecash/c200,
+/obj/item/spacecash/c10,
+/obj/item/spacecash/c200,
 /turf/simulated/floor/tiled/steel,
 /area/awaymission/zoo/pirateship)
 "sB" = (
 /obj/structure/table/standard,
-/obj/item/weapon/reagent_containers/blood/OMinus,
-/obj/item/weapon/reagent_containers/blood/OMinus,
+/obj/item/reagent_containers/blood/OMinus,
+/obj/item/reagent_containers/blood/OMinus,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "sI" = (
@@ -2264,7 +2111,7 @@
 /area/awaymission/zoo)
 "tr" = (
 /obj/structure/bed,
-/obj/item/weapon/bedsheet,
+/obj/item/bedsheet,
 /turf/simulated/floor/tiled/steel,
 /area/awaymission/zoo/pirateship)
 "tx" = (
@@ -2295,8 +2142,8 @@
 /area/awaymission/zoo/pirateship)
 "tK" = (
 /obj/structure/table/rack,
-/obj/item/device/camera_film,
-/obj/item/device/camera,
+/obj/item/camera_film,
+/obj/item/camera,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "tM" = (
@@ -2305,18 +2152,18 @@
 /area/awaymission/zoo)
 "tN" = (
 /obj/structure/table/standard,
-/obj/item/weapon/material/knife{
+/obj/item/material/knife{
 	pixel_x = -6
 	},
-/obj/item/weapon/reagent_containers/syringe/drugs{
+/obj/item/reagent_containers/syringe/drugs{
 	pixel_x = 3;
 	pixel_y = -1
 	},
-/obj/item/weapon/reagent_containers/syringe/drugs{
+/obj/item/reagent_containers/syringe/drugs{
 	pixel_x = 3;
 	pixel_y = 4
 	},
-/obj/item/weapon/reagent_containers/syringe/drugs{
+/obj/item/reagent_containers/syringe/drugs{
 	pixel_x = 3;
 	pixel_y = 9
 	},
@@ -2331,7 +2178,7 @@
 /area/awaymission/zoo)
 "tR" = (
 /obj/structure/table/rack,
-/obj/item/weapon/storage/wallet/poly,
+/obj/item/storage/wallet/poly,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "tU" = (
@@ -2344,8 +2191,8 @@
 /area/awaymission/zoo)
 "tX" = (
 /obj/structure/closet/crate/freezer,
-/obj/item/weapon/reagent_containers/food/snacks/meat,
-/obj/item/weapon/reagent_containers/food/snacks/meat,
+/obj/item/reagent_containers/food/snacks/meat,
+/obj/item/reagent_containers/food/snacks/meat,
 /obj/effect/floor_decal/industrial/warning{
 	dir = 1
 	},
@@ -2448,7 +2295,7 @@
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "uA" = (
-/obj/item/weapon/storage/box/syringes,
+/obj/item/storage/box/syringes,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "uC" = (
@@ -2526,10 +2373,7 @@
 /area/awaymission/zoo/syndieship)
 "va" = (
 /obj/structure/flora/ausbushes/ywflowers,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "vb" = (
 /obj/effect/overlay/palmtree_r,
@@ -2557,7 +2401,7 @@
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "vj" = (
-/obj/item/weapon/stool,
+/obj/item/stool,
 /obj/effect/floor_decal/corner/red/diagonal,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
@@ -2608,7 +2452,7 @@
 /area/awaymission/zoo/pirateship)
 "wa" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
 /obj/effect/floor_decal/corner/red/diagonal,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
@@ -2624,7 +2468,7 @@
 /turf/simulated/floor/plating,
 /area/awaymission/zoo)
 "wq" = (
-/obj/machinery/power/fractal_reactor/fluff/converter{
+/obj/machinery/power/fractal_reactor/fluff/smes{
 	mapped_in = 1;
 	power_generation_rate = 10000
 	},
@@ -2716,7 +2560,7 @@
 /area/awaymission/zoo)
 "xA" = (
 /obj/structure/table/marble,
-/obj/item/weapon/pen/multi,
+/obj/item/pen/multi,
 /turf/simulated/floor/holofloor/lino,
 /area/awaymission/zoo)
 "xB" = (
@@ -2729,13 +2573,10 @@
 /mob/living/simple_mob/vore/aggressive/frog{
 	faction = "zoo"
 	},
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "xL" = (
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
 /obj/effect/floor_decal/corner/red/diagonal,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
@@ -2780,7 +2621,7 @@
 /area/awaymission/zoo)
 "yn" = (
 /obj/structure/closet/crate/freezer,
-/obj/item/weapon/reagent_containers/food/snacks/meat,
+/obj/item/reagent_containers/food/snacks/meat,
 /turf/simulated/floor/tiled/freezer,
 /area/awaymission/zoo/pirateship)
 "yp" = (
@@ -2819,10 +2660,7 @@
 /area/awaymission/zoo)
 "yy" = (
 /obj/structure/flora/ausbushes/palebush,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "yC" = (
 /obj/structure/flora/ausbushes/ywflowers,
@@ -2846,16 +2684,16 @@
 /area/awaymission/zoo)
 "yR" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/storage/box/donkpockets,
+/obj/item/storage/box/donkpockets,
 /obj/effect/floor_decal/corner/blue/diagonal,
 /turf/simulated/floor/tiled/white,
 /area/awaymission/zoo/pirateship)
 "yU" = (
 /obj/structure/closet,
-/obj/item/weapon/reagent_containers/food/snacks/liquidfood,
-/obj/item/weapon/reagent_containers/food/snacks/liquidfood,
-/obj/item/weapon/reagent_containers/food/snacks/liquidfood,
-/obj/item/weapon/reagent_containers/food/snacks/liquidfood,
+/obj/item/reagent_containers/food/snacks/liquidfood,
+/obj/item/reagent_containers/food/snacks/liquidfood,
+/obj/item/reagent_containers/food/snacks/liquidfood,
+/obj/item/reagent_containers/food/snacks/liquidfood,
 /obj/machinery/light{
 	dir = 4
 	},
@@ -2930,7 +2768,7 @@
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
 "zv" = (
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "zx" = (
@@ -2938,11 +2776,7 @@
 /mob/living/simple_mob/animal/space/alien{
 	faction = "zoo"
 	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "zC" = (
 /turf/simulated/floor/holofloor/beach/sand{
@@ -2966,21 +2800,21 @@
 /obj/structure/window/reinforced{
 	dir = 8
 	},
-/obj/item/weapon/storage/firstaid/toxin{
+/obj/item/storage/firstaid/toxin{
 	pixel_x = 3;
 	pixel_y = 3
 	},
-/obj/item/weapon/storage/firstaid/adv{
+/obj/item/storage/firstaid/adv{
 	pixel_x = 1
 	},
-/obj/item/weapon/storage/firstaid/fire{
+/obj/item/storage/firstaid/fire{
 	pixel_x = 1
 	},
-/obj/item/weapon/storage/firstaid/o2{
+/obj/item/storage/firstaid/o2{
 	pixel_x = 3;
 	pixel_y = 3
 	},
-/obj/item/weapon/storage/firstaid/regular,
+/obj/item/storage/firstaid/regular,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "zJ" = (
@@ -3097,7 +2931,7 @@
 /turf/simulated/floor/grass,
 /area/awaymission/zoo)
 "Bi" = (
-/obj/item/weapon/tool/wrench,
+/obj/item/tool/wrench,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "Bk" = (
@@ -3149,7 +2983,7 @@
 /area/awaymission/zoo/pirateship)
 "By" = (
 /obj/structure/table/rack,
-/obj/item/weapon/beach_ball,
+/obj/item/beach_ball,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "BC" = (
@@ -3173,24 +3007,12 @@
 	},
 /area/awaymission/zoo)
 "BN" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_s";
-	name = "rocky edge"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
+/obj/effect/floor_decal/spline/asteroid/south,
 /mob/living/simple_mob/animal/space/alien/drone{
 	faction = "zoo"
 	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "BO" = (
 /obj/structure/window/reinforced{
@@ -3207,26 +3029,20 @@
 /turf/simulated/floor/plating,
 /area/awaymission/zoo)
 "BS" = (
-/obj/item/weapon/stool/padded,
+/obj/item/stool/padded,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "Cc" = (
 /obj/structure/flora/ausbushes/brflowers,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "Ce" = (
 /obj/structure/flora/ausbushes/sparsegrass,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "Cj" = (
 /obj/structure/table/rack,
-/obj/item/weapon/cell/high,
+/obj/item/cell/high,
 /obj/effect/floor_decal/industrial/warning{
 	dir = 8
 	},
@@ -3240,7 +3056,7 @@
 /obj/structure/window/reinforced{
 	dir = 8
 	},
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "Cp" = (
@@ -3261,15 +3077,15 @@
 /area/awaymission/zoo)
 "Cx" = (
 /obj/structure/closet/crate/freezer,
-/obj/item/weapon/reagent_containers/food/snacks/meat,
-/obj/item/weapon/reagent_containers/food/snacks/meat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/meat,
+/obj/item/reagent_containers/food/snacks/meat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
 /turf/simulated/floor/tiled/white,
 /area/awaymission/zoo/pirateship)
 "Cy" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/pen/red,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/pen/red,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
 /turf/simulated/floor/tiled/steel,
 /area/awaymission/zoo/pirateship)
 "Cz" = (
@@ -3307,26 +3123,26 @@
 /obj/structure/table/standard,
 /obj/item/clothing/gloves/sterile,
 /obj/item/clothing/mask/surgical,
-/obj/item/weapon/surgical/retractor{
+/obj/item/surgical/retractor{
 	pixel_y = 6
 	},
-/obj/item/weapon/surgical/scalpel,
-/obj/item/weapon/surgical/surgicaldrill,
-/obj/item/weapon/surgical/circular_saw,
+/obj/item/surgical/scalpel,
+/obj/item/surgical/surgicaldrill,
+/obj/item/surgical/circular_saw,
 /obj/item/stack/nanopaste,
-/obj/item/weapon/surgical/hemostat{
+/obj/item/surgical/hemostat{
 	pixel_y = 4
 	},
-/obj/item/weapon/surgical/cautery{
+/obj/item/surgical/cautery{
 	pixel_y = 4
 	},
-/obj/item/weapon/surgical/FixOVein{
+/obj/item/surgical/FixOVein{
 	pixel_x = -6;
 	pixel_y = 1
 	},
 /obj/item/stack/medical/advanced/bruise_pack,
-/obj/item/weapon/surgical/bonesetter,
-/obj/item/weapon/surgical/bonegel{
+/obj/item/surgical/bonesetter,
+/obj/item/surgical/bonegel{
 	pixel_x = 4;
 	pixel_y = 3
 	},
@@ -3334,19 +3150,19 @@
 /area/awaymission/zoo)
 "CO" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/tool/screwdriver,
-/obj/item/weapon/tool/screwdriver,
-/obj/item/weapon/paper{
+/obj/item/tool/screwdriver,
+/obj/item/tool/screwdriver,
+/obj/item/paper{
 	info = "The next person who takes one of my screwdrivers gets stabbed with one. They are MINE. - Love, Madsen";
 	name = "scribbled note"
 	},
-/obj/item/weapon/tool/screwdriver,
+/obj/item/tool/screwdriver,
 /obj/effect/floor_decal/corner/red/diagonal,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
 "CR" = (
 /obj/structure/table/rack,
-/obj/item/weapon/storage/photo_album,
+/obj/item/storage/photo_album,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "CS" = (
@@ -3465,11 +3281,11 @@
 /turf/simulated/floor/plating,
 /area/awaymission/zoo)
 "DX" = (
-/obj/item/weapon/storage/firstaid/regular{
+/obj/item/storage/firstaid/regular{
 	pixel_x = -2;
 	pixel_y = 4
 	},
-/obj/item/weapon/storage/firstaid/regular{
+/obj/item/storage/firstaid/regular{
 	pixel_x = -2;
 	pixel_y = 4
 	},
@@ -3479,51 +3295,43 @@
 /obj/item/bodybag/cryobag{
 	pixel_x = 5
 	},
-/obj/item/weapon/storage/firstaid/o2{
+/obj/item/storage/firstaid/o2{
 	layer = 2.8;
 	pixel_x = 4;
 	pixel_y = 6
 	},
-/obj/item/weapon/storage/box/masks,
-/obj/item/weapon/storage/box/gloves{
+/obj/item/storage/box/masks,
+/obj/item/storage/box/gloves{
 	pixel_x = 3;
 	pixel_y = 4
 	},
-/obj/item/weapon/storage/firstaid/toxin,
-/obj/item/weapon/storage/firstaid/fire{
+/obj/item/storage/firstaid/toxin,
+/obj/item/storage/firstaid/fire{
 	layer = 2.9;
 	pixel_x = 2;
 	pixel_y = 3
 	},
-/obj/item/weapon/storage/firstaid/adv{
+/obj/item/storage/firstaid/adv{
 	pixel_x = -2
 	},
-/obj/item/weapon/reagent_containers/blood/empty,
-/obj/item/weapon/reagent_containers/blood/OMinus,
-/obj/item/weapon/reagent_containers/blood/OMinus,
-/obj/item/weapon/reagent_containers/blood/OMinus,
-/obj/item/weapon/reagent_containers/blood/OMinus,
+/obj/item/reagent_containers/blood/empty,
+/obj/item/reagent_containers/blood/OMinus,
+/obj/item/reagent_containers/blood/OMinus,
+/obj/item/reagent_containers/blood/OMinus,
+/obj/item/reagent_containers/blood/OMinus,
 /obj/structure/closet/medical_wall{
 	pixel_y = 32
 	},
-/obj/item/weapon/storage/firstaid/combat,
+/obj/item/storage/firstaid/combat,
 /turf/simulated/floor/tiled/white,
 /area/awaymission/zoo)
 "Ea" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
+/obj/effect/floor_decal/spline/asteroid/east,
 /obj/effect/floor_decal/asteroid,
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "Ei" = (
-/obj/item/device/radio/intercom{
+/obj/item/radio/intercom{
 	desc = "Talk through this. Evilly";
 	frequency = 1213;
 	name = "Syndicate Intercom";
@@ -3580,11 +3388,7 @@
 /mob/living/simple_mob/animal/space/alien{
 	faction = "zoo"
 	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "EF" = (
 /obj/structure/grille,
@@ -3640,11 +3444,7 @@
 /mob/living/simple_mob/vore/bee{
 	faction = "zoo"
 	},
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/turf/flooring/misc_vr.dmi';
-	icon_state = "hive";
-	name = "giant honeycomb"
-	},
+/turf/simulated/floor/holofloor/grass/hive,
 /area/awaymission/zoo)
 "Fe" = (
 /obj/structure/grille,
@@ -3703,7 +3503,7 @@
 	dir = 1
 	},
 /obj/structure/sign/kiddieplaque{
-	desc = "The Ir'ash'uint (translating roughly from Skrellian to 'Giant Frog' in Galactic Common), this amphibian lives on the Skrell homeworld Qerrbalak, in the Qerr�valis System. The Giant Frog shares a common, albeit distant ancestry with the Skrell, but unlike the Skrell, its diet is exclusively carnivorous. Its diet includes large insects, fish, and indeed, even Skrell.";
+	desc = "The Ir'ash'uint (translating roughly from Skrellian to 'Giant Frog' in Galactic Common), this amphibian lives on the Skrell homeworld Qerrbalak, in the Qerr'valis System. The Giant Frog shares a common, albeit distant ancestry with the Skrell, but unlike the Skrell, its diet is exclusively carnivorous. Its diet includes large insects, fish, and indeed, even Skrell.";
 	name = "Giant Frog Exhibit"
 	},
 /turf/simulated/floor/plating,
@@ -3745,14 +3545,11 @@
 /area/awaymission/zoo)
 "FQ" = (
 /obj/structure/flora/ausbushes/ppflowers,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "FS" = (
 /obj/structure/table/rack,
-/obj/item/weapon/storage/box/lights/mixed,
+/obj/item/storage/box/lights/mixed,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo)
 "FV" = (
@@ -3782,12 +3579,12 @@
 /area/awaymission/zoo)
 "FY" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/pen/blue,
-/obj/item/weapon/pen/red{
+/obj/item/pen/blue,
+/obj/item/pen/red{
 	pixel_x = -5;
 	pixel_y = -1
 	},
-/obj/item/weapon/paper_bin{
+/obj/item/paper_bin{
 	pixel_x = -3;
 	pixel_y = 7
 	},
@@ -3866,14 +3663,14 @@
 /area/awaymission/zoo)
 "GF" = (
 /obj/structure/table/rack,
-/obj/item/weapon/soap/deluxe,
+/obj/item/soap/deluxe,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "GI" = (
 /obj/machinery/vending/assist{
 	contraband = null;
 	name = "AntagCorpVend";
-	products = list(/obj/item/device/assembly/prox_sensor = 5, /obj/item/device/assembly/signaler = 4, /obj/item/device/assembly/infra = 4, /obj/item/device/assembly/prox_sensor = 4, /obj/item/weapon/handcuffs = 8, /obj/item/device/flash = 4, /obj/item/weapon/cartridge/signal = 4, /obj/item/clothing/glasses/sunglasses = 4)
+	products = list(/obj/item/assembly/prox_sensor = 5, /obj/item/assembly/signaler = 4, /obj/item/assembly/infra = 4, /obj/item/assembly/prox_sensor = 4, /obj/item/handcuffs = 8, /obj/item/flash = 4, /obj/item/cartridge/signal = 4, /obj/item/clothing/glasses/sunglasses = 4)
 	},
 /obj/machinery/light{
 	dir = 4
@@ -3916,7 +3713,7 @@
 /obj/structure/window/reinforced{
 	dir = 1
 	},
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "Ho" = (
@@ -3930,10 +3727,7 @@
 /turf/simulated/floor/tiled/white,
 /area/awaymission/zoo)
 "Hw" = (
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "Hx" = (
 /obj/structure/window/reinforced{
@@ -4019,11 +3813,7 @@
 /area/awaymission/zoo)
 "HU" = (
 /obj/effect/floor_decal/asteroid,
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "HW" = (
 /mob/living/simple_mob/animal/passive/dog/corgi/puppy{
@@ -4035,7 +3825,7 @@
 /area/awaymission/zoo)
 "HX" = (
 /obj/structure/table/standard,
-/obj/item/weapon/storage/box/donkpockets{
+/obj/item/storage/box/donkpockets{
 	pixel_x = 2;
 	pixel_y = 3
 	},
@@ -4075,7 +3865,7 @@
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo)
 "Im" = (
-/obj/item/weapon/reagent_containers/food/snacks/hugemushroomslice,
+/obj/item/reagent_containers/food/snacks/hugemushroomslice,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
 "Io" = (
@@ -4167,12 +3957,12 @@
 	dir = 1
 	},
 /obj/structure/table/standard,
-/obj/item/weapon/surgical/circular_saw,
-/obj/item/weapon/surgical/FixOVein{
+/obj/item/surgical/circular_saw,
+/obj/item/surgical/FixOVein{
 	pixel_x = -6;
 	pixel_y = 1
 	},
-/obj/item/weapon/surgical/hemostat,
+/obj/item/surgical/hemostat,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "Ju" = (
@@ -4201,12 +3991,12 @@
 /area/awaymission/zoo)
 "JD" = (
 /obj/structure/table/rack,
-/obj/item/device/camera_film,
+/obj/item/camera_film,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "JH" = (
 /obj/structure/table/rack,
-/obj/item/weapon/storage/fancy/crayons,
+/obj/item/storage/fancy/crayons,
 /turf/simulated/floor/holofloor/carpet,
 /area/awaymission/zoo)
 "JI" = (
@@ -4244,10 +4034,7 @@
 /area/awaymission/zoo)
 "Kg" = (
 /obj/structure/flora/ausbushes/lavendergrass,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "Kn" = (
 /obj/structure/disposalpipe/segment{
@@ -4262,7 +4049,7 @@
 	},
 /area/awaymission/zoo)
 "Ku" = (
-/obj/item/weapon/stool/padded,
+/obj/item/stool/padded,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo)
 "Kw" = (
@@ -4334,9 +4121,9 @@
 /area/awaymission/zoo)
 "Lr" = (
 /obj/structure/table/standard,
-/obj/item/weapon/surgical/scalpel,
-/obj/item/weapon/surgical/bonesetter,
-/obj/item/weapon/surgical/bonegel{
+/obj/item/surgical/scalpel,
+/obj/item/surgical/bonesetter,
+/obj/item/surgical/bonegel{
 	pixel_x = 4;
 	pixel_y = 3
 	},
@@ -4351,8 +4138,8 @@
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
 "Ly" = (
-/obj/item/weapon/handcuffs,
-/obj/item/weapon/handcuffs,
+/obj/item/handcuffs,
+/obj/item/handcuffs,
 /obj/structure/closet/crate,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
@@ -4430,16 +4217,8 @@
 	},
 /area/awaymission/zoo)
 "Mj" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "Ml" = (
 /turf/simulated/floor/wood,
@@ -4592,7 +4371,7 @@
 /area/awaymission/zoo/pirateship)
 "NI" = (
 /obj/structure/bed,
-/obj/item/weapon/bedsheet/yellow,
+/obj/item/bedsheet/yellow,
 /turf/simulated/floor/wood,
 /area/awaymission/zoo/pirateship)
 "NS" = (
@@ -4608,10 +4387,7 @@
 /area/awaymission/zoo)
 "NU" = (
 /obj/structure/flora/ausbushes/genericbush,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "NV" = (
 /turf/simulated/floor/carpet,
@@ -4708,7 +4484,7 @@
 /area/awaymission/zoo)
 "OP" = (
 /obj/structure/table/rack,
-/obj/item/weapon/storage/box/lights,
+/obj/item/storage/box/lights,
 /obj/effect/floor_decal/industrial/warning{
 	dir = 8
 	},
@@ -4737,16 +4513,13 @@
 /obj/item/stack/material/glass{
 	amount = 15
 	},
-/obj/item/weapon/cell{
-	charge = 100;
-	maxcharge = 15000
-	},
+/obj/item/cell,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "OZ" = (
-/obj/item/weapon/surgical/scalpel,
+/obj/item/surgical/scalpel,
 /obj/structure/closet/crate,
-/obj/item/weapon/tank/anesthetic,
+/obj/item/tank/anesthetic,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "Pa" = (
@@ -4757,7 +4530,7 @@
 /area/awaymission/zoo/syndieship)
 "Pc" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/paper/zoo/pirate/volk,
+/obj/item/paper/zoo/pirate/volk,
 /turf/simulated/floor/carpet,
 /area/awaymission/zoo/pirateship)
 "Pd" = (
@@ -4775,7 +4548,7 @@
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
 "Pp" = (
-/obj/item/weapon/material/knife,
+/obj/item/material/knife,
 /obj/effect/floor_decal/corner/red/diagonal,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
@@ -4822,7 +4595,7 @@
 /area/awaymission/zoo/pirateship)
 "Pw" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/material/knife,
+/obj/item/material/knife,
 /obj/effect/floor_decal/corner/red/diagonal,
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo/pirateship)
@@ -4837,12 +4610,12 @@
 /area/awaymission/zoo)
 "Pz" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "PB" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/paper{
+/obj/item/paper{
 	info = "DEAR DAIRY: So we was doing our typpical route when the captain says we've been picking up weird signals on some backwatter planet. Madsen wanted to stay on course but he ain't the captain, so we went out of the way to check it out. There was lots of rocks on the way, but we got to the planet fine. Found a big fancy camp with nobody around and this big metal donut thing with NT stamps all over it right in the middle. Case of beer too. Captain reckons we can pass it off to some buyer in the Syndicate. Ingram says it's bad luck and that someone is going to come look for it but it sounds like better money than selling bad meat to jerky companies.";
 	name = "Old Diary"
 	},
@@ -4923,11 +4696,11 @@
 /turf/simulated/floor/tiled/white,
 /area/awaymission/zoo)
 "Qy" = (
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "QD" = (
-/obj/item/weapon/mop,
+/obj/item/mop,
 /turf/simulated/floor/tiled/freezer,
 /area/awaymission/zoo/pirateship)
 "QK" = (
@@ -4969,46 +4742,18 @@
 	},
 /area/awaymission/zoo)
 "Rh" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_n";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/east,
+/obj/effect/floor_decal/spline/asteroid/north,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "Ri" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_n";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
+/obj/effect/floor_decal/spline/asteroid/east,
+/obj/effect/floor_decal/spline/asteroid/north,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "Rj" = (
-/obj/item/weapon/stool,
+/obj/item/stool,
 /turf/simulated/floor/tiled/steel,
 /area/awaymission/zoo/pirateship)
 "Rk" = (
@@ -5103,15 +4848,6 @@
 	},
 /turf/simulated/mineral/floor/ignore_mapgen,
 /area/awaymission/zoo)
-"RY" = (
-/obj/structure/bed/chair{
-	dir = 8
-	},
-/obj/structure/bed/chair{
-	dir = 8
-	},
-/turf/simulated/shuttle/floor/darkred,
-/area/awaymission/zoo/syndieship)
 "Sc" = (
 /obj/structure/flora/ausbushes/stalkybush,
 /turf/simulated/floor/beach/water,
@@ -5168,23 +4904,15 @@
 	},
 /obj/structure/grille,
 /obj/structure/sign/kiddieplaque{
-	desc = "The Ir'ash'uint (translating roughly from Skrellian to 'Giant Frog' in Galactic Common), this amphibian lives on the Skrell homeworld Qerrbalak, in the Qerr�valis System. The Giant Frog shares a common, albeit distant ancestry with the Skrell, but unlike the Skrell, its diet is exclusively carnivorous. Its diet includes large insects, fish, and indeed, even Skrell.";
+	desc = "The Ir'ash'uint (translating roughly from Skrellian to 'Giant Frog' in Galactic Common), this amphibian lives on the Skrell homeworld Qerrbalak, in the Qerr'valis System. The Giant Frog shares a common, albeit distant ancestry with the Skrell, but unlike the Skrell, its diet is exclusively carnivorous. Its diet includes large insects, fish, and indeed, even Skrell.";
 	name = "Giant Frog Exhibit"
 	},
 /turf/simulated/floor/plating,
 /area/awaymission/zoo)
 "Su" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_w";
-	name = "rocky edge"
-	},
+/obj/effect/floor_decal/spline/asteroid/west,
 /obj/effect/floor_decal/asteroid,
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "SG" = (
 /obj/structure/table/rack,
@@ -5221,7 +4949,7 @@
 /area/awaymission/zoo/pirateship)
 "Td" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/packageWrap,
+/obj/item/packageWrap,
 /obj/effect/floor_decal/industrial/warning{
 	dir = 1
 	},
@@ -5311,18 +5039,18 @@
 	req_access = list(150)
 	},
 /obj/item/bodybag,
-/obj/item/weapon/reagent_containers/syringe/antiviral,
-/obj/item/weapon/reagent_containers/syringe/antiviral,
-/obj/item/weapon/reagent_containers/syringe/antiviral,
-/obj/item/weapon/reagent_containers/glass/bottle/antitoxin{
+/obj/item/reagent_containers/syringe/antiviral,
+/obj/item/reagent_containers/syringe/antiviral,
+/obj/item/reagent_containers/syringe/antiviral,
+/obj/item/reagent_containers/glass/bottle/antitoxin{
 	pixel_x = -4;
 	pixel_y = 8
 	},
-/obj/item/weapon/reagent_containers/glass/bottle/inaprovaline{
+/obj/item/reagent_containers/glass/bottle/inaprovaline{
 	pixel_x = 4;
 	pixel_y = 7
 	},
-/obj/item/weapon/reagent_containers/syringe,
+/obj/item/reagent_containers/syringe,
 /obj/machinery/light{
 	dir = 4
 	},
@@ -5339,7 +5067,7 @@
 /area/awaymission/zoo/syndieship)
 "Un" = (
 /obj/structure/table/rack,
-/obj/item/weapon/storage/backpack/clown,
+/obj/item/storage/backpack/clown,
 /obj/item/clothing/shoes/rainbow,
 /obj/item/clothing/under/color/rainbow,
 /obj/item/clothing/gloves/rainbow,
@@ -5364,11 +5092,11 @@
 /obj/structure/closet/secure_closet/freezer/meat{
 	opened = 1
 	},
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
 /turf/simulated/floor/tiled/white,
 /area/awaymission/zoo/pirateship)
 "Ux" = (
@@ -5421,12 +5149,7 @@
 	dir = 1;
 	icon_state = "spline_plain_full"
 	},
-/obj/structure/showcase{
-	desc = "It looks almost lifelike.";
-	icon = 'icons/obj/statue.dmi';
-	icon_state = "monkey";
-	name = "Statue"
-	},
+/obj/structure/showcase/monkey,
 /turf/simulated/floor/grass,
 /area/awaymission/zoo)
 "UO" = (
@@ -5437,7 +5160,7 @@
 /area/awaymission/zoo)
 "UT" = (
 /obj/structure/closet/crate,
-/obj/item/weapon/spacecash/c10,
+/obj/item/spacecash/c10,
 /turf/simulated/floor/tiled/steel,
 /area/awaymission/zoo/pirateship)
 "UV" = (
@@ -5465,7 +5188,7 @@
 	base_state = "right";
 	icon_state = "right"
 	},
-/obj/item/weapon/reagent_containers/food/snacks/xenomeat,
+/obj/item/reagent_containers/food/snacks/xenomeat,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "Vh" = (
@@ -5491,7 +5214,7 @@
 /area/awaymission/zoo/pirateship)
 "Vj" = (
 /obj/structure/table/reinforced,
-/obj/item/weapon/reagent_containers/food/drinks/bottle/small/beer,
+/obj/item/reagent_containers/food/drinks/bottle/small/beer,
 /turf/simulated/floor/carpet,
 /area/awaymission/zoo/pirateship)
 "Vk" = (
@@ -5565,7 +5288,7 @@
 /obj/structure/window/reinforced{
 	dir = 4
 	},
-/obj/item/weapon/material/knife,
+/obj/item/material/knife,
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "VX" = (
@@ -5614,7 +5337,7 @@
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "Wl" = (
-/obj/item/weapon/reagent_containers/food/snacks/meat,
+/obj/item/reagent_containers/food/snacks/meat,
 /turf/simulated/floor/tiled/freezer,
 /area/awaymission/zoo/pirateship)
 "Wn" = (
@@ -5700,7 +5423,7 @@
 /area/awaymission/zoo/pirateship)
 "WV" = (
 /obj/structure/table/rack,
-/obj/item/weapon/tank/oxygen/yellow,
+/obj/item/tank/oxygen/yellow,
 /obj/item/clothing/suit/space/emergency,
 /obj/item/clothing/head/helmet/space/emergency,
 /obj/effect/floor_decal/industrial/warning,
@@ -5708,7 +5431,7 @@
 /area/awaymission/zoo/pirateship)
 "WY" = (
 /obj/structure/closet/crate,
-/obj/item/weapon/spacecash/c1000,
+/obj/item/spacecash/c1000,
 /turf/simulated/floor/tiled/steel,
 /area/awaymission/zoo/pirateship)
 "WZ" = (
@@ -5730,26 +5453,10 @@
 /turf/simulated/floor/plating,
 /area/awaymission/zoo/pirateship)
 "Xj" = (
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_e";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_s";
-	name = "rocky edge"
-	},
-/obj/effect/floor_decal/spline{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroid_edge_n";
-	name = "rocky edge"
-	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/obj/effect/floor_decal/spline/asteroid/east,
+/obj/effect/floor_decal/spline/asteroid/south,
+/obj/effect/floor_decal/spline/asteroid/north,
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "Xq" = (
 /obj/effect/overlay/palmtree_l,
@@ -5764,7 +5471,7 @@
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "Xv" = (
-/obj/item/weapon/stool,
+/obj/item/stool,
 /turf/simulated/floor/carpet,
 /area/awaymission/zoo/pirateship)
 "Xz" = (
@@ -5791,11 +5498,7 @@
 /mob/living/simple_mob/animal/space/alien/drone{
 	faction = "zoo"
 	},
-/turf/simulated/floor/holofloor/desert{
-	icon = 'icons/turf/floors.dmi';
-	icon_state = "asteroidplating";
-	name = "scorched sand"
-	},
+/turf/simulated/floor/holofloor/desert/scorched,
 /area/awaymission/zoo)
 "XQ" = (
 /obj/structure/flora/ausbushes/fernybush,
@@ -5845,7 +5548,7 @@
 	},
 /obj/structure/grille,
 /obj/structure/sign/kiddieplaque{
-	desc = "The Xenomorph XX121, better known just as Xenomorph, are an extraterrestrial, endoparasitoid species with multiple life cycles, possibly originating from the planet Proteus (also known as Xenomorph Prime), which orbits the star A6 454. One of the deadliest of all known alien species, these creatures need a host organism in order to reproduce. The appearance of the Xenomorph varies depending on its host. The Human phenotype is generally around 7�8 feet, and roughly 136.0 to 181.4 kilograms in weight, with a long, muscular tail and large, curved, oblong head. The Queen of this species is generally twice as large (they can grow even larger, some even up to 100 feet tall, and stronger if given time) and possesses superior speed, strength and intelligence. The term Xenomorph is derived from the Greek words xeno ('stranger', 'alien', and 'foreigner') and morphe ('form', 'shape'). There are no solid facts as to the origins of the Xenomorph species; instead, there are many assumptions which cannot be confirmed. Based on the limited information we have, the most commonly accepted hypothesis is that they are an artificially created species, although another hypothesis says that they evolved naturally on a planet much different than our own. The Xenomorph lives in a hive together with its queen. Amazingly, the blood and other bodily fluids of the Xenomorph are highly acidic. It is not yet understood how a creature of such biology can exist. The planet Proteus is also home to rare, red-hued Xenomorphs, who frequently fight their black-colored rivals. Some Xenomorphs are alleged to be able to cloak themselves to be invisible to the human eye, but this has not been confirmed by independent study.";
+	desc = "The Xenomorph XX121, better known just as Xenomorph, are an extraterrestrial, endoparasitoid species with multiple life cycles, possibly originating from the planet Proteus (also known as Xenomorph Prime), which orbits the star A6 454. One of the deadliest of all known alien species, these creatures need a host organism in order to reproduce. The appearance of the Xenomorph varies depending on its host. The Human phenotype is generally around 7-8 feet, and roughly 136.0 to 181.4 kilograms in weight, with a long, muscular tail and large, curved, oblong head. The Queen of this species is generally twice as large (they can grow even larger, some even up to 100 feet tall, and stronger if given time) and possesses superior speed, strength and intelligence. The term Xenomorph is derived from the Greek words xeno ('stranger', 'alien', and 'foreigner') and morphe ('form', 'shape'). There are no solid facts as to the origins of the Xenomorph species; instead, there are many assumptions which cannot be confirmed. Based on the limited information we have, the most commonly accepted hypothesis is that they are an artificially created species, although another hypothesis says that they evolved naturally on a planet much different than our own. The Xenomorph lives in a hive together with its queen. Amazingly, the blood and other bodily fluids of the Xenomorph are highly acidic. It is not yet understood how a creature of such biology can exist. The planet Proteus is also home to rare, red-hued Xenomorphs, who frequently fight their black-colored rivals. Some Xenomorphs are alleged to be able to cloak themselves to be invisible to the human eye, but this has not been confirmed by independent study.";
 	name = "Xenomorph Exhibit"
 	},
 /turf/simulated/floor/plating,
@@ -5855,9 +5558,9 @@
 	dir = 1
 	},
 /obj/structure/table/standard,
-/obj/item/weapon/surgical/surgicaldrill,
-/obj/item/weapon/surgical/cautery,
-/obj/item/weapon/surgical/retractor,
+/obj/item/surgical/surgicaldrill,
+/obj/item/surgical/cautery,
+/obj/item/surgical/retractor,
 /obj/item/stack/nanopaste,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
@@ -5888,10 +5591,7 @@
 /area/awaymission/zoo)
 "YE" = (
 /obj/structure/flora/ausbushes/fullgrass,
-/turf/simulated/floor/holofloor/grass{
-	icon = 'icons/jungle.dmi';
-	icon_state = "grass2"
-	},
+/turf/simulated/floor/holofloor/grass/jungle,
 /area/awaymission/zoo)
 "YG" = (
 /turf/simulated/floor/tiled/steel,
@@ -5902,8 +5602,8 @@
 /area/awaymission/zoo/pirateship)
 "YM" = (
 /obj/structure/bed,
-/obj/item/weapon/bedsheet,
-/obj/item/weapon/storage/wallet/random,
+/obj/item/bedsheet,
+/obj/item/storage/wallet/random,
 /turf/simulated/floor/tiled/steel,
 /area/awaymission/zoo/pirateship)
 "YO" = (
@@ -5914,9 +5614,9 @@
 /obj/structure/closet{
 	name = "custodial"
 	},
-/obj/item/weapon/reagent_containers/glass/bucket,
-/obj/item/weapon/mop,
-/obj/item/weapon/reagent_containers/spray/cleaner,
+/obj/item/reagent_containers/glass/bucket,
+/obj/item/mop,
+/obj/item/reagent_containers/spray/cleaner,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "YR" = (
@@ -5942,7 +5642,7 @@
 /area/awaymission/zoo/pirateship)
 "YW" = (
 /obj/structure/table/rack,
-/obj/item/weapon/storage/belt/utility/full,
+/obj/item/storage/belt/utility/full,
 /obj/effect/floor_decal/industrial/warning{
 	dir = 8
 	},
@@ -5955,7 +5655,7 @@
 /turf/simulated/floor/tiled,
 /area/awaymission/zoo)
 "Za" = (
-/obj/item/weapon/tool/crowbar,
+/obj/item/tool/crowbar,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 "Ze" = (
@@ -6013,12 +5713,7 @@
 /area/awaymission/zoo)
 "Zy" = (
 /obj/structure/bed/chair,
-/obj/structure/showcase{
-	desc = "It looks almost lifelike.";
-	icon = 'icons/obj/statue.dmi';
-	icon_state = "Human_male";
-	name = "Statue"
-	},
+/obj/structure/showcase/human,
 /turf/simulated/floor/lino,
 /area/awaymission/zoo)
 "ZA" = (
@@ -6081,13 +5776,13 @@
 	pixel_x = 32;
 	req_access = list(150)
 	},
-/obj/item/weapon/tank/anesthetic,
+/obj/item/tank/anesthetic,
 /obj/item/clothing/mask/breath/medical,
 /obj/item/clothing/mask/surgical,
 /obj/item/clothing/gloves/sterile,
-/obj/item/weapon/reagent_containers/syringe,
-/obj/item/weapon/reagent_containers/glass/bottle/stoxin,
-/obj/item/weapon/reagent_containers/glass/bottle/stoxin,
+/obj/item/reagent_containers/syringe,
+/obj/item/reagent_containers/glass/bottle/stoxin,
+/obj/item/reagent_containers/glass/bottle/stoxin,
 /turf/simulated/shuttle/floor/darkred,
 /area/awaymission/zoo/syndieship)
 
@@ -18908,7 +18603,7 @@ yY
 yY
 mf
 vs
-RY
+vs
 vs
 vs
 yY

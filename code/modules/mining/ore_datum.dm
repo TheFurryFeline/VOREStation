@@ -1,4 +1,4 @@
-/ore
+/datum/ore
 	var/name
 	var/display_name
 	var/alloy
@@ -7,74 +7,76 @@
 	var/result_amount     // How much ore?
 	var/spread = 1	      // Does this type of deposit spread?
 	var/spread_chance     // Chance of spreading in any direction
-	var/ore	              // Path to the ore produced when tile is mined.
+	var/datum/ore	              // Path to the ore produced when tile is mined.
 	var/scan_icon         // Overlay for ore scanners.
 	// Xenoarch stuff. No idea what it's for, just refactored it to be less awful.
 	var/list/xarch_ages = list(
 		"thousand" = 999,
 		"million" = 999
 		)
-	var/xarch_source_mineral = "iron"
-	var/reagent = "silicate"
+	var/xarch_source_mineral = REAGENT_ID_IRON
+	var/reagent = REAGENT_ID_SILICATE
+	var/wiki_flag = 0
 
-/ore/New()
+/datum/ore/New()
 	. = ..()
 	if(!display_name)
 		display_name = name
 
-/ore/uranium
-	name = "uranium"
+/datum/ore/uranium
+	name = ORE_URANIUM
 	display_name = "pitchblende"
-	smelts_to = "uranium"
+	smelts_to = MAT_URANIUM
 	result_amount = 5
 	spread_chance = 10
-	ore = /obj/item/weapon/ore/uranium
+	ore = /obj/item/ore/uranium
 	scan_icon = "mineral_uncommon"
 	xarch_ages = list(
 		"thousand" = 999,
 		"million" = 704
 		)
-	xarch_source_mineral = "potassium"
-	reagent = "uranium"
+	xarch_source_mineral = REAGENT_ID_POTASSIUM
+	reagent = REAGENT_ID_RADIUM // Otherwise it emp pulses constantly with iron
 
-/ore/hematite
-	name = "hematite"
-	display_name = "hematite"
-	smelts_to = "iron"
+/datum/ore/hematite
+	name = ORE_HEMATITE
+	display_name = ORE_HEMATITE
+	smelts_to = MAT_IRON
 	alloy = 1
 	result_amount = 5
 	spread_chance = 25
-	ore = /obj/item/weapon/ore/iron
+	ore = /obj/item/ore/iron
 	scan_icon = "mineral_common"
-	reagent = "iron"
+	reagent = REAGENT_ID_IRON
 
-/ore/coal
-	name = "carbon"
+/datum/ore/coal
+	name = ORE_CARBON
 	display_name = "raw carbon"
-	smelts_to = "plastic"
-	compresses_to = "graphite"
+	smelts_to = MAT_PLASTIC
+	compresses_to = MAT_GRAPHITE
 	alloy = 1
 	result_amount = 5
 	spread_chance = 25
-	ore = /obj/item/weapon/ore/coal
+	ore = /obj/item/ore/coal
 	scan_icon = "mineral_common"
-	reagent = "carbon"
+	reagent = REAGENT_ID_CARBON
 
-/ore/glass
-	name = "sand"
-	display_name = "sand"
-	smelts_to = "glass"
+/datum/ore/glass
+	name = ORE_SAND
+	display_name = ORE_SAND
+	smelts_to = MAT_GLASS
 	alloy = 1
-	compresses_to = "sandstone"
+	ore = /obj/item/ore/glass
+	compresses_to = MAT_SANDSTONE
 
-/ore/phoron
-	name = "phoron"
+/datum/ore/phoron
+	name = ORE_PHORON
 	display_name = "phoron crystals"
-	compresses_to = "phoron"
+	compresses_to = MAT_PHORON
 	//smelts_to = something that explodes violently on the conveyor, huhuhuhu
 	result_amount = 5
 	spread_chance = 25
-	ore = /obj/item/weapon/ore/phoron
+	ore = /obj/item/ore/phoron
 	scan_icon = "mineral_uncommon"
 	xarch_ages = list(
 		"thousand" = 999,
@@ -82,26 +84,26 @@
 		"billion" = 13,
 		"billion_lower" = 10
 		)
-	xarch_source_mineral = "phoron"
-	reagent = "phoron"
+	xarch_source_mineral = REAGENT_ID_PHORON
+	reagent = REAGENT_ID_PHORON
 
-/ore/silver
-	name = "silver"
+/datum/ore/silver
+	name = ORE_SILVER
 	display_name = "native silver"
-	smelts_to = "silver"
+	smelts_to = MAT_SILVER
 	result_amount = 5
 	spread_chance = 10
-	ore = /obj/item/weapon/ore/silver
+	ore = /obj/item/ore/silver
 	scan_icon = "mineral_uncommon"
-	reagent = "silver"
+	reagent = REAGENT_ID_SILVER
 
-/ore/gold
-	smelts_to = "gold"
-	name = "gold"
+/datum/ore/gold
+	name = ORE_GOLD
+	smelts_to = MAT_GOLD
 	display_name = "native gold"
 	result_amount = 5
 	spread_chance = 10
-	ore = /obj/item/weapon/ore/gold
+	ore = /obj/item/ore/gold
 	scan_icon = "mineral_uncommon"
 	xarch_ages = list(
 		"thousand" = 999,
@@ -109,138 +111,144 @@
 		"billion" = 4,
 		"billion_lower" = 3
 		)
-	reagent = "gold"
+	reagent = REAGENT_ID_GOLD
 
-/ore/diamond
-	name = "diamond"
-	display_name = "diamond"
+/datum/ore/diamond
+	name = ORE_DIAMOND
+	display_name = ORE_DIAMOND
 	alloy = 1
-	compresses_to = "diamond"
+	compresses_to = MAT_DIAMOND
 	result_amount = 5
 	spread_chance = 10
-	ore = /obj/item/weapon/ore/diamond
+	ore = /obj/item/ore/diamond
 	scan_icon = "mineral_rare"
-	xarch_source_mineral = "nitrogen"
-	reagent = "carbon"
+	xarch_source_mineral = REAGENT_ID_NITROGEN
+	reagent = REAGENT_ID_CARBON
 
-/ore/platinum
-	name = "platinum"
+/datum/ore/platinum
+	name = ORE_PLATINUM
 	display_name = "raw platinum"
-	smelts_to = "platinum"
-	compresses_to = "osmium"
+	smelts_to = MAT_PLATINUM
+	compresses_to = MAT_OSMIUM
 	alloy = 1
 	result_amount = 5
 	spread_chance = 10
-	ore = /obj/item/weapon/ore/osmium
+	ore = /obj/item/ore/osmium
 	scan_icon = "mineral_rare"
-	reagent = "platinum"
+	reagent = REAGENT_ID_PLATINUM
 
-/ore/hydrogen
-	name = "mhydrogen"
+/datum/ore/hydrogen
+	name = ORE_MHYDROGEN
 	display_name = "metallic hydrogen"
-	smelts_to = "tritium"
-	compresses_to = "mhydrogen"
+	smelts_to = MAT_TRITIUM
+	compresses_to = MAT_METALHYDROGEN
+	ore = /obj/item/ore/hydrogen
 	scan_icon = "mineral_rare"
-	reagent = "hydrogen"
+	reagent = REAGENT_ID_HYDROGEN
 
-/ore/verdantium
-	name = MAT_VERDANTIUM
+/datum/ore/verdantium
+	name = ORE_VERDANTIUM
 	display_name = "crystalline verdantite"
 	compresses_to = MAT_VERDANTIUM
 	result_amount = 2
 	spread_chance = 5
-	ore = /obj/item/weapon/ore/verdantium
+	ore = /obj/item/ore/verdantium
 	scan_icon = "mineral_rare"
 	xarch_ages = list(
 		"billion" = 13,
 		"billion_lower" = 10
 		)
+	reagent = REAGENT_ID_PHOSPHORUS
 
-/ore/marble
-	name = MAT_MARBLE
+/datum/ore/marble
+	name = ORE_MARBLE
 	display_name = "recrystallized carbonate"
-	compresses_to = "marble"
+	compresses_to = MAT_MARBLE
 	result_amount = 1
 	spread_chance = 10
-	ore = /obj/item/weapon/ore/marble
+	ore = /obj/item/ore/marble
 	scan_icon = "mineral_common"
-	reagent = "calciumcarbonate"
+	reagent = REAGENT_ID_CALCIUMCARBONATE
 
-/ore/lead
-	name = MAT_LEAD
+/datum/ore/lead
+	name = ORE_LEAD
 	display_name = "lead glance"
-	smelts_to = "lead"
+	smelts_to = MAT_LEAD
 	result_amount = 3
 	spread_chance = 20
-	ore = /obj/item/weapon/ore/lead
+	ore = /obj/item/ore/lead
 	scan_icon = "mineral_rare"
-	reagent = "lead"
-/*
-/ore/copper
-	name = "copper"
-	display_name = "copper"
-	smelts_to = "copper"
+	reagent = REAGENT_ID_LEAD
+
+/datum/ore/copper
+	name = ORE_COPPER
+	display_name = ORE_COPPER
+	smelts_to = MAT_COPPER
 	alloy = 1
 	result_amount = 5
 	spread_chance = 15
-	ore = /obj/item/weapon/ore/copper
+	ore = /obj/item/ore/copper
 	scan_icon = "mineral_common"
-	reagent = "copper"
+	reagent = REAGENT_ID_COPPER
 
-/ore/tin
-	name = "tin"
-	display_name = "tin"
-	smelts_to = "tin"
+/datum/ore/tin
+	name = ORE_TIN
+	display_name = ORE_TIN
+	smelts_to = MAT_TIN
 	alloy = 1
 	result_amount = 5
 	spread_chance = 10
-	ore = /obj/item/weapon/ore/tin
+	ore = /obj/item/ore/tin
 	scan_icon = "mineral_common"
+	reagent = REAGENT_ID_TIN
 
-/ore/quartz
-	name = "quartz"
+/datum/ore/quartz
+	name = ORE_QUARTZ
 	display_name = "unrefined quartz"
-	compresses_to = "quartz"
+	compresses_to = MAT_QUARTZ
 	result_amount = 5
 	spread_chance = 5
-	ore = /obj/item/weapon/ore/quartz
+	ore = /obj/item/ore/quartz
 	scan_icon = "mineral_common"
+	reagent = REAGENT_ID_SILICON
 
-/ore/bauxite
-	name = "bauxite"
-	display_name = "bauxite"
-	smelts_to = "aluminium"
+/datum/ore/bauxite
+	name = ORE_BAUXITE
+	display_name = ORE_BAUXITE
+	smelts_to = MAT_ALUMINIUM
 	result_amount = 5
 	spread_chance = 25
-	ore = /obj/item/weapon/ore/bauxite
+	ore = /obj/item/ore/bauxite
 	scan_icon = "mineral_common"
-	reagent = "aluminum"
-*/
-/ore/rutile
-	name = "rutile"
-	display_name = "rutile"
-	smelts_to = "titanium"
+	reagent = REAGENT_ID_ALUMINIUM
+
+/datum/ore/rutile
+	name = ORE_RUTILE
+	display_name = ORE_RUTILE
+	smelts_to = MAT_TITANIUM
 	result_amount = 5
 	spread_chance = 12
 	alloy = 1
-	ore = /obj/item/weapon/ore/rutile
+	ore = /obj/item/ore/rutile
 	scan_icon = "mineral_uncommon"
-/*
-/ore/painite
-	name = "painite"
+	reagent = REAGENT_ID_TITANIUMDIOX
+
+/datum/ore/painite
+	name = ORE_PAINITE
 	display_name = "rough painite"
-	compresses_to = "painite"
+	compresses_to = MAT_PAINITE
 	result_amount = 5
 	spread_chance = 3
-	ore = /obj/item/weapon/ore/painite
+	ore = /obj/item/ore/painite
 	scan_icon = "mineral_rare"
+	reagent = REAGENT_ID_CALCIUM
 
-/ore/void_opal
-	name = "void opal"
+/datum/ore/void_opal
+	name = ORE_VOPAL
 	display_name = "rough void opal"
-	compresses_to = "void opal"
+	compresses_to = MAT_VOPAL
 	result_amount = 5
 	spread_chance = 1
-	ore = /obj/item/weapon/ore/void_opal
+	ore = /obj/item/ore/void_opal
 	scan_icon = "mineral_rare"
-*/
+	reagent = REAGENT_ID_SULFUR

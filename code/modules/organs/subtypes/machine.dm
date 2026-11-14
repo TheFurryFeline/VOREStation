@@ -4,23 +4,25 @@
 	icon_state = "scell"
 	organ_tag = O_CELL
 	parent_organ = BP_TORSO
-	vital = 1
+	vital = TRUE
 	var/defib_timer = 1 // This sits in the brain organ slot, but is not a brain.
 
-/obj/item/organ/internal/cell/New()
+/obj/item/organ/internal/cell/Initialize(mapload, internal)
 	robotize()
-	..()
+	. = ..()
 
 /obj/item/organ/internal/cell/replaced()
 	..()
 	// This is very ghetto way of rebooting an IPC. TODO better way.
 	if(owner && owner.stat == DEAD)
 		owner.set_stat(CONSCIOUS)
-		owner.visible_message("<span class='danger'>\The [owner] twitches visibly!</span>")
+		owner.visible_message(span_danger("\The [owner] twitches visibly!"))
 
-/obj/item/organ/internal/cell/emp_act(severity)
-	..()
-	owner.adjust_nutrition(-rand(10 / severity, 50 / severity))
+/obj/item/organ/internal/cell/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
+	owner?.adjust_nutrition(-rand(10 / severity, 50 / severity))
 
 /obj/item/organ/internal/cell/machine/handle_organ_proc_special()
 	..()
@@ -34,9 +36,9 @@
 	name = "brain interface"
 	organ_tag = O_BRAIN
 	parent_organ = BP_HEAD
-	vital = 1
-	var/brain_type = /obj/item/device/mmi
-	var/obj/item/device/mmi/stored_mmi
+	vital = TRUE
+	var/brain_type = /obj/item/mmi
+	var/obj/item/mmi/stored_mmi
 	robotic = ORGAN_ASSISTED
 	butcherable = FALSE
 
@@ -46,13 +48,17 @@
 		stored_mmi = null
 	return ..()
 
-/obj/item/organ/internal/mmi_holder/New(var/mob/living/carbon/human/new_owner, var/internal)
-	..(new_owner, internal)
-	var/mob/living/carbon/human/dummy/mannequin/M = new_owner
-	if(istype(M))
+/obj/item/organ/internal/mmi_holder/Initialize(mapload, internal, obj/item/mmi/installed)
+	. = ..(mapload, internal)
+	if(!ishuman(loc) || ismannequin(loc))
 		return
-	stored_mmi = new brain_type(src)
-	sleep(-1)
+	if(installed)
+		stored_mmi = installed
+	else
+		stored_mmi = new brain_type(src)
+	return INITIALIZE_HINT_LATELOAD
+
+/obj/item/organ/internal/mmi_holder/LateInitialize()
 	update_from_mmi()
 
 // This sits in the brain organ slot, but is not a brain. Posibrains and dronecores aren't brains either.
@@ -87,31 +93,33 @@
 
 	if(owner && owner.stat == DEAD)
 		owner.set_stat(CONSCIOUS)
-		dead_mob_list -= owner
-		living_mob_list |= owner
-		owner.visible_message("<span class='danger'>\The [owner] twitches visibly!</span>")
+		GLOB.dead_mob_list -= owner
+		GLOB.living_mob_list |= owner
+		owner.visible_message(span_danger("\The [owner] twitches visibly!"))
 
-/obj/item/organ/internal/mmi_holder/removed(var/mob/living/user)
+/obj/item/organ/internal/mmi_holder/removed(mob/living/user)
 
 	if(stored_mmi)
 		. = stored_mmi //VOREStation Code
 		stored_mmi.forceMove(drop_location())
 		if(owner.mind)
 			owner.mind.transfer_to(stored_mmi.brainmob)
+			stored_mmi.brainmob.reset_perspective()
 	..()
 
 	var/mob/living/holder_mob = loc
 	if(istype(holder_mob))
 		holder_mob.drop_from_inventory(src)
 	qdel(src)
-
-/obj/item/organ/internal/mmi_holder/emp_act(severity)
-	// ..() // VOREStation Edit - Don't take damage
-	owner?.adjustToxLoss(rand(6/severity, 12/severity))
-
+/*
+// EMP loops inside things, this should still work?
+/obj/item/organ/internal/mmi_holder/emp_act(severity, recursive)
+	if(stored_mmi)
+		stored_mmi.emp_act(severity, recursive)
+*/
 /obj/item/organ/internal/mmi_holder/posibrain
 	name = "positronic brain interface"
-	brain_type = /obj/item/device/mmi/digital/posibrain
+	brain_type = /obj/item/mmi/digital/posibrain
 	robotic = ORGAN_ROBOT
 
 /obj/item/organ/internal/mmi_holder/posibrain/update_from_mmi()
@@ -123,7 +131,7 @@
 
 /obj/item/organ/internal/mmi_holder/robot
 	name = "digital brain interface"
-	brain_type = /obj/item/device/mmi/digital/robot
+	brain_type = /obj/item/mmi/digital/robot
 	robotic = ORGAN_ROBOT
 
 /obj/item/organ/internal/mmi_holder/robot/update_from_mmi()

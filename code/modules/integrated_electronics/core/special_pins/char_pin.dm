@@ -3,12 +3,12 @@
 	name = "char pin"
 
 /datum/integrated_io/char/ask_for_pin_data(mob/user)
-	var/new_data = tgui_input_text(usr, "Please type in one character.","[src] char writing")
+	var/new_data = sanitizeSafe(tgui_input_text(user, "Please type in one character.","[src] char writing", encode = FALSE), 1, 0, 0)
 	if(holder.check_interactivity(user) )
-		to_chat(user, "<span class='notice'>You input [new_data ? "new_data" : "NULL"] into the pin.</span>")
+		to_chat(user, span_notice("You input [new_data ? "new_data" : "NULL"] into the pin."))
 		write_data_to_pin(new_data)
 
-/datum/integrated_io/char/write_data_to_pin(var/new_data)
+/datum/integrated_io/char/write_data_to_pin(new_data)
 	if(isnull(new_data) || istext(new_data))
 		if(length(new_data) > 1)
 			return
@@ -19,7 +19,7 @@
 /datum/integrated_io/char/scramble()
 	if(!is_valid())
 		return
-	var/list/options = list("!","@","#","$","%","^","&","*") + alphabet_uppercase
+	var/list/options = list("!","@","#","$","%","^","&","*") + GLOB.alphabet_upper
 	data = pick(options)
 	push_data()
 

@@ -6,7 +6,7 @@
 	icon_living = "goose"
 	icon_dead = "goose_dead"
 
-	faction = "geese"
+	faction = FACTION_GEESE
 
 	maxHealth = 30
 	health = 30
@@ -21,12 +21,14 @@
 	attacktext = list("pecked")
 	attack_sound = 'sound/weapons/bite.ogg'
 
-	organ_names = /decl/mob_organ_names/goose
+	organ_names = /datum/decl/mob_organ_names/goose
 
 	has_langs = list(LANGUAGE_ANIMAL)
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/chicken
+	meat_type = /obj/item/reagent_containers/food/snacks/meat/chicken
 	meat_amount = 3
+
+	can_be_drop_prey = FALSE
 
 /datum/say_list/goose
 	speak = list("HONK!")
@@ -42,11 +44,11 @@
 /mob/living/simple_mob/animal/space/goose/verb/berserk()
 	set name = "Berserk"
 	set desc = "Enrage and become vastly stronger for a period of time, however you will be weaker afterwards."
-	set category = "Abilities"
+	set category = "Abilities.Goose"
 
 	add_modifier(/datum/modifier/berserk, 30 SECONDS)
 
-/decl/mob_organ_names/goose
+/datum/decl/mob_organ_names/goose
 	hit_zones = list("head", "chest", "left leg", "right leg", "left wing", "right wing", "neck")
 
 /mob/living/simple_mob/animal/space/goose/white
@@ -56,3 +58,27 @@
 	icon_dead = "whitegoose_dead"
 	name = "white goose"
 	desc = "And just when you thought it was a lovely day..."
+
+/mob/living/simple_mob/animal/space/goose/domesticated
+	name = "domesticated goose"
+	desc = "It's a domesticated goose. It still looks pretty angry."
+	faction = "neutral" //Mess with this and the goose will eat anyones face, will eat other factions faces, appropiate considering its a hellbird - Jack
+
+	can_be_drop_prey = TRUE
+
+/mob/living/simple_mob/animal/space/goose/domesticated/casino
+	name = "Donella"
+	desc = "It's a golden goose named Donella, she is a beloved treasure of the golden goose casino, nobody knows where she comes from."
+	icon_state = "golden_goose"
+	icon_living = "golden_goose"
+	icon_dead = "golden_goose_dead"
+	icon = 'icons/mob/animal.dmi'
+
+	faction = "neutral" //Mess with this and the goose will eat anyones face, will eat other factions faces, appropiate considering its a hellbird - Jack
+
+	maxHealth = 75
+	health = 75
+
+	harm_intent_damage = 10
+	melee_damage_lower = 10
+	melee_damage_upper = 10

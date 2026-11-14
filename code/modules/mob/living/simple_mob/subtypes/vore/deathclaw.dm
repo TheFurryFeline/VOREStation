@@ -2,13 +2,13 @@
 	name = "Creature - Deathclaw"
 	desc = "Classification: Trioceros dominus\
 	<br><br>\
-	Originally the Deathclaw was a top secret genetics project that was run by ancestral Zorren which was \
-	lost to time. While it is not immediately evident in their body structure, these creatures bare a \
+	Originally the deathclaw was a top secret genetics project that was run by ancestral zorren. \
+	While it is not immediately evident in their body structure, these creatures bare a \
 	subtle genetic connection to Zorren, however, this connection is marred by the other genes that \
-	have been grafted onto the DNA strucutre of the Deathclaw. The creatures are known to attack humans \
+	have been grafted onto the DNA structure of the Deathclaw. The creatures are known to attack humans \
 	and other animals regularly to protect their territory or to hunt for food. It is speculated that \
-	they escaped roughly around the time as whatever calamity befell the Zorren many centuries ago \
-	as sighting of these beasts in the wild began around that time according to recovered Zorren texts. \
+	they escaped roughly around the time as whatever calamity befell the zorren many centuries ago \
+	as sighting of these beasts in the wild began around that time according to recovered zorren texts. \
 	<br>\
 	Deathclaws are a large, carnivorous, bipedal reptile species, designed for maximum lethality. \
 	Deathclaws are made even more dangerous by their reproductive instincts. deathclaws are an oviparous species, \
@@ -24,15 +24,15 @@
 	tt_desc = "Trioceros dominus"
 	catalogue_data = list(/datum/category_item/catalogue/fauna/deathclaw)
 
-	icon_dead = "deathclaw-dead"
-	icon_living = "deathclaw"
-	icon_state = "deathclaw"
+	icon_dead = "deathclaw_new-dead"
+	icon_living = "deathclaw_new"
+	icon_state = "deathclaw_new"
 	icon = 'icons/mob/vore64x64.dmi'
 	vis_height = 64
 
 	attacktext = list("mauled")
 
-	faction = "deathclaw"
+	faction = FACTION_DEATHCLAW
 
 	maxHealth = 200
 	health = 200
@@ -42,7 +42,7 @@
 	melee_damage_upper = 30
 
 	meat_amount = 8
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
+	meat_type = /obj/item/reagent_containers/food/snacks/meat
 
 	old_x = -16
 	old_y = 0
@@ -59,6 +59,8 @@
 
 	ai_holder_type = /datum/ai_holder/simple_mob/melee/deathclaw
 
+	allow_mind_transfer = TRUE
+
 // Activate Noms!
 /mob/living/simple_mob/vore/aggressive/deathclaw
 	vore_active = 1
@@ -68,19 +70,24 @@
 	vore_pounce_chance = 0 // Beat them into crit before eating.
 	vore_icons = SA_ICON_LIVING
 
+	can_be_drop_prey = FALSE
+
+	export_research_value = TECHWEB_TIER_2_POINTS
+	export_research_diminished_max = 3
+
 /mob/living/simple_mob/vore/aggressive/deathclaw/Login()
 	. = ..()
 	if(!riding_datum)
 		riding_datum = new /datum/riding/simple_mob(src)
-	verbs |= /mob/living/simple_mob/proc/animal_mount
-	verbs |= /mob/living/proc/toggle_rider_reins
+	add_verb(src, /mob/living/simple_mob/proc/animal_mount)
+	add_verb(src, /mob/living/proc/toggle_rider_reins)
 	movement_cooldown = 0
 
 /mob/living/simple_mob/vore/aggressive/deathclaw/MouseDrop_T(mob/living/M, mob/living/user)
 	return
 
-/mob/living/simple_mob/vore/aggressive/deathclaw/init_vore()
-	..()
+/mob/living/simple_mob/vore/aggressive/deathclaw/load_default_bellies()
+	. = ..()
 	var/obj/belly/B = vore_selected
 	B.name = "stomach"
 	B.desc = "The giant mutant of a lizard finishes stuffing you into its jaws and down its ravenously clenching gullet with a worrying ease and efficiency. An assortment of slick, slimy noises assault your senses for a few gulp-filled moments... before you spill out into the apex predator's swelteringly hot stomach, its walls already possessively grinding into your body."
@@ -104,3 +111,12 @@
 /datum/ai_holder/simple_mob/melee/deathclaw
 	can_breakthrough = TRUE
 	violent_breakthrough = TRUE
+
+/mob/living/simple_mob/vore/aggressive/deathclaw/den
+
+	maxHealth = 400
+	health = 400
+	see_in_dark = 8
+	desc = "Big! Big! The size of three men! Claws as long as my forearm! Ripped apart! Ripped apart! This one seems angrier than most."
+	melee_damage_lower = 10
+	melee_damage_upper = 40

@@ -26,12 +26,16 @@
 	max_universal_equip = 1
 	max_special_equip = 1
 
-/obj/mecha/working/hoverpod/Initialize()
+/obj/mecha/working/hoverpod/Initialize(mapload)
 	. = ..()
 	ion_trail = new /datum/effect/effect/system/ion_trail_follow()
 	ion_trail.set_up(src)
 
-/obj/mecha/working/hoverpod/moved_inside(var/mob/living/carbon/human/H as mob)
+/obj/mecha/working/hoverpod/Destroy()
+	QDEL_NULL(ion_trail)
+	. = ..()
+
+/obj/mecha/working/hoverpod/moved_inside(mob/living/carbon/human/H as mob)
 	. = ..(H)
 	if(.)
 		ion_trail.start()
@@ -47,14 +51,14 @@
 	if (href_list["toggle_stabilization"])
 		stabilization_enabled = !stabilization_enabled
 		send_byjax(src.occupant,"exosuit.browser","stabilization_command","[stabilization_enabled?"Dis":"En"]able thruster stabilization")
-		src.occupant_message("<span class='notice'>Thruster stabilization [stabilization_enabled? "enabled" : "disabled"].</span>")
+		src.occupant_message(span_notice("Thruster stabilization [stabilization_enabled? "enabled" : "disabled"]."))
 		return
 
 /obj/mecha/working/hoverpod/get_commands()
 	var/output = {"<div class='wr'>
 						<div class='header'>Special</div>
 						<div class='links'>
-						<a href='?src=\ref[src];toggle_stabilization=1'><span id="stabilization_command">[stabilization_enabled?"Dis":"En"]able thruster stabilization</span></a><br>
+						<a href='byond://?src=\ref[src];toggle_stabilization=1'><span id="stabilization_command">[stabilization_enabled?"Dis":"En"]able thruster stabilization</span></a><br>
 						</div>
 						</div>
 						"}
@@ -117,7 +121,7 @@
 	max_universal_equip = 1
 	max_special_equip = 1
 
-/obj/mecha/working/hoverpod/combatpod/Initialize()
+/obj/mecha/working/hoverpod/combatpod/Initialize(mapload)
 	. = ..()
 	var/obj/item/mecha_parts/mecha_equipment/ME = new /obj/item/mecha_parts/mecha_equipment/weapon/energy/laser
 	ME.attach(src)
@@ -128,7 +132,7 @@
 /obj/mecha/working/hoverpod/shuttlepod
 	desc = "Who knew a tiny ball could fit three people?"
 
-/obj/mecha/working/hoverpod/shuttlepod/Initialize()
+/obj/mecha/working/hoverpod/shuttlepod/Initialize(mapload)
 	. = ..()
 	var/obj/item/mecha_parts/mecha_equipment/ME = new /obj/item/mecha_parts/mecha_equipment/tool/passenger
 	ME.attach(src)

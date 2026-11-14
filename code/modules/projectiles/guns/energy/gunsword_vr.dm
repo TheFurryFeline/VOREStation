@@ -1,4 +1,4 @@
-/obj/item/weapon/gun/energy/gun/fluff/gunsword
+/obj/item/gun/energy/gun/fluff/gunsword
 	name = "Sword Buster"
 	desc = "The Sword Buster gun is custom built using the science behind a Golden Empire pistol. The cell can be removed in close range and used as energy shortsword."
 
@@ -7,27 +7,24 @@
 
 	icon_override = 'icons/vore/custom_guns_vr.dmi'
 	item_state = "gbuster"
-	item_icons = list(slot_r_hand_str = 'icons/vore/custom_guns_vr.dmi', slot_l_hand_str = 'icons/vore/custom_guns_vr.dmi', "slot_belt" = 'icons/inventory/belt/mob_vr.dmi')
+	item_icons = list(slot_r_hand_str = 'icons/vore/custom_guns_vr.dmi', slot_l_hand_str = 'icons/vore/custom_guns_vr.dmi', "slot_belt" = 'icons/inventory/belt/mob.dmi')
 
 	w_class = ITEMSIZE_NORMAL
-	origin_tech = list(TECH_COMBAT = 8, TECH_MATERIAL = 4)
 	projectile_type = /obj/item/projectile/beam/stun
-	fire_sound = 'sound/weapons/Taser.ogg'
+	fire_sound = 'sound/weapons/taser.ogg'
 	charge_meter = 1
 
-	cell_type = /obj/item/weapon/cell/device/weapon/gunsword
+	cell_type = /obj/item/cell/device/weapon/gunsword
 
 	modifystate = "gbuster"
 
 	firemodes = list(
-	list(mode_name="stun", charge_cost=240,projectile_type=/obj/item/projectile/beam/stun, modifystate="gbuster", fire_sound='sound/weapons/Taser.ogg'),
+	list(mode_name="stun", charge_cost=240,projectile_type=/obj/item/projectile/beam/stun, modifystate="gbuster", fire_sound='sound/weapons/taser.ogg'),
 	list(mode_name="lethal", charge_cost=480,projectile_type=/obj/item/projectile/beam/imperial, modifystate="gbuster", fire_sound='sound/weapons/mandalorian.ogg'),
 	)
 
-
-
 // -----------------gunsword battery--------------------------
-/obj/item/weapon/cell/device/weapon/gunsword
+/obj/item/cell/device/weapon/gunsword
 	name = "Buster Cell"
 	desc = "The Buster Cell. It doubles as a sword when activated outside the gun housing."
 	icon = 'icons/vore/custom_guns_vr.dmi'
@@ -41,7 +38,6 @@
 	throw_speed = 1
 	throw_range = 5
 	w_class = ITEMSIZE_SMALL
-	origin_tech = list(TECH_MAGNET = 3, TECH_COMBAT = 5)
 
 	var/active = 0
 	var/active_force = 30
@@ -58,7 +54,7 @@
 	var/lcolor = "#800080"
 
 
-/obj/item/weapon/cell/device/weapon/gunsword/proc/activate(mob/living/user)
+/obj/item/cell/device/weapon/gunsword/proc/activate(mob/living/user)
 	if(active)
 		return
 	icon_state = "gsaber"
@@ -77,7 +73,7 @@
 
 
 
-/obj/item/weapon/cell/device/weapon/gunsword/proc/deactivate(mob/living/user)
+/obj/item/cell/device/weapon/gunsword/proc/deactivate(mob/living/user)
 	if(!active)
 		return
 	playsound(src, 'sound/weapons/saberoff.ogg', 50, 1)
@@ -95,12 +91,14 @@
 	attack_verb = null
 
 
-/obj/item/weapon/cell/device/weapon/gunsword/attack_self(mob/living/user as mob)
-	var/datum/gender/TU = gender_datums[user.get_visible_gender()]
+/obj/item/cell/device/weapon/gunsword/attack_self(mob/living/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	if (active)
-		if ((CLUMSY in user.mutations) && prob(50))
-			user.visible_message("<span class='danger'>\The [user] accidentally cuts [TU.himself] with \the [src].</span>",\
-			"<span class='danger'>You accidentally cut yourself with \the [src].</span>")
+		if (CLUMSY_HARM_CHANCE(user))
+			user.visible_message(span_danger("\The [user] accidentally cuts [user.p_themselves()] with \the [src]."),\
+			span_danger("You accidentally cut yourself with \the [src]."))
 			user.take_organ_damage(5,5)
 		deactivate(user)
 		update_icon()
@@ -110,7 +108,7 @@
 		update_icon()
 		update_held_icon()
 
-	if(istype(user,/mob/living/carbon/human))
+	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		H.update_inv_l_hand()
 		H.update_inv_r_hand()
@@ -118,5 +116,5 @@
 	add_fingerprint(user)
 	return
 
-/obj/item/weapon/cell/device/weapon/gunsword/update_icon()
+/obj/item/cell/device/weapon/gunsword/update_icon()
 	cut_overlays()

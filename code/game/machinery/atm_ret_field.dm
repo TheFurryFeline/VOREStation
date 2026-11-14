@@ -23,7 +23,7 @@
 	var/wires_intact = TRUE
 	var/list/areas_added
 	var/field_type = /obj/structure/atmospheric_retention_field
-	circuit = /obj/item/weapon/circuitboard/arf_generator
+	circuit = /obj/item/circuitboard/arf_generator
 
 /obj/machinery/atmospheric_field_generator/impassable
 	desc = "An older model of ARF-G that generates an impassable retention field. Works just as well as the modern variety, but is slightly more energy-efficient.<br><br>Note: prolonged immersion in active atmospheric retention fields may have negative long-term health consequences."
@@ -40,14 +40,14 @@
 	active_power_usage = 1500
 	field_type = /obj/structure/atmospheric_retention_field/impassable
 
-/obj/machinery/atmospheric_field_generator/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/machinery/atmospheric_field_generator/attackby(obj/item/W as obj, mob/user as mob)
 	if(W.has_tool_quality(TOOL_CROWBAR) && isactive)
 		if(!src) return
-		to_chat(user, "<span class='warning'>You can't open the ARF-G whilst it's running!</span>")
+		to_chat(user, span_warning("You can't open the ARF-G whilst it's running!"))
 		return
 	if(W.has_tool_quality(TOOL_CROWBAR) && !isactive)
 		if(!src) return
-		to_chat(user, "<span class='notice'>You [hatch_open? "close" : "open"] \the [src]'s access hatch.</span>")
+		to_chat(user, span_notice("You [hatch_open? "close" : "open"] \the [src]'s access hatch."))
 		hatch_open = !hatch_open
 		update_icon()
 		if(alwaysactive && wires_intact)
@@ -55,32 +55,33 @@
 		return
 	if(hatch_open && W.has_tool_quality(TOOL_MULTITOOL))
 		if(!src) return
-		to_chat(user, "<span class='notice'>You toggle \the [src]'s activation behavior to [alwaysactive? "emergency" : "always-on"].</span>")
+		to_chat(user, span_notice("You toggle \the [src]'s activation behavior to [alwaysactive? "emergency" : "always-on"]."))
 		alwaysactive = !alwaysactive
 		update_icon()
 		return
 	if(hatch_open && W.has_tool_quality(TOOL_WIRECUTTER))
 		if(!src) return
-		to_chat(user, "<span class='warning'>You [wires_intact? "cut" : "mend"] \the [src]'s wires!</span>")
+		to_chat(user, span_warning("You [wires_intact? "cut" : "mend"] \the [src]'s wires!"))
 		wires_intact = !wires_intact
 		update_icon()
 		return
 	if(hatch_open && W.has_tool_quality(TOOL_WELDER))
 		if(!src) return
-		var/obj/item/weapon/weldingtool/WT = W.get_welder()
+		var/obj/item/weldingtool/WT = W.get_welder()
 		if(!WT.isOn()) return
 		if(WT.get_fuel() < 5) // uses up 5 fuel.
-			to_chat(user, "<span class='warning'>You need more fuel to complete this task.</span>")
+			to_chat(user, span_warning("You need more fuel to complete this task."))
 			return
 		user.visible_message("[user] starts to disassemble \the [src].", "You start to disassemble \the [src].")
 		playsound(src, WT.usesound, 50, 1)
-		if(do_after(user,15 * W.toolspeed))
+		if(do_after(user,15 * W.toolspeed, target = src))
 			if(!src || !user || !WT.remove_fuel(5, user)) return
-			to_chat(user, "<span class='notice'>You fully disassemble \the [src]. There were no salvageable parts.</span>")
+			to_chat(user, span_notice("You fully disassemble \the [src]. There were no salvageable parts."))
 			qdel(src)
 		return
 
-/obj/machinery/atmospheric_field_generator/perma/Initialize()
+/obj/machinery/atmospheric_field_generator/perma/Initialize(mapload)
+	. = ..()
 	generate_field()
 
 /obj/machinery/atmospheric_field_generator/update_icon()
@@ -108,15 +109,16 @@
 		disable_field()
 		update_icon()
 
-/obj/machinery/atmospheric_field_generator/emp_act()
-	if(!(stat & EMPED))
-		stat |= EMPED
-		disable_field() //shutting dowwwwwwn
-		spawn(rand(reboot_delay_min,reboot_delay_max))
-			stat &= ~EMPED
-			if(alwaysactive || wasactive) //reboot after a short delay if we were online before
-				generate_field()
-	..()
+/obj/machinery/atmospheric_field_generator/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF || (stat & EMPED))
+		return
+	stat |= EMPED
+	disable_field() //shutting dowwwwwwn
+	spawn(rand(reboot_delay_min,reboot_delay_max))
+		stat &= ~EMPED
+		if(alwaysactive || wasactive) //reboot after a short delay if we were online before
+			generate_field()
 
 /obj/machinery/atmospheric_field_generator/ex_act(severity)
 	switch(severity)
@@ -141,7 +143,7 @@
 		isactive = TRUE
 		icon_state = "arfg_on"
 		new field_type (src.loc)
-		src.visible_message("<span class='warning'>The ARF-G crackles to life!</span>","<span class='warning'>You hear an ARF-G coming online!</span>")
+		src.visible_message(span_warning("The ARF-G crackles to life!"),span_warning("You hear an ARF-G coming online!"))
 		update_use_power(USE_POWER_ACTIVE)
 	return
 
@@ -158,12 +160,12 @@
 			isactive = FALSE
 	return
 
-/obj/machinery/atmospheric_field_generator/Initialize()
+/obj/machinery/atmospheric_field_generator/Initialize(mapload)
 	. = ..()
 	//Delete ourselves if we find extra mapped in arfgs
 	for(var/obj/machinery/atmospheric_field_generator/F in loc)
 		if(F != src)
-			log_debug("Duplicate ARFGS at [x],[y],[z]")
+			log_mapping("Duplicate ARFGS at [x],[y],[z]")
 			return INITIALIZE_HINT_QDEL
 
 	var/area/A = get_area(src)
@@ -172,7 +174,7 @@
 	LAZYADD(A.all_arfgs, src)
 	areas_added = list(A)
 
-	for(var/direction in cardinal)
+	for(var/direction in GLOB.cardinal)
 		A = get_area(get_step(src,direction))
 		if(istype(A) && !(A in areas_added))
 			LAZYADD(A.all_arfgs, src)
@@ -196,6 +198,7 @@
 	light_power = 1
 	light_color = "#FFFFFF"
 	light_on = TRUE
+	rad_insulation = RAD_LIGHT_INSULATION
 
 /obj/structure/atmospheric_retention_field/update_icon()
 	cut_overlays() //overlays.Cut()
@@ -212,7 +215,7 @@
 
 	return
 
-/obj/structure/atmospheric_retention_field/Initialize()
+/obj/structure/atmospheric_retention_field/Initialize(mapload)
 	. = ..()
 	update_nearby_tiles() //Force ZAS update
 	update_connections(1)

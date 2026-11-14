@@ -7,8 +7,8 @@
 	can_reinforce = 0
 	flipped = -1
 
-/obj/structure/table/rack/New()
-	..()
+/obj/structure/table/rack/Initialize(mapload)
+	. = ..()
 	verbs -= /obj/structure/table/verb/do_flip
 	verbs -= /obj/structure/table/proc/do_put
 
@@ -23,6 +23,6 @@
 		color = material.icon_colour
 	return
 
-/obj/structure/table/rack/holorack/dismantle(obj/item/weapon/tool/wrench/W, mob/user)
-	to_chat(user, "<span class='warning'>You cannot dismantle \the [src].</span>")
+/obj/structure/table/rack/holorack/dismantle(obj/item/tool/wrench/W, mob/user)
+	to_chat(user, span_warning("You cannot dismantle \the [src]."))
 	return

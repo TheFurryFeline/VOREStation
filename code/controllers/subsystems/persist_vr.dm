@@ -10,27 +10,28 @@ SUBSYSTEM_DEF(persist)
 	flags = SS_BACKGROUND|SS_NO_INIT|SS_KEEP_TIMING
 	runlevels = RUNLEVEL_GAME|RUNLEVEL_POSTGAME
 	var/list/currentrun = list()
+	var/list/query_stack = list()
 
-/datum/controller/subsystem/persist/fire(var/resumed = FALSE)
+/datum/controller/subsystem/persist/fire(resumed = FALSE)
 	update_department_hours(resumed)
 
 // Do PTO Accruals
-/datum/controller/subsystem/persist/proc/update_department_hours(var/resumed = FALSE)
-	if(!config.time_off)
+/datum/controller/subsystem/persist/proc/update_department_hours(resumed = FALSE)
+	if(!CONFIG_GET(flag/time_off))
 		return
 
-	establish_db_connection()
-	if(!dbcon.IsConnected())
+	if(!SSdbcore.IsConnected())
 		src.currentrun.Cut()
 		return
 	if(!resumed)
-		src.currentrun = human_mob_list.Copy()
-		src.currentrun += silicon_mob_list.Copy()
+		src.currentrun = GLOB.human_mob_list.Copy()
+		src.currentrun += GLOB.silicon_mob_list.Copy()
 
 	//cache for sanic speed (lists are references anyways)
 	var/list/currentrun = src.currentrun
-	while (currentrun.len)
-		var/mob/M = currentrun[currentrun.len]
+	var/list/query_stack = src.query_stack
+	while (length(currentrun))
+		var/mob/M = currentrun[length(currentrun)]
 		currentrun.len--
 		if (QDELETED(M) || !istype(M) || !M.mind || !M.client || TICKS2DS(M.client.inactivity) > wait)
 			continue
@@ -78,30 +79,39 @@ SUBSYSTEM_DEF(persist)
 				play_hours[department_earning] = wait_in_hours
 
 		// Cap it
-		dept_hours[department_earning] = min(config.pto_cap, dept_hours[department_earning])
+		dept_hours[department_earning] = min(CONFIG_GET(number/pto_cap), dept_hours[department_earning])
 
 		// Okay we figured it out, lets update database!
 		var/sql_ckey = sql_sanitize_text(C.ckey)
 		var/sql_dpt = sql_sanitize_text(department_earning)
 		var/sql_bal = text2num("[C.department_hours[department_earning]]")
 		var/sql_total = text2num("[C.play_hours[department_earning]]")
-		var/DBQuery/query = dbcon.NewQuery("INSERT INTO vr_player_hours (ckey, department, hours, total_hours) VALUES ('[sql_ckey]', '[sql_dpt]', [sql_bal], [sql_total]) ON DUPLICATE KEY UPDATE hours = VALUES(hours), total_hours = VALUES(total_hours)")
-		query.Execute()
+		var/list/entry = list(
+			"ckey" = sql_ckey,
+			"department" = sql_dpt,
+			"hours" = sql_bal,
+			"total_hours" = sql_total
+		)
+		query_stack += list(entry)
 
 		if (MC_TICK_CHECK)
 			return
 
+	if(length(query_stack))
+		SSdbcore.MassInsert(format_table_name("vr_player_hours"), query_stack, duplicate_key = "ON DUPLICATE KEY UPDATE hours = VALUES(hours), total_hours = VALUES(total_hours)")
+		query_stack.Cut()
+
 // This proc tries to find the job datum of an arbitrary mob.
-/datum/controller/subsystem/persist/proc/detect_job(var/mob/M)
+/datum/controller/subsystem/persist/proc/detect_job(mob/M)
 	// Records are usually the most reliable way to get what job someone is.
 	var/datum/data/record/R = find_general_record("name", M.real_name)
 	if(R) // We found someone with a record.
 		var/recorded_rank = R.fields["real_rank"]
 		if(recorded_rank)
-			. = job_master.GetJob(recorded_rank)
+			. = SSjob.get_job(recorded_rank)
 			if(.) return
 
 	// They have a custom title, aren't crew, or someone deleted their record, so we need a fallback method.
 	// Let's check the mind.
 	if(M.mind && M.mind.assigned_role)
-		. = job_master.GetJob(M.mind.assigned_role)
+		. = SSjob.get_job(M.mind.assigned_role)

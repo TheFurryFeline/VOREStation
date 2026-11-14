@@ -16,6 +16,7 @@
 /obj/machinery/door/blast
 	name = "Blast Door"
 	desc = "That looks like it doesn't open easily."
+	description_antag = "Dangerous if they close on you normally, but you could probably make it worse with an emag."
 	icon = 'icons/obj/doors/rapid_pdoor.dmi'
 	icon_state = null
 	min_force = 20 //minimum amount of force needed to damage the door with a melee weapon
@@ -40,9 +41,13 @@
 	//turning this off prevents awkward zone geometry in places like medbay lobby, for example.
 	block_air_zones = 0
 
-/obj/machinery/door/blast/Initialize()
+/obj/machinery/door/blast/Initialize(mapload)
 	. = ..()
-	implicit_material = get_material_by_name("plasteel")
+	implicit_material = get_material_by_name(MAT_PLASTEEL)
+	if(density)
+		rad_insulation = RAD_EXTREME_INSULATION
+	else
+		rad_insulation = RAD_NO_INSULATION
 
 /obj/machinery/door/blast/get_material()
 	return implicit_material
@@ -64,7 +69,6 @@
 		icon_state = icon_state_closed
 	else
 		icon_state = icon_state_open
-	SSradiation.resistance_cache.Remove(get_turf(src))
 	return
 
 // Proc: emag_act()
@@ -83,16 +87,20 @@
 // Parameters: None
 // Description: Opens the door. No checks are done inside this proc.
 /obj/machinery/door/blast/proc/force_open()
-	src.operating = 1
+	operating = TRUE
 	playsound(src, open_sound, 100, 1)
 	flick(icon_state_opening, src)
-	src.density = FALSE
+	density = FALSE
 	update_nearby_tiles()
-	src.update_icon()
-	src.set_opacity(0)
-	sleep(15)
-	src.layer = open_layer
-	src.operating = 0
+	update_icon()
+	set_opacity(0)
+	rad_insulation = RAD_NO_INSULATION
+	addtimer(CALLBACK(src, PROC_REF(complete_force_open)), 1.5 SECONDS, TIMER_DELETE_ME|TIMER_UNIQUE)
+
+/obj/machinery/door/blast/proc/complete_force_open()
+	PRIVATE_PROC(TRUE)
+	layer = open_layer
+	operating = FALSE
 
 // Proc: force_close()
 // Parameters: None
@@ -102,19 +110,23 @@
 	var/turf/T = get_turf(src)
 	var/list/yeet_turfs = T.CardinalTurfs(TRUE)
 
-	src.operating = 1
+	operating = TRUE
 	playsound(src, close_sound, 100, 1)
-	src.layer = closed_layer
+	layer = closed_layer
 	flick(icon_state_closing, src)
-	src.density = TRUE
+	density = TRUE
 	update_nearby_tiles()
-	src.update_icon()
-	if(src.istransparent)
-		src.set_opacity(0)
+	update_icon()
+	rad_insulation = RAD_EXTREME_INSULATION
+	if(istransparent)
+		set_opacity(0)
 	else
-		src.set_opacity(1)
-	sleep(15)
-	src.operating = 0
+		set_opacity(1)
+	addtimer(CALLBACK(src, PROC_REF(complete_force_close), yeet_turfs), 1.5 SECONDS, TIMER_DELETE_ME|TIMER_UNIQUE)
+
+/obj/machinery/door/blast/proc/complete_force_close(list/yeet_turfs)
+	PRIVATE_PROC(TRUE)
+	operating = FALSE
 
 	// Blast door crushing.
 	for(var/turf/turf in locs)
@@ -127,7 +139,7 @@
 // Proc: force_toggle()
 // Parameters: None
 // Description: Opens or closes the door, depending on current state. No checks are done inside this proc.
-/obj/machinery/door/blast/proc/force_toggle(var/forced = 0, mob/user as mob)
+/obj/machinery/door/blast/proc/force_toggle(forced = 0, mob/user as mob)
 	if (forced)
 		playsound(src, 'sound/machines/door/airlock_creaking.ogg', 100, 1)
 
@@ -139,7 +151,7 @@
 //Proc: attack_hand
 //Description: Attacked with empty hand. Only to allow special attack_bys.
 /obj/machinery/door/blast/attack_hand(mob/user as mob)
-	if(istype(user, /mob/living/carbon/human))
+	if(ishuman(user))
 		var/mob/living/carbon/human/X = user
 		if(istype(X.species, /datum/species/xenos))
 			src.attack_alien(user)
@@ -151,14 +163,14 @@
 // Parameters: 2 (C - Item this object was clicked with, user - Mob which clicked this object)
 // Description: If we are clicked with crowbar, wielded fire axe, or armblade, try to manually open the door.
 // This only works on broken doors or doors without power. Also allows repair with Plasteel.
-/obj/machinery/door/blast/attackby(obj/item/weapon/C as obj, mob/user as mob)
+/obj/machinery/door/blast/attackby(obj/item/C as obj, mob/user as mob)
 	src.add_fingerprint(user)
-	if(istype(C, /obj/item/weapon)) // For reasons unknown, sometimes C is actually not what it is advertised as, like a mob.
+	if(istype(C, /obj/item)) // For reasons unknown, sometimes C is actually not what it is advertised as, like a mob.
 		if(C.pry == 1 && (user.a_intent != I_HURT || (stat & BROKEN))) // Can we pry it open with something, like a crowbar/fireaxe/lingblade?
-			if(istype(C,/obj/item/weapon/material/twohanded/fireaxe)) // Fireaxes need to be in both hands to pry.
-				var/obj/item/weapon/material/twohanded/fireaxe/F = C
+			if(istype(C,/obj/item/material/twohanded/fireaxe)) // Fireaxes need to be in both hands to pry.
+				var/obj/item/material/twohanded/fireaxe/F = C
 				if(!F.wielded)
-					to_chat(user, "<span class='warning'>You need to be wielding \the [F] to do that.</span>")
+					to_chat(user, span_warning("You need to be wielding \the [F] to do that."))
 					return
 
 			// If we're at this point, it's a fireaxe in both hands or something else that doesn't care for twohanding.
@@ -166,49 +178,49 @@
 				force_toggle(1, user)
 
 			else
-				to_chat(user, "<span class='notice'>[src]'s motors resist your effort.</span>")
+				to_chat(user, span_notice("[src]'s motors resist your effort."))
 			return
 
 
 		else if(src.density && (user.a_intent == I_HURT)) //If we can't pry it open and it's a weapon, let's hit it.
-			var/obj/item/weapon/W = C
+			var/obj/item/W = C
 			user.setClickCooldown(user.get_attack_speed(W))
 			if(W.damtype == BRUTE || W.damtype == BURN)
 				user.do_attack_animation(src)
 				if(W.force < min_force)
-					user.visible_message("<span class='danger'>\The [user] hits \the [src] with \the [W] with no visible effect.</span>")
+					user.visible_message(span_danger("\The [user] hits \the [src] with \the [W] with no visible effect."))
 				else
-					user.visible_message("<span class='danger'>\The [user] forcefully strikes \the [src] with \the [W]!</span>")
+					user.visible_message(span_danger("\The [user] forcefully strikes \the [src] with \the [W]!"))
 					playsound(src, hitsound, 100, 1)
 					take_damage(W.force*0.35) //it's a blast door, it should take a while. -Luke
 				return
 
-	else if(istype(C, /obj/item/stack/material) && C.get_material_name() == "plasteel") // Repairing.
+	else if(istype(C, /obj/item/stack/material) && C.get_material_name() == MAT_PLASTEEL) // Repairing.
 		var/amt = CEILING((maxhealth - health)/150, 1)
 		if(!amt)
-			to_chat(user, "<span class='notice'>\The [src] is already fully repaired.</span>")
+			to_chat(user, span_notice("\The [src] is already fully repaired."))
 			return
 		var/obj/item/stack/P = C
 		if(P.get_amount() < amt)
-			to_chat(user, "<span class='warning'>You don't have enough sheets to repair this! You need at least [amt] sheets.</span>")
+			to_chat(user, span_warning("You don't have enough sheets to repair this! You need at least [amt] sheets."))
 			return
-		to_chat(user, "<span class='notice'>You begin repairing [src]...</span>")
-		if(do_after(usr, 30))
+		to_chat(user, span_notice("You begin repairing [src]..."))
+		if(do_after(user, 3 SECONDS, target = src))
 			if(P.use(amt))
-				to_chat(user, "<span class='notice'>You have repaired \The [src]</span>")
+				to_chat(user, span_notice("You have repaired \The [src]"))
 				src.repair()
 			else
-				to_chat(user, "<span class='warning'>You don't have enough sheets to repair this! You need at least [amt] sheets.</span>")
+				to_chat(user, span_warning("You don't have enough sheets to repair this! You need at least [amt] sheets."))
 
 	else if(src.density && (user.a_intent == I_HURT)) //If we can't pry it open and it's not a weapon.... Eh, let's attack it anyway.
-		var/obj/item/weapon/W = C
+		var/obj/item/W = C
 		user.setClickCooldown(user.get_attack_speed(W))
 		if(istype(W) && (W.damtype == BRUTE || W.damtype == BURN))
 			user.do_attack_animation(src)
 			if(W.force < min_force) //No actual non-weapon item shouls have a force greater than the min_force, but let's include this just in case.
-				user.visible_message("<span class='danger'>\The [user] hits \the [src] with \the [W] with no visible effect.</span>")
+				user.visible_message(span_danger("\The [user] hits \the [src] with \the [W] with no visible effect."))
 			else
-				user.visible_message("<span class='danger'>\The [user] forcefully strikes \the [src] with \the [W]!</span>")
+				user.visible_message(span_danger("\The [user] forcefully strikes \the [src] with \the [W]!"))
 				playsound(src, hitsound, 100, 1)
 				take_damage(W.force*0.15) //If the item isn't a weapon, let's make this take longer than usual to break it down.
 			return
@@ -216,24 +228,24 @@
 // Proc: attack_alien()
 // Parameters: Attacking Xeno mob.
 // Description: Forces open the door after a delay.
-/obj/machinery/door/blast/attack_alien(var/mob/user) //Familiar, right? Doors.
-	if(istype(user, /mob/living/carbon/human))
+/obj/machinery/door/blast/attack_alien(mob/user) //Familiar, right? Doors.
+	if(ishuman(user))
 		var/mob/living/carbon/human/X = user
 		if(istype(X.species, /datum/species/xenos))
 			if(src.density)
-				visible_message("<span class='alium'>\The [user] begins forcing \the [src] open!</span>")
-				if(do_after(user, 15 SECONDS,src))
+				visible_message(span_alium("\The [user] begins forcing \the [src] open!"))
+				if(do_after(user, 15 SECONDS, target = src))
 					playsound(src, 'sound/machines/door/airlock_creaking.ogg', 100, 1)
-					visible_message("<span class='danger'>\The [user] forces \the [src] open!</span>")
+					visible_message(span_danger("\The [user] forces \the [src] open!"))
 					force_open(1)
 			else
-				visible_message("<span class='alium'>\The [user] begins forcing \the [src] closed!</span>")
-				if(do_after(user, 5 SECONDS,src))
+				visible_message(span_alium("\The [user] begins forcing \the [src] closed!"))
+				if(do_after(user, 5 SECONDS, target = src))
 					playsound(src, 'sound/machines/door/airlock_creaking.ogg', 100, 1)
-					visible_message("<span class='danger'>\The [user] forces \the [src] closed!</span>")
+					visible_message(span_danger("\The [user] forces \the [src] closed!"))
 					force_close(1)
 		else
-			visible_message("<span class='notice'>\The [user] strains fruitlessly to force \the [src] [density ? "open" : "closed"].</span>")
+			visible_message(span_notice("\The [user] strains fruitlessly to force \the [src] [density ? "open" : "closed"]."))
 			return
 	..()
 
@@ -245,25 +257,25 @@
 		if(damage >= STRUCTURE_MIN_DAMAGE_THRESHOLD)
 			user.set_AI_busy(TRUE) // If the mob doesn't have an AI attached, this won't do anything.
 			if(src.density)
-				visible_message("<span class='danger'>\The [user] starts forcing \the [src] open!</span>")
-				if(do_after(user, 5 SECONDS, src))
-					visible_message("<span class='danger'>\The [user] forces \the [src] open!</span>")
+				visible_message(span_danger("\The [user] starts forcing \the [src] open!"))
+				if(do_after(user, 5 SECONDS, target = src))
+					visible_message(span_danger("\The [user] forces \the [src] open!"))
 					force_open(1)
 			else
-				visible_message("<span class='danger'>\The [user] starts forcing \the [src] closed!</span>")
-				if(do_after(user, 2 SECONDS, src))
-					visible_message("<span class='danger'>\The [user] forces \the [src] closed!</span>")
+				visible_message(span_danger("\The [user] starts forcing \the [src] closed!"))
+				if(do_after(user, 2 SECONDS, target = src))
+					visible_message(span_danger("\The [user] forces \the [src] closed!"))
 					force_close(1)
 			user.set_AI_busy(FALSE)
 		else
-			visible_message("<span class='notice'>\The [user] strains fruitlessly to force \the [src] [density ? "open" : "closed"].</span>")
+			visible_message(span_notice("\The [user] strains fruitlessly to force \the [src] [density ? "open" : "closed"]."))
 		return
 	..()
 
 // Proc: open()
 // Parameters: None
 // Description: Opens the door. Does necessary checks. Automatically closes if autoclose is true
-/obj/machinery/door/blast/open(var/forced = 0)
+/obj/machinery/door/blast/open(forced = 0)
 	if(forced)
 		force_open()
 		return 1
@@ -313,6 +325,10 @@
 	icon_state_closing = "pdoorc1"
 	icon_state = "pdoor1"
 	maxhealth = 600
+	heat_proof = 1 //just so repairing them doesn't try to fireproof something that never takes fire damage
+
+/obj/machinery/door/blast/regular/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+	return // blast doors are immune to fire completely.
 
 /obj/machinery/door/blast/regular/open
 	icon_state = "pdoor0"
@@ -396,8 +412,8 @@
 // SUBTYPE: Multi-tile
 // Pod doors ported from Paradise
 
- // Whoever wrote the old code for multi-tile spesspod doors needs to burn in hell. - Unknown
- // Wise words. - Bxil
+// Whoever wrote the old code for multi-tile spesspod doors needs to burn in hell. - Unknown
+// Wise words. - Bxil
 /obj/machinery/door/blast/multi_tile
 	name = "large blast door"
 

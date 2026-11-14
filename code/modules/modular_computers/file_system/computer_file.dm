@@ -1,4 +1,4 @@
-var/global/file_uid = 0
+GLOBAL_VAR_INIT(file_uid, 0)
 
 /datum/computer_file/
 	/// Placeholder. Whitespace and most special characters are not allowed.
@@ -8,7 +8,7 @@ var/global/file_uid = 0
 	/// File size in GQ. Integers only!
 	var/size = 1
 	/// Holder that contains this file.
-	var/obj/item/weapon/computer_hardware/hard_drive/holder
+	var/obj/item/computer_hardware/hard_drive/holder
 	//// Whether the file may be sent to someone via NTNet transfer, email or other means.
 	var/unsendable = FALSE
 	/// Whether the file may be deleted. Setting to TRUE prevents deletion/renaming/etc.
@@ -22,12 +22,12 @@ var/global/file_uid = 0
 	/// Any metadata the file uses.
 	var/list/metadata
 	/// Paper type to use for printing
-	var/papertype = /obj/item/weapon/paper
+	var/papertype = /obj/item/paper
 
 /datum/computer_file/New(list/md = null)
 	..()
-	uid = file_uid
-	file_uid++
+	uid = GLOB.file_uid
+	GLOB.file_uid++
 	if(islist(md))
 		metadata = md.Copy()
 
@@ -43,7 +43,7 @@ var/global/file_uid = 0
 	return ..()
 
 // Returns independent copy of this file.
-/datum/computer_file/proc/clone(var/rename = 0)
+/datum/computer_file/proc/clone(rename = 0)
 	var/datum/computer_file/temp = new type
 	temp.unsendable = unsendable
 	temp.undeletable = undeletable

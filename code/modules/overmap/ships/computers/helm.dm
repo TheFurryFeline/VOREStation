@@ -19,8 +19,7 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 	icon_keyboard = "teleport_key"
 	icon_screen = "helm"
 	light_color = "#7faaff"
-	circuit = /obj/item/weapon/circuitboard/helm
-	core_skill = /datum/skill/pilot
+	circuit = /obj/item/circuitboard/helm
 	var/autopilot = 0
 	var/autopilot_disabled = TRUE
 	var/list/known_sectors = list()
@@ -28,7 +27,7 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 	var/dy		//coordinates
 	var/speedlimit = 1/(20 SECONDS) //top speed for autopilot, 5
 	var/accellimit = 0.001 //manual limiter for acceleration
-	req_one_access = list(access_pilot) //VOREStation Edit
+	req_one_access = list(ACCESS_PILOT) //VOREStation Edit
 	ai_control = FALSE	//VOREStation Edit - AI/Borgs shouldn't really be flying off in ships without crew help
 
 // fancy sprite
@@ -38,7 +37,7 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 	icon_screen = "adv_helm_screen"
 	light_color = "#70ffa0"
 
-/obj/machinery/computer/ship/helm/Initialize()
+/obj/machinery/computer/ship/helm/Initialize(mapload)
 	. = ..()
 	get_known_sectors()
 
@@ -55,7 +54,7 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 /obj/machinery/computer/ship/helm/process()
 	..()
 	if(autopilot && dx && dy && !autopilot_disabled)
-		var/turf/T = locate(dx,dy,global.using_map.overmap_z)
+		var/turf/T = locate(dx,dy,using_map.overmap_z)
 		if(linked.loc == T)
 			if(linked.is_still())
 				autopilot = 0
@@ -77,13 +76,10 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 			// All other cases, move toward direction
 			else if(speed + acceleration <= speedlimit)
 				linked.accelerate(direction, accellimit)
-		linked.operator_skill = null//if this is on you can't dodge meteors
 		return
 
-/obj/machinery/computer/ship/helm/relaymove(var/mob/user, direction)
+/obj/machinery/computer/ship/helm/relaymove(mob/user, direction)
 	if(viewing_overmap(user) && linked)
-		if(prob(user.skill_fail_chance(/datum/skill/pilot, 50, linked.skill_needed, factor = 1)))
-			direction = turn(direction,pick(90,-90))
 		linked.relaymove(user, direction, accellimit)
 		return 1
 
@@ -94,15 +90,31 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
+		user.client.register_map_obj(linked.cam_screen)
+		for(var/plane in linked.cam_plane_masters)
+			user.client.register_map_obj(plane)
+		user.client.register_map_obj(linked.cam_background)
+
 		ui = new(user, src, "OvermapHelm", "[linked.name] Helm Control") // 565, 545
 		ui.open()
+		addtimer(CALLBACK(src, PROC_REF(update_map)), 0.1 SECONDS)
+
+/obj/machinery/computer/ship/helm/proc/update_map()
+	linked.update_screen()
+
+/obj/machinery/computer/ship/helm/tgui_close(mob/user)
+	. = ..()
+	// Unregister map objects
+	user.client?.clear_map(linked?.map_name)
+	user.reset_perspective()
 
 /obj/machinery/computer/ship/helm/tgui_data(mob/user)
 	var/list/data = ..()
 
 	var/turf/T = get_turf(linked)
 	var/obj/effect/overmap/visitable/sector/current_sector = locate() in T
-
+	if(linked)
+		data["mapRef"] = linked.map_name
 	data["sector"] = current_sector ? current_sector.name : "Deep Space"
 	data["sector_info"] = current_sector ? current_sector.desc : "Not Available"
 	data["landed"] = linked.get_landed_info()
@@ -155,28 +167,34 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 		return FALSE
 
 	switch(action)
+		if("update_camera_view")
+			if(TIMER_COOLDOWN_RUNNING(src, COOLDOWN_SHIP_REFRESH))
+				to_chat(ui.user, span_warning("You cannot refresh the map so often."))
+				return
+			update_map()
+			TIMER_COOLDOWN_START(src, COOLDOWN_SHIP_REFRESH, 5 SECONDS)
+			. = TRUE
 		if("add")
 			var/datum/computer_file/data/waypoint/R = new()
-			var/sec_name = tgui_input_text(usr, "Input navigation entry name", "New navigation entry", "Sector #[known_sectors.len]", MAX_NAME_LEN)
-			sec_name = sanitize(sec_name,MAX_NAME_LEN)
-			if(tgui_status(usr, state) != STATUS_INTERACTIVE)
+			var/sec_name = tgui_input_text(ui.user, "Input navigation entry name", "New navigation entry", "Sector #[known_sectors.len]", MAX_NAME_LEN)
+			if(tgui_status(ui.user, state) != STATUS_INTERACTIVE)
 				return FALSE
 			if(!sec_name)
 				sec_name = "Sector #[known_sectors.len]"
 			R.fields["name"] = sec_name
 			if(sec_name in known_sectors)
-				to_chat(usr, "<span class='warning'>Sector with that name already exists, please input a different name.</span>")
+				to_chat(ui.user, span_warning("Sector with that name already exists, please input a different name."))
 				return TRUE
 			switch(params["add"])
 				if("current")
 					R.fields["x"] = linked.x
 					R.fields["y"] = linked.y
 				if("new")
-					var/newx = tgui_input_number(usr, "Input new entry x coordinate", "Coordinate input", linked.x, world.maxx, 1)
-					if(tgui_status(usr, state) != STATUS_INTERACTIVE)
+					var/newx = tgui_input_number(ui.user, "Input new entry x coordinate", "Coordinate input", linked.x, world.maxx, 1)
+					if(tgui_status(ui.user, state) != STATUS_INTERACTIVE)
 						return TRUE
-					var/newy = tgui_input_number(usr, "Input new entry y coordinate", "Coordinate input", linked.y, world.maxy, 1)
-					if(tgui_status(usr, state) != STATUS_INTERACTIVE)
+					var/newy = tgui_input_number(ui.user, "Input new entry y coordinate", "Coordinate input", linked.y, world.maxy, 1)
+					if(tgui_status(ui.user, state) != STATUS_INTERACTIVE)
 						return FALSE
 					R.fields["x"] = CLAMP(newx, 1, world.maxx)
 					R.fields["y"] = CLAMP(newy, 1, world.maxy)
@@ -192,15 +210,15 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 
 		if("setcoord")
 			if(params["setx"])
-				var/newx = tgui_input_number(usr, "Input new destiniation x coordinate", "Coordinate input", dx, world.maxx, 1)
-				if(tgui_status(usr, state) != STATUS_INTERACTIVE)
+				var/newx = tgui_input_number(ui.user, "Input new destiniation x coordinate", "Coordinate input", dx, world.maxx, 1)
+				if(tgui_status(ui.user, state) != STATUS_INTERACTIVE)
 					return
 				if(newx)
 					dx = CLAMP(newx, 1, world.maxx)
 
 			if(params["sety"])
-				var/newy = tgui_input_number(usr, "Input new destiniation y coordinate", "Coordinate input", dy, world.maxy, 1)
-				if(tgui_status(usr, state) != STATUS_INTERACTIVE)
+				var/newy = tgui_input_number(ui.user, "Input new destiniation y coordinate", "Coordinate input", dy, world.maxy, 1)
+				if(tgui_status(ui.user, state) != STATUS_INTERACTIVE)
 					return
 				if(newy)
 					dy = CLAMP(newy, 1, world.maxy)
@@ -217,22 +235,20 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 			. = TRUE
 
 		if("speedlimit")
-			var/newlimit = tgui_input_number(usr, "Input new speed limit for autopilot (0 to brake)", "Autopilot speed limit", speedlimit*1000, 100000, round_value = FALSE)
+			var/newlimit = tgui_input_number(ui.user, "Input new speed limit for autopilot (0 to brake)", "Autopilot speed limit", speedlimit*1000, 100000, round_value = FALSE)
 			if(newlimit)
 				speedlimit = CLAMP(newlimit/1000, 0, 100)
 			. = TRUE
 
 		if("accellimit")
-			var/newlimit = tgui_input_number(usr, "Input new acceleration limit", "Acceleration limit", accellimit*1000, round_value = FALSE)
+			var/newlimit = tgui_input_number(ui.user, "Input new acceleration limit", "Acceleration limit", accellimit*1000, round_value = FALSE)
 			if(newlimit)
 				accellimit = max(newlimit/1000, 0)
 			. = TRUE
 
 		if("move")
 			var/ndir = text2num(params["dir"])
-			if(prob(usr.skill_fail_chance(/datum/skill/pilot, 50, linked.skill_needed, factor = 1)))
-				ndir = turn(ndir,pick(90,-90))
-			linked.relaymove(usr, ndir, accellimit)
+			linked.relaymove(ui.user, ndir, accellimit)
 			. = TRUE
 
 		if("brake")
@@ -252,11 +268,17 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 			. = TRUE
 
 		if("manual")
-			viewing_overmap(usr) ? unlook(usr) : look(usr)
+			if(!get_dist(ui.user, src) > 1 || ui.user.blinded || !linked)
+				return FALSE
+			else if(!viewing_overmap(ui.user) && linked)
+				if(!viewers) viewers = list() // List must exist for pass by reference to work
+				start_coordinated_remoteview(ui.user, linked, viewers, /datum/remote_view_config/overmap_ship_control)
+			else
+				ui.user.reset_perspective()
 			. = TRUE
 
-	add_fingerprint(usr)
-	if(. && !issilicon(usr))
+	add_fingerprint(ui.user)
+	if(. && !issilicon(ui.user))
 		playsound(src, "terminal_type", 50, 1)
 
 
@@ -264,10 +286,10 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 	name = "navigation console"
 	icon_keyboard = "generic_key"
 	icon_screen = "helm"
-	circuit = /obj/item/weapon/circuitboard/nav
+	circuit = /obj/item/circuitboard/nav
 	var/datum/tgui_module/ship/nav/nav_tgui
 
-/obj/machinery/computer/ship/navigation/Initialize()
+/obj/machinery/computer/ship/navigation/Initialize(mapload)
 	. = ..()
 	nav_tgui = new(src)
 
@@ -286,7 +308,7 @@ GLOBAL_LIST_EMPTY(all_waypoints)
 	layer = ABOVE_WINDOW_LAYER
 	icon_keyboard = null
 	icon_screen = null
-	circuit = /obj/item/weapon/circuitboard/nav/tele
+	circuit = /obj/item/circuitboard/nav/tele
 	density = FALSE
 
 /obj/machinery/computer/ship/navigation/telescreen/update_icon()

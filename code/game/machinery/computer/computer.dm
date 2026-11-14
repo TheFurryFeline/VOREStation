@@ -8,7 +8,7 @@
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 300
 	active_power_usage = 300
-	blocks_emissive = FALSE
+	blocks_emissive = EMISSIVE_BLOCK_NONE
 	var/processing = 0
 
 	var/icon_keyboard = "generic_key"
@@ -18,20 +18,23 @@
 
 	clicksound = "keyboard"
 
-/obj/machinery/computer/Initialize()
+/obj/machinery/computer/Initialize(mapload)
 	. = ..()
 	power_change()
 	update_icon()
+	AddElement(/datum/element/climbable)
 
 /obj/machinery/computer/process()
 	if(stat & (NOPOWER|BROKEN))
 		return 0
 	return 1
 
-/obj/machinery/computer/emp_act(severity)
-	if(prob(20/severity)) set_broken()
-	..()
-
+/obj/machinery/computer/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF)
+		return
+	if(prob(20/severity))
+		set_broken()
 
 /obj/machinery/computer/ex_act(severity)
 	switch(severity)
@@ -44,17 +47,16 @@
 				return
 			if (prob(50))
 				for(var/x in verbs)
-					verbs -= x
+					src.verbs -= x
 				set_broken()
 		if(3.0)
 			if (prob(25))
 				for(var/x in verbs)
-					verbs -= x
+					src.verbs -= x
 				set_broken()
-		else
 	return
 
-/obj/machinery/computer/bullet_act(var/obj/item/projectile/Proj)
+/obj/machinery/computer/bullet_act(obj/item/projectile/Proj)
 	if(prob(Proj.get_structure_damage()))
 		set_broken()
 	..()
@@ -116,17 +118,18 @@
 	text = replacetext(text, "\n", "<BR>")
 	return text
 
-/obj/machinery/computer/attackby(I as obj, user as mob)
-	if(computer_deconstruction_screwdriver(user, I))
+/obj/machinery/computer/attackby(obj/item/W, mob/user)
+	if(computer_deconstruction_screwdriver(user, W))
 		return
 	else
-		if(istype(I,/obj/item/weapon/gripper)) //Behold, Grippers and their horribleness. If ..() is called by any computers' attackby() now or in the future, this should let grippers work with them appropriately.
-			var/obj/item/weapon/gripper/B = I	//B, for Borg.
-			if(!B.wrapped)
+		if(istype(W,/obj/item/gripper)) //Behold, Grippers and their horribleness. If ..() is called by any computers' attackby() now or in the future, this should let grippers work with them appropriately.
+			var/obj/item/gripper/B = W	//B, for Borg.
+			var/obj/item/wrapped = B.get_wrapped_item()
+			if(!wrapped)
 				to_chat(user, "\The [B] is not holding anything.")
 				return
 			else
-				var/B_held = B.wrapped
+				var/B_held = wrapped
 				to_chat(user, "You use \the [B] to use \the [B_held] with \the [src].")
 				playsound(src, clicksound, 100, 1, 0)
 			return

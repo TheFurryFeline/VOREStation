@@ -6,14 +6,14 @@
 	event_type = /datum/event2/event/manifest_malfunction
 
 /datum/event2/meta/manifest_malfunction/get_weight()
-	var/security = metric.count_people_in_department(DEPARTMENT_SECURITY)
+	var/security = GLOB.metric.count_people_in_department(DEPARTMENT_SECURITY)
 
-	if(!security || !data_core)
+	if(!security || !GLOB.data_core)
 		return 0
 
-	var/command = metric.count_people_with_job(/datum/job/hop) + metric.count_people_with_job(/datum/job/captain)
-	var/synths = metric.count_people_in_department(DEPARTMENT_SYNTHETIC)
-	var/everyone = metric.count_people_in_department(DEPARTMENT_EVERYONE) - (synths + security + command) // So they don't get counted twice.
+	var/command = GLOB.metric.count_people_with_job(/datum/job/hop) + GLOB.metric.count_people_with_job(/datum/job/captain)
+	var/synths = GLOB.metric.count_people_in_department(DEPARTMENT_SYNTHETIC)
+	var/everyone = GLOB.metric.count_people_in_department(DEPARTMENT_EVERYONE) - (synths + security + command) // So they don't get counted twice.
 
 	return (security * 10) + (synths * 20) + (command * 20) + (everyone * 5)
 
@@ -43,7 +43,7 @@
 				message = "The [record_class_to_delete] record database server has suffered a hardware failure, and is no longer functional. \
 				A temporary replacement server has been activated, containing recovered data from the main server. \
 				A few records became corrupted, and could not be transferred."
-		command_announcement.Announce(message, author)
+		GLOB.command_announcement.Announce(message, author)
 
 /datum/event2/event/manifest_malfunction/start()
 	for(var/i = 1 to records_to_delete)
@@ -51,11 +51,11 @@
 
 		switch(record_class_to_delete)
 			if("security")
-				R = safepick(data_core.security)
+				R = safepick(GLOB.data_core.security)
 
 			if("medical")
-				R = safepick(data_core.medical)
+				R = safepick(GLOB.data_core.medical)
 
 		if(R)
-			log_debug("Manifest malfunction event is now deleting [R.fields["name"]]'s [record_class_to_delete] record.")
+			log_game("Manifest malfunction event is now deleting [R.fields["name"]]'s [record_class_to_delete] record.")
 			qdel(R)

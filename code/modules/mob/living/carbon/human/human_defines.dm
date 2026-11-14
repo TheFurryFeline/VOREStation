@@ -45,15 +45,13 @@
 	var/lip_style = null	//no lipstick by default- arguably misleading, as it could be used for general makeup
 
 	var/age = 30		//Player's age (pure fluff)
-	var/bday_month = 0	//Character birth month
-	var/bday_day = 0	//Character birthday day
 
-	var/b_type = "A+"	//Player's bloodtype
 	var/datum/robolimb/synthetic		//If they are a synthetic (aka synthetic torso). Also holds the datum for the type of robolimb.
 
 	var/list/all_underwear = list()
 	var/list/all_underwear_metadata = list()
 	var/list/hide_underwear = list()
+	var/headset = 1		//Which headset type the player has chosen.
 	var/backbag = 2		//Which backpack type the player has chosen.
 	var/pdachoice = 1	//Which PDA type the player has chosen.
 
@@ -69,21 +67,12 @@
 	//Equipment slots
 	var/obj/item/wear_suit = null
 	var/obj/item/w_uniform = null
-	var/obj/item/shoes = null
 	var/obj/item/belt = null
-	var/obj/item/gloves = null
-	var/obj/item/glasses = null
 	var/obj/item/head = null
-	var/obj/item/l_ear = null
-	var/obj/item/r_ear = null
 	var/obj/item/wear_id = null
 	var/obj/item/r_store = null
 	var/obj/item/l_store = null
 	var/obj/item/s_store = null
-
-	var/used_skillpoints = 0
-	var/skill_specialization = null
-	var/list/skills = list()
 
 	var/voice = ""	//Instead of new say code calling GetVoice() over and over and over, we're just going to ask this variable, which gets updated in Life()
 
@@ -93,12 +82,9 @@
 
 	var/xylophone = 0 //For the spoooooooky xylophone cooldown
 
-	var/mob/remoteview_target = null
 	var/hand_blood_color
 
 	var/list/flavor_texts = list()
-	var/gunshot_residue
-	var/pulling_punches    // Are you trying not to hurt your opponent?
 	var/robolimb_count = 0 // Total number of external robot parts.
 	var/robobody_count = 0 // Counts torso, groin, and head, if they're robotic
 
@@ -107,8 +93,6 @@
 	mob_swap_flags = ~HEAVY
 
 	var/identifying_gender // In case the human identifies as another gender than it's biological
-
-	var/list/descriptors	// For comparative examine code
 
 	var/step_count = 0 // Track how many footsteps have been taken to know when to play footstep sounds
 
@@ -135,6 +119,14 @@
 	var/r_ears3 = 30 //Trust me, we could always use more colour. No japes.
 	var/g_ears3 = 30
 	var/b_ears3 = 30
+	var/a_ears = 255 //applied to the ears
+	var/a_ears2 = 255 //applied to the horns
+
+	/// secondary ears sprite accessory reference
+	var/datum/sprite_accessory/ears/ear_secondary_style
+	/// secondary ears color channels; can be null, or a list of #aabbcc hexcolors
+	var/list/ear_secondary_colors
+
 	var/datum/sprite_accessory/tail/tail_style = null
 	var/r_tail = 30
 	var/g_tail = 30
@@ -145,6 +137,10 @@
 	var/r_tail3 = 30
 	var/g_tail3 = 30
 	var/b_tail3 = 30
+	var/a_tail = 255 //applied to the entire tail
+
+	var/wagging = 0 //UGH.
+
 	var/datum/sprite_accessory/wing/wing_style = null
 	var/r_wing = 30
 	var/g_wing = 30
@@ -156,8 +152,17 @@
 	var/g_wing3 = 30
 	var/b_wing3 = 30
 
-	var/wagging = 0 //UGH.
+	var/a_wing = 255 //applied to both portions.
+
 	var/flapping = 0
 
 	// Custom Species Name
 	var/custom_species
+
+	var/block_hud
+
+	var/phobias		//For holding a list of phobias
+
+	var/redgate_restricted = FALSE
+	var/hide_headset = FALSE
+	var/hide_glasses = FALSE

@@ -14,10 +14,11 @@
 	var/amount = 3
 	var/expand = 1
 	var/metal = 0
-	var/dries = 1 //VOREStation Add
-	var/slips = 0 //VOREStation Add
+	var/dries = TRUE //VOREStation Add
+	/// Whether or not this foam should be slippery.
+	var/slippery_foam = TRUE
 
-/obj/effect/effect/foam/Initialize(var/mapload, var/ismetal = 0)
+/obj/effect/effect/foam/Initialize(mapload, ismetal = 0)
 	. = ..()
 	//icon_state = "[ismetal? "m" : ""]foam" //VOREStation Removal
 	metal = ismetal
@@ -26,6 +27,8 @@
 		addtimer(CALLBACK(src, PROC_REF(post_spread)), 3 + metal * 3)
 		addtimer(CALLBACK(src, PROC_REF(pre_harden)), 12 SECONDS)
 		addtimer(CALLBACK(src, PROC_REF(harden)), 15 SECONDS)
+	if(slippery_foam)
+		AddComponent(/datum/component/slippery, 10)
 
 /obj/effect/effect/foam/proc/post_spread()
 	process()
@@ -53,7 +56,7 @@
 	if(--amount < 0)
 		return
 
-	for(var/direction in cardinal)
+	for(var/direction in GLOB.cardinal)
 		var/turf/T = get_step(src, direction)
 		if(!T)
 			continue
@@ -80,21 +83,19 @@
 		spawn(5)
 			qdel(src)
 
-/obj/effect/effect/foam/Crossed(var/atom/movable/AM)
+/obj/effect/effect/foam/Crossed(atom/movable/AM)
+	. = ..()
 	if(AM.is_incorporeal())
 		return
 	if(metal)
 		return
-	if(slips && istype(AM, /mob/living)) //VOREStation Add
-		var/mob/living/M = AM
-		M.slip("the foam", 6)
 
 /datum/effect/effect/system/foam_spread
 	var/amount = 5				// the size of the foam spread.
 	var/list/carried_reagents	// the IDs of reagents present when the foam was mixed
 	var/metal = 0				// 0 = foam, 1 = metalfoam, 2 = ironfoam
 
-/datum/effect/effect/system/foam_spread/set_up(amt=5, loca, var/datum/reagents/carry = null, var/metalfoam = 0)
+/datum/effect/effect/system/foam_spread/set_up(amt=5, loca, datum/reagents/carry = null, metalfoam = 0)
 	amount = round(sqrt(amt / 3), 1)
 	if(istype(loca, /turf/))
 		location = loca
@@ -127,7 +128,7 @@
 				for(var/id in carried_reagents)
 					F.reagents.add_reagent(id, 1, safety = 1) //makes a safety call because all reagents should have already reacted anyway
 			else
-				F.reagents.add_reagent("water", 1, safety = 1)
+				F.reagents.add_reagent(REAGENT_ID_WATER, 1, safety = 1)
 
 // wall formed by metal foams, dense and opaque, but easy to break
 
@@ -142,8 +143,8 @@
 	can_atmos_pass = ATMOS_PASS_NO
 	var/metal = 1 // 1 = aluminum, 2 = iron
 
-/obj/structure/foamedmetal/New()
-	..()
+/obj/structure/foamedmetal/Initialize(mapload)
+	. = ..()
 	update_nearby_tiles(1)
 
 /obj/structure/foamedmetal/Destroy()
@@ -160,31 +161,31 @@
 /obj/structure/foamedmetal/ex_act(severity)
 	qdel(src)
 
-/obj/structure/foamedmetal/bullet_act(var/obj/item/projectile/P)
+/obj/structure/foamedmetal/bullet_act(obj/item/projectile/P)
 	if(istype(P, /obj/item/projectile/test))
 		return
 	else if(metal == 1 || prob(50))
 		qdel(src)
 
-/obj/structure/foamedmetal/attack_hand(var/mob/user)
+/obj/structure/foamedmetal/attack_hand(mob/user)
 	if ((HULK in user.mutations) || (prob(75 - metal * 25)))
-		user.visible_message("<span class='warning'>[user] smashes through the foamed metal.</span>", "<span class='notice'>You smash through the metal foam wall.</span>")
+		user.visible_message(span_warning("[user] smashes through the foamed metal."), span_notice("You smash through the metal foam wall."))
 		qdel(src)
 	else
-		to_chat(user, "<span class='notice'>You hit the metal foam but bounce off it.</span>")
+		to_chat(user, span_notice("You hit the metal foam but bounce off it."))
 	return
 
-/obj/structure/foamedmetal/attackby(var/obj/item/I, var/mob/user)
-	if(istype(I, /obj/item/weapon/grab))
-		var/obj/item/weapon/grab/G = I
+/obj/structure/foamedmetal/attackby(obj/item/I, mob/user)
+	if(istype(I, /obj/item/grab))
+		var/obj/item/grab/G = I
 		G.affecting.loc = src.loc
-		visible_message("<span class='warning'>[G.assailant] smashes [G.affecting] through the foamed metal wall.</span>")
+		visible_message(span_warning("[G.assailant] smashes [G.affecting] through the foamed metal wall."))
 		qdel(I)
 		qdel(src)
 		return
 
 	if(prob(I.force * 20 - metal * 25))
-		user.visible_message("<span class='warning'>[user] smashes through the foamed metal.</span>", "<span class='notice'>You smash through the foamed metal with \the [I].</span>")
+		user.visible_message(span_warning("[user] smashes through the foamed metal."), span_notice("You smash through the foamed metal with \the [I]."))
 		qdel(src)
 	else
-		to_chat(user, "<span class='notice'>You hit the metal foam to no effect.</span>")
+		to_chat(user, span_notice("You hit the metal foam to no effect."))

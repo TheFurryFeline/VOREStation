@@ -3,26 +3,26 @@
 	desc = "Used for hacking into camera networks"
 	icon = 'icons/obj/abductor.dmi'
 	icon_state = "camera"
-	network = list(	"Mercenary",
-					"Cargo",
-					"Circuits",
-					"Civilian",
-					"Command",
-					"Engine",
-					"Engineering",
-					"Exploration",
-					"Medical",
-					"Mining Outpost",
-					"Outside",
-					"Research",
-					"Research Outpost",
-					"Robots",
-					"Security",
-					"Telecommunications",
-					"Tether",
-					"TalonShip",
-					"Entertainment",
-					"Communicators"
+	network = list(NETWORK_MERCENARY,
+					NETWORK_CARGO,
+					NETWORK_CIRCUITS,
+					NETWORK_CIVILIAN,
+					NETWORK_COMMAND,
+					NETWORK_ENGINE,
+					NETWORK_ENGINEERING,
+					NETWORK_EXPLORATION,
+					NETWORK_MEDICAL,
+					NETWORK_MINE,
+					NETWORK_OUTSIDE,
+					NETWORK_RESEARCH,
+					NETWORK_RESEARCH_OUTPOST,
+					NETWORK_ROBOTS,
+					NETWORK_SECURITY,
+					NETWORK_TELECOM,
+					NETWORK_TETHER,
+					NETWORK_TALON_SHIP,
+					NETWORK_THUNDER,
+					NETWORK_COMMUNICATORS
 					)
 
 /obj/machinery/computer/security/xenobio
@@ -31,5 +31,5 @@
 	icon_keyboard = "mining_key"
 	icon_screen = "mining"
 	network = list(NETWORK_XENOBIO)
-	circuit = /obj/item/weapon/circuitboard/security/xenobio
+	circuit = /obj/item/circuitboard/security/xenobio
 	light_color = "#F9BBFC"

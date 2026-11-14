@@ -5,12 +5,12 @@
 //
 //Casino Manual - NEEDS EDITING
 //
-/obj/item/weapon/book/manual/casino
+/obj/item/book/manual/casino
 	name = "A dummy guide to losing your thalers"
 	icon = 'icons/obj/casino.dmi'
 	icon_state ="casinomanual"
 	author = "Sleazy Serpent Saren"
-	w_class = 2 // To allow it to be stuffed away into wallets for easy readings during events
+	w_class = ITEMSIZE_SMALL // To allow it to be stuffed away into wallets for easy readings during events
 	title = "A dummy guide to losing your thalers"
 	dat = {"<html>
 				<head>

@@ -9,28 +9,28 @@
 	use_power = USE_POWER_IDLE
 	idle_power_usage = 2
 	active_power_usage = 50
-	circuit = /obj/item/weapon/circuitboard/mass_driver
+	circuit = /obj/item/circuitboard/mass_driver
 
 	var/power = 1.0
 	var/code = 1.0
-	var/id = 1.0
+	var/id = null
 	var/drive_range = 50 //this is mostly irrelevant since current mass drivers throw into space, but you could make a lower-range mass driver for interstation transport or something I guess.
 
-/obj/machinery/mass_driver/New()
+/obj/machinery/mass_driver/Initialize(mapload)
 	. = ..()
 	default_apply_parts()
 
-/obj/machinery/mass_driver/attackby(var/obj/item/I, mob/user)
+/obj/machinery/mass_driver/attackby(obj/item/I, mob/user)
 	if(default_deconstruction_screwdriver(user, I))
 		return
 	if(default_deconstruction_crowbar(user, I))
 		return
 
-	if(istype(I, /obj/item/device/multitool))
+	if(istype(I, /obj/item/multitool))
 		if(panel_open)
-			var/input = sanitize(tgui_input_text(usr, "What id would you like to give this conveyor?", "Multitool-Conveyor interface", id))
+			var/input = tgui_input_number(user, "[src] has an id of \"[id]\". What would you like it to be?", "[src] ID]", id, 9999)
 			if(!input)
-				to_chat(usr, "No input found please hang up and try your call again.")
+				to_chat(user, "No input found please hang up and try your call again.")
 				return
 			id = input
 			return
@@ -47,7 +47,7 @@
 			O_limit++
 			if(O_limit >= 20)
 				for(var/mob/M in hearers(src, null))
-					to_chat(M, "<span class='notice'>The mass driver lets out a screech, it mustn't be able to handle any more items.</span>")
+					to_chat(M, span_notice("The mass driver lets out a screech, it mustn't be able to handle any more items."))
 				break
 			use_power(500)
 			spawn(0)
@@ -55,8 +55,8 @@
 	flick("mass_driver1", src)
 	return
 
-/obj/machinery/mass_driver/emp_act(severity)
-	if(stat & (BROKEN|NOPOWER))
+/obj/machinery/mass_driver/emp_act(severity, recursive)
+	. = ..()
+	if (. & EMP_PROTECT_SELF || stat & (BROKEN|NOPOWER))
 		return
 	drive()
-	..(severity)

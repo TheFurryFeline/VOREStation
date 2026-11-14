@@ -1,25 +1,14 @@
-var/list/outfits_decls_
-var/list/outfits_decls_root_
-var/list/outfits_decls_by_type_
+GLOBAL_LIST_EMPTY(outfits_decls)
+GLOBAL_LIST_EMPTY(outfits_decls_by_type)
+GLOBAL_DATUM_INIT(outfits_decls_root, /datum/decl/hierarchy/outfit, new) // Rewuires the above lists
 
-/proc/outfit_by_type(var/outfit_type)
-	if(!outfits_decls_root_)
-		init_outfit_decls()
-	return outfits_decls_by_type_[outfit_type]
+/proc/outfit_by_type(outfit_type)
+	return GLOB.outfits_decls_by_type[outfit_type]
 
 /proc/outfits()
-	if(!outfits_decls_root_)
-		init_outfit_decls()
-	return outfits_decls_
+	return GLOB.outfits_decls
 
-/proc/init_outfit_decls()
-	if(outfits_decls_root_)
-		return
-	outfits_decls_ = list()
-	outfits_decls_by_type_ = list()
-	outfits_decls_root_ = new/decl/hierarchy/outfit()
-
-/decl/hierarchy/outfit
+/datum/decl/hierarchy/outfit
 	name = "Naked"
 
 	var/uniform = null
@@ -52,26 +41,34 @@ var/list/outfits_decls_by_type_
 
 	var/id_pda_assignment
 
-	var/backpack = /obj/item/weapon/storage/backpack
-	var/satchel_one  = /obj/item/weapon/storage/backpack/satchel/norm
-	var/satchel_two  = /obj/item/weapon/storage/backpack/satchel
-	var/messenger_bag = /obj/item/weapon/storage/backpack/messenger
-	var/sports_bag = /obj/item/weapon/storage/backpack/sport
-	var/satchel_three = /obj/item/weapon/storage/backpack/satchel/strapless
+	var/headset = /obj/item/radio/headset
+	var/headset_alt = /obj/item/radio/headset/alt
+	var/headset_earbud = /obj/item/radio/headset/earbud
+
+	var/backpack = /obj/item/storage/backpack
+	var/satchel_one  = /obj/item/storage/backpack/satchel/norm
+	var/satchel_two  = /obj/item/storage/backpack/satchel
+	var/messenger_bag = /obj/item/storage/backpack/messenger
+	var/sports_bag = /obj/item/storage/backpack/sport
+	var/satchel_three = /obj/item/storage/backpack/satchel/strapless
 
 	var/flags // Specific flags
 
 	var/undress = 1	//Does the outfit undress the mob upon equp?
 
-/decl/hierarchy/outfit/New()
+/datum/decl/hierarchy/outfit/New()
 	..()
 
 	if(is_hidden_category())
 		return
-	outfits_decls_by_type_[type] = src
-	dd_insertObjectList(outfits_decls_, src)
+	GLOB.outfits_decls_by_type[type] = src
+	dd_insertObjectList(GLOB.outfits_decls, src)
 
-/decl/hierarchy/outfit/proc/pre_equip(mob/living/carbon/human/H)
+/datum/decl/hierarchy/outfit/proc/pre_equip(mob/living/carbon/human/H)
+	switch(H.headset)
+		if(1) l_ear = headset
+		if(2) l_ear = headset_alt
+		if(3) l_ear = headset_earbud
 	if(flags & OUTFIT_HAS_BACKPACK)
 		switch(H.backbag)
 			if(2) back = backpack
@@ -82,20 +79,20 @@ var/list/outfits_decls_by_type_
 			if(7) back = satchel_three
 			else back = null
 
-/decl/hierarchy/outfit/proc/post_equip(mob/living/carbon/human/H)
+/datum/decl/hierarchy/outfit/proc/post_equip(mob/living/carbon/human/H)
 	if(flags & OUTFIT_HAS_JETPACK)
-		var/obj/item/weapon/tank/jetpack/J = locate(/obj/item/weapon/tank/jetpack) in H
+		var/obj/item/tank/jetpack/J = locate(/obj/item/tank/jetpack) in H
 		if(!J)
 			return
 		J.toggle()
 		J.toggle_valve()
 
-/decl/hierarchy/outfit/proc/equip(mob/living/carbon/human/H, var/rank, var/assignment)
+/datum/decl/hierarchy/outfit/proc/equip(mob/living/carbon/human/H, rank, assignment)
 	equip_base(H)
 
 	rank = rank || id_pda_assignment
 	assignment = id_pda_assignment || assignment || rank
-	var/obj/item/weapon/card/id/W = equip_id(H, rank, assignment)
+	var/obj/item/card/id/W = equip_id(H, rank, assignment)
 	if(W)
 		rank = W.rank
 		assignment = W.assignment
@@ -112,14 +109,15 @@ var/list/outfits_decls_by_type_
 		H.set_id_info(W)
 	return 1
 
-/decl/hierarchy/outfit/proc/equip_base(mob/living/carbon/human/H)
+/datum/decl/hierarchy/outfit/proc/equip_base(mob/living/carbon/human/H)
 	pre_equip(H)
 
 	//Start with uniform,suit,backpack for additional slots
 	if(uniform)
 		H.equip_to_slot_or_del(new uniform(H),slot_w_uniform)
 	if(suit)
-		H.equip_to_slot_or_del(new suit(H),slot_wear_suit)
+		if(!(H.client?.prefs?.no_jacket))
+			H.equip_to_slot_or_del(new suit(H),slot_wear_suit)
 	if(back)
 		H.equip_to_slot_or_del(new back(H),slot_back)
 	if(belt)
@@ -127,7 +125,8 @@ var/list/outfits_decls_by_type_
 	if(gloves)
 		H.equip_to_slot_or_del(new gloves(H),slot_gloves)
 	if(shoes)
-		H.equip_to_slot_or_del(new shoes(H),slot_shoes)
+		if(!(H.client?.prefs?.shoe_hater))	//RS ADD
+			H.equip_to_slot_or_del(new shoes(H),slot_shoes)
 	if(mask)
 		H.equip_to_slot_or_del(new mask(H),slot_wear_mask)
 	if(head)
@@ -160,10 +159,10 @@ var/list/outfits_decls_by_type_
 	if(H.species)
 		H.species.equip_survival_gear(H, flags&OUTFIT_EXTENDED_SURVIVAL, flags&OUTFIT_COMPREHENSIVE_SURVIVAL)
 
-/decl/hierarchy/outfit/proc/equip_id(mob/living/carbon/human/H, rank, assignment)
+/datum/decl/hierarchy/outfit/proc/equip_id(mob/living/carbon/human/H, rank, assignment)
 	if(!id_slot || !id_type)
 		return
-	var/obj/item/weapon/card/id/W = new id_type(H)
+	var/obj/item/card/id/W = new id_type(H)
 	if(id_desc)
 		W.desc = id_desc
 	if(rank)
@@ -173,18 +172,18 @@ var/list/outfits_decls_by_type_
 	if(H.equip_to_slot_or_del(W, id_slot))
 		return W
 
-/decl/hierarchy/outfit/proc/equip_pda(mob/living/carbon/human/H, rank, assignment)
+/datum/decl/hierarchy/outfit/proc/equip_pda(mob/living/carbon/human/H, rank, assignment)
 	if(!pda_slot || !pda_type)
 		return
-	var/obj/item/device/pda/pda = new pda_type(H)
+	var/obj/item/pda/pda = new pda_type(H)
 	if(H.equip_to_slot_or_del(pda, pda_slot))
 		pda.owner = H.real_name
 		pda.ownjob = assignment
 		pda.ownrank = rank
 		pda.name = "PDA-[H.real_name] ([assignment])"
-		if(H.client.prefs.ringtone) // if null we use the job default
+		if(H.client?.prefs.ringtone) // if null we use the job default
 			pda.ttone = H.client.prefs.ringtone
 		return pda
 
-/decl/hierarchy/outfit/dd_SortValue()
+/datum/decl/hierarchy/outfit/dd_SortValue()
 	return name

@@ -1,7 +1,7 @@
 /*****************************Coin********************************/
 
-/obj/item/weapon/coin
-	icon = 'icons/obj/items.dmi'
+/obj/item/coin
+	icon = 'icons/obj/coins.dmi'
 	name = "Coin"
 	desc = "A simple coin you can flip."
 	icon_state = "coin"
@@ -15,71 +15,156 @@
 	drop_sound = 'sound/items/drop/ring.ogg'
 	pickup_sound = 'sound/items/pickup/ring.ogg'
 
-/obj/item/weapon/coin/New()
+/obj/item/coin/Initialize(mapload)
+	. = ..()
 	randpixel_xy()
 
-/obj/item/weapon/coin/gold
-	name = "gold coin"
+/obj/item/coin/gold
+	name = MAT_GOLD + " coin"
+	desc = "A shiny " + MAT_GOLD + " coin. Just like in the old movies with pirates!"
 	icon_state = "coin_gold"
-	matter = list(MAT_GOLD = 250)
+	matter = list(MAT_GOLD = MATERIAL_COST(0.125))
 
-/obj/item/weapon/coin/silver
-	name = "silver coin"
+/obj/item/coin/silver
+	name = MAT_SILVER + " coin"
+	desc = "A shiny " + MAT_SILVER + " coin. You can almost see your reflection in it. Unless you're a vampire."
 	icon_state = "coin_silver"
-	matter = list(MAT_SILVER = 250)
+	matter = list(MAT_SILVER = MATERIAL_COST(0.125))
 
-/obj/item/weapon/coin/diamond
-	name = "diamond coin"
+/obj/item/coin/copper
+	name = MAT_COPPER + " coin"
+	desc = "A sturdy " + MAT_COPPER + " coin. The preferred tender of people who like to make other people count a lot."
+	icon_state = "coin_copper"
+	matter = list(MAT_COPPER = MATERIAL_COST(0.125))
+
+/obj/item/coin/diamond
+	name = MAT_DIAMOND + " coin"
+	desc = "A coin made of solid " + MAT_DIAMOND + ". Carbon, really, but who's counting?" // me, I'm counting
 	icon_state = "coin_diamond"
-	matter = list(MAT_DIAMOND = 250)
+	matter = list(MAT_DIAMOND = MATERIAL_COST(0.125))
 
-/obj/item/weapon/coin/iron
-	name = "iron coin"
+/obj/item/coin/graphite
+	name = MAT_GRAPHITE + " coin"
+	desc = "A small pressed plaque of " + MAT_GRAPHITE + ". This seems... impractical. Maybe you could use it as a pencil in a pinch?"
+	icon_state = "coin_graphite"
+	matter = list(MAT_GRAPHITE = 250)
+
+/obj/item/coin/iron
+	name = MAT_IRON + " coin"
+	desc = "A dull " + MAT_IRON + " coin. Not that it's boring, it's just a bit plain."
 	icon_state = "coin_iron"
-	matter = list(MAT_IRON = 250)
+	matter = list(MAT_IRON = MATERIAL_COST(0.125))
 
-/obj/item/weapon/coin/phoron
-	name = "solid phoron coin"
+/obj/item/coin/steel
+	name = MAT_STEEL + " coin"
+	desc = "A plain " + MAT_STEEL + " coin. You'd think they'd make more coins out of this, considering how plentiful it is."
+	icon_state = "coin_steel"
+	matter = list(MAT_STEEL = MATERIAL_COST(0.125))
+
+/obj/item/coin/durasteel
+	name = MAT_DURASTEEL + " coin"
+	desc = "A shiny " + MAT_DURASTEEL + " coin. Keep it in your breast pocket, maybe it'll stop a bullet someday."
+	icon_state = "coin_durasteel"
+	matter = list(MAT_DURASTEEL = MATERIAL_COST(0.125))
+
+/obj/item/coin/plasteel
+	name = MAT_PLASTEEL + " coin"
+	desc = "Someone made a coin out of " + MAT_PLASTEEL + ". Now why would they do that?"
+	icon_state = "coin_plasteel"
+	matter = list(MAT_PLASTEEL = MATERIAL_COST(0.125))
+
+/obj/item/coin/titanium
+	name = MAT_TITANIUM + " coin"
+	desc = "A shiny " + MAT_TITANIUM + " coin with some commemorative markings."
+	icon_state = "coin_titanium"
+	matter = list(MAT_TITANIUM = MATERIAL_COST(0.125))
+
+/obj/item/coin/lead
+	name = MAT_LEAD + " coin"
+	desc = "A heavy coin indeed. Shame it's worthless as anything other than a paperweight."
+	icon_state = "coin_lead"
+	matter = list(MAT_LEAD = MATERIAL_COST(0.125))
+
+/obj/item/coin/phoron
+	name = "solid " + MAT_PHORON + " coin"
+	desc = "Solid " + MAT_PHORON + ", pressed into a coin and laminated for safety. Go ahead, lick it."
 	icon_state = "coin_phoron"
-	matter = list(MAT_PHORON = 250)
+	matter = list(MAT_PHORON = MATERIAL_COST(0.125))
 
-/obj/item/weapon/coin/uranium
-	name = "uranium coin"
+/obj/item/coin/uranium
+	name = MAT_URANIUM + " coin"
+	desc = "A " + MAT_URANIUM + " coin. You probably don't want to store this in your pants pocket..."
 	icon_state = "coin_uranium"
-	matter = list(MAT_URANIUM = 250)
+	matter = list(MAT_URANIUM = MATERIAL_COST(0.125))
+	var/last_event = 0
+	var/active = 0
 
-/obj/item/weapon/coin/platinum
-	name = "platinum coin"
-	icon_state = "coin_adamantine"
-	matter = list(MAT_GOLD = 250)
+/obj/item/coin/uranium/Initialize(mapload)
+	. = ..()
+	START_PROCESSING(SSobj, src)
 
-/obj/item/weapon/coin/morphium
-	name = "morphium coin"
+/obj/item/coin/uranium/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	. = ..()
+
+/obj/item/coin/uranium/process()
+	radiate()
+	..()
+
+/obj/item/coin/uranium/proc/radiate()
+	SIGNAL_HANDLER
+	if(active)
+		return
+	if(world.time <= last_event + 1.5 SECONDS)
+		return
+	active = TRUE
+	radiation_pulse(
+		src,
+		max_range = 1,
+		threshold = RAD_LIGHT_INSULATION,
+		chance = URANIUM_IRRADIATION_CHANCE,
+		minimum_exposure_time = URANIUM_RADIATION_MINIMUM_EXPOSURE_TIME,
+		strength = 2
+	)
+	last_event = world.time
+	active = FALSE
+
+/obj/item/coin/platinum
+	name = MAT_PLATINUM + " coin"
+	desc = "A shiny " + MAT_PLATINUM + " coin. Truth is, the game was rigged from the start."
+	icon_state = "coin_platinum"
+	matter = list(MAT_GOLD = MATERIAL_COST(0.125))
+
+/obj/item/coin/morphium
+	name = MAT_MORPHIUM + " coin"
+	desc = "Solid " + MAT_MORPHIUM + ", made into a coin. Extravagant is putting it lightly."
 	icon_state = "coin_morphium"
-	matter = list(MAT_MORPHIUM = 250)
+	matter = list(MAT_MORPHIUM = MATERIAL_COST(0.125))
 
-/obj/item/weapon/coin/aluminium
-	name = "aluminium coin"
+/obj/item/coin/aluminium
+	name = MAT_ALUMINIUM + " coin"
+	desc = "Someone decided to make a coin out of" + MAT_ALUMINIUM + ". Now your wallet can be lighter than ever."
 	icon_state = "coin_aluminium"
-	matter = list(MAT_ALUMINIUM = 250)
+	matter = list(MAT_ALUMINIUM = MATERIAL_COST(0.125))
 
-/obj/item/weapon/coin/verdantium
-	name = "verdantium coin"
+/obj/item/coin/verdantium
+	name = MAT_VERDANTIUM + " coin"
+	desc = "Shiny green " + MAT_VERDANTIUM + ", pressed into a coin. It almost seems to glimmer under starlight."
 	icon_state = "coin_verdantium"
-	matter = list(MAT_VERDANTIUM = 250)
+	matter = list(MAT_VERDANTIUM = MATERIAL_COST(0.125))
 
-/obj/item/weapon/coin/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/item/coin/attackby(obj/item/W as obj, mob/user as mob)
 	if(istype(W,/obj/item/stack/cable_coil))
 		var/obj/item/stack/cable_coil/CC = W
 		if(string_attached)
-			to_chat(user, "<span class='notice'>There already is a string attached to this coin.</span>")
+			balloon_alert(user, "there is a string already attached to \the [src]")
 			return
 		if (CC.use(1))
 			add_overlay("coin_string_overlay")
 			string_attached = 1
-			to_chat(user, "<span class='notice'>You attach a string to the coin.</span>")
+			balloon_alert(user, "string attached to \the [src]")
 		else
-			to_chat(user, "<span class='notice'>This cable coil appears to be empty.</span>")
+			balloon_alert(user, "the coil seems to be empty...")
 		return
 	else if(W.has_tool_quality(TOOL_WIRECUTTER))
 		if(!string_attached)
@@ -90,15 +175,19 @@
 		CC.update_icon()
 		cut_overlays()
 		string_attached = null
-		to_chat(user, "<span class='notice'>You detach the string from the coin.</span>")
+		balloon_alert(user, "string detached")
 	else ..()
 
-/obj/item/weapon/coin/attack_self(mob/user as mob)
+/obj/item/coin/attack_self(mob/user)
+	. = ..(user)
+	if(.)
+		return TRUE
 	var/result = rand(1, sides)
 	var/comment = ""
 	if(result == 1)
 		comment = "tails"
 	else if(result == 2)
 		comment = "heads"
-	user.visible_message("<span class='notice'>[user] has thrown \the [src]. It lands on [comment]! </span>", \
-						 "<span class='notice'>You throw \the [src]. It lands on [comment]! </span>")
+	user.visible_message(span_notice("[user] has thrown \the [src]. It lands on [comment]!"), \
+							span_notice("You throw \the [src]. It lands on [comment]!"))
+	balloon_alert_visible("\the [src] lands on [comment]!", "\the [src] lands on [comment]!")

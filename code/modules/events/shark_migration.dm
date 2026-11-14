@@ -11,7 +11,7 @@
 	shark_cap = 1 + 1 ** severity // No more than this many at once regardless of waves. (2, 3, ?)
 
 /datum/event/shark_migration/start()
-	affecting_z -= global.using_map.sealed_levels // Space levels only please!
+	affecting_z -= using_map.sealed_levels // Space levels only please!
 	..()
 
 /datum/event/shark_migration/announce()
@@ -20,7 +20,7 @@
 		announcement = "Massive migration of unknown biological entities has been detected near [location_name()], please stand-by."
 	else
 		announcement = "Unknown biological [spawned_shark.len == 1 ? "entity has" : "entities have"] been detected near [location_name()], please stand-by."
-	command_announcement.Announce(announcement, "Lifesign Alert")
+	GLOB.command_announcement.Announce(announcement, "Lifesign Alert", new_sound = ANNOUNCER_MSG_UNIDENTIFIED_LIFESIGNS)
 
 /datum/event/shark_migration/tick()
 	if(activeFor % 5 != 0)
@@ -28,13 +28,13 @@
 	if(count_spawned_sharks() < shark_cap)
 		spawn_fish(rand(3, 3 + severity * 2) - 1, 1, severity + 2)
 
-/datum/event/shark_migration/proc/spawn_fish(var/num_groups, var/group_size_min, var/group_size_max, var/dir)
+/datum/event/shark_migration/proc/spawn_fish(num_groups, group_size_min, group_size_max, dir)
 	if(isnull(dir))
 		dir = (victim && prob(80)) ? victim.fore_dir : pick(GLOB.cardinal)
 
 	// Check if any landmarks exist!
 	var/list/spawn_locations = list()
-	for(var/obj/effect/landmark/C in landmarks_list)
+	for(var/obj/effect/landmark/C in GLOB.landmarks_list)
 		if(C.name == "carpspawn" && (C.z in affecting_z))
 			spawn_locations.Add(C.loc)
 	if(spawn_locations.len) // Okay we've got landmarks, lets use those!
@@ -69,9 +69,9 @@
 		i++
 
 // Spawn a single shark at given location.
-/datum/event/shark_migration/proc/spawn_one_shark(var/loc)
+/datum/event/shark_migration/proc/spawn_one_shark(loc)
 	var/mob/living/simple_mob/animal/M = new /mob/living/simple_mob/animal/space/shark/event(loc)
-	GLOB.destroyed_event.register(M, src, PROC_REF(on_shark_destruction))
+	RegisterSignal(M, COMSIG_OBSERVER_DESTROYED, PROC_REF(on_shark_destruction))
 	spawned_shark.Add(M)
 	return M
 
@@ -83,9 +83,10 @@
 			. += 1
 
 // If shark is bomphed, remove it from the list.
-/datum/event/shark_migration/proc/on_shark_destruction(var/mob/M)
+/datum/event/shark_migration/proc/on_shark_destruction(mob/M)
+	SIGNAL_HANDLER
 	spawned_shark -= M
-	GLOB.destroyed_event.unregister(M, src, PROC_REF(on_shark_destruction))
+	UnregisterSignal(M, COMSIG_OBSERVER_DESTROYED)
 
 /datum/event/shark_migration/end()
 	. = ..()

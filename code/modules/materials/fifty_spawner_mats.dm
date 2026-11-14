@@ -104,6 +104,26 @@
 	name = "stack of hardwood"
 	type_to_spawn = /obj/item/stack/material/wood/hard
 
+/obj/fiftyspawner/birchwood
+	name = "stack of birchwood"
+	type_to_spawn = /obj/item/stack/material/wood/birch
+
+/obj/fiftyspawner/pinewood
+	name = "stack of pinewood"
+	type_to_spawn = /obj/item/stack/material/wood/pine
+
+/obj/fiftyspawner/oakwood
+	name = "stack of oakwood"
+	type_to_spawn = /obj/item/stack/material/wood/oak
+
+/obj/fiftyspawner/acaciawood
+	name = "stack of acaciawood"
+	type_to_spawn = /obj/item/stack/material/wood/acacia
+
+/obj/fiftyspawner/redwood
+	name = "stack of redwood"
+	type_to_spawn = /obj/item/stack/material/wood/redwood
+
 /obj/fiftyspawner/log
 	name = "stack of logs"
 	type_to_spawn = /obj/item/stack/material/log
@@ -148,7 +168,42 @@
 	name = "stack of reinforced borosilicate glass"
 	type_to_spawn = /obj/item/stack/material/glass/phoronrglass
 
-//R-UST port
+/obj/fiftyspawner/glamour
+	name = "stack of stable glamour"
+	type_to_spawn = /obj/item/stack/material/glamour
+
 /obj/fiftyspawner/deuterium
 	name = "stack of deuterium"
 	type_to_spawn = /obj/item/stack/material/deuterium
+
+/obj/fiftyspawner/titanium
+	name = "stack of titanium"
+	type_to_spawn = /obj/item/stack/material/titanium
+
+/obj/fiftyspawner/titanium_glass
+	name = "stack of ti-glass"
+	type_to_spawn = /obj/item/stack/material/glass/titanium
+
+/obj/fiftyspawner/plastitanium
+	name = "stack of plastitanium"
+	type_to_spawn = /obj/item/stack/material/plastitanium
+
+/obj/fiftyspawner/plastitanium_hull
+	name = "stack of plastitanium"
+	type_to_spawn = /obj/item/stack/material/plastitanium/hull
+
+/obj/fiftyspawner/plastitanium_glass
+	name = "stack of plastitanium glass"
+	type_to_spawn = /obj/item/stack/material/glass/plastitanium
+
+/obj/fiftyspawner/aluminium
+	name = "stack of aluminium"
+	type_to_spawn = /obj/item/stack/material/aluminium
+
+/obj/fiftyspawner/verdantium
+	name = "stack of verdantium"
+	type_to_spawn = /obj/item/stack/material/verdantium
+
+/obj/fiftyspawner/painite
+	name = "stack of painite"
+	type_to_spawn = /obj/item/stack/material/painite

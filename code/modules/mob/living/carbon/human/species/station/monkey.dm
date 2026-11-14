@@ -25,7 +25,7 @@
 	unarmed_types = list(/datum/unarmed_attack/bite, /datum/unarmed_attack/claws)
 	inherent_verbs = list(/mob/living/proc/ventcrawl)
 	hud_type = /datum/hud_data/monkey
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/monkey
+	meat_type = /obj/item/reagent_containers/food/snacks/meat/monkey
 
 	rarity_value = 0.1
 	total_health = 75
@@ -54,18 +54,48 @@
 		BP_R_FOOT = list("path" = /obj/item/organ/external/foot/right)
 		)
 
-/datum/species/monkey/handle_npc(var/mob/living/carbon/human/H)
+/datum/species/monkey/handle_npc(mob/living/carbon/human/H)
 	if(H.stat != CONSCIOUS)
 		return
-	if(prob(33) && H.canmove && isturf(H.loc) && !H.pulledby) //won't move if being pulled
-		step(H, pick(cardinal))
-	if(prob(1))
-		H.emote(pick("scratch","jump","roll","tail"))
+	// Traitgenes Monkeys perform emotes based on their traits
+	if(H.canmove && isturf(H.loc) && !H.pulledby) //won't move if being pulled
+		if(prob(33))
+			step(H, pick(GLOB.cardinal))
+		if(prob(5))
+			// Handle generic gene expression emotes
+			if(!H.species || !H.species.traits || H.species.traits.len == 0)
+				H.emote(pick("scratch","jump","roll","tail")) // fallbacks
+			else
+				var/datum/trait/T = GLOB.all_traits[pick(H.species.traits)]
+				if(T)
+					var/geneexpression
+					if(T.primitive_expression_messages.len)
+						geneexpression = pick(T.primitive_expression_messages)
+					if(geneexpression)
+						H.automatic_custom_emote(VISIBLE_MESSAGE, "[geneexpression]", check_stat = TRUE)
+					else
+						H.emote(pick("scratch","jump","roll","tail"))
+		// More... intense, expressions...
+		if(prob(5) && H.mutations.len)
+			if((LASER_EYES in H.mutations))
+				// zappy monkeys
+				var/list/targs = list()
+				for(var/atom/X in orange(7, H))
+					targs.Add(X)
+				if(targs.len)
+					H.LaserEyes(pick(targs))
 
 	..()
 
 /datum/species/monkey/get_random_name()
 	return "[lowertext(name)] ([rand(100,999)])"
+
+/datum/species/monkey/handle_post_spawn(mob/living/carbon/human/H)
+	if(!H.ckey)
+		H.can_be_drop_prey = TRUE
+		H.digest_leave_remains = TRUE
+		H.low_priority = TRUE
+	return ..()
 
 /datum/species/monkey/tajaran
 	name = SPECIES_MONKEY_TAJ
@@ -74,7 +104,7 @@
 	icobase = 'icons/mob/human_races/monkeys/r_farwa.dmi'
 	deform = 'icons/mob/human_races/monkeys/r_farwa.dmi'
 
-	greater_form = SPECIES_TAJ
+	greater_form = SPECIES_TAJARAN
 	default_language = LANGUAGE_ANIMAL
 	flesh_color = "#AFA59E"
 	base_color = "#333333"
@@ -107,3 +137,89 @@
 	flesh_color = "#34AF10"
 	base_color = "#066000"
 	reagent_tag = IS_UNATHI
+
+/datum/species/monkey/shark
+	name = SPECIES_MONKEY_AKULA
+	name_plural = "Sobaka"
+	icobase = 'icons/mob/human_races/monkeys/r_sobaka_vr.dmi'
+	deform = 'icons/mob/human_races/monkeys/r_sobaka_vr.dmi'
+	tail = null //The tail is part of its body due to tail using the "icons/effects/species.dmi" file. It must be null, or they'll have a chimp tail.
+	greater_form = SPECIES_AKULA
+	default_language = "Skrellian" //Closest we have.
+
+/datum/species/monkey/sergal
+	name = SPECIES_MONKEY_SERGAL
+	greater_form = "Sergal"
+	icobase = 'icons/mob/human_races/monkeys/r_sergaling_vr.dmi'
+	deform = 'icons/mob/human_races/monkeys/r_sergaling_vr.dmi'
+	tail = null
+	default_language = LANGUAGE_SAGARU
+
+/datum/species/monkey/sparra
+	name = SPECIES_MONKEY_NEVREAN
+	name_plural = "Sparra"
+	greater_form = SPECIES_NEVREAN
+	tail = null
+	icobase = 'icons/mob/human_races/monkeys/r_sparra_vr.dmi'
+	deform = 'icons/mob/human_races/monkeys/r_sparra_vr.dmi'
+	default_language = LANGUAGE_BIRDSONG
+
+
+/* Example
+/datum/species/monkey/tajaran
+	name = SPECIES_MONKEY_TAJ
+	name_plural = "Farwa"
+
+	icobase = 'icons/mob/human_races/monkeys/r_farwa.dmi'
+	deform = 'icons/mob/human_races/monkeys/r_farwa.dmi'
+
+	greater_form = SPECIES_TAJARAN
+	default_language = "Farwa"
+	flesh_color = "#AFA59E"
+	base_color = "#333333"
+	tail = "farwatail"
+*/
+
+/datum/species/monkey/vulpkanin
+	name = SPECIES_MONKEY_VULPKANIN
+	name_plural = "Wolpin"
+
+	icobase = 'icons/mob/human_races/monkeys/r_wolpin.dmi'
+	deform = 'icons/mob/human_races/monkeys/r_wolpin.dmi'
+
+	greater_form = SPECIES_VULPKANIN
+	default_language = LANGUAGE_CANILUNZT
+	flesh_color = "#966464"
+	base_color = "#000000"
+	tail = null
+
+//INSERT CODE HERE SO MONKEYS CAN BE SPAWNED.
+//Also, M was added to the end of the spawn names to signify that it's a monkey, since some names were conflicting.
+
+/mob/living/carbon/human/sharkm
+	low_sorting_priority = TRUE
+
+/mob/living/carbon/human/sharkm/Initialize(mapload)
+	. = ..(mapload, SPECIES_MONKEY_AKULA)
+	species.produceCopy(species.traits.Copy(),src,null,FALSE)
+
+/mob/living/carbon/human/sergallingm
+	low_sorting_priority = TRUE
+
+/mob/living/carbon/human/sergallingm/Initialize(mapload)
+	. = ..(mapload, SPECIES_MONKEY_SERGAL)
+	species.produceCopy(species.traits.Copy(),src,null,FALSE)
+
+/mob/living/carbon/human/sparram
+	low_sorting_priority = TRUE
+
+/mob/living/carbon/human/sparram/Initialize(mapload)
+	. = ..(mapload, SPECIES_MONKEY_NEVREAN)
+	species.produceCopy(species.traits.Copy(),src,null,FALSE)
+
+/mob/living/carbon/human/wolpin
+	low_sorting_priority = TRUE
+
+/mob/living/carbon/human/wolpin/Initialize(mapload)
+	. = ..(mapload, SPECIES_MONKEY_VULPKANIN)
+	species.produceCopy(species.traits.Copy(),src,null,FALSE)

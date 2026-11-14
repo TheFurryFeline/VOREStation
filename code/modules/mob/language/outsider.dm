@@ -7,10 +7,10 @@
 	machine_understands = 0
 	flags = RESTRICTED | HIVEMIND
 
-/datum/language/ling/broadcast(var/mob/living/speaker,var/message,var/speaker_mask)
-
-	if(speaker.mind && speaker.mind.changeling)
-		..(speaker,message,speaker.mind.changeling.changelingID)
+/datum/language/ling/broadcast(mob/living/speaker,message,speaker_mask)
+	var/datum/component/antag/changeling/comp = speaker.GetComponent(/datum/component/antag/changeling)
+	if(speaker.mind && comp)
+		..(speaker,message,comp.changelingID)
 	else
 		..(speaker,message)
 
@@ -25,7 +25,7 @@
 	machine_understands = 0
 	flags = RESTRICTED | HIVEMIND
 
-/datum/language/corticalborer/broadcast(var/mob/living/speaker,var/message,var/speaker_mask)
+/datum/language/corticalborer/broadcast(mob/living/speaker,message,speaker_mask)
 
 	var/mob/living/simple_mob/animal/borer/B
 
@@ -77,7 +77,7 @@
 /datum/language/xenocommon
 	name = "Xenomorph"
 	colour = "alien"
-	desc = "The common tongue of the xenomorphs."
+	desc = "The common tongue of both the xenomorphs and the Genaprawns."
 	speech_verb = "hisses"
 	ask_verb = "hisses"
 	exclaim_verb = "hisses"
@@ -86,7 +86,7 @@
 	syllables = list("sss","sSs","SSS")
 
 /datum/language/xenos
-	name = "Hivemind"
+	name = LANGUAGE_HIVEMIND
 	desc = "Xenomorphs have the strange ability to commune over a psychic hivemind."
 	speech_verb = "hisses"
 	ask_verb = "hisses"
@@ -95,7 +95,7 @@
 	key = "a"
 	flags = RESTRICTED | HIVEMIND
 
-/datum/language/xenos/check_special_condition(var/mob/other)
+/datum/language/xenos/check_special_condition(mob/other)
 
 	var/mob/living/carbon/M = other
 	if(!istype(M))
@@ -132,7 +132,7 @@
 	"danya","da","mied","zan","das","krem","myka","cyka","blyat","to","st","no","na","ni",
 	"ko","ne","en","po","ra","li","on","byl","cto","eni","ost","ol","ego","ver","stv","pro")
 
-/datum/language/corticalborer/broadcast(var/mob/living/speaker,var/message,var/speaker_mask)
+/datum/language/corticalborer/broadcast(mob/living/speaker,message,speaker_mask)
 
 	var/mob/living/simple_mob/animal/borer/B
 

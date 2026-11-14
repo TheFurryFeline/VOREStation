@@ -12,6 +12,7 @@
 	attack_noun = list("tendril")
 	eye_attack_text = "a tendril"
 	eye_attack_text_victim = "a tendril"
+	is_punch = TRUE
 
 /datum/unarmed_attack/claws
 	attack_name = "claws"
@@ -24,16 +25,12 @@
 	sharp = TRUE
 	edge = TRUE
 
-/datum/unarmed_attack/claws/show_attack(var/mob/living/carbon/human/user, var/mob/living/carbon/human/target, var/zone, var/attack_damage)
-	var/skill = user.skills["combat"]
+/datum/unarmed_attack/claws/show_attack(mob/living/carbon/human/user, mob/living/carbon/human/target, zone, attack_damage)
 	var/obj/item/organ/external/affecting = target.get_organ(zone)
-	var/datum/gender/T = gender_datums[user.get_visible_gender()]
-	var/datum/gender/TT = gender_datums[target.get_visible_gender()]
-	if(!skill)	skill = 1
 	attack_damage = CLAMP(attack_damage, 1, 5)
 
 	if(target == user)
-		user.visible_message("<span class='danger'>[user] [pick(attack_verb)] [T.himself] in the [affecting.name]!</span>")
+		user.visible_message(span_danger("[user] [pick(attack_verb)] [user.p_themselves()] in the [affecting.name]!"))
 		return 0
 
 	switch(zone)
@@ -41,20 +38,20 @@
 			// ----- HEAD ----- //
 			switch(attack_damage)
 				if(1 to 2)
-					user.visible_message("<span class='danger'>[user] scratched [target] across [TT.his] cheek!</span>")
+					user.visible_message(span_danger("[user] scratched [target] across [target.p_their()] cheek!"))
 				if(3 to 4)
-					user.visible_message("<span class='danger'>[user] [pick(attack_verb)] [target]'s [pick("head", "neck")]!</span>") //'with spread claws' sounds a little bit odd, just enough that conciseness is better here I think
+					user.visible_message(span_danger("[user] [pick(attack_verb)] [target]'s [pick("head", "neck")]!")) //'with spread claws' sounds a little bit odd, just enough that conciseness is better here I think
 				if(5)
 					user.visible_message(pick(
-						"<span class='danger'>[user] rakes [T.his] [pick(attack_noun)] across [target]'s face!</span>",
-						"<span class='danger'>[user] tears [T.his] [pick(attack_noun)] into [target]'s face!</span>",
+						span_danger("[user] rakes [user.p_their()] [pick(attack_noun)] across [target]'s face!"),
+						span_danger("[user] tears [user.p_their()] [pick(attack_noun)] into [target]'s face!"),
 						))
 		else
 			// ----- BODY ----- //
 			switch(attack_damage)
-				if(1 to 2)	user.visible_message("<span class='danger'>[user] scratched [target]'s [affecting.name]!</span>")
-				if(3 to 4)	user.visible_message("<span class='danger'>[user] [pick(attack_verb)] [pick("", "", "the side of")] [target]'s [affecting.name]!</span>")
-				if(5)		user.visible_message("<span class='danger'>[user] tears [T.his] [pick(attack_noun)] [pick("deep into", "into", "across")] [target]'s [affecting.name]!</span>")
+				if(1 to 2)	user.visible_message(span_danger("[user] scratched [target]'s [affecting.name]!"))
+				if(3 to 4)	user.visible_message(span_danger("[user] [pick(attack_verb)] [pick("", "", "the side of")] [target]'s [affecting.name]!"))
+				if(5)		user.visible_message(span_danger("[user] tears [user.p_their()] [pick(attack_noun)] [pick("deep into", "into", "across")] [target]'s [affecting.name]!"))
 
 /datum/unarmed_attack/claws/strong
 	attack_name = "strong claws"
@@ -63,12 +60,44 @@
 	shredding = 1
 
 /datum/unarmed_attack/claws/strong/xeno
-	attack_verb = list("slashed", "gouged", "stabbed")
-	damage = 15
+	attack_name = "xenomorph claws"
+	attack_verb = list("slashed", "gouged", "punctured", "hacked", "ripped")
+	attack_noun = list("claws", "tailblade", "talons")
+	attack_sound = 'sound/weapons/alien_claw_flesh.ogg'
+	damage = 10
+	shredding = 0
+
+/datum/unarmed_attack/claws/strong/xeno/show_attack(mob/living/carbon/human/user, mob/living/carbon/human/target, zone, attack_damage)
+	var/obj/item/organ/external/affecting = target.get_organ(zone)
+	attack_damage = CLAMP(attack_damage, 1, 5)
+
+	if(target == user)
+		user.visible_message(span_danger("[user] [pick(attack_verb)] [user.p_themselves()] in the [affecting.name]!"))
+		return 0
+
+	switch(zone)
+		if(BP_HEAD, O_MOUTH, O_EYES)
+			// ----- HEAD ----- //
+			switch(attack_damage)
+				if(1 to 2)
+					user.visible_message(span_danger("[user] rakes [user.p_their()] [pick(attack_noun)] across [target]'s face!"))
+				if(3 to 4)
+					user.visible_message(span_danger("[user] [pick(attack_verb)] [target]'s [pick("head", "neck")]!"))
+				if(5)
+					user.visible_message(span_danger("[user] tears [user.p_their()] [pick(attack_noun)] into [target]'s face!"))
+		else
+			// ----- BODY ----- //
+			switch(attack_damage)
+				if(1 to 2)	user.visible_message(span_danger("[user] maims [target]'s [affecting.name]!"))
+				if(3 to 4)	user.visible_message(span_danger("[user] [pick(attack_verb)] [pick("", "", "the side of")] [target]'s [affecting.name]!"))
+				if(5)		user.visible_message(span_danger("[user] impales [user.p_their()] [pick(attack_noun)] deep into [target]'s [affecting.name]!"))
 
 /datum/unarmed_attack/claws/strong/xeno/queen
-	attack_verb = list("slashed", "gouged", "stabbed", "gored")
-	damage = 20
+	attack_name = "enormous xenomorph claws"
+	attack_verb = list("mutiliated", "shredded", "impaled", "lacerated", "rended")
+	attack_noun = list("enormous claws", "regal tailblade", "horrific talons")
+	damage = 15
+	shredding = 1
 
 /datum/unarmed_attack/bite/strong
 	attack_name = "strong bite"
@@ -77,7 +106,12 @@
 	shredding = 1
 
 /datum/unarmed_attack/bite/strong/xeno
-	damage = 15
+	attack_name = "inner jaw"
+	attack_verb = list("punctured")
+	attack_noun = list("inner jaw", "inner mouth")
+	damage = 10
+	shredding = 0
+	sharp = TRUE
 
 /datum/unarmed_attack/slime_glomp
 	attack_name = "glomp"
@@ -85,7 +119,7 @@
 	attack_noun = list("body")
 	damage = 2
 
-/datum/unarmed_attack/slime_glomp/apply_effects(var/mob/living/carbon/human/user,var/mob/living/carbon/human/target,var/armour,var/attack_damage,var/zone)
+/datum/unarmed_attack/slime_glomp/apply_effects(mob/living/carbon/human/user,mob/living/carbon/human/target,armour,attack_damage,zone)
 	..()
 	user.apply_stored_shock_to(target)
 
@@ -96,7 +130,102 @@
 /datum/unarmed_attack/stomp/weak/get_unarmed_damage()
 	return damage
 
-/datum/unarmed_attack/stomp/weak/show_attack(var/mob/living/carbon/human/user, var/mob/living/carbon/human/target, var/zone, var/attack_damage)
+/datum/unarmed_attack/stomp/weak/show_attack(mob/living/carbon/human/user, mob/living/carbon/human/target, zone, attack_damage)
 	var/obj/item/organ/external/affecting = target.get_organ(zone)
-	user.visible_message("<span class='warning'>[user] jumped up and down on \the [target]'s [affecting.name]!</span>")
+	user.visible_message(span_warning("[user] jumped up and down on \the [target]'s [affecting.name]!"))
 	playsound(user, attack_sound, 25, 1, -1)
+
+/datum/unarmed_attack/bite/sharp/numbing //Is using this against someone you are truly trying to fight a bad idea? Yes. Yes it is.
+	attack_name = "numbing bite"
+	attack_verb = list("bit")
+	attack_noun = list("fangs")
+	attack_sound = 'sound/weapons/bite.ogg'
+	shredding = 0
+	sharp = TRUE
+	edge = TRUE
+
+/datum/unarmed_attack/bite/sharp/numbing/show_attack(mob/living/carbon/human/user, mob/living/carbon/human/target, zone, attack_damage)
+	var/obj/item/organ/external/affecting = target.get_organ(zone)
+
+	attack_damage = CLAMP(attack_damage, 1, 5)
+	if(target == user)
+		user.visible_message(span_danger("[user] [pick(attack_verb)] \himself in the [affecting.name]!"))
+		return 0 //No venom for you.
+	switch(zone)
+		if(BP_HEAD, O_MOUTH, O_EYES)
+			// ----- HEAD ----- //
+			switch(attack_damage)
+				if(1 to 2)
+					user.visible_message(span_danger("[user]'s fangs scrape across [target]'s cheek!"))
+					to_chat(target, span_danger("Your face feels tingly!"))
+					target.bloodstr.add_reagent(REAGENT_ID_NUMBENZYME,attack_damage) //Have to add this here, otherwise the swtich fails.
+				if(3 to 4)
+					user.visible_message(span_danger("[user]'s fangs pierce into [target]'s neck at an odd, awkward angle!"))
+					to_chat(target, span_danger("Your neck feels like it's on fire before going numb!"))
+					target.bloodstr.add_reagent(REAGENT_ID_NUMBENZYME,attack_damage)
+				if(5)
+					user.visible_message(span_danger("[user] sinks \his [pick(attack_noun)] <b><i>deep</i></b> into [target]'s neck, causing the vein to bulge outwards at some type of chemical is pumped into it!"))
+					to_chat(target, span_danger("Your neck feels like it's going to burst! Moments later, you simply can't feel your neck any longer, the numbness beginning to spread throughout your body!"))
+					target.bloodstr.add_reagent(REAGENT_ID_NUMBENZYME,attack_damage)
+		else
+			// ----- BODY ----- //
+			switch(attack_damage)
+				if(1 to 2)
+					user.visible_message(span_danger("[user]'s fangs scrape across [target]'s [affecting.name]!"))
+					to_chat(target, span_danger("Your [affecting.name] feels tingly!"))
+					target.bloodstr.add_reagent(REAGENT_ID_NUMBENZYME,attack_damage)
+				if(3 to 4)
+					user.visible_message(span_danger("[user]'s fangs pierce [pick("", "", "the side of")] [target]'s [affecting.name]!"))
+					to_chat(target, span_danger("Your [affecting.name] feels like it's on fire before going numb!"))
+					target.bloodstr.add_reagent(REAGENT_ID_NUMBENZYME,attack_damage)
+				if(5)
+					user.visible_message(span_danger("[user]'s fangs sink deep into [target]'s [affecting.name], one of their veins bulging outwards from the sudden fluid pumped into it!"))
+					to_chat(target, span_danger("Your [affecting.name] feels like it's going to burst! Moments later, you simply can't feel your [affecting.name] any longer, the numbness slowly spreading throughout your body!"))
+					target.bloodstr.add_reagent(REAGENT_ID_NUMBENZYME,attack_damage)
+
+/datum/unarmed_attack/claws/shadekin
+
+/datum/unarmed_attack/claws/shadekin/apply_effects(mob/living/carbon/human/user, mob/living/carbon/human/target, zone, attack_damage)
+	..()
+	if(!(target == user))
+		var/datum/component/shadekin/SK = user.get_shadekin_component()
+		if(SK)
+			SK.shadekin_adjust_energy(attack_damage)
+
+/datum/unarmed_attack/bite/sharp/shadekin
+
+/datum/unarmed_attack/bite/sharp/shadekin/apply_effects(mob/living/carbon/human/user, mob/living/carbon/human/target, zone, attack_damage)
+	..()
+	if(!(target == user))
+		var/datum/component/shadekin/SK = user.get_shadekin_component()
+		if(SK)
+			SK.shadekin_adjust_energy(attack_damage)
+
+/datum/unarmed_attack/bite/sharp/xenochimera
+
+/datum/unarmed_attack/bite/sharp/xenochimera/apply_effects(mob/living/carbon/human/user, mob/living/carbon/human/target, armour, attack_damage, zone)
+	..()
+	user.attempt_xenochimera_infection(user, target, armour, attack_damage, zone)
+
+/datum/unarmed_attack/claws/chimera //special feral attack that gets stronger as they get angrier
+	sparring_variant_type = /datum/unarmed_attack/claws/chimera
+
+/datum/unarmed_attack/claws/chimera/get_unarmed_damage(mob/living/carbon/human/user)
+	if(HAS_TRAIT(user, TRAIT_NONLETHAL_BLOWS) && !user.get_feralness())//don't add extra species strength when pulling punches, but can't pull punches when feral
+		return damage
+	return user.species.unarmed_bonus + damage + min(user.get_feralness()/5, 40)
+
+/datum/unarmed_attack/claws/chimera/apply_effects(mob/living/carbon/human/user, mob/living/carbon/human/target, armour, attack_damage, zone)
+	..()
+	if(target == user)
+		return
+	if(user.get_feralness())
+		var/selfdamage = (min((user.get_feralness()/10), 20)-7.5)
+		if(selfdamage > 0)
+			var/selfdamagezone = null
+			if (user.hand)
+				selfdamagezone=pick(BP_L_ARM, BP_L_HAND)
+			else
+				selfdamagezone=pick(BP_R_ARM, BP_R_HAND)
+			user.apply_damage(selfdamage, BRUTE, selfdamagezone, 0, FALSE, FALSE)
+	user.attempt_xenochimera_infection(user, target, armour, attack_damage, zone)

@@ -2,14 +2,13 @@
 //moved these here from code/defines/obj/weapon.dm
 //please preference put stuff where it's easy to find - C
 
-/obj/item/weapon/autopsy_scanner
+/obj/item/autopsy_scanner
 	name = "biopsy scanner"
 	desc = "Extracts information on wounds."
 	icon = 'icons/obj/autopsy_scanner.dmi'
 	icon_state = ""
 	item_state = "autopsy_scanner"
 	w_class = ITEMSIZE_SMALL
-	origin_tech = list(TECH_MATERIAL = 1, TECH_BIO = 1)
 	var/list/datum/autopsy_data_scanner/wdata = list()
 	var/list/datum/autopsy_data_scanner/chemtraces = list()
 	var/target_name = null
@@ -19,8 +18,8 @@
 
 /datum/autopsy_data_scanner
 	var/weapon = null // this is the DEFINITE weapon type that was used
-	var/list/organs_scanned = list() // this maps a number of scanned organs to
-									 // the wounds to those organs with this data's weapon type
+	var/list/organs_scanned = list()	// this maps a number of scanned organs to
+										// the wounds to those organs with this data's weapon type
 	var/organ_names = ""
 
 /datum/autopsy_data
@@ -39,7 +38,7 @@
 	W.time_inflicted = time_inflicted
 	return W
 
-/obj/item/weapon/autopsy_scanner/proc/add_data(var/obj/item/organ/external/O)
+/obj/item/autopsy_scanner/proc/add_data(obj/item/organ/external/O)
 	if(!O.autopsy_data.len && !O.trace_chemicals.len) return
 
 	for(var/V in O.autopsy_data)
@@ -67,18 +66,18 @@
 		if(O.trace_chemicals[V] > 0 && !chemtraces.Find(V))
 			chemtraces += V
 
-/obj/item/weapon/autopsy_scanner/verb/print_data()
+/obj/item/autopsy_scanner/verb/print_data()
 	set category = "Object"
-	set src in view(usr, 1)
+	set src in view(1)
 	set name = "Print Data"
-	if(usr.stat || !(istype(usr,/mob/living/carbon/human)))
+	if(usr.stat || !(ishuman(usr)))
 		to_chat(usr, "No.")
 		return
 
 	var/scan_data = ""
 
 	if(timeofdeath)
-		scan_data += "<b>Time of death:</b> [worldtime2stationtime(timeofdeath)]<br><br>"
+		scan_data += span_bold("Time of death:") + " [worldtime2stationtime(timeofdeath)]<br><br>"
 
 	var/n = 1
 	for(var/wdata_idx in wdata)
@@ -111,17 +110,17 @@
 			if(0)
 				damage_desc = "Unknown"
 			if(1 to 5)
-				damage_desc = "<font color='green'>negligible</font>"
+				damage_desc = span_green("negligible")
 			if(5 to 15)
-				damage_desc = "<font color='green'>light</font>"
+				damage_desc = span_green("light")
 			if(15 to 30)
-				damage_desc = "<font color='orange'>moderate</font>"
+				damage_desc = span_orange("moderate")
 			if(30 to 1000)
-				damage_desc = "<font color='red'>severe</font>"
+				damage_desc = span_red("severe")
 
 		if(!total_score) total_score = D.organs_scanned.len
 
-		scan_data += "<b>Weapon #[n]</b><br>"
+		scan_data += span_bold("Weapon #[n]") + "<br>"
 		if(damaging_weapon)
 			scan_data += "Severity: [damage_desc]<br>"
 			scan_data += "Hits by weapon: [total_hits]<br>"
@@ -136,17 +135,17 @@
 		n++
 
 	if(chemtraces.len)
-		scan_data += "<b>Trace Chemicals: </b><br>"
+		scan_data += span_bold("Trace Chemicals: ") + "<br>"
 		for(var/chemID in chemtraces)
 			scan_data += chemID
 			scan_data += "<br>"
 
 	for(var/mob/O in viewers(usr))
-		O.show_message("<span class='notice'>\The [src] rattles and prints out a sheet of paper.</span>", 1)
+		O.show_message(span_notice("\The [src] rattles and prints out a sheet of paper."), 1)
 
 	sleep(10)
 
-	var/obj/item/weapon/paper/P = new(usr.loc)
+	var/obj/item/paper/P = new(usr.loc)
 	P.name = "Autopsy Data ([target_name])"
 	P.info = "<tt>[scan_data]</tt>"
 	P.icon_state = "paper_words"
@@ -154,7 +153,7 @@
 	if(istype(usr,/mob/living/carbon))
 		usr.put_in_hands(P)
 
-/obj/item/weapon/autopsy_scanner/do_surgery(mob/living/carbon/human/M, mob/living/user)
+/obj/item/autopsy_scanner/do_surgery(mob/living/carbon/human/M, mob/living/user)
 	if(!istype(M))
 		return 0
 
@@ -166,19 +165,21 @@
 		src.wdata = list()
 		src.chemtraces = list()
 		src.timeofdeath = null
-		to_chat(user, "<span class='notice'>A new patient has been registered. Purging data for previous patient.</span>")
+		to_chat(user, span_notice("A new patient has been registered. Purging data for previous patient."))
 
 	src.timeofdeath = M.timeofdeath
 
 	var/obj/item/organ/external/S = M.get_organ(user.zone_sel.selecting)
 	if(!S)
-		to_chat(user, "<span class='warning'>You can't scan this body part.</span>")
+		to_chat(user, span_warning("You can't scan this body part."))
 		return
 	if(!S.open)
-		to_chat(user, "<span class='warning'>You have to cut [S] open first!</span>")
+		to_chat(user, span_warning("You have to cut [S] open first!"))
 		return
-	M.visible_message("<b>\The [user]</b> scans the wounds on [M]'s [S.name] with [src]")
+	M.visible_message(span_infoplain(span_bold("\The [user]") + " scans the wounds on [M]'s [S.name] with [src]"))
 
 	src.add_data(S)
+	SEND_SIGNAL(src,COMSIG_AUTOPSY_PERFORMED, user, M)
+	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_AUTOPSY_PERFORMED, user, M)
 
 	return 1

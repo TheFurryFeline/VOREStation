@@ -1,7 +1,7 @@
 /obj/item/stack/medical/advanced
 	icon = 'icons/obj/stacks_vr.dmi'
 
-/obj/item/stack/medical/advanced/Initialize()
+/obj/item/stack/medical/advanced/Initialize(mapload)
 	. = ..()
 	update_icon()
 
@@ -28,17 +28,17 @@
 	icon_state = "clotkit"
 	heal_burn = 0
 	heal_brute = 2 // Only applies to non-humans, to give this some slight application on animals
-	origin_tech = list(TECH_BIO = 3)
 	apply_sounds = list('sound/effects/spray.ogg', 'sound/effects/spray2.ogg', 'sound/effects/spray3.ogg')
 	amount = 5
 	max_amount = 5
 
-/obj/item/stack/medical/advanced/clotting/attack(mob/living/carbon/human/H, var/mob/user)
-	if(..())
-		return 1
+/obj/item/stack/medical/advanced/clotting/attack(mob/living/M, mob/living/user, target_zone, attack_modifier)
+	if(..() == ITEM_INTERACT_FAILURE)
+		return ITEM_INTERACT_FAILURE
 
-	if(!istype(H))
-		return
+	if(!ishuman(M))
+		return ITEM_INTERACT_FAILURE
+	var/mob/living/carbon/human/H = M
 
 	var/clotted = 0
 	var/too_far_gone = 0
@@ -49,7 +49,7 @@
 		if(affecting.open)
 			too_far_gone++
 			continue
-		
+
 		for(var/datum/wound/W as anything in affecting.wounds)
 			// No need
 			if(W.bandaged)
@@ -61,14 +61,15 @@
 				clotted++
 			W.bandage()
 
-	var/healmessage = "<span class='notice'>You spray [src] onto [H], sealing [clotted ? clotted : "no"] wounds.</span>"
+	var/healmessage = span_notice("You spray [src] onto [H], sealing [clotted ? clotted : "no"] wounds.")
 	if(too_far_gone)
-		healmessage += " <span class='warning'>You can see some wounds that are too large where the spray is not taking effect.</span>"
+		healmessage += " " + span_warning("You can see some wounds that are too large where the spray is not taking effect.")
 
 	to_chat(user, healmessage)
 	use(1)
 	playsound(src, pick(apply_sounds), 25)
 	update_icon()
+	return ITEM_INTERACT_SUCCESS
 
 /obj/item/stack/medical/advanced/clotting/update_icon()
 	icon_state = "[initial(icon_state)]_[amount]"

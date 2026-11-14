@@ -1,4 +1,4 @@
-/obj/item/weapon/fuel_assembly
+/obj/item/fuel_assembly
 	name = "fuel rod assembly"
 	icon = 'icons/obj/machines/power/fusion.dmi'
 	icon_state = "fuel_assembly"
@@ -7,18 +7,43 @@
 
 	var/percent_depleted = 1
 	var/list/rod_quantities = list()
-	var/fuel_type = "composite"
+	var/fuel_type = MAT_COMPOSITE
 	var/fuel_colour
 	var/radioactivity = 0
 	var/const/initial_amount = 3000000
+	var/last_event = 0
+	/// Mutex to prevent infinite recursion when propagating radiation pulses
+	var/active = null
 
-/obj/item/weapon/fuel_assembly/New(var/newloc, var/_material, var/_colour)
+/obj/item/fuel_assembly/process()
+	radiate()
+
+/obj/item/fuel_assembly/proc/radiate()
+	SIGNAL_HANDLER
+	if(active)
+		return
+	if(world.time <= last_event + 1.5 SECONDS)
+		return
+	active = TRUE
+	radiation_pulse(
+		src,
+		max_range = (radioactivity * 0.5),
+		threshold = RAD_HEAVY_INSULATION,
+		chance = DEFAULT_RADIATION_CHANCE,
+		strength = radioactivity * 0.5
+	)
+	last_event = world.time
+	active = FALSE
+
+/obj/item/fuel_assembly/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+
+/obj/item/fuel_assembly/Initialize(mapload, _material, _colour)
+	. = ..()
 	fuel_type = _material
 	fuel_colour = _colour
-	..(newloc)
-
-/obj/item/weapon/fuel_assembly/Initialize()
-	. = ..()
 	var/datum/material/material = get_material_by_name(fuel_type)
 	if(istype(material))
 		name = "[material.use_name] fuel rod assembly"
@@ -41,26 +66,15 @@
 	add_overlay(list(I, image(icon, "fuel_assembly_bracket")))
 	rod_quantities[fuel_type] = initial_amount
 
-/obj/item/weapon/fuel_assembly/process()
-	if(!radioactivity)
-		return PROCESS_KILL
-
-	if(istype(loc, /turf))
-		SSradiation.radiate(src, max(1,CEILING(radioactivity/30, 1)))
-
-/obj/item/weapon/fuel_assembly/Destroy()
-	STOP_PROCESSING(SSobj, src)
-	return ..()
-
 // Mapper shorthand.
-/obj/item/weapon/fuel_assembly/deuterium/New(var/newloc)
-	..(newloc, "deuterium")
+/obj/item/fuel_assembly/deuterium/Initialize(mapload)
+	. = ..(mapload, MAT_DEUTERIUM)
 
-/obj/item/weapon/fuel_assembly/tritium/New(var/newloc)
-	..(newloc, "tritium")
+/obj/item/fuel_assembly/tritium/Initialize(mapload)
+	. = ..(mapload, MAT_TRITIUM)
 
-/obj/item/weapon/fuel_assembly/phoron/New(var/newloc)
-	..(newloc, "phoron")
+/obj/item/fuel_assembly/phoron/Initialize(mapload)
+	. = ..(mapload, MAT_PHORON)
 
-/obj/item/weapon/fuel_assembly/supermatter/New(var/newloc)
-	..(newloc, "supermatter")
+/obj/item/fuel_assembly/supermatter/Initialize(mapload)
+	. = ..(mapload, MAT_SUPERMATTER)

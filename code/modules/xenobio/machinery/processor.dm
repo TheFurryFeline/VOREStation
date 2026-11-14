@@ -13,20 +13,19 @@
 	var/monkeys_recycled = 0
 	description_info = "Clickdrag dead slimes or monkeys to it to insert them.  It will make a new monkey cube for every four monkeys it processes."
 
-/obj/item/weapon/circuitboard/processor
+/obj/item/circuitboard/processor
 	name = T_BOARD("slime processor")
 	build_path = /obj/machinery/processor
-	origin_tech = list(TECH_DATA = 2, TECH_BIO = 2)
 
 /obj/machinery/processor/attack_hand(mob/living/user)
 	if(processing)
-		to_chat(user, "<span class='warning'>The processor is in the process of processing!</span>")
+		to_chat(user, span_warning("The processor is in the process of processing!"))
 		return
 	if(to_be_processed.len)
 		spawn(1)
 			begin_processing()
 	else
-		to_chat(user, "<span class='warning'>The processor is empty.</span>")
+		to_chat(user, span_warning("The processor is empty."))
 		playsound(src, 'sound/machines/buzz-sigh.ogg', 50, 1)
 		return
 
@@ -49,16 +48,16 @@
 		AM.forceMove(get_turf(src))
 
 // Ejects all the things out of the machine.
-/obj/machinery/processor/proc/insert(var/atom/movable/AM, var/mob/living/user)
+/obj/machinery/processor/proc/insert(atom/movable/AM, mob/living/user)
 	if(!Adjacent(AM))
 		return
 	if(!can_insert(AM))
-		to_chat(user, "<span class='warning'>\The [src] cannot process \the [AM] at this time.</span>")
+		to_chat(user, span_warning("\The [src] cannot process \the [AM] at this time."))
 		playsound(src, 'sound/machines/buzz-sigh.ogg', 50, 1)
 		return
 	to_be_processed.Add(AM)
 	AM.forceMove(src)
-	visible_message("<b>\The [user]</b> places [AM] inside \the [src].")
+	visible_message(span_infoplain(span_bold("\The [user]") + " places [AM] inside \the [src]."))
 
 /obj/machinery/processor/proc/begin_processing()
 	if(processing)
@@ -70,7 +69,7 @@
 		sleep(1 SECONDS)
 
 	while(monkeys_recycled >= 4)
-		new /obj/item/weapon/reagent_containers/food/snacks/monkeycube(get_turf(src))
+		new /obj/item/reagent_containers/food/snacks/monkeycube(get_turf(src))
 		playsound(src, 'sound/effects/splat.ogg', 50, 1)
 		monkeys_recycled -= 4
 		sleep(1 SECOND)
@@ -78,18 +77,19 @@
 	processing = FALSE
 	playsound(src, 'sound/machines/ding.ogg', 50, 1)
 
-/obj/machinery/processor/proc/extract(var/atom/movable/AM)
+/obj/machinery/processor/proc/extract(atom/movable/AM)
 	if(istype(AM, /mob/living/simple_mob/slime))
 		var/mob/living/simple_mob/slime/S = AM
 		while(S.cores)
-			new S.coretype(get_turf(src))
+			var/atom/new_core = new S.coretype(get_turf(src))
+			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_HARVEST_SLIME_CORE, new_core)
 			playsound(src, 'sound/effects/splat.ogg', 50, 1)
 			S.cores--
 			sleep(1 SECOND)
 		to_be_processed.Remove(S)
 		qdel(S)
 
-	if(istype(AM, /mob/living/carbon/human))
+	if(ishuman(AM))
 		var/mob/living/carbon/human/M = AM
 		playsound(src, 'sound/effects/splat.ogg', 50, 1)
 		to_be_processed.Remove(M)
@@ -97,13 +97,13 @@
 		monkeys_recycled++
 		sleep(1 SECOND)
 
-/obj/machinery/processor/proc/can_insert(var/atom/movable/AM)
+/obj/machinery/processor/proc/can_insert(atom/movable/AM)
 	if(istype(AM, /mob/living/simple_mob/slime))
 		var/mob/living/simple_mob/slime/S = AM
 		if(S.stat != DEAD)
 			return FALSE
 		return TRUE
-	if(istype(AM, /mob/living/carbon/human))
+	if(ishuman(AM))
 		var/mob/living/carbon/human/H = AM
 		if(!istype(H.species, /datum/species/monkey))
 			return FALSE
@@ -112,7 +112,7 @@
 		return TRUE
 	return FALSE
 
-/obj/machinery/processor/MouseDrop_T(var/atom/movable/AM, var/mob/living/user)
+/obj/machinery/processor/MouseDrop_T(atom/movable/AM, mob/living/user)
 	if(user.stat || user.incapacitated(INCAPACITATION_DISABLED) || !istype(user))
 		return
 	insert(AM, user)

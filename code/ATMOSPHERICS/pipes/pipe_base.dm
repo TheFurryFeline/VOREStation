@@ -24,15 +24,15 @@
 /obj/machinery/atmospherics/pipe/drain_power()
 	return -1
 
-/obj/machinery/atmospherics/pipe/New()
+/obj/machinery/atmospherics/pipe/Initialize(mapload)
 	if(istype(get_turf(src), /turf/simulated/wall) || istype(get_turf(src), /turf/simulated/shuttle/wall) || istype(get_turf(src), /turf/unsimulated/wall))
 		level = 1
-	..()
+	. = ..()
 
 /obj/machinery/atmospherics/pipe/hides_under_flooring()
 	return level != 2
 
-/obj/machinery/atmospherics/pipe/proc/set_leaking(var/new_leaking)
+/obj/machinery/atmospherics/pipe/proc/set_leaking(new_leaking)
 	if(new_leaking && !leaking)
 		if(!speed_process)
 			START_MACHINE_PROCESSING(src)
@@ -71,13 +71,19 @@
 	return 1
 
 /obj/machinery/atmospherics/pipe/return_air()
+	if(QDELETED(src))
+		return
 	if(!parent)
 		parent = new /datum/pipeline()
 		parent.build_pipeline(src)
 
 	return parent.air
 
-/obj/machinery/atmospherics/pipe/build_network()
+/obj/machinery/atmospherics/pipe/build_network(new_attachment)
+	if(QDELETED(src))
+		return
+	if(new_attachment)
+		QDEL_NULL(parent)
 	if(!parent)
 		parent = new /datum/pipeline()
 		parent.build_pipeline(src)
@@ -85,6 +91,8 @@
 	return parent.return_network()
 
 /obj/machinery/atmospherics/pipe/network_expand(datum/pipe_network/new_network, obj/machinery/atmospherics/pipe/reference)
+	if(QDELETED(src))
+		return
 	if(!parent)
 		parent = new /datum/pipeline()
 		parent.build_pipeline(src)
@@ -92,6 +100,8 @@
 	return parent.network_expand(new_network, reference)
 
 /obj/machinery/atmospherics/pipe/return_network(obj/machinery/atmospherics/reference)
+	if(QDELETED(src))
+		return
 	if(!parent)
 		parent = new /datum/pipeline()
 		parent.build_pipeline(src)
@@ -99,6 +109,9 @@
 	return parent.return_network(reference)
 
 /obj/machinery/atmospherics/pipe/Destroy()
+	if(parent)
+		parent.members -= src
+		parent.edges -= src
 	QDEL_NULL(parent)
 	if(air_temporary)
 		loc.assume_air(air_temporary)
@@ -106,36 +119,49 @@
 		if(meter.target == src)
 			var/obj/item/pipe_meter/PM = new /obj/item/pipe_meter(loc)
 			meter.transfer_fingerprints_to(PM)
+			meter.align_to_target()
 			qdel(meter)
 	. = ..()
 
-/obj/machinery/atmospherics/pipe/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
-	if (istype(src, /obj/machinery/atmospherics/pipe/tank))
-		return ..()
-
-	if(istype(W,/obj/item/device/pipe_painter))
+/obj/machinery/atmospherics/pipe/attackby(obj/item/W as obj, mob/user as mob)
+	if(istype(W,/obj/item/pipe_painter))
 		return 0
 
 	if (!W.has_tool_quality(TOOL_WRENCH))
 		return ..()
 	var/turf/T = src.loc
 	if (level==1 && isturf(T) && !T.is_plating())
-		to_chat(user, "<span class='warning'>You must remove the plating first.</span>")
+		to_chat(user, span_warning("You must remove the plating first."))
 		return 1
 	if(!can_unwrench())
-		to_chat(user, "<span class='warning'>You cannot unwrench \the [src], it is too exerted due to internal pressure.</span>")
+		to_chat(user, span_warning("You cannot unwrench \the [src], it is too exerted due to internal pressure."))
 		add_fingerprint(user)
 		return 1
-	playsound(src, W.usesound, 50, 1)
-	to_chat(user, "<span class='notice'>You begin to unfasten \the [src]...</span>")
-	if (do_after(user, 10 * W.toolspeed))
-		user.visible_message( \
-			"<b>\The [user]</b> unfastens \the [src].", \
-			"<span class='notice'>You have unfastened \the [src].</span>", \
-			"You hear a ratchet.")
-		deconstruct()
 
-/obj/machinery/atmospherics/pipe/proc/change_color(var/new_color)
+	//potential yeet
+	var/datum/gas_mixture/int_air = return_air()
+	var/datum/gas_mixture/env_air = loc.return_air()
+	var/unsafe_wrenching = FALSE
+	var/internal_pressure = int_air.return_pressure()-env_air.return_pressure()
+
+	if (internal_pressure > 2*ONE_ATMOSPHERE)
+		to_chat(user, span_warning("As you begin unwrenching \the [src] a gush of air blows in your face... maybe you should reconsider?"))
+		unsafe_wrenching = TRUE //here we go
+	else
+		to_chat(user, span_notice("You begin to unfasten \the [src]..."))
+
+	playsound(src, W.usesound, 50, 1)
+
+	if (do_after(user, 10 * W.toolspeed, target = src))
+		user.visible_message( \
+			span_infoplain(span_bold("\The [user]") + " unfastens \the [src]."), \
+			span_notice("You have unfastened \the [src]."), \
+			span_hear("You hear a ratchet."))
+		if(unsafe_wrenching)
+			unsafe_pressure_release(user, internal_pressure)
+		atom_deconstruct()
+
+/obj/machinery/atmospherics/pipe/proc/change_color(new_color)
 	//only pass valid pipe colors please ~otherwise your pipe will turn invisible
 	if(!pipe_color_check(new_color))
 		return
@@ -143,7 +169,7 @@
 	pipe_color = new_color
 	update_icon()
 
-/obj/machinery/atmospherics/pipe/color_cache_name(var/obj/machinery/atmospherics/node)
+/obj/machinery/atmospherics/pipe/color_cache_name(obj/machinery/atmospherics/node)
 	if(istype(src, /obj/machinery/atmospherics/pipe/tank))
 		return ..()
 
@@ -157,9 +183,9 @@
 	else
 		return pipe_color
 
-/obj/machinery/atmospherics/pipe/hide(var/i)
+/obj/machinery/atmospherics/pipe/hide(i)
 	if(istype(loc, /turf/simulated))
-		invisibility = i ? 101 : 0
+		invisibility = i ? INVISIBILITY_ABSTRACT : INVISIBILITY_NONE
 	update_icon()
 
 /obj/machinery/atmospherics/pipe/process()

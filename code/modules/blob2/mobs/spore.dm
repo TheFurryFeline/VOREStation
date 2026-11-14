@@ -30,11 +30,11 @@
 	melee_damage_lower = 1
 	melee_damage_upper = 2
 
-/mob/living/simple_mob/hostile/blob/spore/New(var/newloc, var/obj/structure/blob/factory/my_factory)
+/mob/living/simple_mob/hostile/blob/spore/Initialize(mapload, obj/structure/blob/factory/my_factory)
 	if(istype(my_factory))
 		factory = my_factory
 		factory.spores += src
-	..(newloc)
+	. = ..()
 
 /mob/living/simple_mob/hostile/blob/spore/Destroy()
 	if(factory)
@@ -42,7 +42,7 @@
 	factory = null
 	if(infested)
 		infested.forceMove(get_turf(src))
-		visible_message("<span class='warning'>\The [infested] falls to the ground as the blob spore bursts.</span>")
+		visible_message(span_warning("\The [infested] falls to the ground as the blob spore bursts."))
 		infested = null
 	return ..()
 
@@ -103,7 +103,7 @@
 	infested = H
 
 	update_icons()
-	visible_message("<span class='warning'>The corpse of [H.name] suddenly rises!</span>")
+	visible_message(span_warning("The corpse of [H.name] suddenly rises!"))
 
 /mob/living/simple_mob/hostile/blob/spore/GetIdCard()
 	if(infested) // If we've infested someone, use their ID.

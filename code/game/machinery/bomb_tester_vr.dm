@@ -12,12 +12,12 @@
 	idle_power_usage = 50
 	active_power_usage = 1.5 KILOWATTS
 
-	circuit = /obj/item/weapon/circuitboard/bomb_tester
+	circuit = /obj/item/circuitboard/bomb_tester
 
 	var/icon_name = "generic"
 
-	var/obj/item/weapon/tank/tank1
-	var/obj/item/weapon/tank/tank2
+	var/obj/item/tank/tank1
+	var/obj/item/tank/tank2
 	var/obj/machinery/portable_atmospherics/canister/test_canister
 
 	var/sim_mode = MODE_SINGLE
@@ -32,8 +32,8 @@
 	var/datum/gas_mixture/faketank
 	var/faketank_integrity
 
-/obj/machinery/bomb_tester/New()
-	..()
+/obj/machinery/bomb_tester/Initialize(mapload)
+	. = ..()
 	default_apply_parts()
 	RefreshParts()
 	faketank = new
@@ -42,7 +42,7 @@
 	tank1 = null //Base machine Destroy()
 	tank2 = null //handles deleting contents
 	test_canister = null
-	..()
+	. = ..()
 
 /obj/machinery/bomb_tester/dismantle()
 	if(tank1)
@@ -81,18 +81,18 @@
 /obj/machinery/bomb_tester/RefreshParts()
 	..()
 	var/scan_rating = 0
-	for(var/obj/item/weapon/stock_parts/scanning_module/S in component_parts)
+	for(var/obj/item/stock_parts/scanning_module/S in component_parts)
 		scan_rating += S.rating
 	simulation_delay = 25 SECONDS - scan_rating SECONDS
 
-/obj/machinery/bomb_tester/attackby(var/obj/item/I, var/mob/user)
+/obj/machinery/bomb_tester/attackby(obj/item/I, mob/user)
 	if(default_deconstruction_screwdriver(user, I))
 		return
 	if(default_deconstruction_crowbar(user, I))
 		return
 	if(default_part_replacement(user, I))
 		return
-	if(istype(I, /obj/item/weapon/tank))
+	if(istype(I, /obj/item/tank))
 		if(!tank1 || !tank2)
 			user.drop_item(I)
 			I.forceMove(src)
@@ -102,11 +102,11 @@
 				tank2 = I
 			update_icon()
 			SStgui.update_uis(src)
-			to_chat(user, "<span class='notice'>You connect \the [I] to \the [src]'s [I==tank1 ? "primary" : "secondary"] slot.</span>")
+			to_chat(user, span_notice("You connect \the [I] to \the [src]'s [I==tank1 ? "primary" : "secondary"] slot."))
 			return
 	..()
 
-/obj/machinery/bomb_tester/attack_hand(var/mob/user)
+/obj/machinery/bomb_tester/attack_hand(mob/user)
 	add_fingerprint(user)
 	tgui_interact(user)
 
@@ -128,7 +128,7 @@
 		data["tank2ref"] = REF(tank2)
 		data["canister"] = test_canister
 		data["sim_canister_output"] = sim_canister_output
-	
+
 	return data
 
 /obj/machinery/bomb_tester/tgui_act(action, list/params, datum/tgui/ui, datum/tgui_state/state)
@@ -149,29 +149,29 @@
 					text_mode = "tank transfer valve detonation"
 				if(MODE_CANISTER)
 					text_mode = "canister-assisted single gas tank detonation"
-			to_chat(usr, "<span class='notice'>[src] set to simulate a [text_mode].</span>")
+			to_chat(ui.user, span_notice("[src] set to simulate a [text_mode]."))
 			return TRUE
-		
+
 		if("add_tank")
-			if(istype(usr.get_active_hand(), /obj/item/weapon/tank))
-				var/obj/item/weapon/tank/T = usr.get_active_hand()
+			if(istype(ui.user.get_active_hand(), /obj/item/tank))
+				var/obj/item/tank/T = ui.user.get_active_hand()
 				var/slot = params["slot"]
 				if(slot == 1 && !tank1)
 					tank1 = T
 				else if(slot == 2 && !tank2)
 					tank2 = T
 				else
-					to_chat(usr, "<span class='warning'>Slot [slot] is full.</span>")
+					to_chat(ui.user, span_warning("Slot [slot] is full."))
 					return
-				
-				usr.drop_item(T)
+
+				ui.user.drop_item(T)
 				T.forceMove(src)
 				return TRUE
 			else
-				to_chat(usr, "<span class='warning'>You must be wielding a tank to insert it!</span>")
+				to_chat(ui.user, span_warning("You must be wielding a tank to insert it!"))
 
 		if("remove_tank")
-			var/obj/item/weapon/tank/T = locate(params["ref"]) in list(tank1, tank2)
+			var/obj/item/tank/T = locate(params["ref"]) in list(tank1, tank2)
 			if(istype(T))
 				if(T == tank1)
 					tank1 = null
@@ -242,7 +242,7 @@
 			var/dev = round((mult*strength)*0.15)
 			var/heavy = round((mult*strength)*0.35)
 			var/light = round((mult*strength)*0.80)
-			simulation_results += "<hr>Final Result: Explosive tank rupture. [dev?"Extreme damage within [2*dev] meters. ":""][heavy?"Heavy damage within [2*heavy] meters. ":""][light?"Light damage within [2*light] meters. ":""]Hazardous shrapnel produced."
+			simulation_results += "<hr>Final Result: Explosive tank rupture. [dev?"Extreme damage within [dev] meters. ":""][heavy?"Heavy damage within [heavy] meters. ":""][light?"Light damage within [light] meters. ":""]Hazardous shrapnel produced."
 			return 1
 		else
 			faketank_integrity -= 7
@@ -254,9 +254,10 @@
 			return 1
 		else
 			faketank_integrity -= 5
-
+	/*
 	else if(pressure > TANK_LEAK_PRESSURE || faketank.temperature - T0C > 173)
 		faketank_integrity -= 1
+	*/
 	return 0
 
 /obj/machinery/bomb_tester/proc/single_tank_sim()
@@ -358,11 +359,11 @@
 	else
 		ping("Simulation complete!")
 		playsound(src, "sound/machines/printer.ogg", 50, 1)
-		var/obj/item/weapon/paper/P = new(get_turf(src))
+		var/obj/item/paper/P = new(get_turf(src))
 		P.name = "Explosive Simulator printout"
 		P.info = simulation_results
 
-/obj/machinery/bomb_tester/proc/format_gas_for_results(var/datum/gas_mixture/G)
+/obj/machinery/bomb_tester/proc/format_gas_for_results(datum/gas_mixture/G)
 	G.update_values() //Just in case
 	var/results = ""
 	var/pressure = G.return_pressure()
@@ -371,7 +372,7 @@
 	if(G.total_moles)
 		results += "<br>Temperature: [round(G.temperature-T0C)]&deg;C"
 		for(var/mix in G.gas)
-			results += "<br>[gas_data.name[mix]]: [round((G.gas[mix] / G.total_moles) * 100)]%"
+			results += "<br>[GLOB.gas_data.name[mix]]: [round((G.gas[mix] / G.total_moles) * 100)]%"
 
 	return results
 

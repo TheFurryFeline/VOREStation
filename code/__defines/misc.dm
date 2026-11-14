@@ -5,20 +5,24 @@
 #define TRANSITIONEDGE 1 // Distance from edge to move to another z-level.
 
 // Invisibility constants. These should only be used for TRUE invisibility, AKA nothing living players touch
+#define INVISIBILITY_NONE                  0
 #define INVISIBILITY_LIGHTING             20
 #define INVISIBILITY_LEVEL_ONE            35
 #define INVISIBILITY_LEVEL_TWO            45
+#define INVISIBILITY_SHADEKIN			  55
 #define INVISIBILITY_OBSERVER             60
 #define INVISIBILITY_EYE		          61
 
 #define SEE_INVISIBLE_LIVING              25
-#define SEE_INVISIBLE_NOLIGHTING 15
+#define SEE_INVISIBLE_NOLIGHTING		  15
 #define SEE_INVISIBLE_LEVEL_ONE           35
 #define SEE_INVISIBLE_LEVEL_TWO           45
+#define SEE_INVISIBILITY_SHADEKIN         55
 #define SEE_INVISIBLE_CULT		          60
 #define SEE_INVISIBLE_OBSERVER            61
 
 #define SEE_INVISIBLE_MINIMUM 5
+#define INVISIBILITY_BADMIN 99 // Used for objects that badmins should see
 #define INVISIBILITY_MAXIMUM 100
 #define INVISIBILITY_ABSTRACT 101 //only used for abstract objects, things that are not really there.
 
@@ -27,9 +31,9 @@
 
 // For the client FPS pref and anywhere else
 #define MAX_CLIENT_FPS	200
+#define RECOMMENDED_FPS	100
 
 // Some arbitrary defines to be used by self-pruning global lists. (see master_controller)
-#define PROCESS_KILL 26 // Used to trigger removal from a processing list.
 #define MAX_GEAR_COST 15 // Used in chargen for accessory loadout limit.
 
 // For secHUDs and medHUDs and variants. The number is the location of the image on the list hud_list of humans.
@@ -43,13 +47,14 @@
 #define SPECIALROLE_HUD 8 // AntagHUD image.
 #define  STATUS_HUD_OOC 9 // STATUS_HUD without virus DB check for someone being ill.
 #define 	  LIFE_HUD 10 // STATUS_HUD that only reports dead or alive
-#define     TOTAL_HUDS 10 // Total number of HUDs. Like body layers, and other things, it comes up sometimes.
+#define     BACKUP_HUD 11 // HUD for showing whether or not they have a backup implant.
+#define   STATUS_R_HUD 12 // HUD for showing the same STATUS_HUD info on the right side, but not for 'boring' statuses (transparent icons)
+#define  HEALTH_VR_HUD 13 // HUD with blank 100% bar so it's hidden most of the time.
+#define     VANTAG_HUD 14 // HUD for showing being-an-antag-target prefs
+#define     TOTAL_HUDS 14 // Total number of HUDs. Like body layers, and other things, it comes up sometimes.
 
 #define CLIENT_FROM_VAR(I) (ismob(I) ? I:client : (isclient(I) ? I : null))
-
-
-//Persistence
-#define AREA_FLAG_IS_NOT_PERSISTENT 8 // SSpersistence will not track values from this area.
+#define CKEY_FROM_VAR(I) ((ismob(I) || isclient(I)) ? I:ckey : null)
 
 //	Shuttles.
 
@@ -77,13 +82,14 @@
 #define WAIT_FINISH  4
 #define DO_AUTOPILOT 5
 
-// Setting this much higher than 1024 could allow spammers to DOS the server easily.
-#define MAX_MESSAGE_LEN       4096 //VOREStation Edit - I'm not sure about "easily". It can be a little longer.
+#define MAX_MESSAGE_LEN       4096
+#define MAX_HUGE_MESSAGE_LEN  8192
 #define MAX_PAPER_MESSAGE_LEN 6144
 #define MAX_BOOK_MESSAGE_LEN  24576
 #define MAX_RECORD_LENGTH	  24576
 #define MAX_LNAME_LEN         64
 #define MAX_NAME_LEN          52
+#define MAX_KEYPAD_INPUT_LEN  256
 #define MAX_FEEDBACK_LENGTH      4096
 #define MAX_TEXTFILE_LENGTH 128000		// 512GQ file
 
@@ -98,7 +104,30 @@
 #define DEFAULT_JOB_TYPE /datum/job/assistant
 
 //Area flags, possibly more to come
-#define RAD_SHIELDED 1 //shielded from radiation, clearly
+#define RAD_SHIELDED 				0x1		//shielded from radiation, clearly
+#define BLUE_SHIELDED				0x2		// Shield from bluespace teleportation (telescience)
+#define AREA_SECRET_NAME			0x4		// This tells certain things that display areas' names that they shouldn't display this area's name.
+#define AREA_FLAG_IS_NOT_PERSISTENT 0x8		// SSpersistence will not track values from this area.
+#define AREA_FORBID_EVENTS			0x10	// random events will not start inside this area.
+#define AREA_FORBID_SINGULO			0x20	// singulo will not move in.
+#define AREA_NO_SPOILERS			0x40	// makes it much more difficult to see what is inside an area with things like mesons.
+#define AREA_SOUNDPROOF				0x80	// blocks sounds from other areas and prevents hearers on other areas from hearing the sounds within.
+#define AREA_BLOCK_PHASE_SHIFT		0x100	// Stops phase shifted mobs from entering
+#define AREA_BLOCK_GHOSTS			0x200	// Stops ghosts from entering
+#define AREA_ALLOW_LARGE_SIZE		0x400	// If mob size is limited in the area.
+#define AREA_BLOCK_SUIT_SENSORS		0x800	// If suit sensors are blocked in the area.
+#define AREA_BLOCK_TRACKING			0x1000	// If camera tracking is blocked in the area.
+#define AREA_BLOCK_GHOST_SIGHT		0x2000	// If an area blocks sight for ghosts
+#define AREA_BLOCK_INSTANT_BUILDING	0x4000	// If an area blocks the usage of instant building creation items/mechanics such as shelter capsules
+#define AREA_ALWAYS_HAS_GRAVITY		0x8000	// If an area should always have gravity, even during events that would otherwise remove it.
+#define AREA_CRYOPLANET_SHIELDED	0x10000 // If an area is protected from SScryoplanet temperature shifts
+// UNUSED 0x20000
+// UNUSED 0x40000
+// UNUSED 0x80000
+#define PHASE_SHIELDED				0x100000 // A less rough way to prevent phase shifting without blocking access //VOREStation Note: Not implemented on VS. Used downstream.
+#define AREA_LIMIT_DARK_RESPITE		0x200000 // Shadekin will die normally in those areas //VOREStation Note: Not implemented on VS. Used downstream.
+#define AREA_ALLOW_CLOCKOUT			0x400000 // The PDA timeclock app can only be used in these areas //VOREStation Note: Not implemented on VS. Used downstream.
+// The 0x800000 is blocked by INITIALIZED, do NOT use it!
 
 // OnTopic return values
 #define TOPIC_NOACTION 0
@@ -122,10 +151,10 @@
 #define WALL_CAN_OPEN 1
 #define WALL_OPENING 2
 
-#define BOMBCAP_DVSTN_RADIUS (max_explosion_range/4)
-#define BOMBCAP_HEAVY_RADIUS (max_explosion_range/2)
-#define BOMBCAP_LIGHT_RADIUS max_explosion_range
-#define BOMBCAP_FLASH_RADIUS (max_explosion_range*1.5)
+#define BOMBCAP_DVSTN_RADIUS (GLOB.max_explosion_range/4)
+#define BOMBCAP_HEAVY_RADIUS (GLOB.max_explosion_range/2)
+#define BOMBCAP_LIGHT_RADIUS GLOB.max_explosion_range
+#define BOMBCAP_FLASH_RADIUS (GLOB.max_explosion_range*1.5)
 									// NTNet module-configuration values. Do not change these. If you need to add another use larger number (5..6..7 etc)
 #define NTNET_SOFTWAREDOWNLOAD 1 	// Downloads of software from NTNet
 #define NTNET_PEERTOPEER 2			// P2P transfers of files between devices
@@ -192,12 +221,14 @@
 #define DEPARTMENT_RESEARCH			"Research"
 #define DEPARTMENT_CARGO			"Cargo"
 #define DEPARTMENT_CIVILIAN			"Civilian"
-#define DEPARTMENT_PLANET			"Exploration" //VOREStation Edit // I hate having this be here and not in a SC file. Hopefully someday the manifest can be rewritten to be map-agnostic.
+#define DEPARTMENT_PLANET			"Exploration" // I hate having this be here and not in a SC file. Hopefully someday the manifest can be rewritten to be map-agnostic.
 #define DEPARTMENT_SYNTHETIC		"Synthetic"
 
+#define DEPARTMENT_NONCREW			"Non crew"
 // These are mostly for the department guessing code and event system.
 #define DEPARTMENT_UNKNOWN			"Unknown"
 #define DEPARTMENT_EVERYONE			"Everyone"
+#define DEPARTMENT_ANY				"Any" // Used for events
 
 // Canonical spellings of TSCs, so typos never have to happen again due to human error.
 #define TSC_NT		"NanoTrasen"
@@ -246,15 +277,15 @@
 // Second argument is the path the list is expected to contain. Note that children will also get added to the global list.
 // If the GLOB system is ever ported, you can change this macro in one place and have less work to do than you otherwise would.
 #define GLOBAL_LIST_BOILERPLATE(LIST_NAME, PATH)\
-var/global/list/##LIST_NAME = list();\
+GLOBAL_LIST_EMPTY(##LIST_NAME);\
 ##PATH/Initialize(mapload, ...)\
 	{\
-	##LIST_NAME += src;\
+	GLOB.##LIST_NAME += src;\
 	return ..();\
 	}\
 ##PATH/Destroy(force, ...)\
 	{\
-	##LIST_NAME -= src;\
+	GLOB.##LIST_NAME -= src;\
 	return ..();\
 	}\
 
@@ -298,7 +329,14 @@ var/global/list/##LIST_NAME = list();\
 #define RCD_SHEETS_PER_MATTER_UNIT	4	// Each physical material sheet is worth four matter units.
 #define RCD_MAX_CAPACITY			30 * RCD_SHEETS_PER_MATTER_UNIT
 
+// Solvers for radiation calculations. Intensity is calculated with calculate_recieved_radiation_intensity()
+/// Solves the probability that a radiation pulse should affect a mob. I = radiation intensity
+#define RAD_SOLVE_CHANCE(I) (100 * (1 - NUM_E ** -I))
+/// Solve the amount of rads applied to a mob based on the pulse strength and intensity. S = strength of radiation pulse, I = radiation intensity.
+#define RAD_SOLVE_MOBRADS(S, I) (S * (1 - NUM_E ** -I))
+
 // Radiation 'levels'. Used for the geiger counter, for visuals and sound. They are in different files so this goes here.
+#define RAD_ROUNDING_THRESHOLD 0.1
 #define RAD_LEVEL_LOW 0.5 // Around the level at which radiation starts to become harmful
 #define RAD_LEVEL_MODERATE 5
 #define RAD_LEVEL_HIGH 25
@@ -308,11 +346,6 @@ var/global/list/##LIST_NAME = list();\
 #define RAD_RESIST_CALC_DIV 0 // Each turf absorbs some fraction of the working radiation level
 #define RAD_RESIST_CALC_SUB 1 // Each turf absorbs a fixed amount of radiation
 
-//https://secure.byond.com/docs/ref/info.html#/atom/var/mouse_opacity
-#define MOUSE_OPACITY_TRANSPARENT 0
-#define MOUSE_OPACITY_ICON 1
-#define MOUSE_OPACITY_OPAQUE 2
-
 // Used by radios to indicate that they have sent a message via something other than subspace
 #define RADIO_CONNECTION_FAIL 0
 #define RADIO_CONNECTION_NON_SUBSPACE 1
@@ -321,6 +354,11 @@ var/global/list/##LIST_NAME = list();\
 #define JOB_SILICON_ROBOT	0x2
 #define JOB_SILICON_AI		0x4
 #define JOB_SILICON			0x6 // 2|4, probably don't set jobs to this, but good for checking
+
+//Job defines
+#define JOB_OUTSIDER	"Outsider" //VOREStation Note: Not implemented on VS. Used downstream.
+#define JOB_ANOMALY 	"Anomaly" //VOREStation Note: Not implemented on VS. Used downstream.
+#define JOB_VR			"VR Avatar"
 
 #define DEFAULT_OVERMAP_RANGE 0 // Makes general computers and devices be able to connect to other overmap z-levels on the same tile.
 
@@ -413,24 +451,6 @@ var/global/list/##LIST_NAME = list();\
 
 #define send_link(target, url) target << link(url)
 
-#define SPAN_NOTICE(X) "<span class='notice'>[X]</span>"
-
-#define SPAN_WARNING(X) "<span class='warning'>[X]</span>"
-
-#define SPAN_DANGER(X) "<span class='danger'>[X]</span>"
-
-#define SPAN_OCCULT(X) "<span class='cult'>[X]</span>"
-
-#define FONT_SMALL(X) "<font size='1'>[X]</font>"
-
-#define FONT_NORMAL(X) "<font size='2'>[X]</font>"
-
-#define FONT_LARGE(X) "<font size='3'>[X]</font>"
-
-#define FONT_HUGE(X) "<font size='4'>[X]</font>"
-
-#define FONT_GIANT(X) "<font size='5'>[X]</font>"
-
 // Volume Channel Defines
 
 #define VOLUME_CHANNEL_MASTER "Master"
@@ -439,6 +459,13 @@ var/global/list/##LIST_NAME = list();\
 #define VOLUME_CHANNEL_VORE "Vore"
 #define VOLUME_CHANNEL_DOORS "Doors"
 #define VOLUME_CHANNEL_INSTRUMENTS "Instruments"
+#define VOLUME_CHANNEL_WEATHER "Weather"
+#define VOLUME_CHANNEL_SPECIES_SOUNDS "Species Sounds (Verbal Injury Feedback)"
+#define VOLUME_CHANNEL_HUD_WARNINGS "SS13 HUD (Clientside-only sounds)" //NYI
+#define VOLUME_CHANNEL_DEATH_SOUNDS "Death Sounds"
+#define VOLUME_CHANNEL_INJURY_SOUNDS "Mob Injury Sounds (Non-Verbal Feedback)" //NYI
+#define VOLUME_CHANNEL_MACHINERY "Machinery Noises"
+#define VOLUME_CHANNEL_MACHINERY_IDLE "Machinery Idle Noises"
 
 // Make sure you update this or clients won't be able to adjust the channel
 GLOBAL_LIST_INIT(all_volume_channels, list(
@@ -447,7 +474,14 @@ GLOBAL_LIST_INIT(all_volume_channels, list(
 	VOLUME_CHANNEL_ALARMS,
 	VOLUME_CHANNEL_VORE,
 	VOLUME_CHANNEL_DOORS,
-	VOLUME_CHANNEL_INSTRUMENTS
+	VOLUME_CHANNEL_INSTRUMENTS,
+	VOLUME_CHANNEL_WEATHER,
+	VOLUME_CHANNEL_SPECIES_SOUNDS,
+	VOLUME_CHANNEL_HUD_WARNINGS,
+	VOLUME_CHANNEL_DEATH_SOUNDS,
+	VOLUME_CHANNEL_INJURY_SOUNDS,
+	VOLUME_CHANNEL_MACHINERY,
+	VOLUME_CHANNEL_MACHINERY_IDLE
 ))
 
 #define APPEARANCECHANGER_CHANGED_RACE "Race"
@@ -461,24 +495,11 @@ GLOBAL_LIST_INIT(all_volume_channels, list(
 #define APPEARANCECHANGER_CHANGED_F_HAIRCOLOR "Facial Hair Color"
 #define APPEARANCECHANGER_CHANGED_EYES "Eye Color"
 
-#define GET_DECL(D) (ispath(D, /decl) ? (decls_repository.fetched_decls[D] || decls_repository.get_decl(D)) : null)
+#define GET_DECL(D) (ispath(D, /datum/decl) ? (GLOB.decls_repository.fetched_decls[D] || GLOB.decls_repository.get_decl(D)) : null)
 
 #define LOADOUT_WHITELIST_OFF    0
 #define LOADOUT_WHITELIST_LAX    1
 #define LOADOUT_WHITELIST_STRICT 2
-
-
-#ifndef WINDOWS_HTTP_POST_DLL_LOCATION
-#define WINDOWS_HTTP_POST_DLL_LOCATION "lib/byhttp.dll"
-#endif
-
-#ifndef UNIX_HTTP_POST_DLL_LOCATION
-#define UNIX_HTTP_POST_DLL_LOCATION "lib/libbyhttp.so"
-#endif
-
-#ifndef HTTP_POST_DLL_LOCATION
-#define HTTP_POST_DLL_LOCATION (world.system_type == MS_WINDOWS ? WINDOWS_HTTP_POST_DLL_LOCATION : UNIX_HTTP_POST_DLL_LOCATION)
-#endif
 
 #define DOCK_ATTEMPT_TIMEOUT 200	//how long in ticks we wait before assuming the docking controller is broken or blown up.
 
@@ -493,3 +514,101 @@ GLOBAL_LIST_INIT(all_volume_channels, list(
 #define SPECIES_SORT_WHITELISTED 2
 #define SPECIES_SORT_RESTRICTED 3
 #define SPECIES_SORT_CUSTOM 4
+
+// Vote Types
+#define VOTE_RESULT_TYPE_MAJORITY	"Majority"
+#define VOTE_RESULT_TYPE_SKEWED		"Seventy"
+
+#define ECO_MODIFIER 10
+
+#define VANTAG_NONE    "hudblank"
+#define VANTAG_VORE    "vantag_vore"
+#define VANTAG_KIDNAP  "vantag_kidnap"
+#define VANTAG_KILL    "vantag_kill"
+
+// ColorMate states
+#define COLORMATE_TINT 1
+#define COLORMATE_HSV 2
+#define COLORMATE_MATRIX 3
+#define COLORMATE_MATRIX_AUTO 4
+
+#define DEFAULT_COLORMATRIX list(1, 0, 0, 0, 1, 0, 0, 0, 1,	0, 0, 0)
+
+#define DEPARTMENT_OFFDUTY			"Off-Duty"
+
+#define ANNOUNCER_NAME "Facility PA"
+
+//For custom species
+#define STARTING_SPECIES_POINTS 2
+#define MAX_SPECIES_TRAITS 5
+
+// Xenochimera thing mostly
+#define REVIVING_NOW		-1
+#define REVIVING_DONE		0
+#define REVIVING_READY		1
+
+// Resleeving Mind Record Status
+#define MR_NORMAL 0
+#define MR_UNSURE 1
+#define MR_DEAD 2
+
+//Shuttle madness!
+#define SHUTTLE_CRASHED 3 // Yup that can happen now
+
+//Herm Gender
+#define HERM "herm"
+
+// Bluespace shelter deploy checks
+#define SHELTER_DEPLOY_ALLOWED "allowed"
+#define SHELTER_DEPLOY_BAD_TURFS "bad turfs"
+#define SHELTER_DEPLOY_BAD_AREA "bad area"
+#define SHELTER_DEPLOY_ANCHORED_OBJECTS "anchored objects"
+#define SHELTER_DEPLOY_SHIP_SPACE "ship not in space"
+
+// Borg hypo injection checks
+#define BORGHYPO_STATUS_CONTAINERFULL "container full"
+#define BORGHYPO_STATUS_NOCHARGE "not enough charge"
+#define BORGHYPO_STATUS_NORECIPE "recipe not found"
+#define BORGHYPO_STATUS_SUCCESS "success"
+
+#define PTO_SECURITY		"Security"
+#define PTO_MEDICAL			"Medical"
+#define PTO_ENGINEERING 	"Engineering"
+#define PTO_SCIENCE			"Science"
+#define PTO_EXPLORATION 	"Exploration"
+#define PTO_CARGO			"Cargo"
+#define PTO_CIVILIAN		"Civilian"
+#define PTO_CYBORG			"Cyborg"
+#define PTO_TALON			"Talon Contractor"
+
+#define DEPARTMENT_TALON	"ITV Talon"
+
+#define MAT_TITANIUMGLASS		"ti-glass"
+#define MAT_PLASTITANIUM		"plastitanium"
+#define MAT_PLASTITANIUMHULL		"plastitanium hull"
+#define MAT_PLASTITANIUMGLASS	"plastitanium glass"
+#define MAT_GOLDHULL	"gold hull"
+
+#define RESIZE_MINIMUM 0.25
+#define RESIZE_MAXIMUM 2
+#define RESIZE_MINIMUM_DORMS 0.01
+#define RESIZE_MAXIMUM_DORMS 6
+
+#define RESIZE_HUGE 2
+#define RESIZE_BIG 1.5
+#define RESIZE_NORMAL 1
+#define RESIZE_SMALL 0.5
+#define RESIZE_TINY 0.25
+#define RESIZE_A_HUGEBIG (RESIZE_HUGE + RESIZE_BIG) / 2
+#define RESIZE_A_BIGNORMAL (RESIZE_BIG + RESIZE_NORMAL) / 2
+#define RESIZE_A_NORMALSMALL (RESIZE_NORMAL + RESIZE_SMALL) / 2
+#define RESIZE_A_SMALLTINY (RESIZE_SMALL + RESIZE_TINY) / 2
+
+#define WEIGHT_MIN 70
+#define WEIGHT_MAX 500
+
+#define LADDER_CONSTRUCTION_UNANCHORED 0
+#define LADDER_CONSTRUCTION_WRENCHED 1
+#define LADDER_CONSTRUCTION_WELDED 2
+
+#define FINGERPRINT_COMPLETE 6

@@ -3,7 +3,7 @@
 	//Gases with 0 moles are not tracked and are pruned by update_values()
 	var/list/gas
 	//Temperature in Kelvin of this gas mix.
-	var/temperature = 0
+	var/temperature = TCMB
 
 	//Sum of all the gas moles in this mix.  Updated by update_values()
 	var/total_moles = 0
@@ -40,7 +40,7 @@
 
 	if(moles > 0 && abs(temperature - temp) > MINIMUM_TEMPERATURE_DELTA_TO_CONSIDER)
 		var/self_heat_capacity = heat_capacity()
-		var/giver_heat_capacity = gas_data.specific_heat[gasid] * moles
+		var/giver_heat_capacity = GLOB.gas_data.specific_heat[gasid] * moles
 		var/combined_heat_capacity = giver_heat_capacity + self_heat_capacity
 		if(combined_heat_capacity != 0)
 			temperature = (temp * giver_heat_capacity + temperature * self_heat_capacity) / combined_heat_capacity
@@ -127,12 +127,12 @@
 /datum/gas_mixture/proc/heat_capacity()
 	. = 0
 	for(var/g in gas)
-		. += gas_data.specific_heat[g] * gas[g]
+		. += GLOB.gas_data.specific_heat[g] * gas[g]
 	. *= group_multiplier
 
 
 //Adds or removes thermal energy. Returns the actual thermal energy change, as in the case of removing energy we can't go below TCMB.
-/datum/gas_mixture/proc/add_thermal_energy(var/thermal_energy)
+/datum/gas_mixture/proc/add_thermal_energy(thermal_energy)
 	if (total_moles == 0)
 		return 0
 
@@ -142,11 +142,12 @@
 			return 0
 		var/thermal_energy_limit = -(temperature - TCMB)*heat_capacity	//ensure temperature does not go below TCMB
 		thermal_energy = max( thermal_energy, thermal_energy_limit )	//thermal_energy and thermal_energy_limit are negative here.
-	temperature += thermal_energy/heat_capacity
+	if(heat_capacity > 0)
+		temperature = min(temperature + thermal_energy / heat_capacity, MAX_ATMOS_TEMPERATURE)
 	return thermal_energy
 
 //Returns the thermal energy change required to get to a new temperature
-/datum/gas_mixture/proc/get_thermal_energy_change(var/new_temperature)
+/datum/gas_mixture/proc/get_thermal_energy_change(new_temperature)
 	return heat_capacity()*(max(new_temperature, 0) - temperature)
 
 
@@ -176,13 +177,13 @@
 	So returning a constant/(partial pressure) would probably do what most players expect. Although the version I have implemented below is a bit more nuanced than simply 1/P in that it scales in a way
 	which is bit more realistic (natural log), and returns a fairly accurate entropy around room temperatures and pressures.
 */
-/datum/gas_mixture/proc/specific_entropy_gas(var/gasid)
+/datum/gas_mixture/proc/specific_entropy_gas(gasid)
 	if (!(gasid in gas) || gas[gasid] == 0)
 		return SPECIFIC_ENTROPY_VACUUM	//that gas isn't here
 
 	//group_multiplier gets divided out in volume/gas[gasid] - also, V/(m*T) = R/(partial pressure)
-	var/molar_mass = gas_data.molar_mass[gasid]
-	var/specific_heat = gas_data.specific_heat[gasid]
+	var/molar_mass = GLOB.gas_data.molar_mass[gasid]
+	var/specific_heat = GLOB.gas_data.specific_heat[gasid]
 	return R_IDEAL_GAS_EQUATION * ( log( (IDEAL_GAS_ENTROPY_CONSTANT*volume/(gas[gasid] * temperature)) * (molar_mass*specific_heat*temperature)**(2/3) + 1 ) +  15 )
 
 	//alternative, simpler equation
@@ -231,7 +232,7 @@
 /datum/gas_mixture/proc/remove_ratio(ratio, out_group_multiplier = 1)
 	if(ratio <= 0)
 		return null
-	out_group_multiplier = between(1, out_group_multiplier, group_multiplier)
+	out_group_multiplier = clamp(out_group_multiplier, 1, group_multiplier)
 
 	ratio = min(ratio, 1)
 
@@ -239,8 +240,8 @@
 	removed.group_multiplier = out_group_multiplier
 
 	for(var/g in gas)
-		removed.gas[g] = (gas[g] * ratio * group_multiplier / out_group_multiplier)
-		gas[g] = gas[g] * (1 - ratio)
+		removed.gas[g] = QUANTIZE((gas[g] * ratio * group_multiplier / out_group_multiplier))
+		gas[g] = QUANTIZE(gas[g] * (1 - ratio))
 
 	removed.temperature = temperature
 	removed.volume = volume * group_multiplier / out_group_multiplier
@@ -262,13 +263,13 @@
 
 	var/sum = 0
 	for(var/g in gas)
-		if(gas_data.flags[g] & flag)
+		if(GLOB.gas_data.flags[g] & flag)
 			sum += gas[g]
 
 	var/datum/gas_mixture/removed = new
 
 	for(var/g in gas)
-		if(gas_data.flags[g] & flag)
+		if(GLOB.gas_data.flags[g] & flag)
 			removed.gas[g] = QUANTIZE((gas[g] / sum) * amount)
 			gas[g] -= removed.gas[g] / group_multiplier
 
@@ -282,7 +283,7 @@
 /datum/gas_mixture/proc/get_by_flag(flag)
 	. = 0
 	for(var/g in gas)
-		if(gas_data.flags[g] & flag)
+		if(GLOB.gas_data.flags[g] & flag)
 			. += gas[g]
 
 //Copies gas and temperature from another gas_mixture.
@@ -296,7 +297,7 @@
 
 
 //Checks if we are within acceptable range of another gas_mixture to suspend processing or merge.
-/datum/gas_mixture/proc/compare(const/datum/gas_mixture/sample, var/vacuum_exception = 0)
+/datum/gas_mixture/proc/compare(const/datum/gas_mixture/sample, vacuum_exception = 0)
 	if(!sample) return 0
 
 	if(vacuum_exception)
@@ -338,15 +339,15 @@
 //Two lists can be passed by reference if you need know specifically which graphics were added and removed.
 /datum/gas_mixture/proc/check_tile_graphic(list/graphic_add = null, list/graphic_remove = null)
 	var/list/cur_graphic = graphic // Cache for sanic speed
-	for(var/g in gas_data.overlay_limit)
-		if(cur_graphic && cur_graphic.Find(gas_data.tile_overlay[g]))
+	for(var/g in GLOB.gas_data.overlay_limit)
+		if(cur_graphic && cur_graphic.Find(GLOB.gas_data.tile_overlay[g]))
 			//Overlay is already applied for this gas, check if it's still valid.
-			if(gas[g] <= gas_data.overlay_limit[g])
-				LAZYADD(graphic_remove, gas_data.tile_overlay[g])
+			if(gas[g] <= GLOB.gas_data.overlay_limit[g])
+				LAZYADD(graphic_remove, GLOB.gas_data.tile_overlay[g])
 		else
 			//Overlay isn't applied for this gas, check if it's valid and needs to be added.
-			if(gas[g] > gas_data.overlay_limit[g])
-				LAZYADD(graphic_add, gas_data.tile_overlay[g])
+			if(gas[g] > GLOB.gas_data.overlay_limit[g])
+				LAZYADD(graphic_add, GLOB.gas_data.tile_overlay[g])
 
 	. = 0
 	//Apply changes
@@ -488,4 +489,37 @@
 
 /datum/gas_mixture/proc/get_mass()
 	for(var/g in gas)
-		. += gas[g] * gas_data.molar_mass[g] * group_multiplier
+		. += gas[g] * GLOB.gas_data.molar_mass[g] * group_multiplier
+
+// Global proc in this file so we can check for null turfs too
+// This was copypastaed three times for multiple gas sensors checking for default safe atmos... Lets not.
+/proc/get_gas_mixture_default_scan_data(turf/T)
+	if(isturf(T))
+		var/datum/gas_mixture/environment = T.return_air()
+		var/pressure = environment.return_pressure()
+		var/total_moles = environment.total_moles
+		if(total_moles)
+			var/o2_level = environment.gas[GAS_O2]/total_moles
+			var/n2_level = environment.gas[GAS_N2]/total_moles
+			var/co2_level = environment.gas[GAS_CO2]/total_moles
+			var/phoron_level = environment.gas[GAS_PHORON]/total_moles
+			var/methane_level = environment.gas[GAS_CH4]/total_moles
+			var/unknown_level =  1-(o2_level+n2_level+co2_level+phoron_level+methane_level)
+
+			// entry is what the element is describing
+			// Type identifies which unit or other special characters to use
+			// Val is the information reported
+			// Bad_high/_low are the values outside of which the entry reports as dangerous
+			// Poor_high/_low are the values outside of which the entry reports as unideal
+			// Values were extracted from the template itself
+			return list(
+				list("entry" = "Pressure", 		"units" = "kPa", 	"val" = "[round(pressure, 0.1)]", 					"bad_high" = 120, 	"poor_high" = 110, 	"poor_low" = 95, 	"bad_low" = 80),
+				list("entry" = "Temperature", 	"units" = "°C",		"val" = "[round(environment.temperature-T0C, 0.1)]","bad_high" = 35, 	"poor_high" = 25, 	"poor_low" = 15, 	"bad_low" = 5),
+				list("entry" = GASNAME_O2, 		"units" = "kPa", 	"val" = "[round(o2_level*100, 0.1)]", 				"bad_high" = 140, 	"poor_high" = 135, 	"poor_low" = 19, 	"bad_low" = 17),
+				list("entry" = GASNAME_N2, 		"units" = "kPa", 	"val" = "[round(n2_level*100, 0.1)]", 				"bad_high" = 105, 	"poor_high" = 85, 	"poor_low" = 50, 	"bad_low" = 40),
+				list("entry" = GASNAME_CO2,		"units" = "kPa", 	"val" = "[round(co2_level*100, 0.1)]", 				"bad_high" = 10, 	"poor_high" = 5, 	"poor_low" = 0, 	"bad_low" = 0),
+				list("entry" = GASNAME_PHORON, 	"units" = "kPa", 	"val" = "[round(phoron_level*100, 0.01)]", 			"bad_high" = 0.5, 	"poor_high" = 0, 	"poor_low" = 0, 	"bad_low" = 0),
+				list("entry" = GASNAME_CH4, 	"units" = "kPa", 	"val" = "[round(methane_level*100, 0.01)]", 		"bad_high" = 0.5, 	"poor_high" = 0, 	"poor_low" = 0, 	"bad_low" = 0),
+				list("entry" = "Other", 		"units" = "kPa", 	"val" = "[round(unknown_level, 0.01)]", 			"bad_high" = 1, 	"poor_high" = 0.5, 	"poor_low" = 0, 	"bad_low" = 0)
+				)
+	return list(list("entry" = "pressure", "units" = "kPa", "val" = "0", "bad_high" = 120, "poor_high" = 110, "poor_low" = 95, "bad_low" = 80))

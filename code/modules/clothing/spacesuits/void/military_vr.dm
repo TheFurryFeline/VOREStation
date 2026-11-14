@@ -27,12 +27,10 @@
 
 /obj/item/clothing/head/helmet/space/void/merc/odst
 	name = "\improper ODST Helmet"
-	desc = "<i>\"... we are glad to plunge feet first into hell in the knowledge that we will rise.\"</i>"
+	desc = span_italics("\"... we are glad to plunge feet first into hell in the knowledge that we will rise.\"")
 	icon_state = "rig0-odst"
 	item_state = "rig0-odst"
 	item_state_slots = null
-	icon = 'icons/inventory/head/item_vr.dmi'
-	icon_override = 'icons/inventory/head/mob_vr.dmi'
 	light_overlay = "helmet_light_dual"
 	species_restricted = null
 
@@ -40,19 +38,16 @@
 	name = "\improper Ace's ODST Helmet"
 	icon = 'icons/obj/custom_items.dmi'
 	icon_state = "rig0-odst_ace"
-	desc = "Etched under the inner visor is the phrase <i>\"Don�t let your past define you; let it mold you into the person you want to be.\"</i>"
+	desc = "Etched under the inner visor is the phrase <i>\"Don't let your past define you; let it mold you into the person you want to be.\"</i>"
 	icon = 'icons/inventory/head/item_vr.dmi'
 	icon_override = 'icons/inventory/head/mob_vr.dmi'*/
 
 /obj/item/clothing/suit/space/void/merc/odst
 	name = "ODST Armor"
-	desc = "<i>\"... we are glad to plunge feet first into hell in the knowledge that we will rise.\"</i>"
+	desc = span_italics("\"... we are glad to plunge feet first into hell in the knowledge that we will rise.\"")
 	icon_state = "odst"
 	item_state = "odst"
 	item_state_slots = null
-	icon = 'icons/inventory/suit/item_vr.dmi'
-	icon_override = 'icons/inventory/suit/mob_vr.dmi'
 	species_restricted = null
 	breach_threshold = 16 //Extra Thicc
 	resilience = 0.05 //Military Armor
-

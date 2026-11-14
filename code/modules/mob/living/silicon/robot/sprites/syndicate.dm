@@ -1,12 +1,10 @@
 // Syndie borg sprites
-
-/* none yet
+/*
 /datum/robot_sprite/syndie
 	module_type = list("Protector", "Mechanist", "Combat Medic")
 	sprite_icon = 'icons/mob/robot/syndie.dmi'
 	sprite_hud_icon_state = "malf"
 */
-
 // Wide/dogborg sprites
 
 /datum/robot_sprite/dogborg/syndie
@@ -20,10 +18,23 @@
 	has_eye_sprites = FALSE
 	has_eye_light_sprites = TRUE
 	has_dead_sprite_overlay = FALSE
+	hat_offset = BORGI_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/syndie/drake
 	name = "Drake"
 	sprite_icon_state = "drake"
+	has_vore_belly_resting_sprites = TRUE
+	hat_offset = DRAKE_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/syndie/smolraptor
+	sprite_icon = 'icons/mob/robot/smallraptors/smolraptor_syndie.dmi'
+	name = "Small Raptor"
+	sprite_icon_state = "smolraptor"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_dead_sprite_overlay = FALSE
+	rest_sprite_options = list("Default", "Sit", "Bellyup")
+	hat_offset = SMOL_RAPTOR_HAT_OFFSET
 
 // Tall sprites
 
@@ -39,6 +50,7 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/syndie/newmeka
 	name = "MEKA v2"
@@ -46,6 +58,7 @@
 	has_eye_light_sprites = TRUE
 	has_custom_open_sprites = TRUE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/syndie/mmeka
 	name = "NIKO"
@@ -53,6 +66,7 @@
 	has_eye_light_sprites = TRUE
 	has_custom_open_sprites = TRUE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/syndie/fmeka
 	name = "NIKA"
@@ -60,6 +74,7 @@
 	has_eye_light_sprites = TRUE
 	has_custom_open_sprites = TRUE
 	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
 
 /datum/robot_sprite/dogborg/tall/syndie/k4t
 	name = "K4T"
@@ -68,6 +83,35 @@
 	has_custom_open_sprites = TRUE
 	has_vore_belly_sprites = FALSE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = K4T_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/combat_medic/dullahancombatmedic
+	name = "Dullahan Combat Medic"
+	sprite_icon = 'icons/mob/robot/dullahan/v1/dullahan_syndie.dmi'
+	sprite_icon_state = "dullahansyndi"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	has_rest_lights_sprites = TRUE
+	has_rest_eyes_sprites = TRUE
+	rest_sprite_options = list("Default", "Sit")
+	sprite_decals = list("breastplate","loincloth","eyecover")
+	icon_x = 32
+	pixel_x = 0
+	hat_offset = DULLAHAN_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/syndie/dullahanv3syndi
+	sprite_icon = 'icons/mob/robot/dullahan/v3/syndi.dmi'
+	sprite_icon_state = "dullahansyndi"
+	name = "Dullahan syndie v3"
+	has_eye_light_sprites = TRUE
+	has_custom_open_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	belly_capacity_list = list("sleeper" = 3)
+	sprite_decals = list("decals")
+	rest_sprite_options = list("Default", "Sit")
+	hat_offset = DULLAHAN_HAT_OFFSET
 
 
 // Protector
@@ -114,18 +158,13 @@
 	sprite_icon = 'icons/mob/robot/syndie_large.dmi'
 	sprite_hud_icon_state = "malf"
 
-	var/has_gun_sprite = FALSE
-
-/datum/robot_sprite/dogborg/tall/protector/handle_extra_icon_updates(var/mob/living/silicon/robot/ourborg)
-	if(has_gun_sprite && istype (ourborg.module_active, /obj/item/weapon/gun/energy/dakkalaser))
-		ourborg.add_overlay("[sprite_icon_state]-gun")
-
 /datum/robot_sprite/dogborg/tall/protector/syndiprotraptor
 	name = "Raptor V-4"
 	sprite_icon_state = "syndiprotraptor"
 	has_eye_light_sprites = TRUE
-	has_gun_sprite = TRUE
+	sprite_flags = ROBOT_HAS_GUN_SPRITE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = RAPTOR_HAT_OFFSET
 
 // Mechanist
 
@@ -164,6 +203,19 @@
 	sprite_icon = 'icons/mob/robot/syndie_large.dmi'
 	sprite_hud_icon_state = "malf"
 
+/datum/robot_sprite/dogborg/tall/mechanist/dullahanv3mech
+	sprite_icon = 'icons/mob/robot/dullahan/v3/mechanist.dmi'
+	sprite_icon_state = "dullahanmechanist"
+	name = "Dullahan mechanist v3"
+	has_eye_light_sprites = TRUE
+	has_custom_open_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	belly_capacity_list = list("sleeper" = 3)
+	sprite_decals = list("decals")
+	rest_sprite_options = list("Default", "Sit")
+	hat_offset = DULLAHAN_HAT_OFFSET
+
 /datum/robot_sprite/dogborg/tall/mechanist/syndimechraptor
 	name = "Raptor V-4"
 	sprite_icon_state = "syndimechraptor"
@@ -189,14 +241,15 @@
 	module_type = "Combat Medic"
 	sprite_icon = 'icons/mob/robot/combat_medic_wide.dmi'
 	sprite_hud_icon_state = "malf"
+	hat_offset = VALE_HAT_OFFSET
 
-/datum/robot_sprite/dogborg/combat_medic/do_equipment_glamour(var/obj/item/weapon/robot_module/module)
+/datum/robot_sprite/dogborg/combat_medic/do_equipment_glamour(obj/item/robot_module/module)
+	..()
+
 	if(!has_custom_equipment_sprites)
 		return
 
-	..()
-
-	var/obj/item/weapon/shockpaddles/robot/SP = locate() in module.modules
+	var/obj/item/shockpaddles/robot/SP = locate() in module.modules
 	if(SP)
 		SP.name = "paws of life"
 		SP.desc = "Zappy paws. For fixing cardiac arrest."
@@ -209,6 +262,7 @@
 	sprite_icon_state = "vale"
 	has_eye_light_sprites = TRUE
 	has_sleeper_light_indicator = TRUE
+	hat_offset = VALE_HAT_OFFSET
 
 // Tall sprites
 
@@ -222,3 +276,81 @@
 	sprite_icon_state = "syndimediraptor"
 	has_eye_light_sprites = TRUE
 	rest_sprite_options = list("Default", "Bellyup")
+	hat_offset = RAPTOR_HAT_OFFSET
+
+// Ninja models
+/* //Unused
+/datum/robot_sprite/dogborg/ninja
+	module_type = "Ninja"
+	sprite_hud_icon_state = "malf"
+*/
+/datum/robot_sprite/dogborg/tall/ninja
+	module_type = "Ninja"
+	sprite_hud_icon_state = "malf"
+	hat_offset = TALL_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/ninja/dullahan
+	name = "dullahan"
+	sprite_icon = 'icons/mob/robot/dullahan/v3/ninja.dmi'
+	sprite_icon_state = "dullahanninja"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	has_vore_belly_resting_sprites = TRUE
+	belly_capacity_list = list("sleeper" = 3)
+	sprite_decals = list("decals")
+	rest_sprite_options = list("Default", "Sit")
+	pixel_x = -16
+	icon_x = 64
+	hat_offset = DULLAHAN_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/ninja/tall
+	sprite_icon = 'icons/mob/robot/tallrobot/tallrobots.dmi'
+	icon_x = 32
+	pixel_x = 0
+	hat_offset = TALL_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/ninja/tall/mekaninja
+	name = "Meka"
+	sprite_icon_state = "mekaninja"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/ninja/tall/fmekaninja
+	name = "Niko"
+	sprite_icon_state = "fmekaninja"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/ninja/tall/k4tninja
+	name = "K4T"
+	sprite_icon_state = "k4tninja"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	rest_sprite_options = list("Default", "Sit")
+	hat_offset = K4T_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/ninja/tall/mmekaninja
+	name = "Nika"
+	sprite_icon_state = "mmekaninja"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = TRUE
+	rest_sprite_options = list("Default", "Sit")
+	hat_offset = MEKA_HAT_OFFSET
+
+/datum/robot_sprite/dogborg/tall/ninja/dullataurninja
+	name = "Dullataur"
+	sprite_icon = 'icons/mob/robot/dullahan/dullataurs/dullataur.dmi'
+	sprite_icon_state = "dullataurninja"
+	has_eye_light_sprites = TRUE
+	has_vore_belly_sprites = FALSE
+	has_rest_sprites = TRUE
+	has_rest_eyes_sprites = TRUE
+	sprite_decals = list("breastplate", "breastplatehalo","swordhalo","tophalo")
+	rest_sprite_options = list("Default")
+	icon_x = 64
+	pixel_x = -16
+	hat_offset = DULLAHAN_TAUR_HAT_OFFSET

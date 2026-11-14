@@ -7,21 +7,20 @@
 	anchored = TRUE
 	health = 0 //destroying the statue kills the mob within
 	blocks_emissive = EMISSIVE_BLOCK_UNIQUE
+	closet_appearance = null
 	var/intialTox = 0 	//these are here to keep the mob from taking damage from things that logically wouldn't affect a rock
 	var/intialFire = 0	//it's a little sloppy I know but it was this or the GODMODE flag. Lesser of two evils.
 	var/intialBrute = 0
 	var/intialOxy = 0
 	var/timer = 240 //eventually the person will be freed
 
-/obj/structure/closet/statue/New(loc, var/mob/living/L)
+/obj/structure/closet/statue/Initialize(mapload, mob/living/L)
+	. = ..()
 	if(L && (ishuman(L) || L.isMonkey() || iscorgi(L)))
 		if(L.buckled)
 			L.buckled = 0
 			L.anchored = FALSE
-		if(L.client)
-			L.client.perspective = EYE_PERSPECTIVE
-			L.client.eye = src
-		L.loc = src
+		L.forceMove(src)
 		L.sdisabilities |= MUTE
 		health = L.health + 100 //stoning damaged mobs will result in easier to shatter statues
 		intialTox = L.getToxLoss()
@@ -41,11 +40,9 @@
 			desc = "If it takes forever, I will wait for you..."
 
 	if(health == 0) //meaning if the statue didn't find a valid target
-		qdel(src)
-		return
+		return INITIALIZE_HINT_QDEL
 
 	START_PROCESSING(SSobj, src)
-	..()
 
 /obj/structure/closet/statue/process()
 	timer--
@@ -62,15 +59,12 @@
 /obj/structure/closet/statue/dump_contents()
 
 	for(var/obj/O in src)
-		O.loc = src.loc
+		O.forceMove(get_turf(src))
 
 	for(var/mob/living/M in src)
-		M.loc = src.loc
+		M.forceMove(loc) // Might be in a belly
 		M.sdisabilities &= ~MUTE
 		M.take_overall_damage((M.health - health - 100),0) //any new damage the statue incurred is transfered to the mob
-		if(M.client)
-			M.client.eye = M.client.mob
-			M.client.perspective = MOB_PERSPECTIVE
 
 /obj/structure/closet/statue/open()
 	return
@@ -86,13 +80,13 @@
 		for(var/mob/M in src)
 			shatter(M)
 
-/obj/structure/closet/statue/bullet_act(var/obj/item/projectile/Proj)
+/obj/structure/closet/statue/bullet_act(obj/item/projectile/Proj)
 	health -= Proj.get_structure_damage()
 	check_health()
 
 	return
 
-/obj/structure/closet/statue/attack_generic(var/mob/user, damage, attacktext, environment_smash)
+/obj/structure/closet/statue/attack_generic(mob/user, damage, attacktext, environment_smash)
 	if(damage && environment_smash)
 		for(var/mob/M in src)
 			shatter(M)
@@ -106,7 +100,7 @@
 /obj/structure/closet/statue/attackby(obj/item/I as obj, mob/user as mob)
 	health -= I.force
 	user.do_attack_animation(src)
-	visible_message("<span class='danger'>[user] strikes [src] with [I].</span>")
+	visible_message(span_danger("[user] strikes [src] with [I]."))
 	check_health()
 
 /obj/structure/closet/statue/MouseDrop_T()
@@ -128,5 +122,5 @@
 	if (user)
 		user.dust()
 	dump_contents()
-	visible_message("<span class='warning'>[src] shatters!.</span>")
+	visible_message(span_warning("[src] shatters!."))
 	qdel(src)

@@ -17,7 +17,7 @@
 	if((. = ..()))
 		mode = 1
 
-/datum/nifsoft/medichines_org/deactivate(var/force = FALSE)
+/datum/nifsoft/medichines_org/deactivate(force = FALSE)
 	if((. = ..()))
 		a_drain = initial(a_drain)
 		mode = initial(mode)
@@ -46,7 +46,7 @@
 			mode = 3
 			if(!isbelly(H.loc)) //Not notified in case of vore, for gameplay purposes.
 				var/turf/T = get_turf(H)
-				var/obj/item/device/radio/headset/a = new /obj/item/device/radio/headset/heads/captain(null)
+				var/obj/item/radio/headset/a = new /obj/item/radio/headset/heads/captain(null)
 				a.autosay("[H.real_name] has been put in emergency stasis, located at ([T.x],[T.y],[T.z])!", "[H.real_name]'s NIF", "Medical")
 				qdel(a)
 
@@ -92,7 +92,7 @@
 	if((. = ..()))
 		mode = 1
 
-/datum/nifsoft/medichines_syn/deactivate(var/force = FALSE)
+/datum/nifsoft/medichines_syn/deactivate(force = FALSE)
 	if((. = ..()))
 		mode = 0
 
@@ -123,13 +123,13 @@
 				else if(mode == 1)
 					mode = 2
 					nif.notify("Medichines unable to repair all damage. Perform manual repairs.",TRUE)
-		
+
 		if(mode == 2 && HP_percent < -0.4) //lets inform someone who might be able to help us that we got toasted and roasted
 			nif.notify("User Status: CRITICAL. Notifying medical!",TRUE)
 			mode = 3 //this does nothing except stop it from repeating over and over and over and over and over and over and over
 			if(!isbelly(S.loc)) //Not notified in case of vore, for gameplay purposes.
 				var/turf/T = get_turf(S)
-				var/obj/item/device/radio/headset/a = new /obj/item/device/radio/headset/heads/captain(null)
+				var/obj/item/radio/headset/a = new /obj/item/radio/headset/heads/captain(null)
 				a.autosay("[S.real_name] is in a critical condition, located at ([T.x],[T.y],[T.z])!", "[S.real_name]'s NIF", "Medical")
 				qdel(a)
 
@@ -155,7 +155,7 @@
 	if((. = ..()))
 		nif.notify("Now taking air from reserves.")
 
-/datum/nifsoft/spare_breath/deactivate(var/force = FALSE)
+/datum/nifsoft/spare_breath/deactivate(force = FALSE)
 	if((. = ..()))
 		nif.notify("Now taking air from environment and refilling reserves.")
 
@@ -186,7 +186,7 @@
 /datum/nifsoft/spare_breath/proc/resp_breath()
 	if(!active) return null
 	var/datum/gas_mixture/breath = new(BREATH_VOLUME)
-	breath.adjust_gas("oxygen", BREATH_MOLES)
+	breath.adjust_gas(GAS_O2, BREATH_MOLES)
 	breath.temperature = T20C
 	return breath
 
@@ -206,7 +206,7 @@
 		deactivate()
 		return TRUE
 
-/datum/nifsoft/mindbackup/deactivate(var/force = FALSE)
+/datum/nifsoft/mindbackup/deactivate(force = FALSE)
 	if((. = ..()))
 		return TRUE
 

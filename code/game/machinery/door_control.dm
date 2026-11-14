@@ -5,9 +5,10 @@
 	icon_state = "doorctrl0"
 	power_channel = ENVIRON
 	layer = ABOVE_WINDOW_LAYER
+	flags = WALL_ITEM
 	var/desiredstate = 0
-	var/exposedwires = 0
-	var/wires = 3
+	var/exposedwires_num = 0
+	var/wires_num = 3
 	/*
 	Bitflag,	1=checkID
 				2=Network Access
@@ -19,15 +20,15 @@
 	active_power_usage = 4
 
 /obj/machinery/button/remote/attack_ai(mob/user as mob)
-	if(wires & 2)
+	if(wires_num & 2)
 		return attack_hand(user)
 	else
 		to_chat(user, "Error, no route to host.")
 
-/obj/machinery/button/remote/attackby(obj/item/weapon/W, mob/user as mob)
+/obj/machinery/button/remote/attackby(obj/item/W, mob/user as mob)
 	return attack_hand(user)
 
-/obj/machinery/button/remote/emag_act(var/remaining_charges, var/mob/user)
+/obj/machinery/button/remote/emag_act(remaining_charges, mob/user)
 	if(LAZYLEN(req_access) || LAZYLEN(req_one_access))
 		LAZYCLEARLIST(req_access)
 		LAZYCLEARLIST(req_one_access)
@@ -42,8 +43,8 @@
 	if(stat & (NOPOWER|BROKEN))
 		return
 
-	if(!allowed(user) && (wires & 1))
-		to_chat(user, "<span class='warning'>Access Denied</span>")
+	if(!allowed(user) && (wires_num & 1))
+		to_chat(user, span_warning("Access Denied"))
 		flick("doorctrl-denied",src)
 		return
 
@@ -51,8 +52,7 @@
 	icon_state = "doorctrl1"
 	desiredstate = !desiredstate
 	trigger(user)
-	spawn(15)
-		update_icon()
+	addtimer(CALLBACK(src, TYPE_PROC_REF(/atom, update_icon)), 1.5 SECONDS, TIMER_DELETE_ME|TIMER_UNIQUE)
 
 /obj/machinery/button/remote/proc/trigger()
 	return
@@ -79,7 +79,7 @@
 #define SAFE   0x10
 
 /obj/machinery/button/remote/airlock
-	icon = 'icons/obj/stationobjs_vr.dmi' // VOREStation Edit
+	icon = 'icons/obj/stationobjs.dmi'
 	name = "remote door-control"
 	desc = "It controls doors, remotely."
 
@@ -93,17 +93,15 @@
 	*/
 
 /obj/machinery/button/remote/airlock/trigger()
-	for(var/obj/machinery/door/airlock/D in machines)
+	for(var/obj/machinery/door/airlock/D in GLOB.machines)
 		if(D.id_tag == id)
 			if(specialfunctions & OPEN)
 				if(D.density)
-					spawn(0)
-						D.open()
-						return
-				else
-					spawn(0)
-						D.close()
-						return
+					D.open()
+					continue
+				D.close()
+				continue
+
 			if(desiredstate == 1)
 				if(specialfunctions & IDSCAN)
 					D.set_idscan(0)
@@ -113,15 +111,16 @@
 					D.electrify(-1)
 				if(specialfunctions & SAFE)
 					D.set_safeties(0)
-			else
-				if(specialfunctions & IDSCAN)
-					D.set_idscan(1)
-				if(specialfunctions & BOLTS)
-					D.unlock()
-				if(specialfunctions & SHOCK)
-					D.electrify(0)
-				if(specialfunctions & SAFE)
-					D.set_safeties(1)
+				continue
+
+			if(specialfunctions & IDSCAN)
+				D.set_idscan(1)
+			if(specialfunctions & BOLTS)
+				D.unlock()
+			if(specialfunctions & SHOCK)
+				D.electrify(0)
+			if(specialfunctions & SAFE)
+				D.set_safeties(1)
 
 #undef OPEN
 #undef IDSCAN
@@ -133,21 +132,17 @@
 	Blast door remote control
 */
 /obj/machinery/button/remote/blast_door
-	icon = 'icons/obj/stationobjs_vr.dmi'
+	icon = 'icons/obj/stationobjs.dmi'
 	name = "remote blast door-control"
 	desc = "It controls blast doors, remotely."
 
 /obj/machinery/button/remote/blast_door/trigger()
-	for(var/obj/machinery/door/blast/M in machines)
+	for(var/obj/machinery/door/blast/M in GLOB.machines)
 		if(M.id == id)
 			if(M.density)
-				spawn(0)
-					M.open()
-					return
+				M.open()
 			else
-				spawn(0)
-					M.close()
-					return
+				M.close()
 
 /*
 	Emitter remote control
@@ -157,11 +152,9 @@
 	desc = "It controls emitters, remotely."
 
 /obj/machinery/button/remote/emitter/trigger(mob/user as mob)
-	for(var/obj/machinery/power/emitter/E in machines)
+	for(var/obj/machinery/power/emitter/E in GLOB.machines)
 		if(E.id == id)
-			spawn(0)
-				E.activate(user)
-				return
+			E.activate(user)
 
 /*
 	Mass driver remote control
@@ -171,35 +164,48 @@
 	desc = "A remote control switch for a mass driver."
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "launcherbtt"
+	circuit = /obj/item/circuitboard/mass_driver_button
 
-/obj/machinery/button/remote/driver/trigger(mob/user as mob)
-	active = 1
+/obj/machinery/button/remote/driver/trigger(mob/user)
+	if(active)
+		return
+	active = TRUE
 	update_icon()
 
-	for(var/obj/machinery/door/blast/M in machines)
+	for(var/obj/machinery/door/blast/M in GLOB.machines)
 		if(M.id == id)
-			spawn(0)
-				M.open()
-				return
+			M.open()
+	addtimer(CALLBACK(src, PROC_REF(trigger_step_one)), 2 SECONDS, TIMER_DELETE_ME|TIMER_UNIQUE)
 
-	sleep(20)
-
-	for(var/obj/machinery/mass_driver/M in machines)
+/obj/machinery/button/remote/driver/proc/trigger_step_one()
+	PRIVATE_PROC(TRUE)
+	for(var/obj/machinery/mass_driver/M in GLOB.machines)
 		if(M.id == id)
 			M.drive()
+	addtimer(CALLBACK(src, PROC_REF(trigger_step_two)), 5 SECONDS, TIMER_DELETE_ME|TIMER_UNIQUE)
 
-	sleep(50)
+/obj/machinery/button/remote/driver/proc/trigger_step_two()
+	PRIVATE_PROC(TRUE)
 
-	for(var/obj/machinery/door/blast/M in machines)
+	for(var/obj/machinery/door/blast/M in GLOB.machines)
 		if(M.id == id)
-			spawn(0)
-				M.close()
-				return
+			M.close()
 
-	icon_state = "launcherbtt"
+	active = FALSE
 	update_icon()
 
-	return
+/obj/machinery/button/remote/driver/attackby(obj/item/I, mob/user)
+	//Swiping ID on the access button
+	if (istype(I, /obj/item/card/id) || istype(I, /obj/item/pda))
+		attack_hand(user)
+		return
+	if(I.has_tool_quality(TOOL_MULTITOOL))
+		var/new_id = tgui_input_number(user, "[src] has an id of \"[id]\". What would you like it to be?", "[src] ID]", id, 9999)
+		if(!Adjacent(user)) //walked away
+			to_chat(user, span_warning(span_warning("You need to be adjacent to the remote to change its id.")))
+			return
+		if(new_id)
+			id = new_id
 
 /obj/machinery/button/remote/driver/update_icon()
 	if(!active || (stat & NOPOWER))
@@ -213,11 +219,30 @@
 /obj/machinery/button/remote/shields
 	name = "remote shield control"
 	desc = "It controls shields, remotely."
-	icon = 'icons/obj/stationobjs_vr.dmi' // VOREStation Edit
+	icon = 'icons/obj/stationobjs.dmi'
 
-/obj/machinery/button/remote/shields/trigger(var/mob/user)
-	for(var/obj/machinery/shield_gen/SG in machines)
+/obj/machinery/button/remote/shields/trigger(mob/user)
+	for(var/obj/machinery/shield_gen/SG in GLOB.machines)
 		if(SG.id == id)
-			spawn(0)
-				if(SG?.anchored)
-					SG.toggle()
+			if(SG?.anchored)
+				SG.toggle()
+
+/obj/machinery/button/remote/airlock/release
+	icon = 'icons/obj/door_release.dmi'
+	name = "emergency door release"
+	desc = "Forces the opening of doors in an emergency, regardless of whether they're powered."
+
+	use_power = USE_POWER_OFF
+	idle_power_usage = 0
+	active_power_usage = 0
+
+/obj/machinery/button/remote/airlock/release/trigger()
+	for(var/obj/machinery/door/airlock/D in GLOB.machines)
+		if(D.id_tag == id)
+			if(D.locked)
+				D.unlock(1)
+			if(D.density)
+				D.open(1)
+
+/obj/machinery/button/remote/airlock/release/powered()
+	return 1 //Is always able to be used
